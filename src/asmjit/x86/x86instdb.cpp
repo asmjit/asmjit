@@ -2101,342 +2101,342 @@ const uint32_t InstDB::_altOpcodeTable[] = {
 #define SAME_REG_HINT(VAL) uint8_t(InstSameRegHint::k##VAL)
 const InstDB::CommonInfo InstDB::_commonInfoTable[] = {
   { 0                                                 , 0                             , 0  , 0 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #0 [ref=1x]
-  { 0                                                 , 0                             , 488, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #1 [ref=4x]
-  { 0                                                 , 0                             , 489, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #2 [ref=2x]
+  { 0                                                 , 0                             , 487, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #1 [ref=4x]
+  { 0                                                 , 0                             , 488, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #2 [ref=2x]
   { 0                                                 , 0                             , 143, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #3 [ref=6x]
   { F(Lock)|F(XAcquire)|F(XRelease)                   , 0                             , 20 , 13, CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #4 [ref=2x]
   { 0                                                 , 0                             , 77 , 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #5 [ref=2x]
   { F(Vec)                                            , 0                             , 99 , 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #6 [ref=54x]
   { F(Vec)                                            , 0                             , 172, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #7 [ref=19x]
-  { F(Vec)                                            , 0                             , 316, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #8 [ref=16x]
-  { F(Vec)                                            , 0                             , 325, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #9 [ref=20x]
+  { F(Vec)                                            , 0                             , 313, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #8 [ref=16x]
+  { F(Vec)                                            , 0                             , 322, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #9 [ref=20x]
   { F(Lock)|F(XAcquire)|F(XRelease)                   , 0                             , 33 , 13, CONTROL_FLOW(Regular), SAME_REG_HINT(RO)}, // #10 [ref=1x]
-  { F(Vex)                                            , 0                             , 358, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #11 [ref=3x]
+  { F(Vex)                                            , 0                             , 355, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #11 [ref=3x]
   { F(Vec)                                            , 0                             , 99 , 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(RO)}, // #12 [ref=12x]
-  { 0                                                 , 0                             , 490, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #13 [ref=1x]
-  { F(Vex)                                            , 0                             , 360, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #14 [ref=5x]
+  { 0                                                 , 0                             , 489, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #13 [ref=1x]
+  { F(Vex)                                            , 0                             , 357, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #14 [ref=5x]
   { F(Vex)                                            , 0                             , 77 , 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #15 [ref=12x]
-  { F(Vec)                                            , 0                             , 491, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #16 [ref=4x]
-  { 0                                                 , 0                             , 362, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #17 [ref=3x]
-  { F(Mib)                                            , 0                             , 492, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #18 [ref=1x]
-  { 0                                                 , 0                             , 493, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #19 [ref=1x]
-  { 0                                                 , 0                             , 364, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #20 [ref=1x]
-  { F(Mib)                                            , 0                             , 494, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #21 [ref=1x]
-  { 0                                                 , 0                             , 366, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #22 [ref=1x]
+  { F(Vec)                                            , 0                             , 490, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #16 [ref=4x]
+  { 0                                                 , 0                             , 359, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #17 [ref=3x]
+  { F(Mib)                                            , 0                             , 491, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #18 [ref=1x]
+  { 0                                                 , 0                             , 492, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #19 [ref=1x]
+  { 0                                                 , 0                             , 361, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #20 [ref=1x]
+  { F(Mib)                                            , 0                             , 493, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #21 [ref=1x]
+  { 0                                                 , 0                             , 363, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #22 [ref=1x]
   { 0                                                 , 0                             , 76 , 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #23 [ref=21x]
-  { 0                                                 , 0                             , 368, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #24 [ref=3x]
+  { 0                                                 , 0                             , 365, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #24 [ref=3x]
   { 0                                                 , 0                             , 163, 5 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #25 [ref=1x]
   { F(Lock)|F(XAcquire)|F(XRelease)                   , 0                             , 163, 5 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #26 [ref=3x]
   { F(Rep)|F(RepIgnored)                              , 0                             , 268, 3 , CONTROL_FLOW(Call), SAME_REG_HINT(None)}, // #27 [ref=1x]
-  { 0                                                 , 0                             , 495, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #28 [ref=1x]
-  { 0                                                 , 0                             , 496, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #29 [ref=2x]
-  { 0                                                 , 0                             , 469, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #30 [ref=1x]
+  { 0                                                 , 0                             , 494, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #28 [ref=1x]
+  { 0                                                 , 0                             , 495, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #29 [ref=2x]
+  { 0                                                 , 0                             , 468, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #30 [ref=1x]
   { 0                                                 , 0                             , 145, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #31 [ref=88x]
-  { 0                                                 , 0                             , 497, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #32 [ref=24x]
-  { 0                                                 , 0                             , 498, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #33 [ref=6x]
-  { 0                                                 , 0                             , 499, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #34 [ref=14x]
-  { 0                                                 , 0                             , 500, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #35 [ref=1x]
+  { 0                                                 , 0                             , 496, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #32 [ref=24x]
+  { 0                                                 , 0                             , 497, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #33 [ref=6x]
+  { 0                                                 , 0                             , 498, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #34 [ref=14x]
+  { 0                                                 , 0                             , 499, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #35 [ref=1x]
   { 0                                                 , 0                             , 46 , 13, CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #36 [ref=1x]
-  { F(Vex)                                            , 0                             , 370, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #37 [ref=16x]
+  { F(Vex)                                            , 0                             , 367, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #37 [ref=16x]
   { F(Rep)                                            , 0                             , 208, 4 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #38 [ref=1x]
-  { F(Vec)                                            , 0                             , 501, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #39 [ref=2x]
-  { F(Vec)                                            , 0                             , 502, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #40 [ref=3x]
+  { F(Vec)                                            , 0                             , 500, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #39 [ref=2x]
+  { F(Vec)                                            , 0                             , 501, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #40 [ref=3x]
   { F(Lock)|F(XAcquire)|F(XRelease)                   , 0                             , 212, 4 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #41 [ref=1x]
-  { F(Lock)|F(XAcquire)|F(XRelease)                   , 0                             , 503, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #42 [ref=1x]
-  { F(Lock)|F(XAcquire)|F(XRelease)                   , 0                             , 504, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #43 [ref=1x]
-  { 0                                                 , 0                             , 505, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #44 [ref=1x]
-  { 0                                                 , 0                             , 506, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #45 [ref=1x]
-  { 0                                                 , 0                             , 372, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #46 [ref=1x]
-  { F(Mmx)|F(Vec)                                     , 0                             , 507, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #47 [ref=2x]
-  { F(Mmx)|F(Vec)                                     , 0                             , 508, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #48 [ref=2x]
-  { F(Mmx)|F(Vec)                                     , 0                             , 509, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #49 [ref=2x]
-  { F(Vec)                                            , 0                             , 374, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #50 [ref=2x]
-  { F(Vec)                                            , 0                             , 376, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #51 [ref=2x]
-  { F(Vec)                                            , 0                             , 378, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #52 [ref=2x]
-  { 0                                                 , 0                             , 510, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #53 [ref=1x]
-  { 0                                                 , 0                             , 511, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #54 [ref=2x]
+  { F(Lock)|F(XAcquire)|F(XRelease)                   , 0                             , 502, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #42 [ref=1x]
+  { F(Lock)|F(XAcquire)|F(XRelease)                   , 0                             , 503, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #43 [ref=1x]
+  { 0                                                 , 0                             , 504, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #44 [ref=1x]
+  { 0                                                 , 0                             , 505, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #45 [ref=1x]
+  { 0                                                 , 0                             , 369, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #46 [ref=1x]
+  { F(Mmx)|F(Vec)                                     , 0                             , 506, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #47 [ref=2x]
+  { F(Mmx)|F(Vec)                                     , 0                             , 507, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #48 [ref=2x]
+  { F(Mmx)|F(Vec)                                     , 0                             , 508, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #49 [ref=2x]
+  { F(Vec)                                            , 0                             , 371, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #50 [ref=2x]
+  { F(Vec)                                            , 0                             , 373, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #51 [ref=2x]
+  { F(Vec)                                            , 0                             , 375, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #52 [ref=2x]
+  { 0                                                 , 0                             , 509, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #53 [ref=1x]
+  { 0                                                 , 0                             , 510, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #54 [ref=2x]
   { F(Lock)|F(XAcquire)|F(XRelease)                   , 0                             , 271, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #55 [ref=1x]
   { 0                                                 , 0                             , 72 , 4 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #56 [ref=3x]
   { F(Mmx)                                            , 0                             , 145, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #57 [ref=1x]
-  { 0                                                 , 0                             , 380, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #58 [ref=2x]
-  { 0                                                 , 0                             , 512, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #59 [ref=1x]
-  { F(Vec)                                            , 0                             , 513, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #60 [ref=2x]
-  { F(Vec)                                            , 0                             , 382, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #61 [ref=1x]
+  { 0                                                 , 0                             , 377, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #58 [ref=2x]
+  { 0                                                 , 0                             , 511, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #59 [ref=1x]
+  { F(Vec)                                            , 0                             , 512, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #60 [ref=2x]
+  { F(Vec)                                            , 0                             , 379, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #61 [ref=1x]
   { F(FpuM32)|F(FpuM64)                               , 0                             , 274, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #62 [ref=6x]
-  { 0                                                 , 0                             , 384, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #63 [ref=9x]
-  { F(FpuM80)                                         , 0                             , 514, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #64 [ref=2x]
-  { 0                                                 , 0                             , 385, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #65 [ref=13x]
-  { F(FpuM32)|F(FpuM64)                               , 0                             , 386, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #66 [ref=2x]
-  { F(FpuM16)|F(FpuM32)                               , 0                             , 515, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #67 [ref=9x]
-  { F(FpuM16)|F(FpuM32)|F(FpuM64)                     , 0                             , 516, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #68 [ref=3x]
-  { F(FpuM32)|F(FpuM64)|F(FpuM80)                     , 0                             , 517, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #69 [ref=2x]
-  { F(FpuM16)                                         , 0                             , 518, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #70 [ref=3x]
-  { F(FpuM16)                                         , 0                             , 519, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #71 [ref=2x]
-  { F(FpuM32)|F(FpuM64)                               , 0                             , 387, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #72 [ref=1x]
-  { 0                                                 , 0                             , 520, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #73 [ref=4x]
-  { 0                                                 , 0                             , 521, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #74 [ref=1x]
-  { 0                                                 , 0                             , 522, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #75 [ref=1x]
+  { 0                                                 , 0                             , 381, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #63 [ref=9x]
+  { F(FpuM80)                                         , 0                             , 513, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #64 [ref=2x]
+  { 0                                                 , 0                             , 382, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #65 [ref=13x]
+  { F(FpuM32)|F(FpuM64)                               , 0                             , 383, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #66 [ref=2x]
+  { F(FpuM16)|F(FpuM32)                               , 0                             , 514, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #67 [ref=9x]
+  { F(FpuM16)|F(FpuM32)|F(FpuM64)                     , 0                             , 515, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #68 [ref=3x]
+  { F(FpuM32)|F(FpuM64)|F(FpuM80)                     , 0                             , 516, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #69 [ref=2x]
+  { F(FpuM16)                                         , 0                             , 517, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #70 [ref=3x]
+  { F(FpuM16)                                         , 0                             , 518, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #71 [ref=2x]
+  { F(FpuM32)|F(FpuM64)                               , 0                             , 384, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #72 [ref=1x]
+  { 0                                                 , 0                             , 519, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #73 [ref=4x]
+  { 0                                                 , 0                             , 520, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #74 [ref=1x]
+  { 0                                                 , 0                             , 521, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #75 [ref=1x]
   { 0                                                 , 0                             , 72 , 10, CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #76 [ref=1x]
-  { 0                                                 , 0                             , 523, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #77 [ref=1x]
+  { 0                                                 , 0                             , 522, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #77 [ref=1x]
   { F(Lock)                                           , 0                             , 271, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #78 [ref=1x]
-  { 0                                                 , 0                             , 410, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #79 [ref=2x]
-  { 0                                                 , 0                             , 369, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #80 [ref=3x]
-  { F(Rep)                                            , 0                             , 524, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #81 [ref=1x]
-  { F(Vec)                                            , 0                             , 388, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #82 [ref=1x]
-  { 0                                                 , 0                             , 525, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #83 [ref=2x]
-  { 0                                                 , 0                             , 526, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #84 [ref=8x]
-  { 0                                                 , 0                             , 390, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #85 [ref=3x]
-  { 0                                                 , 0                             , 392, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #86 [ref=1x]
-  { 0                                                 , 0                             , 394, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #87 [ref=1x]
+  { 0                                                 , 0                             , 407, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #79 [ref=2x]
+  { 0                                                 , 0                             , 366, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #80 [ref=3x]
+  { F(Rep)                                            , 0                             , 523, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #81 [ref=1x]
+  { F(Vec)                                            , 0                             , 385, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #82 [ref=1x]
+  { 0                                                 , 0                             , 524, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #83 [ref=2x]
+  { 0                                                 , 0                             , 525, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #84 [ref=8x]
+  { 0                                                 , 0                             , 387, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #85 [ref=3x]
+  { 0                                                 , 0                             , 389, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #86 [ref=1x]
+  { 0                                                 , 0                             , 391, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #87 [ref=1x]
   { 0                                                 , 0                             , 145, 1 , CONTROL_FLOW(Return), SAME_REG_HINT(None)}, // #88 [ref=2x]
-  { 0                                                 , 0                             , 499, 1 , CONTROL_FLOW(Return), SAME_REG_HINT(None)}, // #89 [ref=1x]
-  { F(Rep)                                            , 0                             , 396, 2 , CONTROL_FLOW(Branch), SAME_REG_HINT(None)}, // #90 [ref=12x]
-  { F(Rep)                                            , 0                             , 398, 2 , CONTROL_FLOW(Branch), SAME_REG_HINT(None)}, // #91 [ref=1x]
+  { 0                                                 , 0                             , 498, 1 , CONTROL_FLOW(Return), SAME_REG_HINT(None)}, // #89 [ref=1x]
+  { F(Rep)                                            , 0                             , 393, 2 , CONTROL_FLOW(Branch), SAME_REG_HINT(None)}, // #90 [ref=12x]
+  { F(Rep)                                            , 0                             , 395, 2 , CONTROL_FLOW(Branch), SAME_REG_HINT(None)}, // #91 [ref=1x]
   { F(Rep)                                            , 0                             , 277, 3 , CONTROL_FLOW(Jump), SAME_REG_HINT(None)}, // #92 [ref=1x]
-  { F(Rep)                                            , 0                             , 396, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #93 [ref=4x]
-  { F(Vex)                                            , 0                             , 527, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #94 [ref=19x]
-  { F(Vex)                                            , 0                             , 400, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #95 [ref=1x]
-  { F(Vex)                                            , 0                             , 402, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #96 [ref=1x]
+  { F(Rep)                                            , 0                             , 393, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #93 [ref=4x]
+  { F(Vex)                                            , 0                             , 526, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #94 [ref=19x]
+  { F(Vex)                                            , 0                             , 397, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #95 [ref=1x]
+  { F(Vex)                                            , 0                             , 399, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #96 [ref=1x]
   { F(Vex)                                            , 0                             , 216, 4 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #97 [ref=1x]
-  { F(Vex)                                            , 0                             , 404, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #98 [ref=1x]
-  { F(Vex)                                            , 0                             , 528, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #99 [ref=12x]
-  { F(Vex)                                            , 0                             , 529, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #100 [ref=8x]
-  { F(Vex)                                            , 0                             , 527, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(WO)}, // #101 [ref=8x]
-  { 0                                                 , 0                             , 530, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #102 [ref=2x]
+  { F(Vex)                                            , 0                             , 401, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #98 [ref=1x]
+  { F(Vex)                                            , 0                             , 527, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #99 [ref=12x]
+  { F(Vex)                                            , 0                             , 528, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #100 [ref=8x]
+  { F(Vex)                                            , 0                             , 526, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(WO)}, // #101 [ref=8x]
+  { 0                                                 , 0                             , 529, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #102 [ref=2x]
   { 0                                                 , 0                             , 286, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #103 [ref=1x]
   { 0                                                 , 0                             , 280, 3 , CONTROL_FLOW(Call), SAME_REG_HINT(None)}, // #104 [ref=1x]
   { F(Vec)                                            , 0                             , 198, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #105 [ref=2x]
-  { 0                                                 , 0                             , 531, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #106 [ref=2x]
-  { 0                                                 , 0                             , 406, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #107 [ref=2x]
-  { F(Vex)                                            , 0                             , 532, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #108 [ref=2x]
-  { 0                                                 , 0                             , 408, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #109 [ref=1x]
+  { 0                                                 , 0                             , 530, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #106 [ref=2x]
+  { 0                                                 , 0                             , 403, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #107 [ref=2x]
+  { F(Vex)                                            , 0                             , 531, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #108 [ref=2x]
+  { 0                                                 , 0                             , 405, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #109 [ref=1x]
   { 0                                                 , 0                             , 283, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #110 [ref=3x]
   { 0                                                 , 0                             , 280, 3 , CONTROL_FLOW(Jump), SAME_REG_HINT(None)}, // #111 [ref=1x]
-  { 0                                                 , 0                             , 533, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #112 [ref=5x]
-  { F(Vex)                                            , 0                             , 410, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #113 [ref=2x]
+  { 0                                                 , 0                             , 532, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #112 [ref=5x]
+  { F(Vex)                                            , 0                             , 407, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #113 [ref=2x]
   { F(Rep)                                            , 0                             , 220, 4 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #114 [ref=1x]
-  { 0                                                 , 0                             , 398, 2 , CONTROL_FLOW(Branch), SAME_REG_HINT(None)}, // #115 [ref=3x]
+  { 0                                                 , 0                             , 395, 2 , CONTROL_FLOW(Branch), SAME_REG_HINT(None)}, // #115 [ref=3x]
   { 0                                                 , 0                             , 286, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #116 [ref=1x]
-  { F(Vex)                                            , 0                             , 412, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #117 [ref=2x]
-  { F(Vec)                                            , 0                             , 534, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #118 [ref=1x]
-  { F(Mmx)                                            , 0                             , 535, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #119 [ref=1x]
-  { 0                                                 , 0                             , 536, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #120 [ref=2x]
+  { F(Vex)                                            , 0                             , 409, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #117 [ref=2x]
+  { F(Vec)                                            , 0                             , 533, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #118 [ref=1x]
+  { F(Mmx)                                            , 0                             , 534, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #119 [ref=1x]
+  { 0                                                 , 0                             , 535, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #120 [ref=2x]
   { F(XRelease)                                       , 0                             , 0  , 20, CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #121 [ref=1x]
   { 0                                                 , 0                             , 82 , 9 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #122 [ref=1x]
-  { F(Vec)                                            , 0                             , 414, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #123 [ref=6x]
+  { F(Vec)                                            , 0                             , 411, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #123 [ref=6x]
   { 0                                                 , 0                             , 139, 6 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #124 [ref=1x]
-  { F(Mmx)|F(Vec)                                     , 0                             , 416, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #125 [ref=1x]
-  { 0                                                 , 0                             , 418, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #126 [ref=1x]
-  { F(Mmx)|F(Vec)                                     , 0                             , 537, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #127 [ref=1x]
-  { F(Vec)                                            , 0                             , 383, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #128 [ref=2x]
+  { F(Mmx)|F(Vec)                                     , 0                             , 413, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #125 [ref=1x]
+  { 0                                                 , 0                             , 415, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #126 [ref=1x]
+  { F(Mmx)|F(Vec)                                     , 0                             , 536, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #127 [ref=1x]
+  { F(Vec)                                            , 0                             , 380, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #128 [ref=2x]
   { F(Vec)                                            , 0                             , 107, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #129 [ref=4x]
-  { F(Vec)                                            , 0                             , 538, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #130 [ref=2x]
+  { F(Vec)                                            , 0                             , 537, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #130 [ref=2x]
   { F(Vec)                                            , 0                             , 101, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #131 [ref=3x]
-  { F(Mmx)                                            , 0                             , 539, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #132 [ref=1x]
+  { F(Mmx)                                            , 0                             , 538, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #132 [ref=1x]
   { F(Vec)                                            , 0                             , 107, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #133 [ref=1x]
   { F(Vec)                                            , 0                             , 115, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #134 [ref=1x]
   { F(Mmx)|F(Vec)                                     , 0                             , 168, 5 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #135 [ref=1x]
-  { F(Mmx)|F(Vec)                                     , 0                             , 540, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #136 [ref=1x]
+  { F(Mmx)|F(Vec)                                     , 0                             , 539, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #136 [ref=1x]
   { F(Rep)                                            , 0                             , 224, 4 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #137 [ref=1x]
-  { F(Vec)                                            , 0                             , 420, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #138 [ref=1x]
-  { F(Vec)                                            , 0                             , 422, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #139 [ref=1x]
+  { F(Vec)                                            , 0                             , 417, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #138 [ref=1x]
+  { F(Vec)                                            , 0                             , 419, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #139 [ref=1x]
   { 0                                                 , 0                             , 289, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #140 [ref=2x]
-  { 0                                                 , 0                             , 424, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #141 [ref=1x]
-  { F(Vex)                                            , 0                             , 426, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #142 [ref=1x]
-  { 0                                                 , 0                             , 541, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #143 [ref=1x]
-  { 0                                                 , 0                             , 542, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #144 [ref=1x]
+  { 0                                                 , 0                             , 421, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #141 [ref=1x]
+  { F(Vex)                                            , 0                             , 423, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #142 [ref=1x]
+  { 0                                                 , 0                             , 540, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #143 [ref=1x]
+  { 0                                                 , 0                             , 541, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #144 [ref=1x]
   { F(Lock)|F(XAcquire)|F(XRelease)                   , 0                             , 272, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #145 [ref=2x]
   { 0                                                 , 0                             , 145, 6 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #146 [ref=1x]
   { F(Lock)|F(XAcquire)|F(XRelease)                   , 0                             , 59 , 13, CONTROL_FLOW(Regular), SAME_REG_HINT(RO)}, // #147 [ref=1x]
-  { 0                                                 , 0                             , 543, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #148 [ref=1x]
-  { F(Rep)                                            , 0                             , 544, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #149 [ref=1x]
-  { F(Mmx)|F(Vec)                                     , 0                             , 428, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #150 [ref=37x]
-  { F(Mmx)|F(Vec)                                     , 0                             , 430, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #151 [ref=1x]
-  { F(Mmx)|F(Vec)                                     , 0                             , 428, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(RO)}, // #152 [ref=6x]
-  { F(Mmx)|F(Vec)                                     , 0                             , 428, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(WO)}, // #153 [ref=16x]
+  { 0                                                 , 0                             , 542, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #148 [ref=1x]
+  { F(Rep)                                            , 0                             , 543, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #149 [ref=1x]
+  { F(Mmx)|F(Vec)                                     , 0                             , 425, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #150 [ref=37x]
+  { F(Mmx)|F(Vec)                                     , 0                             , 427, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #151 [ref=1x]
+  { F(Mmx)|F(Vec)                                     , 0                             , 425, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(RO)}, // #152 [ref=6x]
+  { F(Mmx)|F(Vec)                                     , 0                             , 425, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(WO)}, // #153 [ref=16x]
   { F(Mmx)                                            , 0                             , 168, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #154 [ref=26x]
   { F(Vec)                                            , 0                             , 99 , 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(WO)}, // #155 [ref=4x]
-  { F(Vec)                                            , 0                             , 545, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #156 [ref=1x]
-  { F(Vec)                                            , 0                             , 546, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #157 [ref=1x]
-  { F(Vec)                                            , 0                             , 547, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #158 [ref=1x]
-  { F(Vec)                                            , 0                             , 548, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #159 [ref=1x]
-  { F(Vec)                                            , 0                             , 549, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #160 [ref=1x]
-  { F(Vec)                                            , 0                             , 550, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #161 [ref=1x]
-  { F(Mmx)|F(Vec)                                     , 0                             , 432, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #162 [ref=1x]
-  { F(Vec)                                            , 0                             , 551, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #163 [ref=1x]
-  { F(Vec)                                            , 0                             , 552, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #164 [ref=1x]
-  { F(Vec)                                            , 0                             , 553, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #165 [ref=1x]
-  { F(Mmx)|F(Vec)                                     , 0                             , 554, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #166 [ref=1x]
-  { F(Mmx)|F(Vec)                                     , 0                             , 555, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #167 [ref=1x]
-  { F(Vec)                                            , 0                             , 346, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #168 [ref=2x]
+  { F(Vec)                                            , 0                             , 544, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #156 [ref=1x]
+  { F(Vec)                                            , 0                             , 545, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #157 [ref=1x]
+  { F(Vec)                                            , 0                             , 546, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #158 [ref=1x]
+  { F(Vec)                                            , 0                             , 547, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #159 [ref=1x]
+  { F(Vec)                                            , 0                             , 548, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #160 [ref=1x]
+  { F(Vec)                                            , 0                             , 549, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #161 [ref=1x]
+  { F(Mmx)|F(Vec)                                     , 0                             , 429, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #162 [ref=1x]
+  { F(Vec)                                            , 0                             , 550, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #163 [ref=1x]
+  { F(Vec)                                            , 0                             , 551, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #164 [ref=1x]
+  { F(Vec)                                            , 0                             , 552, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #165 [ref=1x]
+  { F(Mmx)|F(Vec)                                     , 0                             , 553, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #166 [ref=1x]
+  { F(Mmx)|F(Vec)                                     , 0                             , 554, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #167 [ref=1x]
+  { F(Vec)                                            , 0                             , 343, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #168 [ref=2x]
   { 0                                                 , 0                             , 173, 5 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #169 [ref=1x]
-  { F(Mmx)                                            , 0                             , 430, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #170 [ref=1x]
-  { F(Mmx)|F(Vec)                                     , 0                             , 434, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #171 [ref=8x]
-  { F(Vec)                                            , 0                             , 556, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #172 [ref=2x]
-  { 0                                                 , 0                             , 436, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #173 [ref=1x]
-  { F(Mmx)|F(Vec)                                     , 0                             , 438, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #174 [ref=3x]
+  { F(Mmx)                                            , 0                             , 427, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #170 [ref=1x]
+  { F(Mmx)|F(Vec)                                     , 0                             , 431, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #171 [ref=8x]
+  { F(Vec)                                            , 0                             , 555, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #172 [ref=2x]
+  { 0                                                 , 0                             , 433, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #173 [ref=1x]
+  { F(Mmx)|F(Vec)                                     , 0                             , 435, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #174 [ref=3x]
   { 0                                                 , 0                             , 178, 5 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #175 [ref=1x]
-  { 0                                                 , 0                             , 557, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #176 [ref=1x]
-  { 0                                                 , 0                             , 440, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #177 [ref=7x]
-  { 0                                                 , 0                             , 558, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #178 [ref=4x]
-  { F(Evex)|F(EvexCompat)|F(Vex)                      , 0                             , 292, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #179 [ref=1x]
-  { 0                                                 , 0                             , 442, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #180 [ref=1x]
-  { 0                                                 , 0                             , 292, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #181 [ref=7x]
-  { F(Rep)|F(RepIgnored)                              , 0                             , 444, 2 , CONTROL_FLOW(Return), SAME_REG_HINT(None)}, // #182 [ref=1x]
-  { 0                                                 , 0                             , 444, 2 , CONTROL_FLOW(Return), SAME_REG_HINT(None)}, // #183 [ref=1x]
-  { F(Vex)                                            , 0                             , 446, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #184 [ref=1x]
+  { 0                                                 , 0                             , 556, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #176 [ref=1x]
+  { 0                                                 , 0                             , 437, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #177 [ref=7x]
+  { 0                                                 , 0                             , 557, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #178 [ref=4x]
+  { F(Vex)                                            , 0                             , 439, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #179 [ref=1x]
+  { 0                                                 , 0                             , 441, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #180 [ref=1x]
+  { 0                                                 , 0                             , 439, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #181 [ref=7x]
+  { F(Rep)|F(RepIgnored)                              , 0                             , 443, 2 , CONTROL_FLOW(Return), SAME_REG_HINT(None)}, // #182 [ref=1x]
+  { 0                                                 , 0                             , 443, 2 , CONTROL_FLOW(Return), SAME_REG_HINT(None)}, // #183 [ref=1x]
+  { F(Vex)                                            , 0                             , 445, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #184 [ref=1x]
   { F(Lock)|F(XAcquire)|F(XRelease)                   , 0                             , 20 , 13, CONTROL_FLOW(Regular), SAME_REG_HINT(WO)}, // #185 [ref=3x]
   { F(Rep)                                            , 0                             , 228, 4 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #186 [ref=1x]
-  { 0                                                 , 0                             , 559, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #187 [ref=16x]
-  { 0                                                 , 0                             , 295, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #188 [ref=2x]
-  { 0                                                 , 0                             , 448, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #189 [ref=3x]
+  { 0                                                 , 0                             , 558, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #187 [ref=16x]
+  { 0                                                 , 0                             , 292, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #188 [ref=2x]
+  { 0                                                 , 0                             , 447, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #189 [ref=3x]
   { F(Rep)                                            , 0                             , 232, 4 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #190 [ref=1x]
-  { F(Vex)                                            , 0                             , 560, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #191 [ref=8x]
+  { F(Vex)                                            , 0                             , 559, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #191 [ref=8x]
   { 0                                                 , 0                             , 91 , 8 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #192 [ref=1x]
-  { F(Tsib)|F(Vex)                                    , 0                             , 561, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #193 [ref=2x]
-  { F(Vex)                                            , 0                             , 499, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #194 [ref=1x]
-  { F(Tsib)|F(Vex)                                    , 0                             , 562, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #195 [ref=1x]
-  { F(Vex)                                            , 0                             , 563, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #196 [ref=1x]
-  { 0                                                 , 0                             , 564, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #197 [ref=2x]
+  { F(Tsib)|F(Vex)                                    , 0                             , 560, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #193 [ref=2x]
+  { F(Vex)                                            , 0                             , 498, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #194 [ref=1x]
+  { F(Tsib)|F(Vex)                                    , 0                             , 561, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #195 [ref=1x]
+  { F(Vex)                                            , 0                             , 562, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #196 [ref=1x]
+  { 0                                                 , 0                             , 563, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #197 [ref=2x]
   { 0                                                 , 0                             , 77 , 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #198 [ref=2x]
-  { 0                                                 , 0                             , 450, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #199 [ref=1x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B64)|X(ER)|X(K)|X(SAE)|X(Z) , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #200 [ref=22x]
-  { F(Evex)|F(Vec)                                    , X(B16)|X(ER)|X(K)|X(SAE)|X(Z) , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #201 [ref=23x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B32)|X(ER)|X(K)|X(SAE)|X(Z) , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #202 [ref=22x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(ER)|X(K)|X(SAE)|X(Z)        , 565, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #203 [ref=18x]
-  { F(Evex)|F(Vec)                                    , X(ER)|X(K)|X(SAE)|X(Z)        , 566, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #204 [ref=18x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(ER)|X(K)|X(SAE)|X(Z)        , 567, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #205 [ref=17x]
-  { F(Vec)|F(Vex)                                     , 0                             , 298, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #206 [ref=29x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , 0                             , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #207 [ref=5x]
+  { 0                                                 , 0                             , 449, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #199 [ref=1x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B64)|X(ER)|X(K)|X(SAE)|X(Z) , 295, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #200 [ref=22x]
+  { F(Evex)|F(Vec)                                    , X(B16)|X(ER)|X(K)|X(SAE)|X(Z) , 295, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #201 [ref=23x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B32)|X(ER)|X(K)|X(SAE)|X(Z) , 295, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #202 [ref=22x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(ER)|X(K)|X(SAE)|X(Z)        , 564, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #203 [ref=18x]
+  { F(Evex)|F(Vec)                                    , X(ER)|X(K)|X(SAE)|X(Z)        , 565, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #204 [ref=18x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(ER)|X(K)|X(SAE)|X(Z)        , 566, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #205 [ref=17x]
+  { F(Vec)|F(Vex)                                     , 0                             , 295, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #206 [ref=29x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , 0                             , 295, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #207 [ref=5x]
   { F(Vec)|F(Vex)                                     , 0                             , 99 , 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #208 [ref=17x]
-  { F(Vec)|F(Vex)                                     , 0                             , 325, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #209 [ref=1x]
-  { F(Evex)|F(Vec)                                    , X(B32)|X(K)|X(Z)              , 301, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #210 [ref=4x]
-  { F(Evex)|F(Vec)                                    , X(B64)|X(K)|X(Z)              , 301, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #211 [ref=4x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B64)|X(K)|X(Z)              , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #212 [ref=10x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B32)|X(K)|X(Z)              , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #213 [ref=12x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B64)|X(K)|X(Z)              , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(RO)}, // #214 [ref=2x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B32)|X(K)|X(Z)              , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(RO)}, // #215 [ref=6x]
-  { F(Vec)|F(Vex)                                     , 0                             , 568, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #216 [ref=2x]
-  { F(Evex)|F(Vec)                                    , X(B64)|X(K)|X(Z)              , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #217 [ref=17x]
-  { F(Evex)|F(Vec)                                    , X(B32)|X(K)|X(Z)              , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #218 [ref=12x]
-  { F(Vec)|F(Vex)                                     , 0                             , 301, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #219 [ref=6x]
-  { F(Vec)|F(Vex)                                     , 0                             , 452, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #220 [ref=3x]
-  { F(EvexTransformable)|F(Vec)|F(Vex)                , 0                             , 569, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #221 [ref=2x]
-  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 570, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #222 [ref=1x]
-  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 571, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #223 [ref=4x]
-  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 572, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #224 [ref=4x]
-  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 478, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #225 [ref=1x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 570, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #226 [ref=1x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 573, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #227 [ref=1x]
-  { F(Evex)|F(EvexKReg)|F(Vec)|F(Vex)                 , X(B64)|X(ImplicitZ)|X(K)|X(SAE), 304, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #228 [ref=1x]
-  { F(Evex)|F(Vec)                                    , X(B16)|X(ImplicitZ)|X(K)|X(SAE), 307, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #229 [ref=1x]
-  { F(Evex)|F(EvexKReg)|F(Vec)|F(Vex)                 , X(B32)|X(ImplicitZ)|X(K)|X(SAE), 304, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #230 [ref=1x]
-  { F(Evex)|F(EvexKReg)|F(Vec)|F(Vex)                 , X(ImplicitZ)|X(K)|X(SAE)      , 574, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #231 [ref=1x]
-  { F(Evex)|F(Vec)                                    , X(ImplicitZ)|X(K)|X(SAE)      , 575, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #232 [ref=1x]
-  { F(Evex)|F(EvexKReg)|F(Vec)|F(Vex)                 , X(ImplicitZ)|X(K)|X(SAE)      , 576, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #233 [ref=1x]
+  { F(Vec)|F(Vex)                                     , 0                             , 322, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #209 [ref=1x]
+  { F(Evex)|F(Vec)                                    , X(B32)|X(K)|X(Z)              , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #210 [ref=4x]
+  { F(Evex)|F(Vec)                                    , X(B64)|X(K)|X(Z)              , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #211 [ref=4x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B64)|X(K)|X(Z)              , 295, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #212 [ref=10x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B32)|X(K)|X(Z)              , 295, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #213 [ref=12x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B64)|X(K)|X(Z)              , 295, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(RO)}, // #214 [ref=2x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B32)|X(K)|X(Z)              , 295, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(RO)}, // #215 [ref=6x]
+  { F(Vec)|F(Vex)                                     , 0                             , 567, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #216 [ref=2x]
+  { F(Evex)|F(Vec)                                    , X(B64)|X(K)|X(Z)              , 295, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #217 [ref=17x]
+  { F(Evex)|F(Vec)                                    , X(B32)|X(K)|X(Z)              , 295, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #218 [ref=12x]
+  { F(Vec)|F(Vex)                                     , 0                             , 298, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #219 [ref=6x]
+  { F(Vec)|F(Vex)                                     , 0                             , 451, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #220 [ref=3x]
+  { F(EvexTransformable)|F(Vec)|F(Vex)                , 0                             , 568, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #221 [ref=2x]
+  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 569, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #222 [ref=1x]
+  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 570, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #223 [ref=4x]
+  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 571, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #224 [ref=4x]
+  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 477, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #225 [ref=1x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 569, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #226 [ref=1x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 572, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #227 [ref=1x]
+  { F(Evex)|F(EvexKReg)|F(Vec)|F(Vex)                 , X(B64)|X(ImplicitZ)|X(K)|X(SAE), 301, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #228 [ref=1x]
+  { F(Evex)|F(Vec)                                    , X(B16)|X(ImplicitZ)|X(K)|X(SAE), 304, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #229 [ref=1x]
+  { F(Evex)|F(EvexKReg)|F(Vec)|F(Vex)                 , X(B32)|X(ImplicitZ)|X(K)|X(SAE), 301, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #230 [ref=1x]
+  { F(Evex)|F(EvexKReg)|F(Vec)|F(Vex)                 , X(ImplicitZ)|X(K)|X(SAE)      , 573, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #231 [ref=1x]
+  { F(Evex)|F(Vec)                                    , X(ImplicitZ)|X(K)|X(SAE)      , 574, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #232 [ref=1x]
+  { F(Evex)|F(EvexKReg)|F(Vec)|F(Vex)                 , X(ImplicitZ)|X(K)|X(SAE)      , 575, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #233 [ref=1x]
   { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(SAE)                        , 172, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #234 [ref=2x]
-  { F(Evex)|F(Vec)                                    , X(SAE)                        , 346, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #235 [ref=2x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(SAE)                        , 316, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #236 [ref=2x]
-  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 310, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #237 [ref=6x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B32)|X(K)|X(Z)              , 313, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #238 [ref=1x]
-  { F(Evex)|F(Vec)                                    , X(B32)|X(ER)|X(K)|X(SAE)|X(Z) , 454, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #239 [ref=3x]
+  { F(Evex)|F(Vec)                                    , X(SAE)                        , 343, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #235 [ref=2x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(SAE)                        , 313, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #236 [ref=2x]
+  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 307, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #237 [ref=6x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B32)|X(K)|X(Z)              , 310, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #238 [ref=1x]
+  { F(Evex)|F(Vec)                                    , X(B32)|X(ER)|X(K)|X(SAE)|X(Z) , 453, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #239 [ref=3x]
   { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B32)|X(ER)|X(K)|X(SAE)|X(Z) , 151, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #240 [ref=3x]
   { F(Vec)|F(Vex)                                     , 0                             , 198, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #241 [ref=5x]
-  { F(Evex)|F(EvexCompat)|F(PreferEvex)|F(Vec)|F(Vex) , X(B32)|X(K)|X(Z)              , 454, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #242 [ref=1x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B64)|X(ER)|X(K)|X(SAE)|X(Z) , 454, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #243 [ref=2x]
-  { F(Evex)|F(Vec)                                    , X(B64)|X(ER)|X(K)|X(SAE)|X(Z) , 577, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #244 [ref=3x]
+  { F(Evex)|F(EvexCompat)|F(PreferEvex)|F(Vec)|F(Vex) , X(B32)|X(K)|X(Z)              , 453, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #242 [ref=1x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B64)|X(ER)|X(K)|X(SAE)|X(Z) , 453, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #243 [ref=2x]
+  { F(Evex)|F(Vec)                                    , X(B64)|X(ER)|X(K)|X(SAE)|X(Z) , 576, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #244 [ref=3x]
   { F(Evex)|F(Vec)                                    , X(B64)|X(ER)|X(K)|X(SAE)|X(Z) , 151, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #245 [ref=4x]
-  { F(Evex)|F(Vec)                                    , X(B64)|X(ER)|X(K)|X(SAE)|X(Z) , 454, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #246 [ref=3x]
-  { F(Evex)|F(Vec)                                    , X(B16)|X(ER)|X(K)|X(SAE)|X(Z) , 313, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #247 [ref=2x]
-  { F(Evex)|F(Vec)                                    , X(B16)|X(K)|X(SAE)|X(Z)       , 316, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #248 [ref=3x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(SAE)|X(Z)              , 313, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #249 [ref=1x]
-  { F(Evex)|F(Vec)                                    , X(B16)|X(K)|X(SAE)|X(Z)       , 313, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #250 [ref=3x]
-  { F(Evex)|F(Vec)                                    , X(B16)|X(ER)|X(K)|X(SAE)|X(Z) , 316, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #251 [ref=2x]
+  { F(Evex)|F(Vec)                                    , X(B64)|X(ER)|X(K)|X(SAE)|X(Z) , 453, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #246 [ref=3x]
+  { F(Evex)|F(Vec)                                    , X(B16)|X(ER)|X(K)|X(SAE)|X(Z) , 310, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #247 [ref=2x]
+  { F(Evex)|F(Vec)                                    , X(B16)|X(K)|X(SAE)|X(Z)       , 313, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #248 [ref=3x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(SAE)|X(Z)              , 310, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #249 [ref=1x]
+  { F(Evex)|F(Vec)                                    , X(B16)|X(K)|X(SAE)|X(Z)       , 310, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #250 [ref=3x]
+  { F(Evex)|F(Vec)                                    , X(B16)|X(ER)|X(K)|X(SAE)|X(Z) , 313, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #251 [ref=2x]
   { F(Evex)|F(Vec)                                    , X(B16)|X(ER)|X(K)|X(SAE)|X(Z) , 151, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #252 [ref=5x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B32)|X(ER)|X(K)|X(SAE)|X(Z) , 313, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #253 [ref=1x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(SAE)|X(Z)              , 319, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #254 [ref=1x]
-  { F(Evex)|F(Vec)                                    , X(B32)|X(ER)|X(K)|X(SAE)|X(Z) , 313, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #255 [ref=3x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B32)|X(ER)|X(K)|X(SAE)|X(Z) , 310, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #253 [ref=1x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(SAE)|X(Z)              , 316, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #254 [ref=1x]
+  { F(Evex)|F(Vec)                                    , X(B32)|X(ER)|X(K)|X(SAE)|X(Z) , 310, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #255 [ref=3x]
   { F(Evex)|F(Vec)                                    , X(B32)|X(ER)|X(K)|X(SAE)|X(Z) , 151, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #256 [ref=2x]
-  { F(Evex)|F(Vec)                                    , X(ER)|X(K)|X(SAE)|X(Z)        , 565, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #257 [ref=2x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(ER)|X(SAE)                  , 374, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #258 [ref=1x]
-  { F(Evex)|F(Vec)                                    , X(ER)|X(SAE)                  , 374, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #259 [ref=1x]
-  { F(Evex)|F(Vec)                                    , X(K)|X(SAE)|X(Z)              , 566, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #260 [ref=5x]
-  { F(Evex)|F(Vec)                                    , X(ER)|X(SAE)                  , 456, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #261 [ref=2x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(ER)|X(SAE)                  , 458, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #262 [ref=2x]
-  { F(Evex)|F(Vec)                                    , X(ER)|X(SAE)                  , 460, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #263 [ref=2x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(SAE)|X(Z)              , 567, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #264 [ref=3x]
-  { F(Evex)|F(Vec)                                    , X(ER)|X(K)|X(SAE)|X(Z)        , 567, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #265 [ref=6x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(ER)|X(SAE)                  , 378, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #266 [ref=1x]
-  { F(Evex)|F(Vec)                                    , X(ER)|X(SAE)                  , 378, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #267 [ref=1x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B64)|X(K)|X(SAE)|X(Z)       , 454, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #268 [ref=1x]
+  { F(Evex)|F(Vec)                                    , X(ER)|X(K)|X(SAE)|X(Z)        , 564, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #257 [ref=2x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(ER)|X(SAE)                  , 371, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #258 [ref=1x]
+  { F(Evex)|F(Vec)                                    , X(ER)|X(SAE)                  , 371, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #259 [ref=1x]
+  { F(Evex)|F(Vec)                                    , X(K)|X(SAE)|X(Z)              , 565, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #260 [ref=5x]
+  { F(Evex)|F(Vec)                                    , X(ER)|X(SAE)                  , 455, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #261 [ref=2x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(ER)|X(SAE)                  , 457, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #262 [ref=2x]
+  { F(Evex)|F(Vec)                                    , X(ER)|X(SAE)                  , 459, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #263 [ref=2x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(SAE)|X(Z)              , 566, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #264 [ref=3x]
+  { F(Evex)|F(Vec)                                    , X(ER)|X(K)|X(SAE)|X(Z)        , 566, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #265 [ref=6x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(ER)|X(SAE)                  , 375, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #266 [ref=1x]
+  { F(Evex)|F(Vec)                                    , X(ER)|X(SAE)                  , 375, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #267 [ref=1x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B64)|X(K)|X(SAE)|X(Z)       , 453, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #268 [ref=1x]
   { F(Evex)|F(Vec)                                    , X(B64)|X(K)|X(SAE)|X(Z)       , 151, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #269 [ref=3x]
-  { F(Evex)|F(Vec)                                    , X(B64)|X(K)|X(SAE)|X(Z)       , 454, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #270 [ref=1x]
+  { F(Evex)|F(Vec)                                    , X(B64)|X(K)|X(SAE)|X(Z)       , 453, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #270 [ref=1x]
   { F(Evex)|F(Vec)                                    , X(B16)|X(K)|X(SAE)|X(Z)       , 151, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #271 [ref=3x]
   { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B32)|X(K)|X(SAE)|X(Z)       , 151, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #272 [ref=1x]
-  { F(Evex)|F(Vec)                                    , X(B32)|X(K)|X(SAE)|X(Z)       , 313, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #273 [ref=2x]
+  { F(Evex)|F(Vec)                                    , X(B32)|X(K)|X(SAE)|X(Z)       , 310, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #273 [ref=2x]
   { F(Evex)|F(Vec)                                    , X(B32)|X(K)|X(SAE)|X(Z)       , 151, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #274 [ref=2x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(SAE)                        , 374, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #275 [ref=1x]
-  { F(Evex)|F(Vec)                                    , X(SAE)                        , 374, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #276 [ref=1x]
-  { F(Evex)|F(Vec)                                    , X(SAE)                        , 456, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #277 [ref=2x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(SAE)                        , 378, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #278 [ref=1x]
-  { F(Evex)|F(Vec)                                    , X(SAE)                        , 378, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #279 [ref=1x]
-  { F(Evex)|F(Vec)                                    , X(ER)|X(SAE)                  , 458, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #280 [ref=2x]
-  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 301, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #281 [ref=3x]
-  { F(Vec)|F(Vex)                                     , 0                             , 301, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #282 [ref=10x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(SAE)                        , 371, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #275 [ref=1x]
+  { F(Evex)|F(Vec)                                    , X(SAE)                        , 371, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #276 [ref=1x]
+  { F(Evex)|F(Vec)                                    , X(SAE)                        , 455, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #277 [ref=2x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(SAE)                        , 375, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #278 [ref=1x]
+  { F(Evex)|F(Vec)                                    , X(SAE)                        , 375, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #279 [ref=1x]
+  { F(Evex)|F(Vec)                                    , X(ER)|X(SAE)                  , 457, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #280 [ref=2x]
+  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #281 [ref=3x]
+  { F(Vec)|F(Vex)                                     , 0                             , 298, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #282 [ref=10x]
   { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 151, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #283 [ref=8x]
-  { F(EvexTransformable)|F(Vec)|F(Vex)                , 0                             , 320, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #284 [ref=2x]
-  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 578, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #285 [ref=4x]
-  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 321, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #286 [ref=4x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , 0                             , 513, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #287 [ref=2x]
-  { F(Evex)|F(Vec)                                    , X(B32)|X(ER)|X(K)|X(SAE)|X(Z) , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #288 [ref=5x]
-  { F(Evex)|F(Vec)                                    , X(B64)|X(K)|X(SAE)|X(Z)       , 301, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #289 [ref=2x]
-  { F(Evex)|F(Vec)                                    , X(B32)|X(K)|X(SAE)|X(Z)       , 301, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #290 [ref=2x]
-  { F(Evex)|F(Vec)                                    , X(K)|X(SAE)|X(Z)              , 579, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #291 [ref=4x]
-  { F(Evex)|F(Vec)                                    , X(K)|X(SAE)|X(Z)              , 580, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #292 [ref=4x]
+  { F(EvexTransformable)|F(Vec)|F(Vex)                , 0                             , 317, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #284 [ref=2x]
+  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 577, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #285 [ref=4x]
+  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 318, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #286 [ref=4x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , 0                             , 512, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #287 [ref=2x]
+  { F(Evex)|F(Vec)                                    , X(B32)|X(ER)|X(K)|X(SAE)|X(Z) , 295, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #288 [ref=5x]
+  { F(Evex)|F(Vec)                                    , X(B64)|X(K)|X(SAE)|X(Z)       , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #289 [ref=2x]
+  { F(Evex)|F(Vec)                                    , X(B32)|X(K)|X(SAE)|X(Z)       , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #290 [ref=2x]
+  { F(Evex)|F(Vec)                                    , X(K)|X(SAE)|X(Z)              , 578, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #291 [ref=4x]
+  { F(Evex)|F(Vec)                                    , X(K)|X(SAE)|X(Z)              , 579, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #292 [ref=4x]
   { F(Vec)|F(Vex)                                     , 0                             , 236, 4 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #293 [ref=12x]
-  { F(Vec)|F(Vex)                                     , 0                             , 462, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #294 [ref=4x]
-  { F(Vec)|F(Vex)                                     , 0                             , 464, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #295 [ref=4x]
-  { F(Evex)|F(Vec)                                    , X(B64)|X(ImplicitZ)|X(K)      , 581, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #296 [ref=1x]
-  { F(Evex)|F(Vec)                                    , X(B16)|X(ImplicitZ)|X(K)      , 581, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #297 [ref=1x]
-  { F(Evex)|F(Vec)                                    , X(B32)|X(ImplicitZ)|X(K)      , 581, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #298 [ref=1x]
-  { F(Evex)|F(Vec)                                    , X(ImplicitZ)|X(K)             , 582, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #299 [ref=1x]
-  { F(Evex)|F(Vec)                                    , X(ImplicitZ)|X(K)             , 583, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #300 [ref=1x]
-  { F(Evex)|F(Vec)                                    , X(ImplicitZ)|X(K)             , 584, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #301 [ref=1x]
+  { F(Vec)|F(Vex)                                     , 0                             , 461, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #294 [ref=4x]
+  { F(Vec)|F(Vex)                                     , 0                             , 463, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #295 [ref=4x]
+  { F(Evex)|F(Vec)                                    , X(B64)|X(ImplicitZ)|X(K)      , 580, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #296 [ref=1x]
+  { F(Evex)|F(Vec)                                    , X(B16)|X(ImplicitZ)|X(K)      , 580, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #297 [ref=1x]
+  { F(Evex)|F(Vec)                                    , X(B32)|X(ImplicitZ)|X(K)      , 580, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #298 [ref=1x]
+  { F(Evex)|F(Vec)                                    , X(ImplicitZ)|X(K)             , 581, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #299 [ref=1x]
+  { F(Evex)|F(Vec)                                    , X(ImplicitZ)|X(K)             , 582, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #300 [ref=1x]
+  { F(Evex)|F(Vec)                                    , X(ImplicitZ)|X(K)             , 583, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #301 [ref=1x]
   { F(Vec)|F(Vex)                                     , 0                             , 99 , 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #302 [ref=7x]
   { F(Vec)|F(Vex)                                     , 0                             , 172, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #303 [ref=1x]
-  { F(Vec)|F(Vex)                                     , 0                             , 316, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #304 [ref=1x]
+  { F(Vec)|F(Vex)                                     , 0                             , 313, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #304 [ref=1x]
   { F(Evex)|F(EvexTwoOp)|F(Vec)|F(Vex)|F(Vsib)        , X(K)                          , 240, 4 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #305 [ref=2x]
   { F(Evex)|F(EvexTwoOp)|F(Vec)|F(Vex)|F(Vsib)        , X(K)                          , 183, 5 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #306 [ref=2x]
   { F(Evex)|F(EvexTwoOp)|F(Vec)|F(Vex)|F(Vsib)        , X(K)                          , 188, 5 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #307 [ref=2x]
-  { F(Evex)|F(EvexTwoOp)|F(Vec)|F(Vex)|F(Vsib)        , X(K)                          , 322, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #308 [ref=2x]
-  { F(Evex)|F(Vec)                                    , X(K)|X(SAE)|X(Z)              , 565, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #309 [ref=1x]
-  { F(Evex)|F(Vec)                                    , X(K)|X(SAE)|X(Z)              , 567, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #310 [ref=1x]
-  { F(Evex)|F(Vec)                                    , X(B64)|X(K)|X(SAE)|X(Z)       , 325, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #311 [ref=2x]
-  { F(Evex)|F(Vec)                                    , X(B16)|X(K)|X(SAE)|X(Z)       , 325, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #312 [ref=3x]
-  { F(Evex)|F(Vec)                                    , X(B32)|X(K)|X(SAE)|X(Z)       , 325, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #313 [ref=2x]
-  { F(Evex)|F(Vec)                                    , X(K)|X(SAE)|X(Z)              , 585, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #314 [ref=3x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 301, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #315 [ref=3x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #316 [ref=22x]
-  { F(EvexTransformable)|F(Vec)|F(Vex)                , 0                             , 466, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #317 [ref=2x]
-  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 466, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #318 [ref=4x]
-  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 586, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #319 [ref=4x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , 0                             , 580, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #320 [ref=1x]
-  { F(Vex)                                            , 0                             , 531, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #321 [ref=2x]
-  { F(Vec)|F(Vex)                                     , 0                             , 534, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #322 [ref=1x]
+  { F(Evex)|F(EvexTwoOp)|F(Vec)|F(Vex)|F(Vsib)        , X(K)                          , 319, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #308 [ref=2x]
+  { F(Evex)|F(Vec)                                    , X(K)|X(SAE)|X(Z)              , 564, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #309 [ref=1x]
+  { F(Evex)|F(Vec)                                    , X(K)|X(SAE)|X(Z)              , 566, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #310 [ref=1x]
+  { F(Evex)|F(Vec)                                    , X(B64)|X(K)|X(SAE)|X(Z)       , 322, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #311 [ref=2x]
+  { F(Evex)|F(Vec)                                    , X(B16)|X(K)|X(SAE)|X(Z)       , 322, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #312 [ref=3x]
+  { F(Evex)|F(Vec)                                    , X(B32)|X(K)|X(SAE)|X(Z)       , 322, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #313 [ref=2x]
+  { F(Evex)|F(Vec)                                    , X(K)|X(SAE)|X(Z)              , 584, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #314 [ref=3x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #315 [ref=3x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 295, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #316 [ref=22x]
+  { F(EvexTransformable)|F(Vec)|F(Vex)                , 0                             , 465, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #317 [ref=2x]
+  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 465, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #318 [ref=4x]
+  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 585, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #319 [ref=4x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , 0                             , 579, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #320 [ref=1x]
+  { F(Vex)                                            , 0                             , 530, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #321 [ref=2x]
+  { F(Vec)|F(Vex)                                     , 0                             , 533, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #322 [ref=1x]
   { F(Vec)|F(Vex)                                     , 0                             , 244, 4 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #323 [ref=4x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B64)|X(K)|X(SAE)|X(Z)       , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #324 [ref=2x]
-  { F(Evex)|F(Vec)                                    , X(B16)|X(K)|X(SAE)|X(Z)       , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #325 [ref=2x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B32)|X(K)|X(SAE)|X(Z)       , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #326 [ref=2x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(SAE)|X(Z)              , 565, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #327 [ref=2x]
-  { 0                                                 , 0                             , 468, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #328 [ref=3x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B64)|X(K)|X(SAE)|X(Z)       , 295, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #324 [ref=2x]
+  { F(Evex)|F(Vec)                                    , X(B16)|X(K)|X(SAE)|X(Z)       , 295, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #325 [ref=2x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B32)|X(K)|X(SAE)|X(Z)       , 295, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #326 [ref=2x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(SAE)|X(Z)              , 564, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #327 [ref=2x]
+  { 0                                                 , 0                             , 467, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #328 [ref=3x]
   { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 99 , 8 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #329 [ref=4x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , 0                             , 470, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #330 [ref=1x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 328, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #331 [ref=1x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , 0                             , 469, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #330 [ref=1x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 325, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #331 [ref=1x]
   { F(EvexTransformable)|F(Vec)|F(Vex)                , 0                             , 99 , 4 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #332 [ref=2x]
   { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 151, 6 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #333 [ref=6x]
   { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , 0                             , 109, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #334 [ref=2x]
   { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , 0                             , 248, 4 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #335 [ref=4x]
-  { F(Vec)|F(Vex)                                     , 0                             , 587, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #336 [ref=3x]
+  { F(Vec)|F(Vex)                                     , 0                             , 586, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #336 [ref=3x]
   { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , 0                             , 193, 5 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #337 [ref=3x]
   { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , 0                             , 198, 5 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #338 [ref=1x]
   { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , 0                             , 203, 5 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #339 [ref=1x]
@@ -2444,112 +2444,112 @@ const InstDB::CommonInfo InstDB::_commonInfoTable[] = {
   { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 252, 4 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #341 [ref=1x]
   { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 151, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #342 [ref=4x]
   { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 115, 8 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #343 [ref=1x]
-  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 472, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #344 [ref=1x]
-  { 0                                                 , 0                             , 474, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #345 [ref=1x]
-  { 0                                                 , 0                             , 476, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #346 [ref=1x]
-  { F(Evex)|F(Vec)                                    , X(B32)                        , 331, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #347 [ref=1x]
-  { F(Evex)|F(Vec)                                    , X(B64)                        , 331, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #348 [ref=1x]
+  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 471, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #344 [ref=1x]
+  { 0                                                 , 0                             , 473, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #345 [ref=1x]
+  { 0                                                 , 0                             , 475, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #346 [ref=1x]
+  { F(Evex)|F(Vec)                                    , X(B32)                        , 328, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #347 [ref=1x]
+  { F(Evex)|F(Vec)                                    , X(B64)                        , 328, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #348 [ref=1x]
   { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B32)|X(K)|X(Z)              , 151, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #349 [ref=1x]
   { F(Evex)|F(Vec)                                    , X(B64)|X(K)|X(Z)              , 151, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #350 [ref=5x]
-  { F(EvexTransformable)|F(Vec)|F(Vex)                , 0                             , 298, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(RO)}, // #351 [ref=2x]
-  { F(Evex)|F(Vec)                                    , X(B32)|X(K)|X(Z)              , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(RO)}, // #352 [ref=2x]
-  { F(EvexTransformable)|F(Vec)|F(Vex)                , 0                             , 298, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(WO)}, // #353 [ref=2x]
-  { F(Evex)|F(Vec)                                    , X(B32)|X(K)|X(Z)              , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(WO)}, // #354 [ref=2x]
-  { F(Evex)|F(Vec)                                    , X(B64)|X(K)|X(Z)              , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(WO)}, // #355 [ref=2x]
-  { F(Evex)|F(Vec)                                    , X(B64)|X(K)|X(Z)              , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(RO)}, // #356 [ref=2x]
-  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #357 [ref=13x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 588, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #358 [ref=1x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 589, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #359 [ref=1x]
-  { F(Evex)|F(Vec)                                    , 0                             , 590, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #360 [ref=6x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 478, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #361 [ref=1x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 591, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #362 [ref=1x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , 0                             , 301, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #363 [ref=1x]
+  { F(EvexTransformable)|F(Vec)|F(Vex)                , 0                             , 295, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(RO)}, // #351 [ref=2x]
+  { F(Evex)|F(Vec)                                    , X(B32)|X(K)|X(Z)              , 295, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(RO)}, // #352 [ref=2x]
+  { F(EvexTransformable)|F(Vec)|F(Vex)                , 0                             , 295, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(WO)}, // #353 [ref=2x]
+  { F(Evex)|F(Vec)                                    , X(B32)|X(K)|X(Z)              , 295, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(WO)}, // #354 [ref=2x]
+  { F(Evex)|F(Vec)                                    , X(B64)|X(K)|X(Z)              , 295, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(WO)}, // #355 [ref=2x]
+  { F(Evex)|F(Vec)                                    , X(B64)|X(K)|X(Z)              , 295, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(RO)}, // #356 [ref=2x]
+  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 295, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #357 [ref=13x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 587, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #358 [ref=1x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 588, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #359 [ref=1x]
+  { F(Evex)|F(Vec)                                    , 0                             , 589, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #360 [ref=6x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 477, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #361 [ref=1x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 590, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #362 [ref=1x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , 0                             , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #363 [ref=1x]
   { F(Vec)|F(Vex)                                     , 0                             , 256, 4 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #364 [ref=1x]
-  { F(Evex)|F(Vec)                                    , X(ImplicitZ)|X(K)             , 307, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(WO)}, // #365 [ref=4x]
-  { F(Evex)|F(Vec)                                    , X(B32)|X(ImplicitZ)|X(K)      , 307, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(WO)}, // #366 [ref=2x]
-  { F(Evex)|F(EvexKReg)|F(Vec)|F(Vex)                 , X(ImplicitZ)|X(K)             , 334, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(WO)}, // #367 [ref=4x]
-  { F(Evex)|F(EvexKReg)|F(Vec)|F(Vex)                 , X(B32)|X(ImplicitZ)|X(K)      , 334, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(WO)}, // #368 [ref=2x]
-  { F(Evex)|F(EvexKReg)|F(Vec)|F(Vex)                 , X(B64)|X(ImplicitZ)|X(K)      , 334, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(WO)}, // #369 [ref=2x]
-  { F(Vec)|F(Vex)                                     , 0                             , 545, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #370 [ref=1x]
-  { F(Vec)|F(Vex)                                     , 0                             , 546, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #371 [ref=1x]
-  { F(Vec)|F(Vex)                                     , 0                             , 547, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #372 [ref=1x]
-  { F(Vec)|F(Vex)                                     , 0                             , 548, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #373 [ref=1x]
-  { F(Evex)|F(Vec)                                    , X(B64)|X(ImplicitZ)|X(K)      , 307, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(WO)}, // #374 [ref=2x]
+  { F(Evex)|F(Vec)                                    , X(ImplicitZ)|X(K)             , 304, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(WO)}, // #365 [ref=4x]
+  { F(Evex)|F(Vec)                                    , X(B32)|X(ImplicitZ)|X(K)      , 304, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(WO)}, // #366 [ref=2x]
+  { F(Evex)|F(EvexKReg)|F(Vec)|F(Vex)                 , X(ImplicitZ)|X(K)             , 331, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(WO)}, // #367 [ref=4x]
+  { F(Evex)|F(EvexKReg)|F(Vec)|F(Vex)                 , X(B32)|X(ImplicitZ)|X(K)      , 331, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(WO)}, // #368 [ref=2x]
+  { F(Evex)|F(EvexKReg)|F(Vec)|F(Vex)                 , X(B64)|X(ImplicitZ)|X(K)      , 331, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(WO)}, // #369 [ref=2x]
+  { F(Vec)|F(Vex)                                     , 0                             , 544, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #370 [ref=1x]
+  { F(Vec)|F(Vex)                                     , 0                             , 545, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #371 [ref=1x]
+  { F(Vec)|F(Vex)                                     , 0                             , 546, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #372 [ref=1x]
+  { F(Vec)|F(Vex)                                     , 0                             , 547, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #373 [ref=1x]
+  { F(Evex)|F(Vec)                                    , X(B64)|X(ImplicitZ)|X(K)      , 304, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(WO)}, // #374 [ref=2x]
   { F(Evex)|F(Vec)                                    , X(B32)|X(K)|X(Z)              , 151, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #375 [ref=6x]
-  { F(Evex)|F(EvexCompat)|F(PreferEvex)|F(Vec)|F(Vex) , X(B32)|X(K)|X(Z)              , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #376 [ref=4x]
-  { F(Vec)|F(Vex)                                     , 0                             , 302, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #377 [ref=2x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B32)|X(K)|X(Z)              , 299, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #378 [ref=2x]
+  { F(Evex)|F(EvexCompat)|F(PreferEvex)|F(Vec)|F(Vex) , X(B32)|X(K)|X(Z)              , 295, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #376 [ref=4x]
+  { F(Vec)|F(Vex)                                     , 0                             , 299, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #377 [ref=2x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B32)|X(K)|X(Z)              , 296, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #378 [ref=2x]
   { F(Vec)|F(Vex)                                     , 0                             , 260, 4 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #379 [ref=2x]
   { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B64)|X(K)|X(Z)              , 123, 8 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #380 [ref=1x]
   { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B32)|X(K)|X(Z)              , 123, 8 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #381 [ref=1x]
   { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B64)|X(K)|X(Z)              , 264, 4 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #382 [ref=2x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , 0                             , 549, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #383 [ref=1x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , 0                             , 550, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #384 [ref=1x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , 0                             , 592, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #385 [ref=1x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 593, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #386 [ref=1x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 594, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #387 [ref=1x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 595, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #388 [ref=1x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 596, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #389 [ref=1x]
-  { F(Vec)|F(Vex)                                     , 0                             , 452, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #390 [ref=12x]
-  { F(Evex)|F(EvexCompat)|F(PreferEvex)|F(Vec)|F(Vex) , X(B64)|X(K)|X(Z)              , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #391 [ref=2x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(RO)}, // #392 [ref=8x]
-  { F(Evex)|F(Vec)                                    , 0                             , 597, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #393 [ref=4x]
-  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 337, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #394 [ref=6x]
-  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 340, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #395 [ref=9x]
-  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 343, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #396 [ref=3x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 316, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #397 [ref=4x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 346, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #398 [ref=2x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 313, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #399 [ref=6x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , 0                             , 548, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #383 [ref=1x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , 0                             , 549, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #384 [ref=1x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , 0                             , 591, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #385 [ref=1x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 592, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #386 [ref=1x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 593, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #387 [ref=1x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 594, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #388 [ref=1x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 595, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #389 [ref=1x]
+  { F(Vec)|F(Vex)                                     , 0                             , 451, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #390 [ref=12x]
+  { F(Evex)|F(EvexCompat)|F(PreferEvex)|F(Vec)|F(Vex) , X(B64)|X(K)|X(Z)              , 295, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #391 [ref=2x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 295, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(RO)}, // #392 [ref=8x]
+  { F(Evex)|F(Vec)                                    , 0                             , 596, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #393 [ref=4x]
+  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 334, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #394 [ref=6x]
+  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 337, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #395 [ref=9x]
+  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 340, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #396 [ref=3x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 313, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #397 [ref=4x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 343, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #398 [ref=2x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 310, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #399 [ref=6x]
   { F(Vec)|F(Vex)                                     , 0                             , 256, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #400 [ref=1x]
-  { F(Evex)|F(Vec)                                    , X(B32)|X(K)|X(Z)              , 325, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #401 [ref=3x]
-  { F(Evex)|F(Vec)                                    , X(B64)|X(K)|X(Z)              , 325, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #402 [ref=3x]
-  { F(Vec)|F(Vex)                                     , 0                             , 480, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #403 [ref=4x]
-  { F(Evex)|F(Vec)|F(Vsib)                            , X(K)                          , 349, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #404 [ref=2x]
-  { F(Evex)|F(Vec)|F(Vsib)                            , X(K)                          , 482, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #405 [ref=2x]
-  { F(Evex)|F(Vec)|F(Vsib)                            , X(K)                          , 484, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #406 [ref=2x]
-  { F(Evex)|F(Vec)|F(Vsib)                            , X(K)                          , 352, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #407 [ref=2x]
-  { F(Vec)|F(Vex)                                     , 0                             , 486, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #408 [ref=8x]
-  { F(Evex)|F(Vec)                                    , X(ImplicitZ)|X(K)             , 355, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #409 [ref=5x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B32)|X(K)|X(Z)              , 325, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #410 [ref=1x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 325, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #411 [ref=2x]
+  { F(Evex)|F(Vec)                                    , X(B32)|X(K)|X(Z)              , 322, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #401 [ref=3x]
+  { F(Evex)|F(Vec)                                    , X(B64)|X(K)|X(Z)              , 322, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #402 [ref=3x]
+  { F(Vec)|F(Vex)                                     , 0                             , 479, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #403 [ref=4x]
+  { F(Evex)|F(Vec)|F(Vsib)                            , X(K)                          , 346, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #404 [ref=2x]
+  { F(Evex)|F(Vec)|F(Vsib)                            , X(K)                          , 481, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #405 [ref=2x]
+  { F(Evex)|F(Vec)|F(Vsib)                            , X(K)                          , 483, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #406 [ref=2x]
+  { F(Evex)|F(Vec)|F(Vsib)                            , X(K)                          , 349, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #407 [ref=2x]
+  { F(Vec)|F(Vex)                                     , 0                             , 485, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #408 [ref=8x]
+  { F(Evex)|F(Vec)                                    , X(ImplicitZ)|X(K)             , 352, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #409 [ref=5x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B32)|X(K)|X(Z)              , 322, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #410 [ref=1x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 322, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #411 [ref=2x]
   { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B32)|X(K)|X(Z)              , 157, 6 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #412 [ref=3x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , 0                             , 325, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #413 [ref=2x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , 0                             , 322, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #413 [ref=2x]
   { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B64)|X(K)|X(Z)              , 157, 6 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #414 [ref=2x]
   { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 157, 6 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #415 [ref=3x]
   { F(Evex)|F(Vec)                                    , X(B64)|X(K)|X(Z)              , 157, 6 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #416 [ref=1x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(WO)}, // #417 [ref=6x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B32)|X(K)|X(Z)              , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(WO)}, // #418 [ref=2x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B64)|X(K)|X(Z)              , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(WO)}, // #419 [ref=2x]
-  { F(Evex)|F(Vec)                                    , X(B32)|X(ImplicitZ)|X(K)      , 355, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #420 [ref=2x]
-  { F(Evex)|F(Vec)                                    , X(B64)|X(ImplicitZ)|X(K)      , 355, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #421 [ref=2x]
-  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 565, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #422 [ref=2x]
-  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 567, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #423 [ref=2x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(K)|X(Z)                     , 295, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(WO)}, // #417 [ref=6x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B32)|X(K)|X(Z)              , 295, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(WO)}, // #418 [ref=2x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B64)|X(K)|X(Z)              , 295, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(WO)}, // #419 [ref=2x]
+  { F(Evex)|F(Vec)                                    , X(B32)|X(ImplicitZ)|X(K)      , 352, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #420 [ref=2x]
+  { F(Evex)|F(Vec)                                    , X(B64)|X(ImplicitZ)|X(K)      , 352, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #421 [ref=2x]
+  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 564, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #422 [ref=2x]
+  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 566, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #423 [ref=2x]
   { F(Evex)|F(Vec)                                    , X(B16)|X(K)|X(Z)              , 151, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #424 [ref=2x]
-  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 566, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #425 [ref=2x]
-  { F(Vec)|F(Vex)                                     , 0                             , 567, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #426 [ref=2x]
-  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 579, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #427 [ref=1x]
-  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 580, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #428 [ref=1x]
-  { F(EvexTransformable)|F(Vec)|F(Vex)                , 0                             , 325, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #429 [ref=2x]
-  { F(EvexTransformable)|F(Vec)|F(Vex)                , 0                             , 579, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #430 [ref=1x]
-  { F(EvexTransformable)|F(Vec)|F(Vex)                , 0                             , 580, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #431 [ref=1x]
-  { F(Evex)|F(Vec)                                    , X(B64)|X(ER)|X(K)|X(SAE)|X(Z) , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #432 [ref=1x]
-  { F(Vec)|F(Vex)                                     , 0                             , 598, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #433 [ref=1x]
-  { F(Vec)|F(Vex)                                     , 0                             , 599, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #434 [ref=1x]
-  { F(Vec)|F(Vex)                                     , 0                             , 600, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #435 [ref=1x]
-  { F(Evex)|F(Vec)                                    , X(B32)|X(K)|X(Z)              , 302, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #436 [ref=2x]
-  { F(Evex)|F(Vec)                                    , X(B64)|X(K)|X(Z)              , 302, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #437 [ref=2x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B64)|X(K)|X(Z)              , 301, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #438 [ref=1x]
-  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B32)|X(K)|X(Z)              , 301, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #439 [ref=1x]
-  { F(Vec)|F(Vex)                                     , 0                             , 298, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #440 [ref=2x]
+  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 565, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #425 [ref=2x]
+  { F(Vec)|F(Vex)                                     , 0                             , 566, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #426 [ref=2x]
+  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 578, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #427 [ref=1x]
+  { F(Evex)|F(Vec)                                    , X(K)|X(Z)                     , 579, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #428 [ref=1x]
+  { F(EvexTransformable)|F(Vec)|F(Vex)                , 0                             , 322, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #429 [ref=2x]
+  { F(EvexTransformable)|F(Vec)|F(Vex)                , 0                             , 578, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #430 [ref=1x]
+  { F(EvexTransformable)|F(Vec)|F(Vex)                , 0                             , 579, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #431 [ref=1x]
+  { F(Evex)|F(Vec)                                    , X(B64)|X(ER)|X(K)|X(SAE)|X(Z) , 295, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #432 [ref=1x]
+  { F(Vec)|F(Vex)                                     , 0                             , 597, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #433 [ref=1x]
+  { F(Vec)|F(Vex)                                     , 0                             , 598, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #434 [ref=1x]
+  { F(Vec)|F(Vex)                                     , 0                             , 599, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #435 [ref=1x]
+  { F(Evex)|F(Vec)                                    , X(B32)|X(K)|X(Z)              , 299, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #436 [ref=2x]
+  { F(Evex)|F(Vec)                                    , X(B64)|X(K)|X(Z)              , 299, 2 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #437 [ref=2x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B64)|X(K)|X(Z)              , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #438 [ref=1x]
+  { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B32)|X(K)|X(Z)              , 298, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #439 [ref=1x]
+  { F(Vec)|F(Vex)                                     , 0                             , 295, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #440 [ref=2x]
   { F(Evex)|F(EvexCompat)|F(Vec)|F(Vex)               , X(B64)|X(ER)|X(K)|X(SAE)|X(Z) , 151, 3 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #441 [ref=1x]
   { F(Vec)|F(Vex)                                     , 0                             , 145, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #442 [ref=2x]
-  { 0                                                 , 0                             , 22 , 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #443 [ref=2x]
-  { 0                                                 , 0                             , 23 , 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #444 [ref=2x]
+  { 0                                                 , 0                             , 143, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #443 [ref=2x]
+  { 0                                                 , 0                             , 42 , 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #444 [ref=2x]
   { F(Lock)|F(XAcquire)|F(XRelease)                   , 0                             , 20 , 4 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #445 [ref=1x]
   { 0                                                 , 0                             , 269, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #446 [ref=1x]
   { F(XAcquire)                                       , 0                             , 131, 8 , CONTROL_FLOW(Regular), SAME_REG_HINT(RO)}, // #447 [ref=1x]
-  { 0                                                 , 0                             , 601, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #448 [ref=6x]
-  { 0                                                 , 0                             , 602, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}  // #449 [ref=6x]
+  { 0                                                 , 0                             , 600, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #448 [ref=6x]
+  { 0                                                 , 0                             , 601, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}  // #449 [ref=6x]
 };
 #undef SAME_REG_HINT
 #undef CONTROL_FLOW
@@ -4730,8 +4730,8 @@ const InstDB::InstSignature InstDB::_instSignatureTable[] = {
   ROW(2, 1, 0, 0, 23 , 6  , 0  , 0  , 0  , 0  ), //      {creg|dreg, r32}
   ROW(2, 1, 1, 0, 1  , 2  , 0  , 0  , 0  , 0  ), // #20  {r8lo|r8hi|m8|mem, r8lo|r8hi}
   ROW(2, 1, 1, 0, 24 , 4  , 0  , 0  , 0  , 0  ), //      {r16|m16|mem, r16}
-  ROW(2, 1, 1, 0, 25 , 6  , 0  , 0  , 0  , 0  ), // #22  {r32|m32|mem, r32}
-  ROW(2, 0, 1, 0, 26 , 8  , 0  , 0  , 0  , 0  ), // #23  {r64|m64|mem, r64}
+  ROW(2, 1, 1, 0, 25 , 6  , 0  , 0  , 0  , 0  ), //      {r32|m32|mem, r32}
+  ROW(2, 0, 1, 0, 26 , 8  , 0  , 0  , 0  , 0  ), //      {r64|m64|mem, r64}
   ROW(2, 1, 1, 0, 9  , 10 , 0  , 0  , 0  , 0  ), //      {r8lo|r8hi|m8, i8|u8}
   ROW(2, 1, 1, 0, 27 , 28 , 0  , 0  , 0  , 0  ), //      {r16|m16|r32|m32, i8}
   ROW(2, 0, 1, 0, 15 , 29 , 0  , 0  , 0  , 0  ), //      {r64|m64, i8|i32}
@@ -4750,7 +4750,7 @@ const InstDB::InstSignature InstDB::_instSignatureTable[] = {
   ROW(2, 1, 1, 0, 1  , 2  , 0  , 0  , 0  , 0  ), //      {r8lo|r8hi|m8|mem, r8lo|r8hi}
   ROW(2, 1, 1, 0, 24 , 4  , 0  , 0  , 0  , 0  ), //      {r16|m16|mem, r16}
   ROW(2, 1, 1, 0, 25 , 6  , 0  , 0  , 0  , 0  ), //      {r32|m32|mem, r32}
-  ROW(2, 0, 1, 0, 31 , 8  , 0  , 0  , 0  , 0  ), //      {m64|mem, r64}
+  ROW(2, 0, 1, 0, 31 , 8  , 0  , 0  , 0  , 0  ), // #42  {m64|mem, r64}
   ROW(2, 1, 1, 0, 2  , 17 , 0  , 0  , 0  , 0  ), //      {r8lo|r8hi, m8|mem}
   ROW(2, 1, 1, 0, 4  , 21 , 0  , 0  , 0  , 0  ), //      {r16, m16|mem}
   ROW(2, 1, 1, 0, 6  , 30 , 0  , 0  , 0  , 0  ), //      {r32, m32|mem}
@@ -5000,317 +5000,316 @@ const InstDB::InstSignature InstDB::_instSignatureTable[] = {
   ROW(2, 1, 1, 0, 4  , 9  , 0  , 0  , 0  , 0  ), // #289 {r16, r8lo|r8hi|m8}
   ROW(2, 1, 1, 0, 6  , 118, 0  , 0  , 0  , 0  ), //      {r32, r8lo|r8hi|m8|r16|m16}
   ROW(2, 0, 1, 0, 8  , 118, 0  , 0  , 0  , 0  ), //      {r64, r8lo|r8hi|m8|r16|m16}
-  ROW(3, 1, 1, 3, 44 , 45 , 119, 0  , 0  , 0  ), // #292 {<edx>, <eax>, <ecx>}
-  ROW(2, 0, 1, 0, 8  , 14 , 0  , 0  , 0  , 0  ), //      {r64, i32|u32}
-  ROW(2, 0, 1, 0, 8  , 14 , 0  , 0  , 0  , 0  ), //      {r64, i32|u32}
-  ROW(3, 1, 1, 0, 24 , 4  , 120, 0  , 0  , 0  ), // #295 {r16|m16|mem, r16, cl|i8|u8}
-  ROW(3, 1, 1, 0, 25 , 6  , 120, 0  , 0  , 0  ), //      {r32|m32|mem, r32, cl|i8|u8}
-  ROW(3, 0, 1, 0, 26 , 8  , 120, 0  , 0  , 0  ), //      {r64|m64|mem, r64, cl|i8|u8}
-  ROW(3, 1, 1, 0, 55 , 55 , 56 , 0  , 0  , 0  ), // #298 {xmm, xmm, xmm|m128|mem}
-  ROW(3, 1, 1, 0, 57 , 57 , 58 , 0  , 0  , 0  ), // #299 {ymm, ymm, ymm|m256|mem}
+  ROW(3, 1, 1, 0, 24 , 4  , 119, 0  , 0  , 0  ), // #292 {r16|m16|mem, r16, cl|i8|u8}
+  ROW(3, 1, 1, 0, 25 , 6  , 119, 0  , 0  , 0  ), //      {r32|m32|mem, r32, cl|i8|u8}
+  ROW(3, 0, 1, 0, 26 , 8  , 119, 0  , 0  , 0  ), //      {r64|m64|mem, r64, cl|i8|u8}
+  ROW(3, 1, 1, 0, 55 , 55 , 56 , 0  , 0  , 0  ), // #295 {xmm, xmm, xmm|m128|mem}
+  ROW(3, 1, 1, 0, 57 , 57 , 58 , 0  , 0  , 0  ), // #296 {ymm, ymm, ymm|m256|mem}
   ROW(3, 1, 1, 0, 61 , 61 , 62 , 0  , 0  , 0  ), //      {zmm, zmm, zmm|m512|mem}
-  ROW(4, 1, 1, 0, 55 , 55 , 56 , 10 , 0  , 0  ), // #301 {xmm, xmm, xmm|m128|mem, i8|u8}
-  ROW(4, 1, 1, 0, 57 , 57 , 58 , 10 , 0  , 0  ), // #302 {ymm, ymm, ymm|m256|mem, i8|u8}
+  ROW(4, 1, 1, 0, 55 , 55 , 56 , 10 , 0  , 0  ), // #298 {xmm, xmm, xmm|m128|mem, i8|u8}
+  ROW(4, 1, 1, 0, 57 , 57 , 58 , 10 , 0  , 0  ), // #299 {ymm, ymm, ymm|m256|mem, i8|u8}
   ROW(4, 1, 1, 0, 61 , 61 , 62 , 10 , 0  , 0  ), //      {zmm, zmm, zmm|m512|mem, i8|u8}
-  ROW(4, 1, 1, 0, 121, 55 , 56 , 10 , 0  , 0  ), // #304 {xmm|k, xmm, xmm|m128|mem, i8|u8}
-  ROW(4, 1, 1, 0, 122, 57 , 58 , 10 , 0  , 0  ), //      {ymm|k, ymm, ymm|m256|mem, i8|u8}
+  ROW(4, 1, 1, 0, 120, 55 , 56 , 10 , 0  , 0  ), // #301 {xmm|k, xmm, xmm|m128|mem, i8|u8}
+  ROW(4, 1, 1, 0, 121, 57 , 58 , 10 , 0  , 0  ), //      {ymm|k, ymm, ymm|m256|mem, i8|u8}
   ROW(4, 1, 1, 0, 92 , 61 , 62 , 10 , 0  , 0  ), //      {k, zmm, zmm|m512|mem, i8|u8}
-  ROW(4, 1, 1, 0, 92 , 55 , 56 , 10 , 0  , 0  ), // #307 {k, xmm, xmm|m128|mem, i8|u8}
+  ROW(4, 1, 1, 0, 92 , 55 , 56 , 10 , 0  , 0  ), // #304 {k, xmm, xmm|m128|mem, i8|u8}
   ROW(4, 1, 1, 0, 92 , 57 , 58 , 10 , 0  , 0  ), //      {k, ymm, ymm|m256|mem, i8|u8}
   ROW(4, 1, 1, 0, 92 , 61 , 62 , 10 , 0  , 0  ), //      {k, zmm, zmm|m512|mem, i8|u8}
-  ROW(2, 1, 1, 0, 56 , 55 , 0  , 0  , 0  , 0  ), // #310 {xmm|m128|mem, xmm}
+  ROW(2, 1, 1, 0, 56 , 55 , 0  , 0  , 0  , 0  ), // #307 {xmm|m128|mem, xmm}
   ROW(2, 1, 1, 0, 58 , 57 , 0  , 0  , 0  , 0  ), //      {ymm|m256|mem, ymm}
   ROW(2, 1, 1, 0, 62 , 61 , 0  , 0  , 0  , 0  ), //      {zmm|m512|mem, zmm}
-  ROW(2, 1, 1, 0, 55 , 70 , 0  , 0  , 0  , 0  ), // #313 {xmm, xmm|m64|mem}
+  ROW(2, 1, 1, 0, 55 , 70 , 0  , 0  , 0  , 0  ), // #310 {xmm, xmm|m64|mem}
   ROW(2, 1, 1, 0, 57 , 56 , 0  , 0  , 0  , 0  ), //      {ymm, xmm|m128|mem}
   ROW(2, 1, 1, 0, 61 , 58 , 0  , 0  , 0  , 0  ), //      {zmm, ymm|m256|mem}
-  ROW(2, 1, 1, 0, 55 , 123, 0  , 0  , 0  , 0  ), // #316 {xmm, xmm|m32|mem}
+  ROW(2, 1, 1, 0, 55 , 122, 0  , 0  , 0  , 0  ), // #313 {xmm, xmm|m32|mem}
   ROW(2, 1, 1, 0, 57 , 70 , 0  , 0  , 0  , 0  ), //      {ymm, xmm|m64|mem}
   ROW(2, 1, 1, 0, 61 , 56 , 0  , 0  , 0  , 0  ), //      {zmm, xmm|m128|mem}
-  ROW(3, 1, 1, 0, 70 , 55 , 10 , 0  , 0  , 0  ), // #319 {xmm|m64|mem, xmm, i8|u8}
-  ROW(3, 1, 1, 0, 56 , 57 , 10 , 0  , 0  , 0  ), // #320 {xmm|m128|mem, ymm, i8|u8}
-  ROW(3, 1, 1, 0, 58 , 61 , 10 , 0  , 0  , 0  ), // #321 {ymm|m256|mem, zmm, i8|u8}
-  ROW(3, 1, 1, 0, 55 , 124, 55 , 0  , 0  , 0  ), // #322 {xmm, vm64x|vm64y, xmm}
-  ROW(2, 1, 1, 0, 55 , 124, 0  , 0  , 0  , 0  ), //      {xmm, vm64x|vm64y}
+  ROW(3, 1, 1, 0, 70 , 55 , 10 , 0  , 0  , 0  ), // #316 {xmm|m64|mem, xmm, i8|u8}
+  ROW(3, 1, 1, 0, 56 , 57 , 10 , 0  , 0  , 0  ), // #317 {xmm|m128|mem, ymm, i8|u8}
+  ROW(3, 1, 1, 0, 58 , 61 , 10 , 0  , 0  , 0  ), // #318 {ymm|m256|mem, zmm, i8|u8}
+  ROW(3, 1, 1, 0, 55 , 123, 55 , 0  , 0  , 0  ), // #319 {xmm, vm64x|vm64y, xmm}
+  ROW(2, 1, 1, 0, 55 , 123, 0  , 0  , 0  , 0  ), //      {xmm, vm64x|vm64y}
   ROW(2, 1, 1, 0, 57 , 82 , 0  , 0  , 0  , 0  ), //      {ymm, vm64z}
-  ROW(3, 1, 1, 0, 55 , 56 , 10 , 0  , 0  , 0  ), // #325 {xmm, xmm|m128|mem, i8|u8}
+  ROW(3, 1, 1, 0, 55 , 56 , 10 , 0  , 0  , 0  ), // #322 {xmm, xmm|m128|mem, i8|u8}
   ROW(3, 1, 1, 0, 57 , 58 , 10 , 0  , 0  , 0  ), //      {ymm, ymm|m256|mem, i8|u8}
   ROW(3, 1, 1, 0, 61 , 62 , 10 , 0  , 0  , 0  ), //      {zmm, zmm|m512|mem, i8|u8}
-  ROW(2, 1, 1, 0, 55 , 70 , 0  , 0  , 0  , 0  ), // #328 {xmm, xmm|m64|mem}
+  ROW(2, 1, 1, 0, 55 , 70 , 0  , 0  , 0  , 0  ), // #325 {xmm, xmm|m64|mem}
   ROW(2, 1, 1, 0, 57 , 58 , 0  , 0  , 0  , 0  ), //      {ymm, ymm|m256|mem}
   ROW(2, 1, 1, 0, 61 , 62 , 0  , 0  , 0  , 0  ), //      {zmm, zmm|m512|mem}
-  ROW(4, 1, 1, 0, 92 , 92 , 55 , 56 , 0  , 0  ), // #331 {k, k, xmm, xmm|m128|mem}
+  ROW(4, 1, 1, 0, 92 , 92 , 55 , 56 , 0  , 0  ), // #328 {k, k, xmm, xmm|m128|mem}
   ROW(4, 1, 1, 0, 92 , 92 , 57 , 58 , 0  , 0  ), //      {k, k, ymm, ymm|m256|mem}
   ROW(4, 1, 1, 0, 92 , 92 , 61 , 62 , 0  , 0  ), //      {k, k, zmm, zmm|m512|mem}
-  ROW(3, 1, 1, 0, 121, 55 , 56 , 0  , 0  , 0  ), // #334 {xmm|k, xmm, xmm|m128|mem}
-  ROW(3, 1, 1, 0, 122, 57 , 58 , 0  , 0  , 0  ), //      {ymm|k, ymm, ymm|m256|mem}
+  ROW(3, 1, 1, 0, 120, 55 , 56 , 0  , 0  , 0  ), // #331 {xmm|k, xmm, xmm|m128|mem}
+  ROW(3, 1, 1, 0, 121, 57 , 58 , 0  , 0  , 0  ), //      {ymm|k, ymm, ymm|m256|mem}
   ROW(3, 1, 1, 0, 92 , 61 , 62 , 0  , 0  , 0  ), //      {k, zmm, zmm|m512|mem}
-  ROW(2, 1, 1, 0, 123, 55 , 0  , 0  , 0  , 0  ), // #337 {xmm|m32|mem, xmm}
+  ROW(2, 1, 1, 0, 122, 55 , 0  , 0  , 0  , 0  ), // #334 {xmm|m32|mem, xmm}
   ROW(2, 1, 1, 0, 70 , 57 , 0  , 0  , 0  , 0  ), //      {xmm|m64|mem, ymm}
   ROW(2, 1, 1, 0, 56 , 61 , 0  , 0  , 0  , 0  ), //      {xmm|m128|mem, zmm}
-  ROW(2, 1, 1, 0, 70 , 55 , 0  , 0  , 0  , 0  ), // #340 {xmm|m64|mem, xmm}
+  ROW(2, 1, 1, 0, 70 , 55 , 0  , 0  , 0  , 0  ), // #337 {xmm|m64|mem, xmm}
   ROW(2, 1, 1, 0, 56 , 57 , 0  , 0  , 0  , 0  ), //      {xmm|m128|mem, ymm}
   ROW(2, 1, 1, 0, 58 , 61 , 0  , 0  , 0  , 0  ), //      {ymm|m256|mem, zmm}
-  ROW(2, 1, 1, 0, 125, 55 , 0  , 0  , 0  , 0  ), // #343 {xmm|m16|mem, xmm}
-  ROW(2, 1, 1, 0, 123, 57 , 0  , 0  , 0  , 0  ), //      {xmm|m32|mem, ymm}
+  ROW(2, 1, 1, 0, 124, 55 , 0  , 0  , 0  , 0  ), // #340 {xmm|m16|mem, xmm}
+  ROW(2, 1, 1, 0, 122, 57 , 0  , 0  , 0  , 0  ), //      {xmm|m32|mem, ymm}
   ROW(2, 1, 1, 0, 70 , 61 , 0  , 0  , 0  , 0  ), //      {xmm|m64|mem, zmm}
-  ROW(2, 1, 1, 0, 55 , 125, 0  , 0  , 0  , 0  ), // #346 {xmm, xmm|m16|mem}
-  ROW(2, 1, 1, 0, 57 , 123, 0  , 0  , 0  , 0  ), //      {ymm, xmm|m32|mem}
+  ROW(2, 1, 1, 0, 55 , 124, 0  , 0  , 0  , 0  ), // #343 {xmm, xmm|m16|mem}
+  ROW(2, 1, 1, 0, 57 , 122, 0  , 0  , 0  , 0  ), //      {ymm, xmm|m32|mem}
   ROW(2, 1, 1, 0, 61 , 70 , 0  , 0  , 0  , 0  ), //      {zmm, xmm|m64|mem}
-  ROW(2, 1, 1, 0, 77 , 55 , 0  , 0  , 0  , 0  ), // #349 {vm32x, xmm}
+  ROW(2, 1, 1, 0, 77 , 55 , 0  , 0  , 0  , 0  ), // #346 {vm32x, xmm}
   ROW(2, 1, 1, 0, 78 , 57 , 0  , 0  , 0  , 0  ), //      {vm32y, ymm}
   ROW(2, 1, 1, 0, 79 , 61 , 0  , 0  , 0  , 0  ), //      {vm32z, zmm}
-  ROW(2, 1, 1, 0, 80 , 55 , 0  , 0  , 0  , 0  ), // #352 {vm64x, xmm}
+  ROW(2, 1, 1, 0, 80 , 55 , 0  , 0  , 0  , 0  ), // #349 {vm64x, xmm}
   ROW(2, 1, 1, 0, 81 , 57 , 0  , 0  , 0  , 0  ), //      {vm64y, ymm}
   ROW(2, 1, 1, 0, 82 , 61 , 0  , 0  , 0  , 0  ), //      {vm64z, zmm}
-  ROW(3, 1, 1, 0, 92 , 55 , 56 , 0  , 0  , 0  ), // #355 {k, xmm, xmm|m128|mem}
+  ROW(3, 1, 1, 0, 92 , 55 , 56 , 0  , 0  , 0  ), // #352 {k, xmm, xmm|m128|mem}
   ROW(3, 1, 1, 0, 92 , 57 , 58 , 0  , 0  , 0  ), //      {k, ymm, ymm|m256|mem}
   ROW(3, 1, 1, 0, 92 , 61 , 62 , 0  , 0  , 0  ), //      {k, zmm, zmm|m512|mem}
-  ROW(3, 1, 1, 0, 6  , 6  , 25 , 0  , 0  , 0  ), // #358 {r32, r32, r32|m32|mem}
+  ROW(3, 1, 1, 0, 6  , 6  , 25 , 0  , 0  , 0  ), // #355 {r32, r32, r32|m32|mem}
   ROW(3, 0, 1, 0, 8  , 8  , 26 , 0  , 0  , 0  ), //      {r64, r64, r64|m64|mem}
-  ROW(3, 1, 1, 0, 6  , 25 , 6  , 0  , 0  , 0  ), // #360 {r32, r32|m32|mem, r32}
+  ROW(3, 1, 1, 0, 6  , 25 , 6  , 0  , 0  , 0  ), // #357 {r32, r32|m32|mem, r32}
   ROW(3, 0, 1, 0, 8  , 26 , 8  , 0  , 0  , 0  ), //      {r64, r64|m64|mem, r64}
-  ROW(2, 1, 0, 0, 126, 25 , 0  , 0  , 0  , 0  ), // #362 {bnd, r32|m32|mem}
-  ROW(2, 0, 1, 0, 126, 26 , 0  , 0  , 0  , 0  ), //      {bnd, r64|m64|mem}
-  ROW(2, 1, 1, 0, 126, 127, 0  , 0  , 0  , 0  ), // #364 {bnd, bnd|mem}
-  ROW(2, 1, 1, 0, 128, 126, 0  , 0  , 0  , 0  ), //      {mem, bnd}
-  ROW(2, 1, 0, 0, 4  , 30 , 0  , 0  , 0  , 0  ), // #366 {r16, m32|mem}
+  ROW(2, 1, 0, 0, 125, 25 , 0  , 0  , 0  , 0  ), // #359 {bnd, r32|m32|mem}
+  ROW(2, 0, 1, 0, 125, 26 , 0  , 0  , 0  , 0  ), //      {bnd, r64|m64|mem}
+  ROW(2, 1, 1, 0, 125, 126, 0  , 0  , 0  , 0  ), // #361 {bnd, bnd|mem}
+  ROW(2, 1, 1, 0, 127, 125, 0  , 0  , 0  , 0  ), //      {mem, bnd}
+  ROW(2, 1, 0, 0, 4  , 30 , 0  , 0  , 0  , 0  ), // #363 {r16, m32|mem}
   ROW(2, 1, 0, 0, 6  , 31 , 0  , 0  , 0  , 0  ), //      {r32, m64|mem}
-  ROW(1, 1, 1, 0, 106, 0  , 0  , 0  , 0  , 0  ), // #368 {r16|r32}
-  ROW(1, 0, 1, 0, 8  , 0  , 0  , 0  , 0  , 0  ), // #369 {r64}
-  ROW(3, 1, 1, 0, 30 , 6  , 6  , 0  , 0  , 0  ), // #370 {m32|mem, r32, r32}
+  ROW(1, 1, 1, 0, 106, 0  , 0  , 0  , 0  , 0  ), // #365 {r16|r32}
+  ROW(1, 0, 1, 0, 8  , 0  , 0  , 0  , 0  , 0  ), // #366 {r64}
+  ROW(3, 1, 1, 0, 30 , 6  , 6  , 0  , 0  , 0  ), // #367 {m32|mem, r32, r32}
   ROW(3, 0, 1, 0, 31 , 8  , 8  , 0  , 0  , 0  ), //      {m64|mem, r64, r64}
-  ROW(2, 1, 1, 0, 6  , 107, 0  , 0  , 0  , 0  ), // #372 {r32, r8lo|r8hi|m8|r16|m16|r32|m32}
-  ROW(2, 0, 1, 0, 8  , 129, 0  , 0  , 0  , 0  ), //      {r64, r8lo|r8hi|m8|r64|m64}
-  ROW(2, 1, 1, 0, 6  , 70 , 0  , 0  , 0  , 0  ), // #374 {r32, xmm|m64|mem}
+  ROW(2, 1, 1, 0, 6  , 107, 0  , 0  , 0  , 0  ), // #369 {r32, r8lo|r8hi|m8|r16|m16|r32|m32}
+  ROW(2, 0, 1, 0, 8  , 128, 0  , 0  , 0  , 0  ), //      {r64, r8lo|r8hi|m8|r64|m64}
+  ROW(2, 1, 1, 0, 6  , 70 , 0  , 0  , 0  , 0  ), // #371 {r32, xmm|m64|mem}
   ROW(2, 0, 1, 0, 8  , 70 , 0  , 0  , 0  , 0  ), //      {r64, xmm|m64|mem}
-  ROW(2, 1, 1, 0, 55 , 25 , 0  , 0  , 0  , 0  ), // #376 {xmm, r32|m32|mem}
+  ROW(2, 1, 1, 0, 55 , 25 , 0  , 0  , 0  , 0  ), // #373 {xmm, r32|m32|mem}
   ROW(2, 0, 1, 0, 55 , 26 , 0  , 0  , 0  , 0  ), //      {xmm, r64|m64|mem}
-  ROW(2, 1, 1, 0, 6  , 123, 0  , 0  , 0  , 0  ), // #378 {r32, xmm|m32|mem}
-  ROW(2, 0, 1, 0, 8  , 123, 0  , 0  , 0  , 0  ), //      {r64, xmm|m32|mem}
-  ROW(2, 1, 0, 0, 130, 63 , 0  , 0  , 0  , 0  ), // #380 {es:[mem|m512|memBase], m512|mem}
-  ROW(2, 0, 1, 0, 130, 63 , 0  , 0  , 0  , 0  ), //      {es:[mem|m512|memBase], m512|mem}
-  ROW(3, 1, 1, 0, 55 , 10 , 10 , 0  , 0  , 0  ), // #382 {xmm, i8|u8, i8|u8}
-  ROW(2, 1, 1, 0, 55 , 55 , 0  , 0  , 0  , 0  ), // #383 {xmm, xmm}
-  ROW(0, 1, 1, 0, 0  , 0  , 0  , 0  , 0  , 0  ), // #384 {}
-  ROW(1, 1, 1, 0, 110, 0  , 0  , 0  , 0  , 0  ), // #385 {st}
-  ROW(0, 1, 1, 0, 0  , 0  , 0  , 0  , 0  , 0  ), // #386 {}
-  ROW(1, 1, 1, 0, 131, 0  , 0  , 0  , 0  , 0  ), // #387 {m32|m64|st}
-  ROW(2, 1, 1, 0, 55 , 55 , 0  , 0  , 0  , 0  ), // #388 {xmm, xmm}
+  ROW(2, 1, 1, 0, 6  , 122, 0  , 0  , 0  , 0  ), // #375 {r32, xmm|m32|mem}
+  ROW(2, 0, 1, 0, 8  , 122, 0  , 0  , 0  , 0  ), //      {r64, xmm|m32|mem}
+  ROW(2, 1, 0, 0, 129, 63 , 0  , 0  , 0  , 0  ), // #377 {es:[mem|m512|memBase], m512|mem}
+  ROW(2, 0, 1, 0, 129, 63 , 0  , 0  , 0  , 0  ), //      {es:[mem|m512|memBase], m512|mem}
+  ROW(3, 1, 1, 0, 55 , 10 , 10 , 0  , 0  , 0  ), // #379 {xmm, i8|u8, i8|u8}
+  ROW(2, 1, 1, 0, 55 , 55 , 0  , 0  , 0  , 0  ), // #380 {xmm, xmm}
+  ROW(0, 1, 1, 0, 0  , 0  , 0  , 0  , 0  , 0  ), // #381 {}
+  ROW(1, 1, 1, 0, 110, 0  , 0  , 0  , 0  , 0  ), // #382 {st}
+  ROW(0, 1, 1, 0, 0  , 0  , 0  , 0  , 0  , 0  ), // #383 {}
+  ROW(1, 1, 1, 0, 130, 0  , 0  , 0  , 0  , 0  ), // #384 {m32|m64|st}
+  ROW(2, 1, 1, 0, 55 , 55 , 0  , 0  , 0  , 0  ), // #385 {xmm, xmm}
   ROW(4, 1, 1, 0, 55 , 55 , 10 , 10 , 0  , 0  ), //      {xmm, xmm, i8|u8, i8|u8}
-  ROW(2, 1, 0, 0, 6  , 59 , 0  , 0  , 0  , 0  ), // #390 {r32, m128|mem}
+  ROW(2, 1, 0, 0, 6  , 59 , 0  , 0  , 0  , 0  ), // #387 {r32, m128|mem}
   ROW(2, 0, 1, 0, 8  , 59 , 0  , 0  , 0  , 0  ), //      {r64, m128|mem}
-  ROW(2, 1, 0, 2, 45 , 119, 0  , 0  , 0  , 0  ), // #392 {<eax>, <ecx>}
-  ROW(2, 0, 1, 2, 132, 119, 0  , 0  , 0  , 0  ), //      {<eax|rax>, <ecx>}
-  ROW(3, 1, 0, 3, 45 , 44 , 119, 0  , 0  , 0  ), // #394 {<eax>, <edx>, <ecx>}
-  ROW(3, 0, 1, 3, 132, 44 , 119, 0  , 0  , 0  ), //      {<eax|rax>, <edx>, <ecx>}
-  ROW(1, 1, 1, 0, 111, 0  , 0  , 0  , 0  , 0  ), // #396 {rel8|rel32}
+  ROW(2, 1, 0, 2, 45 , 131, 0  , 0  , 0  , 0  ), // #389 {<eax>, <ecx>}
+  ROW(2, 0, 1, 2, 132, 131, 0  , 0  , 0  , 0  ), //      {<eax|rax>, <ecx>}
+  ROW(3, 1, 0, 3, 45 , 44 , 131, 0  , 0  , 0  ), // #391 {<eax>, <edx>, <ecx>}
+  ROW(3, 0, 1, 3, 132, 44 , 131, 0  , 0  , 0  ), //      {<eax|rax>, <edx>, <ecx>}
+  ROW(1, 1, 1, 0, 111, 0  , 0  , 0  , 0  , 0  ), // #393 {rel8|rel32}
   ROW(1, 1, 0, 0, 105, 0  , 0  , 0  , 0  , 0  ), //      {rel16}
-  ROW(2, 1, 0, 1, 133, 134, 0  , 0  , 0  , 0  ), // #398 {<cx|ecx>, rel8}
+  ROW(2, 1, 0, 1, 133, 134, 0  , 0  , 0  , 0  ), // #395 {<cx|ecx>, rel8}
   ROW(2, 0, 1, 1, 135, 134, 0  , 0  , 0  , 0  ), //      {<ecx|rcx>, rel8}
-  ROW(2, 1, 1, 0, 92 , 136, 0  , 0  , 0  , 0  ), // #400 {k, k|m8|mem|r32}
+  ROW(2, 1, 1, 0, 92 , 136, 0  , 0  , 0  , 0  ), // #397 {k, k|m8|mem|r32}
   ROW(2, 1, 1, 0, 137, 92 , 0  , 0  , 0  , 0  ), //      {m8|mem|r32, k}
-  ROW(2, 1, 1, 0, 92 , 138, 0  , 0  , 0  , 0  ), // #402 {k, k|m32|mem|r32}
+  ROW(2, 1, 1, 0, 92 , 138, 0  , 0  , 0  , 0  ), // #399 {k, k|m32|mem|r32}
   ROW(2, 1, 1, 0, 25 , 92 , 0  , 0  , 0  , 0  ), //      {m32|mem|r32, k}
-  ROW(2, 1, 1, 0, 92 , 139, 0  , 0  , 0  , 0  ), // #404 {k, k|m16|mem|r32}
+  ROW(2, 1, 1, 0, 92 , 139, 0  , 0  , 0  , 0  ), // #401 {k, k|m16|mem|r32}
   ROW(2, 1, 1, 0, 117, 92 , 0  , 0  , 0  , 0  ), //      {m16|mem|r32, k}
-  ROW(2, 1, 0, 0, 4  , 30 , 0  , 0  , 0  , 0  ), // #406 {r16, m32|mem}
+  ROW(2, 1, 0, 0, 4  , 30 , 0  , 0  , 0  , 0  ), // #403 {r16, m32|mem}
   ROW(2, 1, 0, 0, 6  , 116, 0  , 0  , 0  , 0  ), //      {r32, m48|mem}
-  ROW(2, 1, 1, 0, 106, 140, 0  , 0  , 0  , 0  ), // #408 {r16|r32, mem|m8|m16|m32|m48|m64|m80|m128|m256|m512|m1024}
+  ROW(2, 1, 1, 0, 106, 140, 0  , 0  , 0  , 0  ), // #405 {r16|r32, mem|m8|m16|m32|m48|m64|m80|m128|m256|m512|m1024}
   ROW(2, 0, 1, 0, 8  , 140, 0  , 0  , 0  , 0  ), //      {r64, mem|m8|m16|m32|m48|m64|m80|m128|m256|m512|m1024}
-  ROW(1, 1, 1, 0, 6  , 0  , 0  , 0  , 0  , 0  ), // #410 {r32}
+  ROW(1, 1, 1, 0, 6  , 0  , 0  , 0  , 0  , 0  ), // #407 {r32}
   ROW(1, 0, 1, 0, 8  , 0  , 0  , 0  , 0  , 0  ), //      {r64}
-  ROW(3, 1, 1, 0, 6  , 25 , 14 , 0  , 0  , 0  ), // #412 {r32, r32|m32|mem, i32|u32}
+  ROW(3, 1, 1, 0, 6  , 25 , 14 , 0  , 0  , 0  ), // #409 {r32, r32|m32|mem, i32|u32}
   ROW(3, 0, 1, 0, 8  , 25 , 14 , 0  , 0  , 0  ), //      {r64, r32|m32|mem, i32|u32}
-  ROW(2, 1, 1, 0, 55 , 56 , 0  , 0  , 0  , 0  ), // #414 {xmm, xmm|m128|mem}
+  ROW(2, 1, 1, 0, 55 , 56 , 0  , 0  , 0  , 0  ), // #411 {xmm, xmm|m128|mem}
   ROW(2, 1, 1, 0, 59 , 55 , 0  , 0  , 0  , 0  ), //      {m128|mem, xmm}
-  ROW(2, 1, 1, 0, 69 , 25 , 0  , 0  , 0  , 0  ), // #416 {mm|xmm, r32|m32|mem}
+  ROW(2, 1, 1, 0, 69 , 25 , 0  , 0  , 0  , 0  ), // #413 {mm|xmm, r32|m32|mem}
   ROW(2, 1, 1, 0, 25 , 69 , 0  , 0  , 0  , 0  ), //      {r32|m32|mem, mm|xmm}
-  ROW(2, 1, 1, 0, 130, 63 , 0  , 0  , 0  , 0  ), // #418 {es:[mem|m512|memBase], m512|mem}
-  ROW(2, 1, 1, 0, 130, 63 , 0  , 0  , 0  , 0  ), //      {es:[mem|m512|memBase], m512|mem}
-  ROW(2, 1, 1, 0, 55 , 70 , 0  , 0  , 0  , 0  ), // #420 {xmm, xmm|m64|mem}
+  ROW(2, 1, 1, 0, 129, 63 , 0  , 0  , 0  , 0  ), // #415 {es:[mem|m512|memBase], m512|mem}
+  ROW(2, 1, 1, 0, 129, 63 , 0  , 0  , 0  , 0  ), //      {es:[mem|m512|memBase], m512|mem}
+  ROW(2, 1, 1, 0, 55 , 70 , 0  , 0  , 0  , 0  ), // #417 {xmm, xmm|m64|mem}
   ROW(2, 1, 1, 0, 31 , 55 , 0  , 0  , 0  , 0  ), //      {m64|mem, xmm}
-  ROW(2, 1, 1, 0, 55 , 123, 0  , 0  , 0  , 0  ), // #422 {xmm, xmm|m32|mem}
+  ROW(2, 1, 1, 0, 55 , 122, 0  , 0  , 0  , 0  ), // #419 {xmm, xmm|m32|mem}
   ROW(2, 1, 1, 0, 30 , 55 , 0  , 0  , 0  , 0  ), //      {m32|mem, xmm}
-  ROW(2, 0, 1, 0, 4  , 24 , 0  , 0  , 0  , 0  ), // #424 {r16, r16|m16|mem}
+  ROW(2, 0, 1, 0, 4  , 24 , 0  , 0  , 0  , 0  ), // #421 {r16, r16|m16|mem}
   ROW(2, 0, 1, 0, 141, 25 , 0  , 0  , 0  , 0  ), //      {r32|r64, r32|m32|mem}
-  ROW(4, 1, 1, 1, 6  , 6  , 25 , 44 , 0  , 0  ), // #426 {r32, r32, r32|m32|mem, <edx>}
+  ROW(4, 1, 1, 1, 6  , 6  , 25 , 44 , 0  , 0  ), // #423 {r32, r32, r32|m32|mem, <edx>}
   ROW(4, 0, 1, 1, 8  , 8  , 26 , 46 , 0  , 0  ), //      {r64, r64, r64|m64|mem, <rdx>}
-  ROW(2, 1, 1, 0, 67 , 68 , 0  , 0  , 0  , 0  ), // #428 {mm, mm|m64|mem}
+  ROW(2, 1, 1, 0, 67 , 68 , 0  , 0  , 0  , 0  ), // #425 {mm, mm|m64|mem}
   ROW(2, 1, 1, 0, 55 , 56 , 0  , 0  , 0  , 0  ), //      {xmm, xmm|m128|mem}
-  ROW(3, 1, 1, 0, 67 , 68 , 10 , 0  , 0  , 0  ), // #430 {mm, mm|m64|mem, i8|u8}
+  ROW(3, 1, 1, 0, 67 , 68 , 10 , 0  , 0  , 0  ), // #427 {mm, mm|m64|mem, i8|u8}
   ROW(3, 1, 1, 0, 55 , 56 , 10 , 0  , 0  , 0  ), //      {xmm, xmm|m128|mem, i8|u8}
-  ROW(3, 1, 1, 0, 6  , 69 , 10 , 0  , 0  , 0  ), // #432 {r32, mm|xmm, i8|u8}
+  ROW(3, 1, 1, 0, 6  , 69 , 10 , 0  , 0  , 0  ), // #429 {r32, mm|xmm, i8|u8}
   ROW(3, 1, 1, 0, 21 , 55 , 10 , 0  , 0  , 0  ), //      {m16|mem, xmm, i8|u8}
-  ROW(2, 1, 1, 0, 67 , 142, 0  , 0  , 0  , 0  ), // #434 {mm, mm|m64|mem|i8|u8}
+  ROW(2, 1, 1, 0, 67 , 142, 0  , 0  , 0  , 0  ), // #431 {mm, mm|m64|mem|i8|u8}
   ROW(2, 1, 1, 0, 55 , 64 , 0  , 0  , 0  , 0  ), //      {xmm, xmm|m128|mem|i8|u8}
-  ROW(1, 1, 1, 0, 25 , 0  , 0  , 0  , 0  , 0  ), // #436 {r32|m32|mem}
+  ROW(1, 1, 1, 0, 25 , 0  , 0  , 0  , 0  , 0  ), // #433 {r32|m32|mem}
   ROW(1, 0, 1, 0, 26 , 0  , 0  , 0  , 0  , 0  ), //      {r64|m64|mem}
-  ROW(2, 1, 1, 0, 67 , 143, 0  , 0  , 0  , 0  ), // #438 {mm, mm|m32|mem}
+  ROW(2, 1, 1, 0, 67 , 143, 0  , 0  , 0  , 0  ), // #435 {mm, mm|m32|mem}
   ROW(2, 1, 1, 0, 55 , 56 , 0  , 0  , 0  , 0  ), //      {xmm, xmm|m128|mem}
-  ROW(2, 1, 1, 0, 107, 120, 0  , 0  , 0  , 0  ), // #440 {r8lo|r8hi|m8|r16|m16|r32|m32, cl|i8|u8}
-  ROW(2, 0, 1, 0, 15 , 120, 0  , 0  , 0  , 0  ), //      {r64|m64, cl|i8|u8}
-  ROW(1, 1, 0, 0, 6  , 0  , 0  , 0  , 0  , 0  ), // #442 {r32}
+  ROW(2, 1, 1, 0, 107, 119, 0  , 0  , 0  , 0  ), // #437 {r8lo|r8hi|m8|r16|m16|r32|m32, cl|i8|u8}
+  ROW(2, 0, 1, 0, 15 , 119, 0  , 0  , 0  , 0  ), //      {r64|m64, cl|i8|u8}
+  ROW(3, 1, 1, 3, 44 , 45 , 131, 0  , 0  , 0  ), // #439 {<edx>, <eax>, <ecx>}
+  ROW(2, 0, 1, 0, 8  , 14 , 0  , 0  , 0  , 0  ), //      {r64, i32|u32}
+  ROW(1, 1, 0, 0, 6  , 0  , 0  , 0  , 0  , 0  ), // #441 {r32}
   ROW(1, 0, 1, 0, 8  , 0  , 0  , 0  , 0  , 0  ), //      {r64}
-  ROW(0, 1, 1, 0, 0  , 0  , 0  , 0  , 0  , 0  ), // #444 {}
+  ROW(0, 1, 1, 0, 0  , 0  , 0  , 0  , 0  , 0  ), // #443 {}
   ROW(1, 1, 1, 0, 144, 0  , 0  , 0  , 0  , 0  ), //      {u16}
-  ROW(3, 1, 1, 0, 6  , 25 , 10 , 0  , 0  , 0  ), // #446 {r32, r32|m32|mem, i8|u8}
+  ROW(3, 1, 1, 0, 6  , 25 , 10 , 0  , 0  , 0  ), // #445 {r32, r32|m32|mem, i8|u8}
   ROW(3, 0, 1, 0, 8  , 26 , 10 , 0  , 0  , 0  ), //      {r64, r64|m64|mem, i8|u8}
-  ROW(1, 1, 1, 0, 145, 0  , 0  , 0  , 0  , 0  ), // #448 {r16|m16|mem|r32}
+  ROW(1, 1, 1, 0, 145, 0  , 0  , 0  , 0  , 0  ), // #447 {r16|m16|mem|r32}
   ROW(1, 0, 1, 0, 146, 0  , 0  , 0  , 0  , 0  ), //      {r64|m16|mem}
-  ROW(1, 1, 0, 0, 147, 0  , 0  , 0  , 0  , 0  ), // #450 {ds:[mem|memBase]}
+  ROW(1, 1, 0, 0, 147, 0  , 0  , 0  , 0  , 0  ), // #449 {ds:[mem|memBase]}
   ROW(1, 0, 1, 0, 147, 0  , 0  , 0  , 0  , 0  ), //      {ds:[mem|memBase]}
-  ROW(4, 1, 1, 0, 55 , 55 , 56 , 55 , 0  , 0  ), // #452 {xmm, xmm, xmm|m128|mem, xmm}
+  ROW(4, 1, 1, 0, 55 , 55 , 56 , 55 , 0  , 0  ), // #451 {xmm, xmm, xmm|m128|mem, xmm}
   ROW(4, 1, 1, 0, 57 , 57 , 58 , 57 , 0  , 0  ), //      {ymm, ymm, ymm|m256|mem, ymm}
-  ROW(2, 1, 1, 0, 55 , 148, 0  , 0  , 0  , 0  ), // #454 {xmm, xmm|m128|ymm|m256}
+  ROW(2, 1, 1, 0, 55 , 148, 0  , 0  , 0  , 0  ), // #453 {xmm, xmm|m128|ymm|m256}
   ROW(2, 1, 1, 0, 57 , 62 , 0  , 0  , 0  , 0  ), //      {ymm, zmm|m512|mem}
-  ROW(2, 1, 1, 0, 6  , 125, 0  , 0  , 0  , 0  ), // #456 {r32, xmm|m16|mem}
-  ROW(2, 0, 1, 0, 8  , 125, 0  , 0  , 0  , 0  ), //      {r64, xmm|m16|mem}
-  ROW(3, 1, 1, 0, 55 , 55 , 25 , 0  , 0  , 0  ), // #458 {xmm, xmm, r32|m32|mem}
+  ROW(2, 1, 1, 0, 6  , 124, 0  , 0  , 0  , 0  ), // #455 {r32, xmm|m16|mem}
+  ROW(2, 0, 1, 0, 8  , 124, 0  , 0  , 0  , 0  ), //      {r64, xmm|m16|mem}
+  ROW(3, 1, 1, 0, 55 , 55 , 25 , 0  , 0  , 0  ), // #457 {xmm, xmm, r32|m32|mem}
   ROW(3, 0, 1, 0, 55 , 55 , 26 , 0  , 0  , 0  ), //      {xmm, xmm, r64|m64|mem}
-  ROW(3, 1, 1, 0, 55 , 55 , 13 , 0  , 0  , 0  ), // #460 {xmm, xmm, r32|m32}
+  ROW(3, 1, 1, 0, 55 , 55 , 13 , 0  , 0  , 0  ), // #459 {xmm, xmm, r32|m32}
   ROW(3, 0, 1, 0, 55 , 55 , 15 , 0  , 0  , 0  ), //      {xmm, xmm, r64|m64}
-  ROW(4, 1, 1, 0, 55 , 55 , 55 , 70 , 0  , 0  ), // #462 {xmm, xmm, xmm, xmm|m64|mem}
+  ROW(4, 1, 1, 0, 55 , 55 , 55 , 70 , 0  , 0  ), // #461 {xmm, xmm, xmm, xmm|m64|mem}
   ROW(4, 1, 1, 0, 55 , 55 , 31 , 55 , 0  , 0  ), //      {xmm, xmm, m64|mem, xmm}
-  ROW(4, 1, 1, 0, 55 , 55 , 55 , 123, 0  , 0  ), // #464 {xmm, xmm, xmm, xmm|m32|mem}
+  ROW(4, 1, 1, 0, 55 , 55 , 55 , 122, 0  , 0  ), // #463 {xmm, xmm, xmm, xmm|m32|mem}
   ROW(4, 1, 1, 0, 55 , 55 , 30 , 55 , 0  , 0  ), //      {xmm, xmm, m32|mem, xmm}
-  ROW(4, 1, 1, 0, 57 , 57 , 56 , 10 , 0  , 0  ), // #466 {ymm, ymm, xmm|m128|mem, i8|u8}
+  ROW(4, 1, 1, 0, 57 , 57 , 56 , 10 , 0  , 0  ), // #465 {ymm, ymm, xmm|m128|mem, i8|u8}
   ROW(4, 1, 1, 0, 61 , 61 , 56 , 10 , 0  , 0  ), //      {zmm, zmm, xmm|m128|mem, i8|u8}
-  ROW(1, 1, 0, 1, 45 , 0  , 0  , 0  , 0  , 0  ), // #468 {<eax>}
-  ROW(1, 0, 1, 1, 47 , 0  , 0  , 0  , 0  , 0  ), // #469 {<rax>}
-  ROW(2, 1, 1, 0, 25 , 55 , 0  , 0  , 0  , 0  ), // #470 {r32|m32|mem, xmm}
+  ROW(1, 1, 0, 1, 45 , 0  , 0  , 0  , 0  , 0  ), // #467 {<eax>}
+  ROW(1, 0, 1, 1, 47 , 0  , 0  , 0  , 0  , 0  ), // #468 {<rax>}
+  ROW(2, 1, 1, 0, 25 , 55 , 0  , 0  , 0  , 0  ), // #469 {r32|m32|mem, xmm}
   ROW(2, 1, 1, 0, 55 , 25 , 0  , 0  , 0  , 0  ), //      {xmm, r32|m32|mem}
-  ROW(2, 1, 1, 0, 117, 55 , 0  , 0  , 0  , 0  ), // #472 {r32|m16|mem, xmm}
+  ROW(2, 1, 1, 0, 117, 55 , 0  , 0  , 0  , 0  ), // #471 {r32|m16|mem, xmm}
   ROW(2, 1, 1, 0, 55 , 117, 0  , 0  , 0  , 0  ), //      {xmm, r32|m16|mem}
-  ROW(2, 1, 0, 0, 25 , 6  , 0  , 0  , 0  , 0  ), // #474 {r32|m32|mem, r32}
+  ROW(2, 1, 0, 0, 25 , 6  , 0  , 0  , 0  , 0  ), // #473 {r32|m32|mem, r32}
   ROW(2, 0, 1, 0, 26 , 8  , 0  , 0  , 0  , 0  ), //      {r64|m64|mem, r64}
-  ROW(2, 1, 0, 0, 6  , 25 , 0  , 0  , 0  , 0  ), // #476 {r32, r32|m32|mem}
+  ROW(2, 1, 0, 0, 6  , 25 , 0  , 0  , 0  , 0  ), // #475 {r32, r32|m32|mem}
   ROW(2, 0, 1, 0, 8  , 26 , 0  , 0  , 0  , 0  ), //      {r64, r64|m64|mem}
-  ROW(2, 1, 1, 0, 149, 70 , 0  , 0  , 0  , 0  ), // #478 {xmm|ymm|zmm, xmm|m64|mem}
+  ROW(2, 1, 1, 0, 149, 70 , 0  , 0  , 0  , 0  ), // #477 {xmm|ymm|zmm, xmm|m64|mem}
   ROW(2, 0, 1, 0, 149, 8  , 0  , 0  , 0  , 0  ), //      {xmm|ymm|zmm, r64}
-  ROW(3, 1, 1, 0, 55 , 55 , 64 , 0  , 0  , 0  ), // #480 {xmm, xmm, xmm|m128|mem|i8|u8}
+  ROW(3, 1, 1, 0, 55 , 55 , 64 , 0  , 0  , 0  ), // #479 {xmm, xmm, xmm|m128|mem|i8|u8}
   ROW(3, 1, 1, 0, 55 , 59 , 150, 0  , 0  , 0  ), //      {xmm, m128|mem, i8|u8|xmm}
-  ROW(2, 1, 1, 0, 77 , 102, 0  , 0  , 0  , 0  ), // #482 {vm32x, xmm|ymm}
+  ROW(2, 1, 1, 0, 77 , 102, 0  , 0  , 0  , 0  ), // #481 {vm32x, xmm|ymm}
   ROW(2, 1, 1, 0, 78 , 61 , 0  , 0  , 0  , 0  ), //      {vm32y, zmm}
-  ROW(2, 1, 1, 0, 124, 55 , 0  , 0  , 0  , 0  ), // #484 {vm64x|vm64y, xmm}
+  ROW(2, 1, 1, 0, 123, 55 , 0  , 0  , 0  , 0  ), // #483 {vm64x|vm64y, xmm}
   ROW(2, 1, 1, 0, 82 , 57 , 0  , 0  , 0  , 0  ), //      {vm64z, ymm}
-  ROW(3, 1, 1, 0, 55 , 55 , 56 , 0  , 0  , 0  ), // #486 {xmm, xmm, xmm|m128|mem}
+  ROW(3, 1, 1, 0, 55 , 55 , 56 , 0  , 0  , 0  ), // #485 {xmm, xmm, xmm|m128|mem}
   ROW(3, 1, 1, 0, 55 , 59 , 55 , 0  , 0  , 0  ), //      {xmm, m128|mem, xmm}
-  ROW(1, 1, 0, 1, 42 , 0  , 0  , 0  , 0  , 0  ), // #488 {<ax>}
-  ROW(2, 1, 0, 1, 42 , 10 , 0  , 0  , 0  , 0  ), // #489 {<ax>, i8|u8}
-  ROW(2, 1, 0, 0, 24 , 4  , 0  , 0  , 0  , 0  ), // #490 {r16|m16|mem, r16}
-  ROW(3, 1, 1, 1, 55 , 56 , 151, 0  , 0  , 0  ), // #491 {xmm, xmm|m128|mem, <xmm0>}
-  ROW(2, 1, 1, 0, 126, 152, 0  , 0  , 0  , 0  ), // #492 {bnd, mib}
-  ROW(2, 1, 1, 0, 126, 128, 0  , 0  , 0  , 0  ), // #493 {bnd, mem}
-  ROW(2, 1, 1, 0, 152, 126, 0  , 0  , 0  , 0  ), // #494 {mib, bnd}
-  ROW(1, 1, 1, 1, 42 , 0  , 0  , 0  , 0  , 0  ), // #495 {<ax>}
-  ROW(2, 1, 1, 2, 44 , 45 , 0  , 0  , 0  , 0  ), // #496 {<edx>, <eax>}
-  ROW(1, 1, 1, 0, 128, 0  , 0  , 0  , 0  , 0  ), // #497 {mem}
-  ROW(1, 1, 1, 0, 31 , 0  , 0  , 0  , 0  , 0  ), // #498 {m64|mem}
-  ROW(0, 0, 1, 0, 0  , 0  , 0  , 0  , 0  , 0  ), // #499 {}
-  ROW(1, 1, 1, 1, 153, 0  , 0  , 0  , 0  , 0  ), // #500 {<ds:[mem|m512|memBase|zax]>}
-  ROW(3, 1, 1, 0, 55 , 70 , 10 , 0  , 0  , 0  ), // #501 {xmm, xmm|m64|mem, i8|u8}
-  ROW(3, 1, 1, 0, 55 , 123, 10 , 0  , 0  , 0  ), // #502 {xmm, xmm|m32|mem, i8|u8}
-  ROW(5, 0, 1, 4, 59 , 46 , 47 , 154, 155, 0  ), // #503 {m128|mem, <rdx>, <rax>, <rcx>, <rbx>}
-  ROW(5, 1, 1, 4, 31 , 44 , 45 , 119, 156, 0  ), // #504 {m64|mem, <edx>, <eax>, <ecx>, <ebx>}
-  ROW(4, 1, 1, 4, 45 , 156, 119, 44 , 0  , 0  ), // #505 {<eax>, <ebx>, <ecx>, <edx>}
-  ROW(2, 0, 1, 2, 46 , 47 , 0  , 0  , 0  , 0  ), // #506 {<rdx>, <rax>}
-  ROW(2, 1, 1, 0, 67 , 56 , 0  , 0  , 0  , 0  ), // #507 {mm, xmm|m128|mem}
-  ROW(2, 1, 1, 0, 55 , 68 , 0  , 0  , 0  , 0  ), // #508 {xmm, mm|m64|mem}
-  ROW(2, 1, 1, 0, 67 , 70 , 0  , 0  , 0  , 0  ), // #509 {mm, xmm|m64|mem}
-  ROW(2, 1, 1, 2, 43 , 42 , 0  , 0  , 0  , 0  ), // #510 {<dx>, <ax>}
-  ROW(1, 1, 1, 1, 45 , 0  , 0  , 0  , 0  , 0  ), // #511 {<eax>}
-  ROW(2, 1, 1, 0, 12 , 10 , 0  , 0  , 0  , 0  ), // #512 {i16|u16, i8|u8}
-  ROW(3, 1, 1, 0, 25 , 55 , 10 , 0  , 0  , 0  ), // #513 {r32|m32|mem, xmm, i8|u8}
-  ROW(1, 1, 1, 0, 115, 0  , 0  , 0  , 0  , 0  ), // #514 {m80|mem}
-  ROW(1, 1, 1, 0, 39 , 0  , 0  , 0  , 0  , 0  ), // #515 {m16|m32}
-  ROW(1, 1, 1, 0, 157, 0  , 0  , 0  , 0  , 0  ), // #516 {m16|m32|m64}
-  ROW(1, 1, 1, 0, 158, 0  , 0  , 0  , 0  , 0  ), // #517 {m32|m64|m80|st}
-  ROW(1, 1, 1, 0, 21 , 0  , 0  , 0  , 0  , 0  ), // #518 {m16|mem}
-  ROW(1, 1, 1, 0, 159, 0  , 0  , 0  , 0  , 0  ), // #519 {ax|m16|mem}
-  ROW(1, 0, 1, 0, 128, 0  , 0  , 0  , 0  , 0  ), // #520 {mem}
-  ROW(2, 1, 1, 2, 45 , 156, 0  , 0  , 0  , 0  ), // #521 {<eax>, <ebx>}
-  ROW(2, 1, 1, 1, 10 , 45 , 0  , 0  , 0  , 0  ), // #522 {i8|u8, <eax>}
-  ROW(2, 1, 1, 0, 160, 161, 0  , 0  , 0  , 0  ), // #523 {al|ax|eax, i8|u8|dx}
-  ROW(2, 1, 1, 0, 162, 163, 0  , 0  , 0  , 0  ), // #524 {es:[memBase|zdi|m8|m16|m32], dx}
-  ROW(1, 1, 1, 0, 10 , 0  , 0  , 0  , 0  , 0  ), // #525 {i8|u8}
-  ROW(0, 1, 0, 0, 0  , 0  , 0  , 0  , 0  , 0  ), // #526 {}
-  ROW(3, 1, 1, 0, 92 , 92 , 92 , 0  , 0  , 0  ), // #527 {k, k, k}
-  ROW(2, 1, 1, 0, 92 , 92 , 0  , 0  , 0  , 0  ), // #528 {k, k}
-  ROW(3, 1, 1, 0, 92 , 92 , 10 , 0  , 0  , 0  ), // #529 {k, k, i8|u8}
-  ROW(1, 1, 1, 1, 164, 0  , 0  , 0  , 0  , 0  ), // #530 {<ah>}
-  ROW(1, 1, 1, 0, 30 , 0  , 0  , 0  , 0  , 0  ), // #531 {m32|mem}
-  ROW(1, 0, 1, 0, 63 , 0  , 0  , 0  , 0  , 0  ), // #532 {m512|mem}
-  ROW(1, 1, 1, 0, 24 , 0  , 0  , 0  , 0  , 0  ), // #533 {r16|m16|mem}
-  ROW(3, 1, 1, 1, 55 , 55 , 165, 0  , 0  , 0  ), // #534 {xmm, xmm, <ds:[mem|m128|memBase|zdi]>}
-  ROW(3, 1, 1, 1, 67 , 67 , 166, 0  , 0  , 0  ), // #535 {mm, mm, <ds:[mem|m64|memBase|zdi]>}
-  ROW(3, 1, 1, 3, 167, 119, 44 , 0  , 0  , 0  ), // #536 {<ds:[mem|memBase|zax]>, <ecx>, <edx>}
-  ROW(2, 1, 1, 0, 67 , 55 , 0  , 0  , 0  , 0  ), // #537 {mm, xmm}
-  ROW(2, 1, 1, 0, 6  , 55 , 0  , 0  , 0  , 0  ), // #538 {r32, xmm}
-  ROW(2, 1, 1, 0, 31 , 67 , 0  , 0  , 0  , 0  ), // #539 {m64|mem, mm}
-  ROW(2, 1, 1, 0, 55 , 67 , 0  , 0  , 0  , 0  ), // #540 {xmm, mm}
-  ROW(2, 1, 1, 2, 45 , 119, 0  , 0  , 0  , 0  ), // #541 {<eax>, <ecx>}
-  ROW(3, 1, 1, 3, 45 , 119, 156, 0  , 0  , 0  ), // #542 {<eax>, <ecx>, <ebx>}
-  ROW(2, 1, 1, 0, 161, 160, 0  , 0  , 0  , 0  ), // #543 {i8|u8|dx, al|ax|eax}
-  ROW(2, 1, 1, 0, 163, 168, 0  , 0  , 0  , 0  ), // #544 {dx, ds:[memBase|zsi|m8|m16|m32]}
-  ROW(6, 1, 1, 3, 55 , 56 , 10 , 119, 45 , 44 ), // #545 {xmm, xmm|m128|mem, i8|u8, <ecx>, <eax>, <edx>}
-  ROW(6, 1, 1, 3, 55 , 56 , 10 , 151, 45 , 44 ), // #546 {xmm, xmm|m128|mem, i8|u8, <xmm0>, <eax>, <edx>}
-  ROW(4, 1, 1, 1, 55 , 56 , 10 , 119, 0  , 0  ), // #547 {xmm, xmm|m128|mem, i8|u8, <ecx>}
-  ROW(4, 1, 1, 1, 55 , 56 , 10 , 151, 0  , 0  ), // #548 {xmm, xmm|m128|mem, i8|u8, <xmm0>}
-  ROW(3, 1, 1, 0, 137, 55 , 10 , 0  , 0  , 0  ), // #549 {r32|m8|mem, xmm, i8|u8}
-  ROW(3, 0, 1, 0, 26 , 55 , 10 , 0  , 0  , 0  ), // #550 {r64|m64|mem, xmm, i8|u8}
-  ROW(3, 1, 1, 0, 55 , 137, 10 , 0  , 0  , 0  ), // #551 {xmm, r32|m8|mem, i8|u8}
-  ROW(3, 1, 1, 0, 55 , 25 , 10 , 0  , 0  , 0  ), // #552 {xmm, r32|m32|mem, i8|u8}
-  ROW(3, 0, 1, 0, 55 , 26 , 10 , 0  , 0  , 0  ), // #553 {xmm, r64|m64|mem, i8|u8}
-  ROW(3, 1, 1, 0, 69 , 117, 10 , 0  , 0  , 0  ), // #554 {mm|xmm, r32|m16|mem, i8|u8}
-  ROW(2, 1, 1, 0, 6  , 69 , 0  , 0  , 0  , 0  ), // #555 {r32, mm|xmm}
-  ROW(2, 1, 1, 0, 55 , 10 , 0  , 0  , 0  , 0  ), // #556 {xmm, i8|u8}
-  ROW(1, 1, 1, 0, 12 , 0  , 0  , 0  , 0  , 0  ), // #557 {i16|u16}
-  ROW(1, 0, 1, 0, 141, 0  , 0  , 0  , 0  , 0  ), // #558 {r32|r64}
-  ROW(1, 1, 1, 0, 1  , 0  , 0  , 0  , 0  , 0  ), // #559 {r8lo|r8hi|m8|mem}
-  ROW(3, 0, 1, 0, 169, 169, 169, 0  , 0  , 0  ), // #560 {tmm, tmm, tmm}
-  ROW(2, 0, 1, 0, 169, 170, 0  , 0  , 0  , 0  ), // #561 {tmm, tmem}
-  ROW(2, 0, 1, 0, 170, 169, 0  , 0  , 0  , 0  ), // #562 {tmem, tmm}
-  ROW(1, 0, 1, 0, 169, 0  , 0  , 0  , 0  , 0  ), // #563 {tmm}
-  ROW(3, 1, 1, 2, 6  , 44 , 45 , 0  , 0  , 0  ), // #564 {r32, <edx>, <eax>}
-  ROW(3, 1, 1, 0, 55 , 55 , 70 , 0  , 0  , 0  ), // #565 {xmm, xmm, xmm|m64|mem}
-  ROW(3, 1, 1, 0, 55 , 55 , 125, 0  , 0  , 0  ), // #566 {xmm, xmm, xmm|m16|mem}
-  ROW(3, 1, 1, 0, 55 , 55 , 123, 0  , 0  , 0  ), // #567 {xmm, xmm, xmm|m32|mem}
-  ROW(2, 1, 1, 0, 102, 21 , 0  , 0  , 0  , 0  ), // #568 {xmm|ymm, m16|mem}
-  ROW(2, 1, 1, 0, 57 , 59 , 0  , 0  , 0  , 0  ), // #569 {ymm, m128|mem}
-  ROW(2, 1, 1, 0, 171, 70 , 0  , 0  , 0  , 0  ), // #570 {ymm|zmm, xmm|m64|mem}
-  ROW(2, 1, 1, 0, 171, 59 , 0  , 0  , 0  , 0  ), // #571 {ymm|zmm, m128|mem}
-  ROW(2, 1, 1, 0, 61 , 60 , 0  , 0  , 0  , 0  ), // #572 {zmm, m256|mem}
-  ROW(2, 1, 1, 0, 149, 123, 0  , 0  , 0  , 0  ), // #573 {xmm|ymm|zmm, m32|mem|xmm}
-  ROW(4, 1, 1, 0, 121, 55 , 70 , 10 , 0  , 0  ), // #574 {xmm|k, xmm, xmm|m64|mem, i8|u8}
-  ROW(4, 1, 1, 0, 92 , 55 , 125, 10 , 0  , 0  ), // #575 {k, xmm, xmm|m16|mem, i8|u8}
-  ROW(4, 1, 1, 0, 121, 55 , 123, 10 , 0  , 0  ), // #576 {xmm|k, xmm, xmm|m32|mem, i8|u8}
-  ROW(2, 1, 1, 0, 55 , 172, 0  , 0  , 0  , 0  ), // #577 {xmm, xmm|m128|ymm|m256|zmm|m512}
-  ROW(3, 1, 1, 0, 56 , 171, 10 , 0  , 0  , 0  ), // #578 {xmm|m128|mem, ymm|zmm, i8|u8}
-  ROW(4, 1, 1, 0, 55 , 55 , 70 , 10 , 0  , 0  ), // #579 {xmm, xmm, xmm|m64|mem, i8|u8}
-  ROW(4, 1, 1, 0, 55 , 55 , 123, 10 , 0  , 0  ), // #580 {xmm, xmm, xmm|m32|mem, i8|u8}
-  ROW(3, 1, 1, 0, 92 , 172, 10 , 0  , 0  , 0  ), // #581 {k, xmm|m128|ymm|m256|zmm|m512, i8|u8}
-  ROW(3, 1, 1, 0, 92 , 70 , 10 , 0  , 0  , 0  ), // #582 {k, xmm|m64|mem, i8|u8}
-  ROW(3, 1, 1, 0, 92 , 125, 10 , 0  , 0  , 0  ), // #583 {k, xmm|m16|mem, i8|u8}
-  ROW(3, 1, 1, 0, 92 , 123, 10 , 0  , 0  , 0  ), // #584 {k, xmm|m32|mem, i8|u8}
-  ROW(4, 1, 1, 0, 55 , 55 , 125, 10 , 0  , 0  ), // #585 {xmm, xmm, xmm|m16|mem, i8|u8}
-  ROW(4, 1, 1, 0, 61 , 61 , 58 , 10 , 0  , 0  ), // #586 {zmm, zmm, ymm|m256|mem, i8|u8}
-  ROW(2, 1, 1, 0, 6  , 102, 0  , 0  , 0  , 0  ), // #587 {r32, xmm|ymm}
-  ROW(2, 1, 1, 0, 149, 173, 0  , 0  , 0  , 0  ), // #588 {xmm|ymm|zmm, xmm|m8|mem|r32}
-  ROW(2, 1, 1, 0, 149, 174, 0  , 0  , 0  , 0  ), // #589 {xmm|ymm|zmm, xmm|m32|mem|r32}
-  ROW(2, 1, 1, 0, 149, 92 , 0  , 0  , 0  , 0  ), // #590 {xmm|ymm|zmm, k}
-  ROW(2, 1, 1, 0, 149, 175, 0  , 0  , 0  , 0  ), // #591 {xmm|ymm|zmm, xmm|m16|mem|r32}
-  ROW(3, 1, 1, 0, 117, 55 , 10 , 0  , 0  , 0  ), // #592 {r32|m16|mem, xmm, i8|u8}
-  ROW(4, 1, 1, 0, 55 , 55 , 137, 10 , 0  , 0  ), // #593 {xmm, xmm, r32|m8|mem, i8|u8}
-  ROW(4, 1, 1, 0, 55 , 55 , 25 , 10 , 0  , 0  ), // #594 {xmm, xmm, r32|m32|mem, i8|u8}
-  ROW(4, 0, 1, 0, 55 , 55 , 26 , 10 , 0  , 0  ), // #595 {xmm, xmm, r64|m64|mem, i8|u8}
-  ROW(4, 1, 1, 0, 55 , 55 , 117, 10 , 0  , 0  ), // #596 {xmm, xmm, r32|m16|mem, i8|u8}
-  ROW(2, 1, 1, 0, 92 , 149, 0  , 0  , 0  , 0  ), // #597 {k, xmm|ymm|zmm}
-  ROW(2, 1, 1, 0, 57 , 55 , 0  , 0  , 0  , 0  ), // #598 {ymm, xmm}
-  ROW(2, 1, 1, 0, 57 , 57 , 0  , 0  , 0  , 0  ), // #599 {ymm, ymm}
-  ROW(3, 1, 1, 0, 57 , 57 , 55 , 0  , 0  , 0  ), // #600 {ymm, ymm, xmm}
-  ROW(3, 1, 1, 2, 128, 44 , 45 , 0  , 0  , 0  ), // #601 {mem, <edx>, <eax>}
-  ROW(3, 0, 1, 2, 128, 44 , 45 , 0  , 0  , 0  )  // #602 {mem, <edx>, <eax>}
+  ROW(1, 1, 0, 1, 42 , 0  , 0  , 0  , 0  , 0  ), // #487 {<ax>}
+  ROW(2, 1, 0, 1, 42 , 10 , 0  , 0  , 0  , 0  ), // #488 {<ax>, i8|u8}
+  ROW(2, 1, 0, 0, 24 , 4  , 0  , 0  , 0  , 0  ), // #489 {r16|m16|mem, r16}
+  ROW(3, 1, 1, 1, 55 , 56 , 151, 0  , 0  , 0  ), // #490 {xmm, xmm|m128|mem, <xmm0>}
+  ROW(2, 1, 1, 0, 125, 152, 0  , 0  , 0  , 0  ), // #491 {bnd, mib}
+  ROW(2, 1, 1, 0, 125, 127, 0  , 0  , 0  , 0  ), // #492 {bnd, mem}
+  ROW(2, 1, 1, 0, 152, 125, 0  , 0  , 0  , 0  ), // #493 {mib, bnd}
+  ROW(1, 1, 1, 1, 42 , 0  , 0  , 0  , 0  , 0  ), // #494 {<ax>}
+  ROW(2, 1, 1, 2, 44 , 45 , 0  , 0  , 0  , 0  ), // #495 {<edx>, <eax>}
+  ROW(1, 1, 1, 0, 127, 0  , 0  , 0  , 0  , 0  ), // #496 {mem}
+  ROW(1, 1, 1, 0, 31 , 0  , 0  , 0  , 0  , 0  ), // #497 {m64|mem}
+  ROW(0, 0, 1, 0, 0  , 0  , 0  , 0  , 0  , 0  ), // #498 {}
+  ROW(1, 1, 1, 1, 153, 0  , 0  , 0  , 0  , 0  ), // #499 {<ds:[mem|m512|memBase|zax]>}
+  ROW(3, 1, 1, 0, 55 , 70 , 10 , 0  , 0  , 0  ), // #500 {xmm, xmm|m64|mem, i8|u8}
+  ROW(3, 1, 1, 0, 55 , 122, 10 , 0  , 0  , 0  ), // #501 {xmm, xmm|m32|mem, i8|u8}
+  ROW(5, 0, 1, 4, 59 , 46 , 47 , 154, 155, 0  ), // #502 {m128|mem, <rdx>, <rax>, <rcx>, <rbx>}
+  ROW(5, 1, 1, 4, 31 , 44 , 45 , 131, 156, 0  ), // #503 {m64|mem, <edx>, <eax>, <ecx>, <ebx>}
+  ROW(4, 1, 1, 4, 45 , 156, 131, 44 , 0  , 0  ), // #504 {<eax>, <ebx>, <ecx>, <edx>}
+  ROW(2, 0, 1, 2, 46 , 47 , 0  , 0  , 0  , 0  ), // #505 {<rdx>, <rax>}
+  ROW(2, 1, 1, 0, 67 , 56 , 0  , 0  , 0  , 0  ), // #506 {mm, xmm|m128|mem}
+  ROW(2, 1, 1, 0, 55 , 68 , 0  , 0  , 0  , 0  ), // #507 {xmm, mm|m64|mem}
+  ROW(2, 1, 1, 0, 67 , 70 , 0  , 0  , 0  , 0  ), // #508 {mm, xmm|m64|mem}
+  ROW(2, 1, 1, 2, 43 , 42 , 0  , 0  , 0  , 0  ), // #509 {<dx>, <ax>}
+  ROW(1, 1, 1, 1, 45 , 0  , 0  , 0  , 0  , 0  ), // #510 {<eax>}
+  ROW(2, 1, 1, 0, 12 , 10 , 0  , 0  , 0  , 0  ), // #511 {i16|u16, i8|u8}
+  ROW(3, 1, 1, 0, 25 , 55 , 10 , 0  , 0  , 0  ), // #512 {r32|m32|mem, xmm, i8|u8}
+  ROW(1, 1, 1, 0, 115, 0  , 0  , 0  , 0  , 0  ), // #513 {m80|mem}
+  ROW(1, 1, 1, 0, 39 , 0  , 0  , 0  , 0  , 0  ), // #514 {m16|m32}
+  ROW(1, 1, 1, 0, 157, 0  , 0  , 0  , 0  , 0  ), // #515 {m16|m32|m64}
+  ROW(1, 1, 1, 0, 158, 0  , 0  , 0  , 0  , 0  ), // #516 {m32|m64|m80|st}
+  ROW(1, 1, 1, 0, 21 , 0  , 0  , 0  , 0  , 0  ), // #517 {m16|mem}
+  ROW(1, 1, 1, 0, 159, 0  , 0  , 0  , 0  , 0  ), // #518 {ax|m16|mem}
+  ROW(1, 0, 1, 0, 127, 0  , 0  , 0  , 0  , 0  ), // #519 {mem}
+  ROW(2, 1, 1, 2, 45 , 156, 0  , 0  , 0  , 0  ), // #520 {<eax>, <ebx>}
+  ROW(2, 1, 1, 1, 10 , 45 , 0  , 0  , 0  , 0  ), // #521 {i8|u8, <eax>}
+  ROW(2, 1, 1, 0, 160, 161, 0  , 0  , 0  , 0  ), // #522 {al|ax|eax, i8|u8|dx}
+  ROW(2, 1, 1, 0, 162, 163, 0  , 0  , 0  , 0  ), // #523 {es:[memBase|zdi|m8|m16|m32], dx}
+  ROW(1, 1, 1, 0, 10 , 0  , 0  , 0  , 0  , 0  ), // #524 {i8|u8}
+  ROW(0, 1, 0, 0, 0  , 0  , 0  , 0  , 0  , 0  ), // #525 {}
+  ROW(3, 1, 1, 0, 92 , 92 , 92 , 0  , 0  , 0  ), // #526 {k, k, k}
+  ROW(2, 1, 1, 0, 92 , 92 , 0  , 0  , 0  , 0  ), // #527 {k, k}
+  ROW(3, 1, 1, 0, 92 , 92 , 10 , 0  , 0  , 0  ), // #528 {k, k, i8|u8}
+  ROW(1, 1, 1, 1, 164, 0  , 0  , 0  , 0  , 0  ), // #529 {<ah>}
+  ROW(1, 1, 1, 0, 30 , 0  , 0  , 0  , 0  , 0  ), // #530 {m32|mem}
+  ROW(1, 0, 1, 0, 63 , 0  , 0  , 0  , 0  , 0  ), // #531 {m512|mem}
+  ROW(1, 1, 1, 0, 24 , 0  , 0  , 0  , 0  , 0  ), // #532 {r16|m16|mem}
+  ROW(3, 1, 1, 1, 55 , 55 , 165, 0  , 0  , 0  ), // #533 {xmm, xmm, <ds:[mem|m128|memBase|zdi]>}
+  ROW(3, 1, 1, 1, 67 , 67 , 166, 0  , 0  , 0  ), // #534 {mm, mm, <ds:[mem|m64|memBase|zdi]>}
+  ROW(3, 1, 1, 3, 167, 131, 44 , 0  , 0  , 0  ), // #535 {<ds:[mem|memBase|zax]>, <ecx>, <edx>}
+  ROW(2, 1, 1, 0, 67 , 55 , 0  , 0  , 0  , 0  ), // #536 {mm, xmm}
+  ROW(2, 1, 1, 0, 6  , 55 , 0  , 0  , 0  , 0  ), // #537 {r32, xmm}
+  ROW(2, 1, 1, 0, 31 , 67 , 0  , 0  , 0  , 0  ), // #538 {m64|mem, mm}
+  ROW(2, 1, 1, 0, 55 , 67 , 0  , 0  , 0  , 0  ), // #539 {xmm, mm}
+  ROW(2, 1, 1, 2, 45 , 131, 0  , 0  , 0  , 0  ), // #540 {<eax>, <ecx>}
+  ROW(3, 1, 1, 3, 45 , 131, 156, 0  , 0  , 0  ), // #541 {<eax>, <ecx>, <ebx>}
+  ROW(2, 1, 1, 0, 161, 160, 0  , 0  , 0  , 0  ), // #542 {i8|u8|dx, al|ax|eax}
+  ROW(2, 1, 1, 0, 163, 168, 0  , 0  , 0  , 0  ), // #543 {dx, ds:[memBase|zsi|m8|m16|m32]}
+  ROW(6, 1, 1, 3, 55 , 56 , 10 , 131, 45 , 44 ), // #544 {xmm, xmm|m128|mem, i8|u8, <ecx>, <eax>, <edx>}
+  ROW(6, 1, 1, 3, 55 , 56 , 10 , 151, 45 , 44 ), // #545 {xmm, xmm|m128|mem, i8|u8, <xmm0>, <eax>, <edx>}
+  ROW(4, 1, 1, 1, 55 , 56 , 10 , 131, 0  , 0  ), // #546 {xmm, xmm|m128|mem, i8|u8, <ecx>}
+  ROW(4, 1, 1, 1, 55 , 56 , 10 , 151, 0  , 0  ), // #547 {xmm, xmm|m128|mem, i8|u8, <xmm0>}
+  ROW(3, 1, 1, 0, 137, 55 , 10 , 0  , 0  , 0  ), // #548 {r32|m8|mem, xmm, i8|u8}
+  ROW(3, 0, 1, 0, 26 , 55 , 10 , 0  , 0  , 0  ), // #549 {r64|m64|mem, xmm, i8|u8}
+  ROW(3, 1, 1, 0, 55 , 137, 10 , 0  , 0  , 0  ), // #550 {xmm, r32|m8|mem, i8|u8}
+  ROW(3, 1, 1, 0, 55 , 25 , 10 , 0  , 0  , 0  ), // #551 {xmm, r32|m32|mem, i8|u8}
+  ROW(3, 0, 1, 0, 55 , 26 , 10 , 0  , 0  , 0  ), // #552 {xmm, r64|m64|mem, i8|u8}
+  ROW(3, 1, 1, 0, 69 , 117, 10 , 0  , 0  , 0  ), // #553 {mm|xmm, r32|m16|mem, i8|u8}
+  ROW(2, 1, 1, 0, 6  , 69 , 0  , 0  , 0  , 0  ), // #554 {r32, mm|xmm}
+  ROW(2, 1, 1, 0, 55 , 10 , 0  , 0  , 0  , 0  ), // #555 {xmm, i8|u8}
+  ROW(1, 1, 1, 0, 12 , 0  , 0  , 0  , 0  , 0  ), // #556 {i16|u16}
+  ROW(1, 0, 1, 0, 141, 0  , 0  , 0  , 0  , 0  ), // #557 {r32|r64}
+  ROW(1, 1, 1, 0, 1  , 0  , 0  , 0  , 0  , 0  ), // #558 {r8lo|r8hi|m8|mem}
+  ROW(3, 0, 1, 0, 169, 169, 169, 0  , 0  , 0  ), // #559 {tmm, tmm, tmm}
+  ROW(2, 0, 1, 0, 169, 170, 0  , 0  , 0  , 0  ), // #560 {tmm, tmem}
+  ROW(2, 0, 1, 0, 170, 169, 0  , 0  , 0  , 0  ), // #561 {tmem, tmm}
+  ROW(1, 0, 1, 0, 169, 0  , 0  , 0  , 0  , 0  ), // #562 {tmm}
+  ROW(3, 1, 1, 2, 6  , 44 , 45 , 0  , 0  , 0  ), // #563 {r32, <edx>, <eax>}
+  ROW(3, 1, 1, 0, 55 , 55 , 70 , 0  , 0  , 0  ), // #564 {xmm, xmm, xmm|m64|mem}
+  ROW(3, 1, 1, 0, 55 , 55 , 124, 0  , 0  , 0  ), // #565 {xmm, xmm, xmm|m16|mem}
+  ROW(3, 1, 1, 0, 55 , 55 , 122, 0  , 0  , 0  ), // #566 {xmm, xmm, xmm|m32|mem}
+  ROW(2, 1, 1, 0, 102, 21 , 0  , 0  , 0  , 0  ), // #567 {xmm|ymm, m16|mem}
+  ROW(2, 1, 1, 0, 57 , 59 , 0  , 0  , 0  , 0  ), // #568 {ymm, m128|mem}
+  ROW(2, 1, 1, 0, 171, 70 , 0  , 0  , 0  , 0  ), // #569 {ymm|zmm, xmm|m64|mem}
+  ROW(2, 1, 1, 0, 171, 59 , 0  , 0  , 0  , 0  ), // #570 {ymm|zmm, m128|mem}
+  ROW(2, 1, 1, 0, 61 , 60 , 0  , 0  , 0  , 0  ), // #571 {zmm, m256|mem}
+  ROW(2, 1, 1, 0, 149, 122, 0  , 0  , 0  , 0  ), // #572 {xmm|ymm|zmm, m32|mem|xmm}
+  ROW(4, 1, 1, 0, 120, 55 , 70 , 10 , 0  , 0  ), // #573 {xmm|k, xmm, xmm|m64|mem, i8|u8}
+  ROW(4, 1, 1, 0, 92 , 55 , 124, 10 , 0  , 0  ), // #574 {k, xmm, xmm|m16|mem, i8|u8}
+  ROW(4, 1, 1, 0, 120, 55 , 122, 10 , 0  , 0  ), // #575 {xmm|k, xmm, xmm|m32|mem, i8|u8}
+  ROW(2, 1, 1, 0, 55 , 172, 0  , 0  , 0  , 0  ), // #576 {xmm, xmm|m128|ymm|m256|zmm|m512}
+  ROW(3, 1, 1, 0, 56 , 171, 10 , 0  , 0  , 0  ), // #577 {xmm|m128|mem, ymm|zmm, i8|u8}
+  ROW(4, 1, 1, 0, 55 , 55 , 70 , 10 , 0  , 0  ), // #578 {xmm, xmm, xmm|m64|mem, i8|u8}
+  ROW(4, 1, 1, 0, 55 , 55 , 122, 10 , 0  , 0  ), // #579 {xmm, xmm, xmm|m32|mem, i8|u8}
+  ROW(3, 1, 1, 0, 92 , 172, 10 , 0  , 0  , 0  ), // #580 {k, xmm|m128|ymm|m256|zmm|m512, i8|u8}
+  ROW(3, 1, 1, 0, 92 , 70 , 10 , 0  , 0  , 0  ), // #581 {k, xmm|m64|mem, i8|u8}
+  ROW(3, 1, 1, 0, 92 , 124, 10 , 0  , 0  , 0  ), // #582 {k, xmm|m16|mem, i8|u8}
+  ROW(3, 1, 1, 0, 92 , 122, 10 , 0  , 0  , 0  ), // #583 {k, xmm|m32|mem, i8|u8}
+  ROW(4, 1, 1, 0, 55 , 55 , 124, 10 , 0  , 0  ), // #584 {xmm, xmm, xmm|m16|mem, i8|u8}
+  ROW(4, 1, 1, 0, 61 , 61 , 58 , 10 , 0  , 0  ), // #585 {zmm, zmm, ymm|m256|mem, i8|u8}
+  ROW(2, 1, 1, 0, 6  , 102, 0  , 0  , 0  , 0  ), // #586 {r32, xmm|ymm}
+  ROW(2, 1, 1, 0, 149, 173, 0  , 0  , 0  , 0  ), // #587 {xmm|ymm|zmm, xmm|m8|mem|r32}
+  ROW(2, 1, 1, 0, 149, 174, 0  , 0  , 0  , 0  ), // #588 {xmm|ymm|zmm, xmm|m32|mem|r32}
+  ROW(2, 1, 1, 0, 149, 92 , 0  , 0  , 0  , 0  ), // #589 {xmm|ymm|zmm, k}
+  ROW(2, 1, 1, 0, 149, 175, 0  , 0  , 0  , 0  ), // #590 {xmm|ymm|zmm, xmm|m16|mem|r32}
+  ROW(3, 1, 1, 0, 117, 55 , 10 , 0  , 0  , 0  ), // #591 {r32|m16|mem, xmm, i8|u8}
+  ROW(4, 1, 1, 0, 55 , 55 , 137, 10 , 0  , 0  ), // #592 {xmm, xmm, r32|m8|mem, i8|u8}
+  ROW(4, 1, 1, 0, 55 , 55 , 25 , 10 , 0  , 0  ), // #593 {xmm, xmm, r32|m32|mem, i8|u8}
+  ROW(4, 0, 1, 0, 55 , 55 , 26 , 10 , 0  , 0  ), // #594 {xmm, xmm, r64|m64|mem, i8|u8}
+  ROW(4, 1, 1, 0, 55 , 55 , 117, 10 , 0  , 0  ), // #595 {xmm, xmm, r32|m16|mem, i8|u8}
+  ROW(2, 1, 1, 0, 92 , 149, 0  , 0  , 0  , 0  ), // #596 {k, xmm|ymm|zmm}
+  ROW(2, 1, 1, 0, 57 , 55 , 0  , 0  , 0  , 0  ), // #597 {ymm, xmm}
+  ROW(2, 1, 1, 0, 57 , 57 , 0  , 0  , 0  , 0  ), // #598 {ymm, ymm}
+  ROW(3, 1, 1, 0, 57 , 57 , 55 , 0  , 0  , 0  ), // #599 {ymm, ymm, xmm}
+  ROW(3, 1, 1, 2, 127, 44 , 45 , 0  , 0  , 0  ), // #600 {mem, <edx>, <eax>}
+  ROW(3, 0, 1, 2, 127, 44 , 45 , 0  , 0  , 0  )  // #601 {mem, <edx>, <eax>}
 };
 #undef ROW
 
@@ -5436,7 +5435,6 @@ const InstDB::OpSignature InstDB::_opSignatureTable[] = {
   ROW(F(MemUnspecified) | F(Mem48), 0x00),
   ROW(F(RegGpd) | F(MemUnspecified) | F(Mem16), 0x00),
   ROW(F(RegGpbLo) | F(RegGpbHi) | F(RegGpw) | F(Mem8) | F(Mem16), 0x00),
-  ROW(F(RegGpd) | F(FlagImplicit), 0x02),
   ROW(F(RegGpbLo) | F(ImmI8) | F(ImmU8), 0x02),
   ROW(F(RegXmm) | F(RegKReg), 0x00),
   ROW(F(RegYmm) | F(RegKReg), 0x00),
@@ -5449,6 +5447,7 @@ const InstDB::OpSignature InstDB::_opSignatureTable[] = {
   ROW(F(RegGpbLo) | F(RegGpbHi) | F(RegGpq) | F(Mem8) | F(Mem64), 0x00),
   ROW(F(MemUnspecified) | F(Mem512) | F(FlagMemBase) | F(FlagMemEs), 0x00),
   ROW(F(RegSt) | F(Mem32) | F(Mem64), 0x00),
+  ROW(F(RegGpd) | F(FlagImplicit), 0x02),
   ROW(F(RegGpd) | F(RegGpq) | F(FlagImplicit), 0x01),
   ROW(F(RegGpw) | F(RegGpd) | F(FlagImplicit), 0x02),
   ROW(F(ImmI32) | F(ImmI64) | F(Rel8), 0x00),
@@ -5575,8 +5574,8 @@ const uint8_t InstDB::rwInfoIndexA[Inst::_kIdCount] = {
   0, 0, 10, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 10, 0,
   0, 10, 10, 0, 0, 0, 0, 0, 0, 0, 0, 68, 68, 68, 132, 133, 134, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 10, 10, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 124, 124, 21,
-  107, 22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 135, 136, 135, 136, 0, 137, 0,
-  138, 0, 0, 0, 3, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  107, 22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 74, 72, 74, 72, 0, 135, 0, 136,
+  0, 0, 0, 3, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
 const uint8_t InstDB::rwInfoIndexB[Inst::_kIdCount] = {
@@ -5732,9 +5731,9 @@ const InstDB::RWInfo InstDB::rwInfoA[] = {
   { InstDB::RWInfo::kCategoryGeneric   , 0 , { 36, 63, 0 , 0 , 0 , 0  } }, // #69 [ref=1x]
   { InstDB::RWInfo::kCategoryMovh64    , 12, { 0 , 0 , 0 , 0 , 0 , 0  } }, // #70 [ref=2x]
   { InstDB::RWInfo::kCategoryGeneric   , 0 , { 64, 7 , 0 , 0 , 0 , 0  } }, // #71 [ref=1x]
-  { InstDB::RWInfo::kCategoryGeneric   , 12, { 35, 7 , 0 , 0 , 0 , 0  } }, // #72 [ref=7x]
+  { InstDB::RWInfo::kCategoryGeneric   , 12, { 35, 7 , 0 , 0 , 0 , 0  } }, // #72 [ref=9x]
   { InstDB::RWInfo::kCategoryGeneric   , 0 , { 57, 5 , 0 , 0 , 0 , 0  } }, // #73 [ref=2x]
-  { InstDB::RWInfo::kCategoryGeneric   , 28, { 45, 9 , 0 , 0 , 0 , 0  } }, // #74 [ref=2x]
+  { InstDB::RWInfo::kCategoryGeneric   , 28, { 45, 9 , 0 , 0 , 0 , 0  } }, // #74 [ref=4x]
   { InstDB::RWInfo::kCategoryGeneric   , 14, { 65, 20, 0 , 0 , 0 , 0  } }, // #75 [ref=1x]
   { InstDB::RWInfo::kCategoryGeneric   , 31, { 35, 7 , 0 , 0 , 0 , 0  } }, // #76 [ref=1x]
   { InstDB::RWInfo::kCategoryGeneric   , 33, { 45, 9 , 0 , 0 , 0 , 0  } }, // #77 [ref=1x]
@@ -5795,10 +5794,8 @@ const InstDB::RWInfo InstDB::rwInfoA[] = {
   { InstDB::RWInfo::kCategoryGeneric   , 14, { 11, 3 , 0 , 0 , 0 , 0  } }, // #132 [ref=2x]
   { InstDB::RWInfo::kCategoryGeneric   , 0 , { 88, 5 , 0 , 0 , 0 , 0  } }, // #133 [ref=1x]
   { InstDB::RWInfo::kCategoryGeneric   , 0 , { 88, 78, 0 , 0 , 0 , 0  } }, // #134 [ref=1x]
-  { InstDB::RWInfo::kCategoryGeneric   , 18, { 45, 9 , 0 , 0 , 0 , 0  } }, // #135 [ref=2x]
-  { InstDB::RWInfo::kCategoryGeneric   , 35, { 35, 7 , 0 , 0 , 0 , 0  } }, // #136 [ref=2x]
-  { InstDB::RWInfo::kCategoryGeneric   , 11, { 2 , 2 , 0 , 0 , 0 , 0  } }, // #137 [ref=1x]
-  { InstDB::RWInfo::kCategoryGeneric   , 57, { 2 , 2 , 0 , 0 , 0 , 0  } }  // #138 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 11, { 2 , 2 , 0 , 0 , 0 , 0  } }, // #135 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 57, { 2 , 2 , 0 , 0 , 0 , 0  } }  // #136 [ref=1x]
 };
 
 const InstDB::RWInfo InstDB::rwInfoB[] = {
@@ -6083,13 +6080,13 @@ const InstDB::RWInfoRm InstDB::rwInfoRm[] = {
   { InstDB::RWInfoRm::kCategoryFixed     , 0x03, 0 , 0, 0 }, // #9 [ref=1x]
   { InstDB::RWInfoRm::kCategoryConsistent, 0x01, 0 , InstDB::RWInfoRm::kFlagAmbiguous, 0 }, // #10 [ref=20x]
   { InstDB::RWInfoRm::kCategoryConsistent, 0x01, 0 , 0, 0 }, // #11 [ref=14x]
-  { InstDB::RWInfoRm::kCategoryFixed     , 0x00, 8 , 0, 0 }, // #12 [ref=23x]
+  { InstDB::RWInfoRm::kCategoryFixed     , 0x00, 8 , 0, 0 }, // #12 [ref=25x]
   { InstDB::RWInfoRm::kCategoryFixed     , 0x00, 64, 0, 0 }, // #13 [ref=6x]
   { InstDB::RWInfoRm::kCategoryNone      , 0x00, 0 , InstDB::RWInfoRm::kFlagAmbiguous, 0 }, // #14 [ref=30x]
   { InstDB::RWInfoRm::kCategoryFixed     , 0x00, 16, 0, 0 }, // #15 [ref=17x]
   { InstDB::RWInfoRm::kCategoryConsistent, 0x02, 0 , InstDB::RWInfoRm::kFlagAmbiguous, 0 }, // #16 [ref=22x]
   { InstDB::RWInfoRm::kCategoryFixed     , 0x02, 1 , 0, 0 }, // #17 [ref=5x]
-  { InstDB::RWInfoRm::kCategoryFixed     , 0x01, 4 , 0, 0 }, // #18 [ref=6x]
+  { InstDB::RWInfoRm::kCategoryFixed     , 0x01, 4 , 0, 0 }, // #18 [ref=4x]
   { InstDB::RWInfoRm::kCategoryFixed     , 0x00, 10, 0, 0 }, // #19 [ref=2x]
   { InstDB::RWInfoRm::kCategoryNone      , 0x01, 0 , InstDB::RWInfoRm::kFlagAmbiguous, 0 }, // #20 [ref=5x]
   { InstDB::RWInfoRm::kCategoryFixed     , 0x00, 2 , 0, 0 }, // #21 [ref=6x]
@@ -6099,14 +6096,14 @@ const InstDB::RWInfoRm InstDB::rwInfoRm[] = {
   { InstDB::RWInfoRm::kCategoryFixed     , 0x03, 8 , 0, 0 }, // #25 [ref=2x]
   { InstDB::RWInfoRm::kCategoryFixed     , 0x03, 2 , 0, 0 }, // #26 [ref=2x]
   { InstDB::RWInfoRm::kCategoryFixed     , 0x02, 2 , 0, 0 }, // #27 [ref=13x]
-  { InstDB::RWInfoRm::kCategoryFixed     , 0x00, 4 , 0, 0 }, // #28 [ref=6x]
+  { InstDB::RWInfoRm::kCategoryFixed     , 0x00, 4 , 0, 0 }, // #28 [ref=8x]
   { InstDB::RWInfoRm::kCategoryNone      , 0x03, 0 , InstDB::RWInfoRm::kFlagAmbiguous, 0 }, // #29 [ref=1x]
   { InstDB::RWInfoRm::kCategoryFixed     , 0x03, 16, 0, 0 }, // #30 [ref=6x]
   { InstDB::RWInfoRm::kCategoryFixed     , 0x03, 8 , InstDB::RWInfoRm::kFlagMovssMovsd, 0 }, // #31 [ref=1x]
   { InstDB::RWInfoRm::kCategoryNone      , 0x00, 0 , InstDB::RWInfoRm::kFlagMovssMovsd, 0 }, // #32 [ref=2x]
   { InstDB::RWInfoRm::kCategoryFixed     , 0x03, 4 , InstDB::RWInfoRm::kFlagMovssMovsd, 0 }, // #33 [ref=1x]
   { InstDB::RWInfoRm::kCategoryFixed     , 0x01, 1 , 0, 0 }, // #34 [ref=18x]
-  { InstDB::RWInfoRm::kCategoryFixed     , 0x01, 8 , 0, 0 }, // #35 [ref=4x]
+  { InstDB::RWInfoRm::kCategoryFixed     , 0x01, 8 , 0, 0 }, // #35 [ref=2x]
   { InstDB::RWInfoRm::kCategoryNone      , 0x00, 0 , InstDB::RWInfoRm::kFlagPextrw, 0 }, // #36 [ref=1x]
   { InstDB::RWInfoRm::kCategoryFixed     , 0x01, 2 , InstDB::RWInfoRm::kFlagPextrw, uint32_t(CpuFeatures::X86::kSSE4_1) }, // #37 [ref=1x]
   { InstDB::RWInfoRm::kCategoryNone      , 0x02, 0 , 0, 0 }, // #38 [ref=4x]

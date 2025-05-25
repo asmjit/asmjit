@@ -1189,11 +1189,13 @@ class ISA extends base.ISA {
   _addInstructions(groups) {
     for (let group of groups) {
       for (let record of group.instructions) {
-        const arch = findArch(record);
+        let arch = findArch(record);
 
         // TODO: Ignore records having this (only used for testing purposes).
         if (arch === "___")
           continue;
+
+        const apx = arch === "apx";
 
         const sgn = Utils.splitInstructionSignature(record[arch]);
         const data = MapUtils.cloneExcept(record, arch);
@@ -1204,15 +1206,24 @@ class ISA extends base.ISA {
           data.name = sgn.names[j];
           data.prefixes = sgn.prefixes;
           data.operands = sgn.operands;
-          if (j > 0)
+
+          if (j > 0) {
             data.aliasOf = sgn.names[0];
+          }
 
           let groupIndex = 0;
           let instruction = null;
           do {
             instruction = new Instruction(this);
-            instruction.arch = arch.toUpperCase();
+            instruction.arch = apx ? "X64" : arch.toUpperCase();
             instruction.assignData(data, groupIndex);
+
+            if (apx) {
+              instruction.ext["APX_F"] = true;
+              if (instruction.category.GP) {
+                instruction.category.GP_EXT = true
+              }
+            }
 
             this._addInstruction(instruction);
           } while (instruction.groupPattern && ++groupIndex < OperandGroupInfo[instruction.groupPattern].subst.length);

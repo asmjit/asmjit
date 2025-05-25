@@ -1896,16 +1896,12 @@ static void ASMJIT_NOINLINE testX64AssemblerBaseExt(AssemblerTester<x86::Assembl
   TEST_INSTRUCTION("F3480FAED1"                    , wrfsbase(rcx));
   TEST_INSTRUCTION("F30FAED9"                      , wrgsbase(ecx));
   TEST_INSTRUCTION("F3480FAED9"                    , wrgsbase(rcx));
-  TEST_INSTRUCTION("0F38F6D1"                      , wrssd(ecx, edx));
   TEST_INSTRUCTION("0F38F69C1180000000"            , wrssd(ptr(rcx, rdx, 0, 128), ebx));
   TEST_INSTRUCTION("0F38F69C1180000000"            , wrssd(dword_ptr(rcx, rdx, 0, 128), ebx));
-  TEST_INSTRUCTION("480F38F6D1"                    , wrssq(rcx, rdx));
   TEST_INSTRUCTION("480F38F69C1180000000"          , wrssq(ptr(rcx, rdx, 0, 128), rbx));
   TEST_INSTRUCTION("480F38F69C1180000000"          , wrssq(qword_ptr(rcx, rdx, 0, 128), rbx));
-  TEST_INSTRUCTION("660F38F5D1"                    , wrussd(ecx, edx));
   TEST_INSTRUCTION("660F38F59C1180000000"          , wrussd(ptr(rcx, rdx, 0, 128), ebx));
   TEST_INSTRUCTION("660F38F59C1180000000"          , wrussd(dword_ptr(rcx, rdx, 0, 128), ebx));
-  TEST_INSTRUCTION("66480F38F5D1"                  , wrussq(rcx, rdx));
   TEST_INSTRUCTION("66480F38F59C1180000000"        , wrussq(ptr(rcx, rdx, 0, 128), rbx));
   TEST_INSTRUCTION("66480F38F59C1180000000"        , wrussq(qword_ptr(rcx, rdx, 0, 128), rbx));
   TEST_INSTRUCTION("0F01D5"                        , xend());

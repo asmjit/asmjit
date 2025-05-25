@@ -1436,10 +1436,8 @@ static void ASMJIT_NOINLINE testX86AssemblerBaseExt(AssemblerTester<x86::Assembl
   TEST_INSTRUCTION("F30FC7B41180000000"            , vmxon(ptr(ecx, edx, 0, 128)));
   TEST_INSTRUCTION("F30FC7B41180000000"            , vmxon(qword_ptr(ecx, edx, 0, 128)));
   TEST_INSTRUCTION("F30F09"                        , wbnoinvd());
-  TEST_INSTRUCTION("0F38F6D1"                      , wrssd(ecx, edx));
   TEST_INSTRUCTION("0F38F69C1180000000"            , wrssd(ptr(ecx, edx, 0, 128), ebx));
   TEST_INSTRUCTION("0F38F69C1180000000"            , wrssd(dword_ptr(ecx, edx, 0, 128), ebx));
-  TEST_INSTRUCTION("660F38F5D1"                    , wrussd(ecx, edx));
   TEST_INSTRUCTION("660F38F59C1180000000"          , wrussd(ptr(ecx, edx, 0, 128), ebx));
   TEST_INSTRUCTION("660F38F59C1180000000"          , wrussd(dword_ptr(ecx, edx, 0, 128), ebx));
   TEST_INSTRUCTION("0F01D5"                        , xend());

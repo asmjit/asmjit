@@ -431,11 +431,11 @@
     ]},
 
     {"category": "GP GP_EXT", "ext": "I486", "instructions": [
-      {"any": "[lock|xacqrel] cmpxchg x:r8/m8, r8, <al>"                   , "op": "[MR] 0F B0 /r"                  , "io": "OF=W SF=W ZF=W AF=W PF=W CF=W"},
-      {"any": "[lock|xacqrel] cmpxchg x:rv/mv, rv, <axv>"                  , "op": "[MR] 0F B1 /r"                  , "io": "OF=W SF=W ZF=W AF=W PF=W CF=W"},
-      {"any": "cpuid X:<eax>, W:<ebx>, X:<ecx>, W:<edx>"                   , "op": "[OP] 0F A2"                     , "volatile": true},
-      {"any": "[lock|xacqrel] xadd x:r8/m8, x:r8"                          , "op": "[MR] 0F C0 /r"                  , "io": "OF=W SF=W ZF=W AF=W PF=W CF=W"},
-      {"any": "[lock|xacqrel] xadd x:rv/mv, x:rv"                          , "op": "[MR] 0F C1 /r"                  , "io": "OF=W SF=W ZF=W AF=W PF=W CF=W"}
+      {"any": "[lock|xacqrel] cmpxchg x:r8/m8, r8, <al>"                   , "op": "[MR] 0F B0 /r"                             , "io": "OF=W SF=W ZF=W AF=W PF=W CF=W"},
+      {"any": "[lock|xacqrel] cmpxchg x:rv/mv, rv, <axv>"                  , "op": "[MR] 0F B1 /r"                             , "io": "OF=W SF=W ZF=W AF=W PF=W CF=W"},
+      {"any": "cpuid X:<eax>, W:<ebx>, X:<ecx>, W:<edx>"                   , "op": "[OP] 0F A2"                                , "volatile": true},
+      {"any": "[lock|xacqrel] xadd x:r8/m8, x:r8"                          , "op": "[MR] 0F C0 /r"                             , "io": "OF=W SF=W ZF=W AF=W PF=W CF=W"},
+      {"any": "[lock|xacqrel] xadd x:rv/mv, x:rv"                          , "op": "[MR] 0F C1 /r"                             , "io": "OF=W SF=W ZF=W AF=W PF=W CF=W"}
     ]},
 
     {"category": "GP GP_EXT", "ext": "3DNOW", "volatile": true, "instructions": [
@@ -443,28 +443,46 @@
     ]},
 
     {"category": "GP GP_EXT", "ext": "ADX", "instructions": [
-      {"any": "adcx X:~ry, R:~ry/my"                                       , "op": "[RM] 66 0F 38 F6 /r"            , "io": "CF=X"},
-      {"any": "adox X:~ry, R:~ry/my"                                       , "op": "[RM] F3 0F 38 F6 /r"            , "io": "OF=X"}
+      {"any": "adcx X:~ry, R:~ry/my"                                       , "op": "[RM ] 66 0F 38 F6 /r"                      , "io": "CF=X"},
+      {"any": "adox X:~ry, R:~ry/my"                                       , "op": "[RM ] F3 0F 38 F6 /r"                      , "io": "OF=X"},
+      {"apx": "adcx X:~ry, R:~ry/my"                                       , "op": "[RM ] EVEX.ND=0.LLZ.66.MAP4.Wy 66 /r"      , "io": "CF=X"},
+      {"apx": "adcx W:ry, R:~ry, R:~ry/my"                                 , "op": "[VRM] EVEX.ND=1.LLZ.66.MAP4.Wy 66 /r"      , "io": "CF=X"},
+      {"apx": "adox X:~ry, R:~ry/my"                                       , "op": "[RM ] EVEX.ND=0.LLZ.F3.MAP4.Wy 66 /r"      , "io": "OF=X"},
+      {"apx": "adox W:ry, R:~ry, R:~ry/my"                                 , "op": "[VRM] EVEX.ND=1.LLZ.F3.MAP4.Wy 66 /r"      , "io": "OF=X"}
     ]},
 
     {"category": "GP GP_EXT", "ext": "BMI", "instructions": [
-      {"any": "andn   W:ry, R:ry, R:ry/my"                                 , "op": "[RVM] VEX.LZ.0F38.Wy F2 /r"     , "io": "OF=0 SF=W ZF=W AF=U PF=U CF=0"},
-      {"any": "bextr  W:ry, R:ry/my, R:ry"                                 , "op": "[RMV] VEX.LZ.0F38.Wy F7 /r"     , "io": "OF=0 SF=U ZF=W AF=U PF=U CF=0"},
-      {"any": "blsi   W:ry, R:ry/my"                                       , "op": "[VM ] VEX.LZ.0F38.Wy F3 /3"     , "io": "OF=0 SF=W ZF=W AF=U PF=U CF=W"},
-      {"any": "blsmsk W:ry, R:ry/my"                                       , "op": "[VM ] VEX.LZ.0F38.Wy F3 /2"     , "io": "OF=0 SF=W ZF=0 AF=U PF=U CF=W"},
-      {"any": "blsr   W:ry, R:ry/my"                                       , "op": "[VM ] VEX.LZ.0F38.Wy F3 /1"     , "io": "OF=0 SF=W ZF=W AF=U PF=U CF=W"},
-      {"any": "tzcnt  w:rv, rv/mv"                                         , "op": "[RM] F3 0F BC /r"               , "io": "OF=U SF=U ZF=W AF=U PF=U CF=W"}
+      {"any": "andn       W:ry, R:ry, R:ry/my"                             , "op": "[RVM] VEX.LZ.0F38.Wy F2 /r"                , "io": "OF=0 SF=W ZF=W AF=U PF=U CF=0"},
+      {"apx": "andn{nf}   W:ry, R:ry, R:my/ry"                             , "op": "[RVM] EVEX.128.NP.0F38.Wy F2 /r"           , "io": "OF=0 SF=W ZF=W AF=U PF=U CF=0"},
+      {"any": "bextr      W:ry, R:ry/my, R:ry"                             , "op": "[RMV] VEX.LZ.0F38.Wy F7 /r"                , "io": "OF=0 SF=U ZF=W AF=U PF=U CF=0"},
+      {"apx": "bextr{nf}  W:ry, R:my/ry, ry"                               , "op": "[RMV] EVEX.128.NP.0F38.Wy F7 /r"           , "io": "OF=0 SF=U ZF=W AF=U PF=U CF=0"},
+      {"any": "blsi       W:ry, R:ry/my"                                   , "op": "[VM ] VEX.LZ.0F38.Wy F3 /3"                , "io": "OF=0 SF=W ZF=W AF=U PF=U CF=W"},
+      {"apx": "blsi{nf}   W:ry, R:my/ry"                                   , "op": "[VM ] EVEX.128.NP.0F38.Wy F3 /3"           , "io": "OF=0 SF=W ZF=W AF=U PF=U CF=W"},
+      {"any": "blsmsk     W:ry, R:ry/my"                                   , "op": "[VM ] VEX.LZ.0F38.Wy F3 /2"                , "io": "OF=0 SF=W ZF=0 AF=U PF=U CF=W"},
+      {"apx": "blsmsk{nf} W:ry, R:my/ry"                                   , "op": "[VM ] EVEX.128.NP.0F38.Wy F3 /2"           , "io": "OF=0 SF=W ZF=0 AF=U PF=U CF=W"},
+      {"any": "blsr       W:ry, R:ry/my"                                   , "op": "[VM ] VEX.LZ.0F38.Wy F3 /1"                , "io": "OF=0 SF=W ZF=W AF=U PF=U CF=W"},
+      {"apx": "blsr{nf}   W:ry, R:my/ry"                                   , "op": "[VM ] EVEX.128.NP.0F38.Wy F3 /1"           , "io": "OF=0 SF=W ZF=W AF=U PF=U CF=W"},
+      {"any": "tzcnt      w:rv, rv/mv"                                     , "op": "[RM ] F3 0F BC /r"                         , "io": "OF=U SF=U ZF=W AF=U PF=U CF=W"},
+      {"apx": "tzcnt{nf}  w:rv, R:rv/mv"                                   , "op": "[RM ] EVEX.ND=0.LLZ.Pv.MAP4.Wv F4 /r"      , "io": "OF=U SF=U ZF=W AF=U PF=U CF=W"}
     ]},
 
     {"category": "GP GP_EXT", "ext": "BMI2", "instructions": [
-      {"any": "bzhi W:ry, R:ry/my, R:ry"                                   , "op": "[RMV] VEX.LZ.0F38.Wy F5 /r"     , "io": "OF=0 SF=W ZF=W AF=U PF=U CF=W"},
-      {"any": "mulx W:ry, W:ry, ~ry/my, ~<dxy>"                            , "op": "[RVM] VEX.LZ.F2.0F38.Wy F6 /r"},
-      {"any": "pdep W:ry, ry, ry/my"                                       , "op": "[RVM] VEX.LZ.F2.0F38.Wy F5 /r"},
-      {"any": "pext W:ry, ry, ry/my"                                       , "op": "[RVM] VEX.LZ.F3.0F38.Wy F5 /r"},
-      {"any": "rorx W:ry, ry/my, imm8"                                     , "op": "[RM ] VEX.LZ.F2.0F3A.Wy F0 /r ib"},
-      {"any": "sarx W:ry, ry/my, ry"                                       , "op": "[RMV] VEX.LZ.F3.0F38.Wy F7 /r"},
-      {"any": "shlx W:ry, ry/my, ry"                                       , "op": "[RMV] VEX.LZ.66.0F38.Wy F7 /r"},
-      {"any": "shrx W:ry, ry/my, ry"                                       , "op": "[RMV] VEX.LZ.F2.0F38.Wy F7 /r"}
+      {"any": "bzhi       W:ry, R:ry/my, R:ry"                             , "op": "[RMV] VEX.LZ.0F38.Wy F5 /r"                , "io": "OF=0 SF=W ZF=W AF=U PF=U CF=W"},
+      {"apx": "bzhi{nf}   W:ry, R:my/ry, R:ry"                             , "op": "[RMV] EVEX.128.NP.0F38.Wy F5 /r"           , "io": "OF=0 SF=W ZF=W AF=U PF=U CF=W"},
+      {"any": "mulx       W:ry, W:ry, ~ry/my, ~<dxy>"                      , "op": "[RVM] VEX.LZ.F2.0F38.Wy F6 /r"},
+      {"apx": "mulx       W:ry, W:ry, R:~my/ry, R:~<dxy>"                  , "op": "[RVM] EVEX.128.F2.0F38.Wy F6 /r"},
+      {"any": "pdep       W:ry, ry, ry/my"                                 , "op": "[RVM] VEX.LZ.F2.0F38.Wy F5 /r"},
+      {"apx": "pdep       W:ry, R:ry, R:my/ry"                             , "op": "[RVM] EVEX.128.F2.0F38.Wy F5 /r"},
+      {"any": "pext       W:ry, ry, ry/my"                                 , "op": "[RVM] VEX.LZ.F3.0F38.Wy F5 /r"},
+      {"apx": "pext       W:ry, R:ry, R:my/ry"                             , "op": "[RVM] EVEX.128.F3.0F38.Wy F5 /r"},
+      {"any": "rorx       W:ry, ry/my, imm8"                               , "op": "[RM ] VEX.LZ.F2.0F3A.Wy F0 /r ib"},
+      {"apx": "rorx       W:ry, R:my/ry, imm8"                             , "op": "[RM ] EVEX.128.F2.0F3A.Wy F0 /r ib"},
+      {"any": "sarx       W:ry, ry/my, ry"                                 , "op": "[RMV] VEX.LZ.F3.0F38.Wy F7 /r"},
+      {"apx": "sarx       W:ry, R:my/ry, R:ry"                             , "op": "[RMV] EVEX.128.F3.0F38.Wy F7 /r"},
+      {"any": "shlx       W:ry, ry/my, ry"                                 , "op": "[RMV] VEX.LZ.66.0F38.Wy F7 /r"},
+      {"apx": "shlx       W:ry, R:my/ry, R:ry"                             , "op": "[RMV] EVEX.128.66.0F38.Wy F7 /r"},
+      {"any": "shrx       W:ry, ry/my, ry"                                 , "op": "[RMV] VEX.LZ.F2.0F38.Wy F7 /r"},
+      {"apx": "shrx       W:ry, R:my/ry, R:ry"                             , "op": "[RMV] EVEX.128.F2.0F38.Wy F7 /r"}
     ]},
 
     {"category": "GP GP_EXT", "ext": "CET_SS", "volatile": true, "instructions": [
@@ -472,8 +490,8 @@
       {"x64": "incsspq R:r64[7:0]"                                         , "op": "F3 REX.W 0F AE /5"},
       {"any": "rdsspd W:r32"                                               , "op": "F3 0F 1E /1"},
       {"any": "rdsspq W:r64"                                               , "op": "F3 REX.W 0F 1E /1"},
-      {"any": "rstorssp R:m64"                                             , "op": "F3 0F 01 /5"                    , "io": "OF=0 SF=0 ZF=0 AF=0 PF=0 CF=W"},
-      {"any": "saveprevssp"                                                , "op": "F3 0F 01 EA"                    , "io": "OF=0 SF=0 ZF=0 AF=0 PF=0 CF=W"}
+      {"any": "rstorssp R:m64"                                             , "op": "F3 0F 01 /5"                               , "io": "OF=0 SF=0 ZF=0 AF=0 PF=0 CF=W"},
+      {"any": "saveprevssp"                                                , "op": "F3 0F 01 EA"                               , "io": "OF=0 SF=0 ZF=0 AF=0 PF=0 CF=W"}
     ]},
 
     {"category": "GP GP_EXT", "ext": "CLDEMOTE", "instructions": [
@@ -497,49 +515,65 @@
     ]},
 
     {"category": "GP GP_EXT", "ext": "CMOV", "instructions": [
-      {"any": "cmovb x:rv, rv/mv"                                          , "op": "[RM] 0F 42 /r"                  , "io": "CF=R"},
-      {"any": "cmovbe x:rv, rv/mv"                                         , "op": "[RM] 0F 46 /r"                  , "io": "CF=R ZF=R"},
-      {"any": "cmovl x:rv, rv/mv"                                          , "op": "[RM] 0F 4C /r"                  , "io": "SF=R OF=R"},
-      {"any": "cmovle x:rv, rv/mv"                                         , "op": "[RM] 0F 4E /r"                  , "io": "ZF=R SF=R OF=R"},
-      {"any": "cmovnb x:rv, rv/mv"                                         , "op": "[RM] 0F 43 /r"                  , "io": "CF=R"},
-      {"any": "cmovnbe x:rv, rv/mv"                                        , "op": "[RM] 0F 47 /r"                  , "io": "CF=R ZF=R"},
-      {"any": "cmovnl x:rv, rv/mv"                                         , "op": "[RM] 0F 4D /r"                  , "io": "SF=R OF=R"},
-      {"any": "cmovnle x:rv, rv/mv"                                        , "op": "[RM] 0F 4F /r"                  , "io": "ZF=R SF=R OF=R"},
-      {"any": "cmovno x:rv, rv/mv"                                         , "op": "[RM] 0F 41 /r"                  , "io": "OF=R"},
-      {"any": "cmovnp x:rv, rv/mv"                                         , "op": "[RM] 0F 4B /r"                  , "io": "PF=R"},
-      {"any": "cmovns x:rv, rv/mv"                                         , "op": "[RM] 0F 49 /r"                  , "io": "SF=R"},
-      {"any": "cmovnz x:rv, rv/mv"                                         , "op": "[RM] 0F 45 /r"                  , "io": "ZF=R"},
-      {"any": "cmovo x:rv, rv/mv"                                          , "op": "[RM] 0F 40 /r"                  , "io": "OF=R"},
-      {"any": "cmovp x:rv, rv/mv"                                          , "op": "[RM] 0F 4A /r"                  , "io": "PF=R"},
-      {"any": "cmovs x:rv, rv/mv"                                          , "op": "[RM] 0F 48 /r"                  , "io": "SF=R"},
-      {"any": "cmovz x:rv, rv/mv"                                          , "op": "[RM] 0F 44 /r"                  , "io": "ZF=R"}
+      {"any": "cmovb x:rv, rv/mv"                                          , "op": "[RM] 0F 42 /r"                             , "io": "CF=R"},
+      {"any": "cmovbe x:rv, rv/mv"                                         , "op": "[RM] 0F 46 /r"                             , "io": "CF=R ZF=R"},
+      {"any": "cmovl x:rv, rv/mv"                                          , "op": "[RM] 0F 4C /r"                             , "io": "SF=R OF=R"},
+      {"any": "cmovle x:rv, rv/mv"                                         , "op": "[RM] 0F 4E /r"                             , "io": "ZF=R SF=R OF=R"},
+      {"any": "cmovnb x:rv, rv/mv"                                         , "op": "[RM] 0F 43 /r"                             , "io": "CF=R"},
+      {"any": "cmovnbe x:rv, rv/mv"                                        , "op": "[RM] 0F 47 /r"                             , "io": "CF=R ZF=R"},
+      {"any": "cmovnl x:rv, rv/mv"                                         , "op": "[RM] 0F 4D /r"                             , "io": "SF=R OF=R"},
+      {"any": "cmovnle x:rv, rv/mv"                                        , "op": "[RM] 0F 4F /r"                             , "io": "ZF=R SF=R OF=R"},
+      {"any": "cmovno x:rv, rv/mv"                                         , "op": "[RM] 0F 41 /r"                             , "io": "OF=R"},
+      {"any": "cmovnp x:rv, rv/mv"                                         , "op": "[RM] 0F 4B /r"                             , "io": "PF=R"},
+      {"any": "cmovns x:rv, rv/mv"                                         , "op": "[RM] 0F 49 /r"                             , "io": "SF=R"},
+      {"any": "cmovnz x:rv, rv/mv"                                         , "op": "[RM] 0F 45 /r"                             , "io": "ZF=R"},
+      {"any": "cmovo x:rv, rv/mv"                                          , "op": "[RM] 0F 40 /r"                             , "io": "OF=R"},
+      {"any": "cmovp x:rv, rv/mv"                                          , "op": "[RM] 0F 4A /r"                             , "io": "PF=R"},
+      {"any": "cmovs x:rv, rv/mv"                                          , "op": "[RM] 0F 48 /r"                             , "io": "SF=R"},
+      {"any": "cmovz x:rv, rv/mv"                                          , "op": "[RM] 0F 44 /r"                             , "io": "ZF=R"}
     ]},
 
     {"category": "GP GP_EXT", "ext": "CMPCCXADD", "instructions": [
-      {"any": "cmpbxadd   X:my, X:ry, R:ry"                                , "op": "[MVR] VEX.128.66.0F38.Wy E2 !(11):rrr:bbb" , "io": "CF=W OF=W SF=W ZF=W AF=W PF=W"},
-      {"any": "cmpbexadd  X:my, X:ry, R:ry"                                , "op": "[MVR] VEX.128.66.0F38.Wy E6 !(11):rrr:bbb" , "io": "CF=W OF=W SF=W ZF=W AF=W PF=W"},
-      {"any": "cmplxadd   X:my, X:ry, R:ry"                                , "op": "[MVR] VEX.128.66.0F38.Wy EC !(11):rrr:bbb" , "io": "CF=W OF=W SF=W ZF=W AF=W PF=W"},
-      {"any": "cmplexadd  X:my, X:ry, R:ry"                                , "op": "[MVR] VEX.128.66.0F38.Wy EE !(11):rrr:bbb" , "io": "CF=W OF=W SF=W ZF=W AF=W PF=W"},
-      {"any": "cmpnbxadd  X:my, X:ry, R:ry"                                , "op": "[MVR] VEX.128.66.0F38.Wy E3 !(11):rrr:bbb" , "io": "CF=W OF=W SF=W ZF=W AF=W PF=W"},
-      {"any": "cmpnbexadd X:my, X:ry, R:ry"                                , "op": "[MVR] VEX.128.66.0F38.Wy E7 !(11):rrr:bbb" , "io": "CF=W OF=W SF=W ZF=W AF=W PF=W"},
-      {"any": "cmpnlxadd  X:my, X:ry, R:ry"                                , "op": "[MVR] VEX.128.66.0F38.Wy ED !(11):rrr:bbb" , "io": "CF=W OF=W SF=W ZF=W AF=W PF=W"},
-      {"any": "cmpnlexadd X:my, X:ry, R:ry"                                , "op": "[MVR] VEX.128.66.0F38.Wy EF !(11):rrr:bbb" , "io": "CF=W OF=W SF=W ZF=W AF=W PF=W"},
-      {"any": "cmpnoxadd  X:my, X:ry, R:ry"                                , "op": "[MVR] VEX.128.66.0F38.Wy E1 !(11):rrr:bbb" , "io": "CF=W OF=W SF=W ZF=W AF=W PF=W"},
-      {"any": "cmpnpxadd  X:my, X:ry, R:ry"                                , "op": "[MVR] VEX.128.66.0F38.Wy EB !(11):rrr:bbb" , "io": "CF=W OF=W SF=W ZF=W AF=W PF=W"},
-      {"any": "cmpnsxadd  X:my, X:ry, R:ry"                                , "op": "[MVR] VEX.128.66.0F38.Wy E9 !(11):rrr:bbb" , "io": "CF=W OF=W SF=W ZF=W AF=W PF=W"},
-      {"any": "cmpnzxadd  X:my, X:ry, R:ry"                                , "op": "[MVR] VEX.128.66.0F38.Wy E5 !(11):rrr:bbb" , "io": "CF=W OF=W SF=W ZF=W AF=W PF=W"},
-      {"any": "cmpoxadd   X:my, X:ry, R:ry"                                , "op": "[MVR] VEX.128.66.0F38.Wy E0 !(11):rrr:bbb" , "io": "CF=W OF=W SF=W ZF=W AF=W PF=W"},
-      {"any": "cmppxadd   X:my, X:ry, R:ry"                                , "op": "[MVR] VEX.128.66.0F38.Wy EA !(11):rrr:bbb" , "io": "CF=W OF=W SF=W ZF=W AF=W PF=W"},
-      {"any": "cmpsxadd   X:my, X:ry, R:ry"                                , "op": "[MVR] VEX.128.66.0F38.Wy E8 !(11):rrr:bbb" , "io": "CF=W OF=W SF=W ZF=W AF=W PF=W"},
-      {"any": "cmpzxadd   X:my, X:ry, R:ry"                                , "op": "[MVR] VEX.128.66.0F38.Wy E4 !(11):rrr:bbb" , "io": "CF=W OF=W SF=W ZF=W AF=W PF=W"}
+      {"any": "cmpbxadd   X:my, X:ry, R:ry"                                , "op": "[MRV] VEX.128.66.0F38.Wy E2 !(11):rrr:bbb" , "io": "CF=W OF=W SF=W ZF=W AF=W PF=W"},
+      {"apx": "cmpbxadd   X:my, X:ry, R:ry"                                , "op": "[MRV] EVEX.128.66.0F38.Wy E2 !(11):rrr:bbb", "io": "OF=W SD=W ZF=W AF=W PF=W CF=W"},
+      {"any": "cmpbexadd  X:my, X:ry, R:ry"                                , "op": "[MRV] VEX.128.66.0F38.Wy E6 !(11):rrr:bbb" , "io": "CF=W OF=W SF=W ZF=W AF=W PF=W"},
+      {"apx": "cmpbexadd  X:my, X:ry, R:ry"                                , "op": "[MRV] EVEX.128.66.0F38.Wy E6 !(11):rrr:bbb", "io": "OF=W SD=W ZF=W AF=W PF=W CF=W"},
+      {"any": "cmplxadd   X:my, X:ry, R:ry"                                , "op": "[MRV] VEX.128.66.0F38.Wy EC !(11):rrr:bbb" , "io": "CF=W OF=W SF=W ZF=W AF=W PF=W"},
+      {"apx": "cmplxadd   X:my, X:ry, R:ry"                                , "op": "[MRV] EVEX.128.66.0F38.Wy EC !(11):rrr:bbb", "io": "OF=W SD=W ZF=W AF=W PF=W CF=W"},
+      {"any": "cmplexadd  X:my, X:ry, R:ry"                                , "op": "[MRV] VEX.128.66.0F38.Wy EE !(11):rrr:bbb" , "io": "CF=W OF=W SF=W ZF=W AF=W PF=W"},
+      {"apx": "cmplexadd  X:my, X:ry, R:ry"                                , "op": "[MRV] EVEX.128.66.0F38.Wy EE !(11):rrr:bbb", "io": "OF=W SD=W ZF=W AF=W PF=W CF=W"},
+      {"any": "cmpnbxadd  X:my, X:ry, R:ry"                                , "op": "[MRV] VEX.128.66.0F38.Wy E3 !(11):rrr:bbb" , "io": "CF=W OF=W SF=W ZF=W AF=W PF=W"},
+      {"apx": "cmpnbxadd  X:my, X:ry, R:ry"                                , "op": "[MRV] EVEX.128.66.0F38.Wy E3 !(11):rrr:bbb", "io": "OF=W SD=W ZF=W AF=W PF=W CF=W"},
+      {"any": "cmpnbexadd X:my, X:ry, R:ry"                                , "op": "[MRV] VEX.128.66.0F38.Wy E7 !(11):rrr:bbb" , "io": "CF=W OF=W SF=W ZF=W AF=W PF=W"},
+      {"apx": "cmpnbexadd X:my, X:ry, R:ry"                                , "op": "[MRV] EVEX.128.66.0F38.Wy E7 !(11):rrr:bbb", "io": "OF=W SD=W ZF=W AF=W PF=W CF=W"},
+      {"any": "cmpnlxadd  X:my, X:ry, R:ry"                                , "op": "[MRV] VEX.128.66.0F38.Wy ED !(11):rrr:bbb" , "io": "CF=W OF=W SF=W ZF=W AF=W PF=W"},
+      {"apx": "cmpnlxadd  X:my, X:ry, R:ry"                                , "op": "[MRV] EVEX.128.66.0F38.Wy ED !(11):rrr:bbb", "io": "OF=W SD=W ZF=W AF=W PF=W CF=W"},
+      {"any": "cmpnlexadd X:my, X:ry, R:ry"                                , "op": "[MRV] VEX.128.66.0F38.Wy EF !(11):rrr:bbb" , "io": "CF=W OF=W SF=W ZF=W AF=W PF=W"},
+      {"apx": "cmpnlexadd X:my, X:ry, R:ry"                                , "op": "[MRV] EVEX.128.66.0F38.Wy EF !(11):rrr:bbb", "io": "OF=W SD=W ZF=W AF=W PF=W CF=W"},
+      {"any": "cmpnoxadd  X:my, X:ry, R:ry"                                , "op": "[MRV] VEX.128.66.0F38.Wy E1 !(11):rrr:bbb" , "io": "CF=W OF=W SF=W ZF=W AF=W PF=W"},
+      {"apx": "cmpnoxadd  X:my, X:ry, R:ry"                                , "op": "[MRV] EVEX.128.66.0F38.Wy E1 !(11):rrr:bbb", "io": "OF=W SD=W ZF=W AF=W PF=W CF=W"},
+      {"any": "cmpnpxadd  X:my, X:ry, R:ry"                                , "op": "[MRV] VEX.128.66.0F38.Wy EB !(11):rrr:bbb" , "io": "CF=W OF=W SF=W ZF=W AF=W PF=W"},
+      {"apx": "cmpnpxadd  X:my, X:ry, R:ry"                                , "op": "[MRV] EVEX.128.66.0F38.Wy EB !(11):rrr:bbb", "io": "OF=W SD=W ZF=W AF=W PF=W CF=W"},
+      {"any": "cmpnsxadd  X:my, X:ry, R:ry"                                , "op": "[MRV] VEX.128.66.0F38.Wy E9 !(11):rrr:bbb" , "io": "CF=W OF=W SF=W ZF=W AF=W PF=W"},
+      {"apx": "cmpnsxadd  X:my, X:ry, R:ry"                                , "op": "[MRV] EVEX.128.66.0F38.Wy E9 !(11):rrr:bbb", "io": "OF=W SD=W ZF=W AF=W PF=W CF=W"},
+      {"any": "cmpnzxadd  X:my, X:ry, R:ry"                                , "op": "[MRV] VEX.128.66.0F38.Wy E5 !(11):rrr:bbb" , "io": "CF=W OF=W SF=W ZF=W AF=W PF=W"},
+      {"apx": "cmpnzxadd  X:my, X:ry, R:ry"                                , "op": "[MRV] EVEX.128.66.0F38.Wy E5 !(11):rrr:bbb", "io": "OF=W SD=W ZF=W AF=W PF=W CF=W"},
+      {"any": "cmpoxadd   X:my, X:ry, R:ry"                                , "op": "[MRV] VEX.128.66.0F38.Wy E0 !(11):rrr:bbb" , "io": "CF=W OF=W SF=W ZF=W AF=W PF=W"},
+      {"apx": "cmpoxadd   X:my, X:ry, R:ry"                                , "op": "[MRV] EVEX.128.66.0F38.Wy E0 !(11):rrr:bbb", "io": "OF=W SD=W ZF=W AF=W PF=W CF=W"},
+      {"any": "cmppxadd   X:my, X:ry, R:ry"                                , "op": "[MRV] VEX.128.66.0F38.Wy EA !(11):rrr:bbb" , "io": "CF=W OF=W SF=W ZF=W AF=W PF=W"},
+      {"apx": "cmppxadd   X:my, X:ry, R:ry"                                , "op": "[MRV] EVEX.128.66.0F38.Wy EA !(11):rrr:bbb", "io": "OF=W SD=W ZF=W AF=W PF=W CF=W"},
+      {"any": "cmpsxadd   X:my, X:ry, R:ry"                                , "op": "[MRV] VEX.128.66.0F38.Wy E8 !(11):rrr:bbb" , "io": "CF=W OF=W SF=W ZF=W AF=W PF=W"},
+      {"apx": "cmpsxadd   X:my, X:ry, R:ry"                                , "op": "[MRV] EVEX.128.66.0F38.Wy E8 !(11):rrr:bbb", "io": "OF=W SD=W ZF=W AF=W PF=W CF=W"},
+      {"any": "cmpzxadd   X:my, X:ry, R:ry"                                , "op": "[MRV] VEX.128.66.0F38.Wy E4 !(11):rrr:bbb" , "io": "CF=W OF=W SF=W ZF=W AF=W PF=W"},
+      {"apx": "cmpzxadd   X:my, X:ry, R:ry"                                , "op": "[MRV] EVEX.128.66.0F38.Wy E4 !(11):rrr:bbb", "io": "OF=W SD=W ZF=W AF=W PF=W CF=W"}
     ]},
 
     {"category": "GP GP_EXT", "ext": "CMPXCHG8B", "instructions": [
-      {"any": "[lock|xacqrel] cmpxchg8b X:m64,X:<edx>,X:<eax>,<ecx>,<ebx>" , "op": "[OP] 0F C7 /1"                  , "io": "ZF=W"}
+      {"any": "[lock|xacqrel] cmpxchg8b X:m64,X:<edx>,X:<eax>,<ecx>,<ebx>" , "op": "[OP] 0F C7 /1"                             , "io": "ZF=W"}
     ]},
 
     {"category": "GP GP_EXT", "ext": "CMPXCHG16B", "instructions": [
-      {"any": "[lock|xacqrel] cmpxchg16b X:m128,X:<rdx>,X:<rax>,<rcx>,<rbx>","op": "[OP] REX.W 0F C7 /1"            , "io": "ZF=W"}
+      {"any": "[lock|xacqrel] cmpxchg16b X:m128,X:<rdx>,X:<rax>,<rcx>,<rbx>","op": "[OP] REX.W 0F C7 /1"                       , "io": "ZF=W"}
     ]},
 
     {"category": "GP GP_EXT", "ext": "FSGSBASE", "volatile": true, "instructions": [
@@ -550,15 +584,15 @@
     ]},
 
     {"category": "GP GP_EXT", "ext": "FXSR", "volatile": true, "instructions": [
-      {"any": "fxrstor   R:mem"                                            , "op": "[M ] 0F AE /1"                  , "io": "C0=W C1=W C2=W C3=W"},
-      {"any": "fxrstor64 R:mem"                                            , "op": "[M ] REX.W 0F AE /1"            , "io": "C0=W C1=W C2=W C3=W"},
-      {"any": "fxsave    W:mem"                                            , "op": "[M ] 0F AE /0"                  , "io": "C0=R C1=R C2=R C3=R"},
-      {"any": "fxsave64  W:mem"                                            , "op": "[M ] REX.W 0F AE /0"            , "io": "C0=R C1=R C2=R C3=R"}
+      {"any": "fxrstor   R:mem"                                            , "op": "[M ] 0F AE /1"                             , "io": "C0=W C1=W C2=W C3=W"},
+      {"any": "fxrstor64 R:mem"                                            , "op": "[M ] REX.W 0F AE /1"                       , "io": "C0=W C1=W C2=W C3=W"},
+      {"any": "fxsave    W:mem"                                            , "op": "[M ] 0F AE /0"                             , "io": "C0=R C1=R C2=R C3=R"},
+      {"any": "fxsave64  W:mem"                                            , "op": "[M ] REX.W 0F AE /0"                       , "io": "C0=R C1=R C2=R C3=R"}
     ]},
 
     {"category": "GP GP_EXT", "ext": "LAHFSAHF", "instructions": [
-      {"any": "lahf w:<ah>"                                                , "op": "[OP] 9F"                        , "io": "SF=R ZF=R AF=R PF=R CF=R"},
-      {"any": "sahf R:<ah>"                                                , "op": "[OP] 9E"                        , "io": "SF=W ZF=W AF=W PF=W CF=W"}
+      {"any": "lahf w:<ah>"                                                , "op": "[OP] 9F"                                   , "io": "SF=R ZF=R AF=R PF=R CF=R"},
+      {"any": "sahf R:<ah>"                                                , "op": "[OP] 9E"                                   , "io": "SF=W ZF=W AF=W PF=W CF=W"}
     ]},
 
     {"category": "GP GP_EXT", "ext": "LWP", "volatile": true, "instructions": [
@@ -573,7 +607,8 @@
     ]},
 
     {"category": "GP GP_EXT", "ext": "LZCNT", "instructions": [
-      {"any": "lzcnt w:rv, rv/mv"                                          , "op": "[RM] F3 0F BD /r"               , "io": "OF=U SF=U ZF=W AF=U PF=U CF=W"}
+      {"any": "lzcnt w:rv, rv/mv"                                          , "op": "[RM] F3 0F BD /r"                          , "io": "OF=U SF=U ZF=W AF=U PF=U CF=W"},
+      {"apx": "lzcnt{nf}  w:rv, R:rv/mv"                                   , "op": "[RM ] EVEX.ND=0.LLZ.Pv.MAP4.Wv F5 /r"      , "io": "OF=U SF=U ZF=W AF=U PF=U CF=W"}
     ]},
 
     {"category": "GP GP_EXT", "ext": "MONITORX", "volatile": true, "instructions": [
@@ -582,21 +617,25 @@
     ]},
 
     {"category": "GP GP_EXT", "ext": "MCOMMIT", "instructions": [
-      {"any": "mcommit"                                                    , "op": "F3 0F 01 FA"                    , "io": "OF=0 SF=0 ZF=0 AF=0 PF=0 CF=W"}
+      {"any": "mcommit"                                                    , "op": "F3 0F 01 FA"                               , "io": "OF=0 SF=0 ZF=0 AF=0 PF=0 CF=W"}
     ]},
 
     {"category": "GP GP_EXT", "ext": "MOVBE", "instructions": [
       {"any": "movbe w:rv, R:mv"                                           , "op": "[RM] 0F 38 F0 /r"},
-      {"any": "movbe W:mv, R:rv"                                           , "op": "[MR] 0F 38 F1 /r"}
+      {"any": "movbe W:mv, R:rv"                                           , "op": "[MR] 0F 38 F1 /r"},
+      {"apx": "movbe w:rv, R:rv/mv"                                        , "op": "[RM] EVEX.ND=0.LLZ.Pv.MAP4.Wv 60 /r"},
+      {"apx": "movbe w:rv/mv, R:rv"                                        , "op": "[MR] EVEX.ND=0.LLZ.Pv.MAP4.Wv 61 /r"}
     ]},
 
     {"category": "GP GP_EXT", "ext": "MOVDIRI", "instructions": [
-      {"any": "movdiri W:my, R:ry"                                         , "op": "[MR] 0F 38 F9 /r"}
+      {"any": "movdiri W:my, R:ry"                                         , "op": "[MR] 0F 38 F9 /r"},
+      {"apx": "movdiri W:my, R:ry"                                         , "op": "[MR] EVEX.ND=0.LLZ.NP.MAP4.W0 F9 !(11):rrr:bbb"}
     ]},
 
     {"category": "GP GP_EXT", "ext": "MOVDIR64B", "instructions": [
       {"any": "movdir64b W:m512(es:r32), m512"                             , "op": "[RM] 66 0F 38 F8 /r"},
-      {"any": "movdir64b W:m512(es:r64), m512"                             , "op": "[RM] 66 0F 38 F8 /r"}
+      {"any": "movdir64b W:m512(es:r64), m512"                             , "op": "[RM] 66 0F 38 F8 /r"},
+      {"apx": "movdir64b W:m512(es:r64), R:m512"                           , "op": "[RM] EVEX.LLZ.66.MAP4.W0 F8 !(11):rrr:bbb"}
     ]},
 
     {"category": "GP GP_EXT", "ext": "MOVRS", "instructions": [
@@ -610,7 +649,8 @@
     ]},
 
     {"category": "GP GP_EXT", "ext": "POPCNT", "instructions": [
-      {"any": "popcnt w:rv, rv/mv"                                         , "op": "[RM] F3 0F B8 /r"               , "io": "OF=0 SF=0 ZF=W AF=0 PF=0 CF=0"}
+      {"any": "popcnt w:rv, rv/mv"                                         , "op": "[RM] F3 0F B8 /r"                          , "io": "OF=0 SF=0 ZF=W AF=0 PF=0 CF=0"},
+      {"apx": "popcnt{nf} w:rv, R:rv/mv"                                   , "op": "[RM] EVEX.ND=0.LLZ.Pv.MAP4.Wv 88 /r"       , "io": "OF=0 SF=0 ZF=W AF=0 PF=0 CF=0"}
     ]},
 
     {"category": "GP GP_EXT", "ext": "OSPKE", "instructions": [
@@ -623,11 +663,11 @@
     ]},
 
     {"category": "GP GP_EXT", "ext": "PREFETCHW", "volatile": true, "instructions": [
-      {"any": "prefetchw R:mem"                                            , "op": "[M ] 0F 0D /1"                  , "io": "OF=U SF=U ZF=U AF=U PF=U CF=U"}
+      {"any": "prefetchw R:mem"                                            , "op": "[M ] 0F 0D /1"                             , "io": "OF=U SF=U ZF=U AF=U PF=U CF=U"}
     ]},
 
     {"category": "GP GP_EXT", "ext": "PREFETCHWT1", "volatile": true, "instructions": [
-      {"any": "prefetchwt1 R:mem"                                          , "op": "[M ] 0F 0D /2"                  , "io": "OF=U SF=U ZF=U AF=U PF=U CF=U"}
+      {"any": "prefetchwt1 R:mem"                                          , "op": "[M ] 0F 0D /2"                             , "io": "OF=U SF=U ZF=U AF=U PF=U CF=U"}
     ]},
 
     {"category": "GP GP_EXT", "ext": "PTWRITE", "volatile": true, "instructions": [
@@ -637,9 +677,13 @@
 
     {"category": "GP GP_EXT", "ext": "RAO_INT", "volatile": true, "instructions": [
       {"any": "aadd X:my, R:ry"                                            , "op": "[MR] NP 0F 38 FC !(11):rrr:bbb"},
+      {"apx": "aadd X:my, R:ry"                                            , "op": "[MR] EVEX.ND=0.LLZ.NP.MAP4.Wy FC !(11):rrr:bbb"},
       {"any": "aand X:my, R:ry"                                            , "op": "[MR] 66 0F 38 FC !(11):rrr:bbb"},
+      {"apx": "aand X:my, R:ry"                                            , "op": "[MR] EVEX.ND=0.LLZ.66.MAP4.Wy FC !(11):rrr:bbb"},
       {"any": "aor  X:my, R:ry"                                            , "op": "[MR] F2 0F 38 FC !(11):rrr:bbb"},
-      {"any": "axor X:my, R:ry"                                            , "op": "[MR] F3 0F 38 FC !(11):rrr:bbb"}
+      {"apx": "aor  X:my, R:ry"                                            , "op": "[MR] EVEX.ND=0.LLZ.F2.MAP4.Wy FC !(11):rrr:bbb"},
+      {"any": "axor X:my, R:ry"                                            , "op": "[MR] F3 0F 38 FC !(11):rrr:bbb"},
+      {"apx": "axor X:my, R:ry"                                            , "op": "[MR] EVEX.ND=0.LLZ.F3.MAP4.Wy FC !(11):rrr:bbb"}
     ]},
 
     {"category": "GP GP_EXT", "ext": "RDPID", "instructions": [
@@ -850,6 +894,7 @@
       {"any": "invlpg R:mem"                                               , "op": "[M ] 0F 01 /7"},
       {"x86": "invpcid R:r32, R:m128"                                      , "op": "[RM] 66 0F 38 82 /r"},
       {"x64": "invpcid R:r64, R:m128"                                      , "op": "[RM] 66 0F 38 82 /r"},
+      {"apx": "invpcid R:r64, R:m128"                                      , "op": "[RM] EVEX.ND=0.LLZ.F3.MAP4.WIG F2 !(11):rrr:bbb"},
       {"any": "wbinvd"                                                     , "op": "[OP] 0F 09"}
     ]},
 
@@ -859,12 +904,17 @@
     ]},
 
     {"category": "GP GP_EXT", "ext": "CET_SS", "volatile": true, "privilege": "L0", "instructions": [
-      {"any": "clrssbsy R:m64"                                             , "op": "F3 0F AE /6"                    , "io": "OF=0 SF=0 ZF=0 AF=0 PF=0 CF=W"},
+      {"any": "clrssbsy R:m64"                                             , "op": "F3 0F AE /6"                               , "io": "OF=0 SF=0 ZF=0 AF=0 PF=0 CF=W"},
       {"any": "setssbsy"                                                   , "op": "F3 0F 01 E8"},
-      {"any": "wrssd W:r32/m32, r32"                                       , "op": "[MR] 0F 38 F6 !(11):rrr:bbb"},
-      {"x64": "wrssq W:r64/m64, r64"                                       , "op": "[MR] REX.W 0F 38 F6 !(11):rrr:bbb"},
-      {"any": "wrussd W:r32/m32, r32"                                      , "op": "[MR] 66 0F 38 F5 !(11):rrr:bbb"},
-      {"x64": "wrussq W:r64/m64, r64"                                      , "op": "[MR] REX.W 66 0F 38 F5 !(11):rrr:bbb"}
+      {"any": "wrssd  W:m32, R:r32"                                        , "op": "[MR] 0F 38 F6 !(11):rrr:bbb"},
+      {"apx": "wrssd  W:m32, R:r32"                                        , "op": "[MR] EVEX.ND=0.LLZ.NP.MAP4.W0 66 !(11):rrr:bbb"},
+      {"x64": "wrssq  W:m64, R:r64"                                        , "op": "[MR] REX.W 0F 38 F6 !(11):rrr:bbb"},
+      {"apx": "wrssq  W:m64, R:r64"                                        , "op": "[MR] EVEX.ND=0.LLZ.NP.MAP4.W1 66 !(11):rrr:bbb"},
+      {"any": "wrussd W:m32, R:r32"                                        , "op": "[MR] 66 0F 38 F5 !(11):rrr:bbb"},
+      {"apx": "wrussd W:m32, R:r32"                                        , "op": "[MR] EVEX.ND=0.LLZ.66.MAP4.W0 65 !(11):rrr:bbb"},
+      {"x64": "wrussq W:m64, R:r64"                                        , "op": "[MR] REX.W 66 0F 38 F5 !(11):rrr:bbb"},
+      {"apx": "wrussq W:m64, R:r64"                                        , "op": "[MR] EVEX.ND=0.LLZ.66.MAP4.W1 65 !(11):rrr:bbb"}
+
     ]},
 
     {"category": "GP GP_EXT", "ext": "HRESET", "volatile": true, "privilege": "L0", "instructions": [
@@ -916,35 +966,49 @@
       {"any": "xsaves64 W:mem, <edx>, <eax>"                               , "op": "[M ] NP REX.W 0F C7 /5"         , "io": "XCR=R"}
     ]},
 
-    {"category": "VIRTUALIZATION", "volatile": true, "instructions": [
+    {"category": "VIRTUALIZATION", "ext": "SMAP", "volatile": true, "instructions": [
       {"any": "clac"                                                       , "op": "[OP] NP 0F 01 CA"               , "ext": "SMAP"    , "privilege": "L0", "io": "AC=0"},
-      {"any": "stac"                                                       , "op": "[OP] NP 0F 01 CB"               , "ext": "SMAP"    , "privilege": "L0", "io": "AC=1"},
-      {"x86": "enqcmd W:m512(es:r32), m512"                                , "op": "[RM] F2 0F 38 F8 !(11):rrr:bbb" , "ext": "ENQCMD"  , "io": "OF=0 SF=0 ZF=W AF=0 PF=0 CF=0"},
-      {"x64": "enqcmd W:m512(es:r64), m512"                                , "op": "[RM] F2 0F 38 F8 !(11):rrr:bbb" , "ext": "ENQCMD"  , "io": "OF=0 SF=0 ZF=W AF=0 PF=0 CF=0"},
-      {"x86": "enqcmds W:m512(es:r32), m512"                               , "op": "[RM] F3 0F 38 F8 !(11):rrr:bbb" , "ext": "ENQCMD"  , "io": "OF=0 SF=0 ZF=W AF=0 PF=0 CF=0"},
-      {"x64": "enqcmds W:m512(es:r64), m512"                               , "op": "[RM] F3 0F 38 F8 !(11):rrr:bbb" , "ext": "ENQCMD"  , "io": "OF=0 SF=0 ZF=W AF=0 PF=0 CF=0"},
-      {"x86": "invept R:r32, R:m128"                                       , "op": "[RM] 66 0F 38 80 /r"            , "ext": "VMX"     , "privilege": "L0"},
-      {"x64": "invept R:r64, R:m128"                                       , "op": "[RM] 66 0F 38 80 /r"            , "ext": "VMX"     , "privilege": "L0"},
-      {"x86": "invvpid R:r32, R:m128"                                      , "op": "[RM] 66 0F 38 81 /r"            , "ext": "VMX"     , "privilege": "L0"},
-      {"x64": "invvpid R:r64, R:m128"                                      , "op": "[RM] 66 0F 38 81 /r"            , "ext": "VMX"     , "privilege": "L0"},
+      {"any": "stac"                                                       , "op": "[OP] NP 0F 01 CB"               , "ext": "SMAP"    , "privilege": "L0", "io": "AC=1"}
+    ]},
+
+    {"category": "VIRTUALIZATION", "ext": "VMX", "volatile": true, "instructions": [
+      {"x86": "invept R:r32, R:m128"                                       , "op": "[RM] 66 0F 38 80 /r"                               , "privilege": "L0"},
+      {"x64": "invept R:r64, R:m128"                                       , "op": "[RM] 66 0F 38 80 /r"                               , "privilege": "L0"},
+      {"apx": "invept R:r64, R:m128"                                       , "op": "[RM] EVEX.ND=0.LLZ.F3.MAP4.WIG F0 !(11):rrr:bbb"   , "privilege": "L0"},
+      {"x86": "invvpid R:r32, R:m128"                                      , "op": "[RM] 66 0F 38 81 /r"                               , "privilege": "L0"},
+      {"x64": "invvpid R:r64, R:m128"                                      , "op": "[RM] 66 0F 38 81 /r"                               , "privilege": "L0"},
+      {"apx": "invvpid R:r64, R:m128"                                      , "op": "[RM] EVEX.ND=0.LLZ.F3.MAP4.WIG F1 !(11):rrr:bbb"   , "privilege": "L0"},
+      {"any": "vmcall"                                                     , "op": "[OP] 0F 01 C1"                                     , "privilege": "L0"},
+      {"any": "vmclear R:m64"                                              , "op": "[M ] 66 0F C7 /6"                                  , "privilege": "L0"},
+      {"any": "vmfunc"                                                     , "op": "[OP] NP 0F 01 D4"                                  , "privilege": "L0"},
+      {"any": "vmlaunch"                                                   , "op": "[OP] 0F 01 C2"                                     , "privilege": "L0"},
+      {"any": "vmptrld R:m64"                                              , "op": "[M ] NP 0F C7 /6"                                  , "privilege": "L0"},
+      {"any": "vmptrst W:m64"                                              , "op": "[M ] NP 0F C7 /7"                                  , "privilege": "L0"},
+      {"x86": "vmread W:r32/m32, R:r32"                                    , "op": "[MR] NP 0F 78 /r"                                  , "privilege": "L0"},
+      {"x64": "vmread W:r64/m64, R:r64"                                    , "op": "[MR] NP 0F 78 /r"                                  , "privilege": "L0"},
+      {"any": "vmresume"                                                   , "op": "[OP] 0F 01 C3"                                     , "privilege": "L0"},
+      {"x86": "vmwrite R:r32, R:r32/m32"                                   , "op": "[RM] NP 0F 79 /r"                                  , "privilege": "L0"},
+      {"x64": "vmwrite R:r64, R:r64/m64"                                   , "op": "[RM] NP 0F 79 /r"                                  , "privilege": "L0"},
+      {"any": "vmxoff"                                                     , "op": "[OP] 0F 01 C4"                                     , "privilege": "L0"},
+      {"any": "vmxon R:m64"                                                , "op": "[M ] F3 0F C7 /6"                                  , "privilege": "L0"}
+    ]},
+
+    {"category": "VIRTUALIZATION", "ext": "SEAM", "volatile": true, "instructions": [
       {"any": "seamcall"                                                   , "op": "[OP] 66 0F 01 CF"               , "ext": "SEAM"},
       {"any": "seamops"                                                    , "op": "[OP] 66 0F 01 CE"               , "ext": "SEAM"},
       {"any": "seamret"                                                    , "op": "[OP] 66 0F 01 CD"               , "ext": "SEAM"},
-      {"any": "tdcall"                                                     , "op": "[OP] 66 0F 01 CC"               , "ext": "SEAM"},
-      {"any": "vmcall"                                                     , "op": "[OP] 0F 01 C1"                  , "ext": "VMX"     , "privilege": "L0"},
-      {"any": "vmclear R:m64"                                              , "op": "[M ] 66 0F C7 /6"               , "ext": "VMX"     , "privilege": "L0"},
-      {"any": "vmfunc"                                                     , "op": "[OP] NP 0F 01 D4"               , "ext": "VMX"     , "privilege": "L0"},
-      {"any": "vmlaunch"                                                   , "op": "[OP] 0F 01 C2"                  , "ext": "VMX"     , "privilege": "L0"},
-      {"any": "vmptrld R:m64"                                              , "op": "[M ] NP 0F C7 /6"               , "ext": "VMX"     , "privilege": "L0"},
-      {"any": "vmptrst W:m64"                                              , "op": "[M ] NP 0F C7 /7"               , "ext": "VMX"     , "privilege": "L0"},
-      {"x86": "vmread W:r32/m32, R:r32"                                    , "op": "[MR] NP 0F 78 /r"               , "ext": "VMX"     , "privilege": "L0"},
-      {"x64": "vmread W:r64/m64, R:r64"                                    , "op": "[MR] NP 0F 78 /r"               , "ext": "VMX"     , "privilege": "L0"},
-      {"any": "vmresume"                                                   , "op": "[OP] 0F 01 C3"                  , "ext": "VMX"     , "privilege": "L0"},
-      {"x86": "vmwrite R:r32, R:r32/m32"                                   , "op": "[RM] NP 0F 79 /r"               , "ext": "VMX"     , "privilege": "L0"},
-      {"x64": "vmwrite R:r64, R:r64/m64"                                   , "op": "[RM] NP 0F 79 /r"               , "ext": "VMX"     , "privilege": "L0"},
-      {"any": "vmxoff"                                                     , "op": "[OP] 0F 01 C4"                  , "ext": "VMX"     , "privilege": "L0"},
-      {"any": "vmxon R:m64"                                                , "op": "[M ] F3 0F C7 /6"               , "ext": "VMX"     , "privilege": "L0"}
+      {"any": "tdcall"                                                     , "op": "[OP] 66 0F 01 CC"               , "ext": "SEAM"}
     ]},
+
+    {"category": "VIRTUALIZATION", "ext": "ENQCMD", "volatile": true, "instructions": [
+      {"x86": "enqcmd W:m512(es:r32), m512"                                , "op": "[RM] F2 0F 38 F8 !(11):rrr:bbb"                    , "io": "OF=0 SF=0 ZF=W AF=0 PF=0 CF=0"},
+      {"x64": "enqcmd W:m512(es:r64), m512"                                , "op": "[RM] F2 0F 38 F8 !(11):rrr:bbb"                    , "io": "OF=0 SF=0 ZF=W AF=0 PF=0 CF=0"},
+      {"apx": "enqcmd  W:m512(es:r64), R:m512"                             , "op": "[RM] EVEX.ND=0.LLZ.F2.MAP4.W? F8 !(11):rrr:bbb"    , "io": "OF=0 SF=0 ZF=W AF=0 PF=0 CF=0"},
+      {"x86": "enqcmds W:m512(es:r32), m512"                               , "op": "[RM] F3 0F 38 F8 !(11):rrr:bbb"                    , "io": "OF=0 SF=0 ZF=W AF=0 PF=0 CF=0"},
+      {"x64": "enqcmds W:m512(es:r64), m512"                               , "op": "[RM] F3 0F 38 F8 !(11):rrr:bbb"                    , "io": "OF=0 SF=0 ZF=W AF=0 PF=0 CF=0"},
+      {"apx": "enqcmds W:m512(es:r64), R:m512"                             , "op": "[RM] EVEX.ND=0.LLZ.F3.MAP4.W? F8 !(11):rrr:bbb"    , "io": "OF=0 SF=0 ZF=W AF=0 PF=0 CF=0"}
+    ]},
+
 
     {"category": "VIRTUALIZATION", "volatile": true, "instructions": [
       {"any": "clgi"                                                       , "op": "0F 01 DD"                       , "ext": "SVM"     , "privilege": "L0"},
@@ -2357,24 +2421,24 @@
       {"any": "vcvtneps2bf16  W:xmm, ymm/m256"                             , "op": "[RM ] VEX.256.F3.0F38.W0 72 /r"}
     ]},
 
-    {"category": "AVX SIMD", "ext": "AVX SHA512", "instructions": [
+    {"category": "AVX SIMD CRYPTO_HASH", "ext": "AVX SHA512", "instructions": [
       {"any": "vsha512msg1  X:ymm, R:xmm"                                  , "op": "[RM ] VEX.256.F2.0F38.W0 CC 11:rrr:bbb"},
       {"any": "vsha512msg2  X:ymm, R:ymm"                                  , "op": "[RM ] VEX.256.F2.0F38.W0 CD 11:rrr:bbb"},
       {"any": "vsha512rnds2 X:ymm, R:ymm, R:xmm"                           , "op": "[RVM] VEX.256.F2.0F38.W0 CB 11:rrr:bbb"}
     ]},
 
-    {"category": "AVX SIMD", "ext": "AVX SM3", "instructions": [
+    {"category": "AVX SIMD CRYPTO_HASH", "ext": "AVX SM3", "instructions": [
       {"any": "vsm3msg1  X:xmm, R:xmm, R:xmm/m128"                         , "op": "[RVM] VEX.128.NP.0F38.W0 DA /r"},
       {"any": "vsm3msg2  X:xmm, R:xmm, R:xmm/m128"                         , "op": "[RVM] VEX.128.66.0F38.W0 DA /r"},
       {"any": "vsm3rnds2 X:xmm, R:xmm, R:xmm/m128, imm8"                   , "op": "[RVM] VEX.128.66.0F3A.W0 DE /r ib"}
     ]},
 
-    {"category": "AVX SIMD", "ext": "AVX SM4", "instructions": [
+    {"category": "AVX SIMD CRYPTO_HASH", "ext": "AVX SM4", "instructions": [
       {"any": "vsm4key4  W:xy, R:xy, R:xy/mxy"                             , "op": "[RVM] VEX.Lxy.F3.0F38.W0 DA /r"},
       {"any": "vsm4rnds4 W:xy, R:xy, R:xy/mxy"                             , "op": "[RVM] VEX.Lxy.F2.0F38.W0 DA /r"}
     ]},
 
-    {"category": "AVX SIMD", "ext": "AVX10_2 SM4", "instructions": [
+    {"category": "AVX SIMD CRYPTO_HASH", "ext": "AVX10_2 SM4", "instructions": [
       {"any": "vsm4key4  W:xyz, R:xyz, R:xyz/mxyz"                         , "op": "[RVM] EVEX.xyz.F3.0F38.W0 DA /r"},
       {"any": "vsm4rnds4 W:xyz, R:xyz, R:xyz/mxyz"                         , "op": "[RVM] EVEX.xyz.F2.0F38.W0 DA /r"}
     ]},
@@ -2408,9 +2472,13 @@
       {"any": "kandnw W:k[15:0], k[15:0], k[15:0]"                         , "op": "[RVM] VEX.L1.0F.W0 42 /r"},
       {"any": "kandw W:k[15:0], ~k[15:0], ~k[15:0]"                        , "op": "[RVM] VEX.L1.0F.W0 41 /r"},
       {"any": "kmovw W:k[15:0], k[15:0]/m16"                               , "op": "[RM ] VEX.L0.0F.W0 90 /r"},
+      {"apx": "kmovw W:k[15:0], k[15:0]/m16"                               , "op": "[RM ] EVEX.128.NP.0F.W0 90 /r"},
       {"any": "kmovw W:k[15:0], r32[15:0]"                                 , "op": "[RM ] VEX.L0.0F.W0 92 /r"},
+      {"apx": "kmovw W:k[15:0], r32[15:0]"                                 , "op": "[RM ] EVEX.128.NP.0F.W0 92 11:rrr:bbb"},
       {"any": "kmovw W:m16, k[15:0]"                                       , "op": "[MR ] VEX.L0.0F.W0 91 /r"},
+      {"apx": "kmovw W:m16, k[15:0]"                                       , "op": "[MR ] EVEX.128.NP.0F.W0 91 !(11):rrr:bbb"},
       {"any": "kmovw W:r32[15:0], k[15:0]"                                 , "op": "[RM ] VEX.L0.0F.W0 93 /r"},
+      {"apx": "kmovw W:r32[15:0], k[15:0]"                                 , "op": "[RM ] EVEX.128.NP.0F.W0 93 11:rrr:bbb"},
       {"any": "knotw W:k[15:0], k[15:0]"                                   , "op": "[RM ] VEX.L0.0F.W0 44 /r"},
       {"any": "kortestw R:~k[15:0], ~k[15:0]"                              , "op": "[RM ] VEX.L0.0F.W0 98 /r"              , "io": "OF=0 SF=0 ZF=W AF=0 PF=0 CF=W"},
       {"any": "korw W:k[15:0], ~k[15:0], ~k[15:0]"                         , "op": "[RVM] VEX.L1.0F.W0 45 /r"},
@@ -2427,9 +2495,13 @@
       {"any": "kandb W:k[7:0], ~k[7:0], ~k[7:0]"                           , "op": "[RVM] VEX.L1.66.0F.W0 41 /r"},
       {"any": "kandnb W:k[7:0], k[7:0], k[7:0]"                            , "op": "[RVM] VEX.L1.66.0F.W0 42 /r"},
       {"any": "kmovb W:k[7:0], k[7:0]/m8"                                  , "op": "[RM ] VEX.L0.66.0F.W0 90 /r"},
+      {"apx": "kmovb W:k[7:0], k[7:0]/m8"                                  , "op": "[RM ] EVEX.128.66.0F.W0 90 /r"},
       {"any": "kmovb W:k[7:0], r32[7:0]"                                   , "op": "[RM ] VEX.L0.66.0F.W0 92 /r"},
+      {"apx": "kmovb W:k[7:0], r32[7:0]"                                   , "op": "[RM ] EVEX.128.66.0F.W0 92 11:rrr:bbb"},
       {"any": "kmovb W:m8, k[7:0]"                                         , "op": "[MR ] VEX.L0.66.0F.W0 91 /r"},
+      {"apx": "kmovb W:m8, k[7:0]"                                         , "op": "[MR ] EVEX.128.66.0F.W0 91 !(11):rrr:bbb"},
       {"any": "kmovb W:r32[7:0], k[7:0]"                                   , "op": "[RM ] VEX.L0.66.0F.W0 93 /r"},
+      {"apx": "kmovb W:r32[7:0], k[7:0]"                                   , "op": "[RM ] EVEX.128.66.0F.W0 93 11:rrr:bbb"},
       {"any": "knotb W:k[7:0], k[7:0]"                                     , "op": "[RM ] VEX.L0.66.0F.W0 44 /r"},
       {"any": "korb W:k[7:0], ~k[7:0], ~k[7:0]"                            , "op": "[RVM] VEX.L1.66.0F.W0 45 /r"},
       {"any": "kortestb R:~k[7:0], ~k[7:0]"                                , "op": "[RM ] VEX.L0.66.0F.W0 98 /r"           , "io": "OF=0 SF=0 ZF=W AF=0 PF=0 CF=W"},
@@ -2449,13 +2521,21 @@
       {"any": "kandnq W:k[63:0], k[63:0], k[63:0]"                         , "op": "[RVM] VEX.L1.NP.0F.W1 42 /r"},
       {"any": "kandq W:k[63:0], ~k[63:0], ~k[63:0]"                        , "op": "[RVM] VEX.L1.NP.0F.W1 41 /r"},
       {"any": "kmovd W:k[31:0], k[31:0]/m32"                               , "op": "[RM ] VEX.L0.66.0F.W1 90 /r"},
-      {"any": "kmovd W:k[31:0], r32[31:0]"                                 , "op": "[RM ] VEX.L0.F2.0F.W0 92 /r"},
+      {"apx": "kmovd W:k[31:0], k[31:0]/m32"                               , "op": "[RM ] EVEX.128.66.0F.W1 90 /r"},
+      {"any": "kmovd W:k[31:0], r32"                                       , "op": "[RM ] VEX.L0.F2.0F.W0 92 /r"},
+      {"apx": "kmovd W:k[31:0], r32"                                       , "op": "[RM ] EVEX.128.F2.0F.W0 92 11:rrr:bbb"},
       {"any": "kmovd W:m32, k[31:0]"                                       , "op": "[MR ] VEX.L0.66.0F.W1 91 /r"},
-      {"any": "kmovd W:r32[31:0], k[31:0]"                                 , "op": "[RM ] VEX.L0.F2.0F.W0 93 /r"},
+      {"apx": "kmovd W:m32, k[31:0]"                                       , "op": "[MR ] EVEX.128.66.0F.W1 91 !(11):rrr:bbb"},
+      {"any": "kmovd W:r32, k[31:0]"                                       , "op": "[RM ] VEX.L0.F2.0F.W0 93 /r"},
+      {"apx": "kmovd W:r32, k[31:0]"                                       , "op": "[RM ] EVEX.128.F2.0F.W0 93 11:rrr:bbb"},
       {"any": "kmovq W:k[63:0], k[63:0]/m64"                               , "op": "[RM ] VEX.L0.NP.0F.W1 90 /r"},
+      {"apx": "kmovq W:k[63:0], k[63:0]/m64"                               , "op": "[RM ] EVEX.128.NP.0F.W1 90 /r"},
       {"any": "kmovq W:k[63:0], r64"                                       , "op": "[RM ] VEX.L0.F2.0F.W1 92 /r"},
+      {"apx": "kmovq W:k[63:0], r64"                                       , "op": "[RM ] EVEX.128.F2.0F.W1 92 11:rrr:bbb"},
       {"any": "kmovq W:m64, k[63:0]"                                       , "op": "[MR ] VEX.L0.NP.0F.W1 91 /r"},
+      {"apx": "kmovq W:m64, k[63:0]"                                       , "op": "[MR ] EVEX.128.NP.0F.W1 91 !(11):rrr:bbb"},
       {"any": "kmovq W:r64, k[63:0]"                                       , "op": "[RM ] VEX.L0.F2.0F.W1 93 /r"},
+      {"apx": "kmovq W:r64, k[63:0]"                                       , "op": "[RM ] EVEX.128.F2.0F.W1 93 11:rrr:bbb"},
       {"any": "knotd W:k[31:0], k[31:0]"                                   , "op": "[RM ] VEX.L0.66.0F.W1 44 /r"},
       {"any": "knotq W:k[63:0], k[63:0]"                                   , "op": "[RM ] VEX.L0.NP.0F.W1 44 /r"},
       {"any": "kord W:k[31:0], ~k[31:0], ~k[31:0]"                         , "op": "[RVM] VEX.L1.66.0F.W1 45 /r"},
@@ -3405,11 +3485,16 @@
 
     {"category": "AMX", "ext": "AMX_TILE", "instructions": [
       {"x64": "ldtilecfg R:m512"                                           , "op": "[M  ] VEX.128.NP.0F38.W0 49 !(11):000:bbb"},
+      {"apx": "ldtilecfg R:m512"                                           , "op": "[M  ] EVEX.128.NP.0F38.W0 49 !(11):000:bbb"},
       {"x64": "sttilecfg W:m512"                                           , "op": "[M  ] VEX.128.66.0F38.W0 49 !(11):000:bbb"},
+      {"apx": "sttilecfg W:m512"                                           , "op": "[M  ] EVEX.128.66.0F38.W0 49 !(11):000:bbb"},
       {"x64": "tileloadd W:tmm, tmem"                                      , "op": "[RM ] VEX.128.F2.0F38.W0 4B !(11):rrr:100"},
+      {"apx": "tileloadd W:tmm, R:tmem"                                    , "op": "[RM ] EVEX.128.F2.0F38.W0 4B !(11):rrr:100"},
       {"x64": "tileloaddt1 W:tmm, tmem"                                    , "op": "[RM ] VEX.128.66.0F38.W0 4B !(11):rrr:100"},
+      {"apx": "tileloaddt1 W:tmm, R:tmem"                                  , "op": "[RM ] EVEX.128.66.0F38.W0 4B !(11):rrr:100"},
       {"x64": "tilerelease"                                                , "op": "[OP ] VEX.128.NP.0F38.W0 49 /0"},
       {"x64": "tilestored W:tmem, R:tmm"                                   , "op": "[MR ] VEX.128.F3.0F38.W0 4B !(11):rrr:100"},
+      {"apx": "tilestored W:tmem, R:tmm"                                   , "op": "[MR ] EVEX.128.F3.0F38.W0 4B !(11):rrr:100"},
       {"x64": "tilezero W:tmm"                                             , "op": "[R  ] VEX.128.F2.0F38.W0 49 11:rrr:000"}
     ]},
 
@@ -3457,7 +3542,9 @@
 
     {"category": "AMX", "ext": "AMX_MOVRS", "instructions": [
       {"x64": "tileloaddrs W:tmm, tmem"                                    , "op": "[RM ] VEX.128.F2.0F38.W0 4A !(11):rrr:100"},
-      {"x64": "tileloaddrst1 W:tmm, tmem"                                  , "op": "[RM ] VEX.128.66.0F38.W0 4A !(11):rrr:100"}
+      {"apx": "tileloaddrs W:tmm, tmem"                                    , "op": "[RM ] EVEX.128.F2.0F38.W0 4A !(11):rrr:100"},
+      {"x64": "tileloaddrst1 W:tmm, tmem"                                  , "op": "[RM ] VEX.128.66.0F38.W0 4A !(11):rrr:100"},
+      {"apx": "tileloaddrst1 W:tmm, tmem"                                  , "op": "[RM ] EVEX.128.66.0F38.W0 4A !(11):rrr:100"}
     ]},
 
     {"category": "AMX", "ext": "AMX_TF32", "instructions": [
@@ -3466,9 +3553,13 @@
 
     {"category": "AMX", "ext": "AMX_TRANSPOSE", "instructions": [
       {"x64": "t2rpntlvwz0   W:tmm, W:tmm+1, tmem"                         , "op": "[RM ] VEX.128.NP.0F38.W0 6E !(11):rrr:100"},
+      {"apx": "t2rpntlvwz0   W:tmm, W:tmm+1, tmem"                         , "op": "[RM ] EVEX.128.NP.0F38.W0 6E !(11):rrr:100"},
       {"x64": "t2rpntlvwz0t1 W:tmm, W:tmm+1, tmem"                         , "op": "[RM ] VEX.128.NP.0F38.W0 6F !(11):rrr:100"},
+      {"apx": "t2rpntlvwz0t1 W:tmm, W:tmm+1, tmem"                         , "op": "[RM ] EVEX.128.NP.0F38.W0 6F !(11):rrr:100"},
       {"x64": "t2rpntlvwz1   W:tmm, W:tmm+1, tmem"                         , "op": "[RM ] VEX.128.66.0F38.W0 6E !(11):rrr:100"},
+      {"apx": "t2rpntlvwz1   W:tmm, W:tmm+1, tmem"                         , "op": "[RM ] EVEX.128.66.0F38.W0 6E !(11):rrr:100"},
       {"x64": "t2rpntlvwz1t1 W:tmm, W:tmm+1, tmem"                         , "op": "[RM ] VEX.128.66.0F38.W0 6F !(11):rrr:100"},
+      {"apx": "t2rpntlvwz1t1 W:tmm, W:tmm+1, tmem"                         , "op": "[RM ] EVEX.128.66.0F38.W0 6F !(11):rrr:100"},
       {"x64": "ttransposed   W:tmm, tmm"                                   , "op": "[RMV] VEX.128.F3.0F38.W0 5F 11:rrr:bbb"}
     ]},
 
@@ -3481,9 +3572,13 @@
 
     {"category": "AMX", "ext": "AMX_TRANSPOSE AMX_MOVRS", "instructions": [
       {"x64": "t2rpntlvwz0rs     W:tmm, W:tmm+1, tmem"                     , "op": "[RM ] VEX.128.NP.MAP5.W0 F8 !(11):rrr:100"},
+      {"apx": "t2rpntlvwz0rs     W:tmm, W:tmm+1, tmem"                     , "op": "[RM ] EVEX.128.NP.MAP5.W0 F8 !(11):rrr:100"},
       {"x64": "t2rpntlvwz0rst1   W:tmm, W:tmm+1, tmem"                     , "op": "[RM ] VEX.128.NP.MAP5.W0 F9 !(11):rrr:100"},
+      {"apx": "t2rpntlvwz0rst1   W:tmm, W:tmm+1, tmem"                     , "op": "[RM ] EVEX.128.NP.MAP5.W0 F9 !(11):rrr:100"},
       {"x64": "t2rpntlvwz1rs     W:tmm, W:tmm+1, tmem"                     , "op": "[RM ] VEX.128.66.MAP5.W0 F8 !(11):rrr:100"},
-      {"x64": "t2rpntlvwz1rst1   W:tmm, W:tmm+1, tmem"                     , "op": "[RM ] VEX.128.66.MAP5.W0 F9 !(11):rrr:100"}
+      {"apx": "t2rpntlvwz1rs     W:tmm, W:tmm+1, tmem"                     , "op": "[RM ] EVEX.128.66.MAP5.W0 F8 !(11):rrr:100"},
+      {"x64": "t2rpntlvwz1rst1   W:tmm, W:tmm+1, tmem"                     , "op": "[RM ] VEX.128.66.MAP5.W0 F9 !(11):rrr:100"},
+      {"apx": "t2rpntlvwz1rst1   W:tmm, W:tmm+1, tmem"                     , "op": "[RM ] EVEX.128.66.MAP5.W0 F9 !(11):rrr:100"}
     ]},
 
     {"category": "AMX", "ext": "AMX_TRANSPOSE AMX_BF16", "instructions": [
@@ -3495,7 +3590,7 @@
       {"x64": "ttmmultf32ps X:tmm, tmm, tmm"                               , "op": "[RMV] VEX.128.NP.0F38.W0 48 11:rrr:bbb"}
     ]},
 
-    {"category": "GP", "ext": "APX_F", "instructions": [
+    {"category": "GP GP_EXT", "ext": "APX_F", "instructions": [
       {"apx": "adc            x:r8/m8, R:r8"                               , "op": "[MR ] EVEX.ND=0.LLZ.NP.MAP4.WIG 10 /r"     , "io": "OF=W SF=W ZF=W AF=W PF=W CF=X"},
       {"apx": "adc            x:rv/mv, R:rv"                               , "op": "[MR ] EVEX.ND=0.LLZ.Pv.MAP4.Wv 11 /r"      , "io": "OF=W SF=W ZF=W AF=W PF=W CF=X"},
       {"apx": "adc            x:r8, R:r8/m8"                               , "op": "[RM ] EVEX.ND=0.LLZ.NP.MAP4.WIG 12 /r"     , "io": "OF=W SF=W ZF=W AF=W PF=W CF=X"},
@@ -3751,138 +3846,15 @@
       {"apx": "xor{nf}        W:rv, R:rv/mv, immv"                         , "op": "[VM ] EVEX.ND=1.LLZ.Pv.MAP4.Wv 81 /6 iv"   , "io": "OF=0 SF=W ZF=W AF=U PF=W CF=0"}
     ]},
 
-    {"category": "GP GP_EXT", "ext": "RAO_INT APX_F", "volatile": true, "instructions": [
-      {"apx": "aadd        X:my, R:ry"                                     , "op": "[MR ] EVEX.ND=0.LLZ.NP.MAP4.Wy FC !(11):rrr:bbb"},
-      {"apx": "aand        X:my, R:ry"                                     , "op": "[MR ] EVEX.ND=0.LLZ.66.MAP4.Wy FC !(11):rrr:bbb"},
-      {"apx": "aor         X:my, R:ry"                                     , "op": "[MR ] EVEX.ND=0.LLZ.F2.MAP4.Wy FC !(11):rrr:bbb"},
-      {"apx": "axor        X:my, R:ry"                                     , "op": "[MR ] EVEX.ND=0.LLZ.F3.MAP4.Wy FC !(11):rrr:bbb"}
-    ]},
-
-    {"category": "GP GP_EXT", "ext": "ADX APX_F", "instructions": [
-      {"apx": "adcx        X:ry, R:ry/my"                                  , "op": "[RM ] EVEX.ND=0.LLZ.66.MAP4.Wy 66 /r"      , "io": "CF=X"},
-      {"apx": "adcx        W:ry, R:ry, R:ry/my"                            , "op": "[VRM] EVEX.ND=1.LLZ.66.MAP4.Wy 66 /r"      , "io": "CF=X"},
-      {"apx": "adox        X:ry, R:ry/my"                                  , "op": "[RM ] EVEX.ND=0.LLZ.F3.MAP4.Wy 66 /r"      , "io": "OF=X"},
-      {"apx": "adox        W:ry, R:ry, R:ry/my"                            , "op": "[VRM] EVEX.ND=1.LLZ.F3.MAP4.Wy 66 /r"      , "io": "OF=X"}
-    ]},
-
-    {"category": "GP GP_EXT", "ext": "BMI APX_F", "instructions": [
-      {"apx": "andn{nf}    W:ry, R:ry, R:my/ry"                            , "op": "[RVM] EVEX.128.NP.0F38.Wy F2 /r"           , "io": "OF=0 SF=W ZF=W AF=U PF=U CF=0"},
-      {"apx": "bextr{nf}   W:ry, R:my/ry, ry"                              , "op": "[RMV] EVEX.128.NP.0F38.Wy F7 /r"           , "io": "OF=0 SF=U ZF=W AF=U PF=U CF=0"},
-      {"apx": "blsi{nf}    W:ry, R:my/ry"                                  , "op": "[VM ] EVEX.128.NP.0F38.Wy F3 /3"           , "io": "OF=0 SF=W ZF=W AF=U PF=U CF=W"},
-      {"apx": "blsmsk{nf}  W:ry, R:my/ry"                                  , "op": "[VM ] EVEX.128.NP.0F38.Wy F3 /2"           , "io": "OF=0 SF=W ZF=0 AF=U PF=U CF=W"},
-      {"apx": "blsr{nf}    W:ry, R:my/ry"                                  , "op": "[VM ] EVEX.128.NP.0F38.Wy F3 /1"           , "io": "OF=0 SF=W ZF=W AF=U PF=U CF=W"},
-      {"apx": "tzcnt{nf}   w:rv, R:rv/mv"                                  , "op": "[RM ] EVEX.ND=0.LLZ.Pv.MAP4.Wv F4 /r"      , "io": "OF=U SF=U ZF=W AF=U PF=U CF=W"}
-    ]},
-
-    {"category": "GP GP_EXT", "ext": "BMI2 APX_F", "instructions": [
-      {"apx": "bzhi{nf}    W:ry, R:my/ry, R:ry"                            , "op": "[RMV] EVEX.128.NP.0F38.Wy F5 /r"           , "io": "OF=0 SF=W ZF=W AF=U PF=U CF=W"},
-      {"apx": "mulx        W:ry, W:ry, R:~my/ry, R:~<dxy>"                 , "op": "[RVM] EVEX.128.F2.0F38.Wy F6 /r"},
-      {"apx": "pdep        W:ry, R:ry, R:my/ry"                            , "op": "[RVM] EVEX.128.F2.0F38.Wy F5 /r"},
-      {"apx": "pext        W:ry, R:ry, R:my/ry"                            , "op": "[RVM] EVEX.128.F3.0F38.Wy F5 /r"},
-      {"apx": "rorx        W:ry, R:my/ry, imm8"                            , "op": "[RM ] EVEX.128.F2.0F3A.Wy F0 /r ib"},
-      {"apx": "sarx        W:ry, R:my/ry, R:ry"                            , "op": "[RMV] EVEX.128.F3.0F38.Wy F7 /r"},
-      {"apx": "shlx        W:ry, R:my/ry, R:ry"                            , "op": "[RMV] EVEX.128.66.0F38.Wy F7 /r"},
-      {"apx": "shrx        W:ry, R:my/ry, R:ry"                            , "op": "[RMV] EVEX.128.F2.0F38.Wy F7 /r"}
-    ]},
-
-    {"category": "GP GP_EXT", "ext": "CMPCCXADD APX_F", "instructions": [
-      {"apx": "cmpbxadd    X:my, X:ry, R:ry"                               , "op": "[MRV] EVEX.128.66.0F38.Wy E2 !(11):rrr:bbb", "io": "OF=W SD=W ZF=W AF=W PF=W CF=W"},
-      {"apx": "cmpbexadd   X:my, X:ry, R:ry"                               , "op": "[MRV] EVEX.128.66.0F38.Wy E6 !(11):rrr:bbb", "io": "OF=W SD=W ZF=W AF=W PF=W CF=W"},
-      {"apx": "cmplxadd    X:my, X:ry, R:ry"                               , "op": "[MRV] EVEX.128.66.0F38.Wy EC !(11):rrr:bbb", "io": "OF=W SD=W ZF=W AF=W PF=W CF=W"},
-      {"apx": "cmplexadd   X:my, X:ry, R:ry"                               , "op": "[MRV] EVEX.128.66.0F38.Wy EE !(11):rrr:bbb", "io": "OF=W SD=W ZF=W AF=W PF=W CF=W"},
-      {"apx": "cmpnbxadd   X:my, X:ry, R:ry"                               , "op": "[MRV] EVEX.128.66.0F38.Wy E3 !(11):rrr:bbb", "io": "OF=W SD=W ZF=W AF=W PF=W CF=W"},
-      {"apx": "cmpnbexadd  X:my, X:ry, R:ry"                               , "op": "[MRV] EVEX.128.66.0F38.Wy E7 !(11):rrr:bbb", "io": "OF=W SD=W ZF=W AF=W PF=W CF=W"},
-      {"apx": "cmpnlxadd   X:my, X:ry, R:ry"                               , "op": "[MRV] EVEX.128.66.0F38.Wy ED !(11):rrr:bbb", "io": "OF=W SD=W ZF=W AF=W PF=W CF=W"},
-      {"apx": "cmpnlexadd  X:my, X:ry, R:ry"                               , "op": "[MRV] EVEX.128.66.0F38.Wy EF !(11):rrr:bbb", "io": "OF=W SD=W ZF=W AF=W PF=W CF=W"},
-      {"apx": "cmpnoxadd   X:my, X:ry, R:ry"                               , "op": "[MRV] EVEX.128.66.0F38.Wy E1 !(11):rrr:bbb", "io": "OF=W SD=W ZF=W AF=W PF=W CF=W"},
-      {"apx": "cmpnpxadd   X:my, X:ry, R:ry"                               , "op": "[MRV] EVEX.128.66.0F38.Wy EB !(11):rrr:bbb", "io": "OF=W SD=W ZF=W AF=W PF=W CF=W"},
-      {"apx": "cmpnsxadd   X:my, X:ry, R:ry"                               , "op": "[MRV] EVEX.128.66.0F38.Wy E9 !(11):rrr:bbb", "io": "OF=W SD=W ZF=W AF=W PF=W CF=W"},
-      {"apx": "cmpnzxadd   X:my, X:ry, R:ry"                               , "op": "[MRV] EVEX.128.66.0F38.Wy E5 !(11):rrr:bbb", "io": "OF=W SD=W ZF=W AF=W PF=W CF=W"},
-      {"apx": "cmpoxadd    X:my, X:ry, R:ry"                               , "op": "[MRV] EVEX.128.66.0F38.Wy E0 !(11):rrr:bbb", "io": "OF=W SD=W ZF=W AF=W PF=W CF=W"},
-      {"apx": "cmppxadd    X:my, X:ry, R:ry"                               , "op": "[MRV] EVEX.128.66.0F38.Wy EA !(11):rrr:bbb", "io": "OF=W SD=W ZF=W AF=W PF=W CF=W"},
-      {"apx": "cmpsxadd    X:my, X:ry, R:ry"                               , "op": "[MRV] EVEX.128.66.0F38.Wy E8 !(11):rrr:bbb", "io": "OF=W SD=W ZF=W AF=W PF=W CF=W"},
-      {"apx": "cmpzxadd    X:my, X:ry, R:ry"                               , "op": "[MRV] EVEX.128.66.0F38.Wy E4 !(11):rrr:bbb", "io": "OF=W SD=W ZF=W AF=W PF=W CF=W"}
-    ]},
-
-    {"category": "GP GP_EXT", "ext": "LZCNT APX_F", "instructions": [
-      {"apx": "lzcnt{nf}  w:rv, R:rv/mv"                                   , "op": "[RM ] EVEX.ND=0.LLZ.Pv.MAP4.Wv F5 /r"      , "io": "OF=U SF=U ZF=W AF=U PF=U CF=W"}
-    ]},
-
-    {"category": "GP GP_EXT", "ext": "MOVBE APX_F", "instructions": [
-      {"apx": "movbe w:rv, R:rv/mv"                                        , "op": "[RM ] EVEX.ND=0.LLZ.Pv.MAP4.Wv 60 /r"},
-      {"apx": "movbe w:rv/mv, R:rv"                                        , "op": "[MR ] EVEX.ND=0.LLZ.Pv.MAP4.Wv 61 /r"}
-    ]},
-
-    {"category": "GP GP_EXT", "ext": "MOVDIR64B APX_F", "instructions": [
-      {"apx": "movdir64b W:m512(es:r64), R:m512"                           , "op": "[RM ] EVEX.LLZ.66.MAP4.W0 F8 !(11):rrr:bbb"}
-    ]},
-
-    {"category": "GP GP_EXT", "ext": "MOVDIRI APX_F", "instructions": [
-      {"apx": "movdiri W:my, R:ry"                                         , "op": "[MR ] EVEX.ND=0.LLZ.NP.MAP4.W0 F9 !(11):rrr:bbb"}
-    ]},
-
-    {"category": "GP GP_EXT", "ext": "POPCNT APX_F", "instructions": [
-      {"apx": "popcnt{nf} w:rv, R:rv/mv"                                   , "op": "[RM ] EVEX.ND=0.LLZ.Pv.MAP4.Wv 88 /r"      , "io": "OF=0 SF=0 ZF=W AF=0 PF=0 CF=0"}
-    ]},
-
-    {"category": "GP GP_EXT", "ext": "VMX APX_F", "instructions": [
-      {"apx": "invept  R:r64, R:m128"                                      , "op": "[RM ] EVEX.ND=0.LLZ.F3.MAP4.WIG F0 !(11):rrr:bbb"},
-      {"apx": "invvpid R:r64, R:m128"                                      , "op": "[RM ] EVEX.ND=0.LLZ.F3.MAP4.WIG F1 !(11):rrr:bbb"}
-    ]},
-
-    {"category": "GP GP_EXT", "ext": "INVPCID APX_F", "instructions": [
-      {"apx": "invpcid R:r64, R:m128"                                      , "op": "[RM ] EVEX.ND=0.LLZ.F3.MAP4.WIG F2 !(11):rrr:bbb"}
-    ]},
-
-    {"category": "GP GP_EXT", "ext": "ENQCMD APX_F", "instructions": [
-      {"apx": "enqcmd  W:m512(es:r64), R:m512"                             , "op": "[RM ] EVEX.ND=0.LLZ.F2.MAP4.W? F8 !(11):rrr:bbb", "io": "OF=0 SF=0 ZF=W AF=0 PF=0 CF=0"},
-      {"apx": "enqcmds W:m512(es:r64), R:m512"                             , "op": "[RM ] EVEX.ND=0.LLZ.F3.MAP4.W? F8 !(11):rrr:bbb", "io": "OF=0 SF=0 ZF=W AF=0 PF=0 CF=0"}
-    ]},
-
     {"category": "GP GP_EXT", "ext": "USER_MSR", "instructions": [
       {"x64": "urdmsr W:r64, R:r64"                                        , "op": "[MR ] F2 0F 38 F8 11:rrr:bbb"},
+      {"apx": "urdmsr W:r64, R:r64"                                        , "op": "[MR ] EVEX.ND=0.LLZ.F2.MAP4.W0 F8 11:rrr:bbb"},
       {"x64": "urdmsr W:r64, imm32"                                        , "op": "[M  ] VEX.128.F2.MAP7.W0 F8 11:000:bbb id"},
+      {"apx": "urdmsr W:r64, imm32"                                        , "op": "[M  ] EVEX.128.F2.MAP7.W0 F8 11:000:bbb id"},
       {"x64": "uwrmsr R:r64, R:r64"                                        , "op": "[RM ] F3 0F 38 F8 11:rrr:bbb"},
-      {"x64": "uwrmsr imm32, R:r64"                                        , "op": "[M  ] VEX.128.F3.MAP7.W0 F8 11:000:bbb id"}
-    ]},
-
-    {"category": "GP GP_EXT", "ext": "USER_MSR APX_F", "instructions": [
-      {"apx": "urdmsr r64, r64"                                            , "op": "[MR ] EVEX.ND=0.LLZ.F2.MAP4.W0 F8 11:rrr:bbb"},
-      {"apx": "urdmsr r64, imm32"                                          , "op": "[M  ] EVEX.128.F2.MAP7.W0 F8 11:000:bbb id"},
-      {"apx": "uwrmsr r64, r64"                                            , "op": "[RM ] EVEX.ND=0.LLZ.F3.MAP4.W0 F8 11:rrr:bbb"},
-      {"apx": "uwrmsr imm32, r64"                                          , "op": "[M  ] EVEX.128.F3.MAP7.W0 F8 11:000:bbb id"}
-    ]},
-
-    {"category": "GP GP_EXT", "ext": "CET_SS APX_F", "instructions": [
-      {"apx": "wrssd  W:m32, R:r32"                                        , "op": "[MR ] EVEX.ND=0.LLZ.NP.MAP4.W0 66 !(11):rrr:bbb"},
-      {"apx": "wrssq  W:m64, R:r64"                                        , "op": "[MR ] EVEX.ND=0.LLZ.NP.MAP4.W1 66 !(11):rrr:bbb"},
-      {"apx": "wrussd W:m32, R:r32"                                        , "op": "[MR ] EVEX.ND=0.LLZ.66.MAP4.W0 65 !(11):rrr:bbb"},
-      {"apx": "wrussq W:m64, R:r64"                                        , "op": "[MR ] EVEX.ND=0.LLZ.66.MAP4.W1 65 !(11):rrr:bbb"}
-    ]},
-
-    {"category": "AVX512 MASK", "ext": "AVX512_F APX_F", "instructions": [
-      {"apx": "kmovw W:k[15:0], k[15:0]/m16"                               , "op": "[RM ] EVEX.128.NP.0F.W0 90 /r"},
-      {"apx": "kmovw W:k[15:0], r32[15:0]"                                 , "op": "[RM ] EVEX.128.NP.0F.W0 92 11:rrr:bbb"},
-      {"apx": "kmovw W:m16, k[15:0]"                                       , "op": "[MR ] EVEX.128.NP.0F.W0 91 !(11):rrr:bbb"},
-      {"apx": "kmovw W:r32[15:0], k[15:0]"                                 , "op": "[RM ] EVEX.128.NP.0F.W0 93 11:rrr:bbb"}
-    ]},
-
-    {"category": "AVX512 MASK", "ext": "AVX512_BW APX_F", "instructions": [
-      {"apx": "kmovd W:r32, k[31:0]"                                       , "op": "[RM ] EVEX.128.F2.0F.W0 93 11:rrr:bbb"},
-      {"apx": "kmovd W:k[31:0], k[31:0]/m32"                               , "op": "[RM ] EVEX.128.66.0F.W1 90 /r"},
-      {"apx": "kmovd W:m32, k[31:0]"                                       , "op": "[MR ] EVEX.128.66.0F.W1 91 !(11):rrr:bbb"},
-      {"apx": "kmovd W:k[31:0], r32"                                       , "op": "[RM ] EVEX.128.F2.0F.W0 92 11:rrr:bbb"},
-      {"apx": "kmovq W:k, k/m64"                                           , "op": "[RM ] EVEX.128.NP.0F.W1 90 /r"},
-      {"apx": "kmovq W:k, r64"                                             , "op": "[RM ] EVEX.128.F2.0F.W1 92 11:rrr:bbb"},
-      {"apx": "kmovq W:m64, k"                                             , "op": "[MR ] EVEX.128.NP.0F.W1 91 !(11):rrr:bbb"},
-      {"apx": "kmovq W:r64, k"                                             , "op": "[RM ] EVEX.128.F2.0F.W1 93 11:rrr:bbb"}
-    ]},
-
-    {"category": "AVX512 MASK", "ext": "AVX512_DQ APX_F", "instructions": [
-      {"apx": "kmovb W:k[7:0], k[7:0]/m8"                                  , "op": "[RM ] EVEX.128.66.0F.W0 90 /r"},
-      {"apx": "kmovb W:k[7:0], r32[7:0]"                                   , "op": "[RM ] EVEX.128.66.0F.W0 92 11:rrr:bbb"},
-      {"apx": "kmovb W:m8, k[7:0]"                                         , "op": "[MR ] EVEX.128.66.0F.W0 91 !(11):rrr:bbb"},
-      {"apx": "kmovb W:r32[7:0], k[7:0]"                                   , "op": "[RM ] EVEX.128.66.0F.W0 93 11:rrr:bbb"}
+      {"apx": "uwrmsr R:r64, R:r64"                                        , "op": "[RM ] EVEX.ND=0.LLZ.F3.MAP4.W0 F8 11:rrr:bbb"},
+      {"x64": "uwrmsr imm32, R:r64"                                        , "op": "[M  ] VEX.128.F3.MAP7.W0 F8 11:000:bbb id"},
+      {"apx": "uwrmsr imm32, R:r64"                                        , "op": "[M  ] EVEX.128.F3.MAP7.W0 F8 11:000:bbb id"}
     ]},
 
     {"category": "GP GP_EXT", "ext": "APX_F", "instructions": [
@@ -4197,14 +4169,6 @@
       {"x64": "setzup    W:r8"                                             , "op": "[M  ] EVEX.ND=1.LLZ.F2.MAP4.WIG 4A /r"     , "io": "PF=R"},
       {"x64": "setzus    W:r8"                                             , "op": "[M  ] EVEX.ND=1.LLZ.F2.MAP4.WIG 48 /r"     , "io": "SF=R"},
       {"x64": "setzuz    W:r8"                                             , "op": "[M  ] EVEX.ND=1.LLZ.F2.MAP4.WIG 44 /r"     , "io": "ZF=R"}
-    ]},
-
-    {"category": "AMX", "ext": "AMX_TILE APX_F", "instructions": [
-      {"apx": "ldtilecfg R:m512"                                           , "op": "[M  ] EVEX.128.NP.0F38.W0 49 !(11):000:bbb"},
-      {"apx": "sttilecfg W:m512"                                           , "op": "[M  ] EVEX.128.66.0F38.W0 49 !(11):000:bbb"},
-      {"apx": "tileloadd W:tmm, R:tmem"                                    , "op": "[RM ] EVEX.128.F2.0F38.W0 4B !(11):rrr:100"},
-      {"apx": "tileloaddt1 W:tmm, R:tmem"                                  , "op": "[RM ] EVEX.128.66.0F38.W0 4B !(11):rrr:100"},
-      {"apx": "tilestored W:tmem, R:tmm"                                   , "op": "[MR ] EVEX.128.F3.0F38.W0 4B !(11):rrr:100"}
     ]}
   ],
 
