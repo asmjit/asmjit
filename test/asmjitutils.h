@@ -11,7 +11,7 @@
 namespace {
 
 [[maybe_unused]]
-static inline const char* asmjitArchAsString(asmjit::Arch arch) noexcept {
+static const char* asmjitArchAsString(asmjit::Arch arch) noexcept {
   switch (arch) {
     case asmjit::Arch::kX86       : return "X86";
     case asmjit::Arch::kX64       : return "X64";
@@ -39,7 +39,7 @@ static inline const char* asmjitArchAsString(asmjit::Arch arch) noexcept {
 }
 
 [[maybe_unused]]
-static inline void printIndented(const char* str, size_t indent) noexcept {
+static void printIndented(const char* str, size_t indent) noexcept {
   const char* start = str;
   while (*str) {
     if (*str == '\n') {
@@ -53,6 +53,148 @@ static inline void printIndented(const char* str, size_t indent) noexcept {
   size_t size = (size_t)(str - start);
   if (size)
     printf("%*s%.*s\n", int(indent), "", int(size), start);
+}
+
+[[maybe_unused]]
+static void printCpuInfo() noexcept {
+  const asmjit::CpuInfo& cpu = asmjit::CpuInfo::host();
+
+  // CPU Information
+  // ---------------
+
+  printf("CPU Info:\n");
+  printf("  Vendor                  : %s\n", cpu.vendor());
+  printf("  Brand                   : %s\n", cpu.brand());
+  printf("  Model ID                : %u\n", cpu.modelId());
+  printf("  Brand ID                : %u\n", cpu.brandId());
+  printf("  Family ID               : %u\n", cpu.familyId());
+  printf("  Stepping                : %u\n", cpu.stepping());
+  printf("  Processor Type          : %u\n", cpu.processorType());
+  printf("  Max logical Processors  : %u\n", cpu.maxLogicalProcessors());
+  printf("  Cache-Line Size         : %u\n", cpu.cacheLineSize());
+  printf("  HW-Thread Count         : %u\n", cpu.hwThreadCount());
+  printf("\n");
+
+  // CPU Features
+  // ------------
+
+#ifndef ASMJIT_NO_LOGGING
+  printf("CPU Features:\n");
+  asmjit::CpuFeatures::Iterator it(cpu.features().iterator());
+  while (it.hasNext()) {
+    uint32_t featureId = uint32_t(it.next());
+    asmjit::StringTmp<64> featureString;
+    asmjit::Formatter::formatFeature(featureString, cpu.arch(), featureId);
+    printf("  %s\n", featureString.data());
+  };
+  printf("\n");
+#endif // !ASMJIT_NO_LOGGING
+}
+
+[[maybe_unused]]
+static void printBuildOptions() {
+  auto stringifyBuildDefinition = [](bool b) { return b ? "defined" : "(not defined)"; };
+
+#if defined(ASMJIT_BUILD_DEBUG)
+  const char build_type[] = "Debug";
+#else
+  const char build_type[] = "Release";
+#endif
+
+#if defined(ASMJIT_NO_X86)
+  constexpr bool no_x86 = true;
+#else
+  constexpr bool no_x86 = false;
+#endif
+
+#if defined(ASMJIT_NO_AARCH64)
+  constexpr bool no_aarch64 = true;
+#else
+  constexpr bool no_aarch64 = false;
+#endif
+
+#if defined(ASMJIT_NO_FOREIGN)
+  constexpr bool no_foreign = true;
+#else
+  constexpr bool no_foreign = false;
+#endif
+
+#if defined(ASMJIT_NO_DEPRECATED)
+  constexpr bool no_deprecated = true;
+#else
+  constexpr bool no_deprecated = false;
+#endif
+
+#if defined(ASMJIT_NO_ABI_NAMESPACE)
+  constexpr bool no_abi_namespace = true;
+#else
+  constexpr bool no_abi_namespace = false;
+#endif
+
+#if defined(ASMJIT_NO_SHM_OPEN)
+  constexpr bool no_shm_open = true;
+#else
+  constexpr bool no_shm_open = false;
+#endif
+
+#if defined(ASMJIT_NO_JIT)
+  constexpr bool no_jit = true;
+#else
+  constexpr bool no_jit = false;
+#endif
+
+#if defined(ASMJIT_NO_TEXT)
+  constexpr bool no_text = true;
+#else
+  constexpr bool no_text = false;
+#endif
+
+#if defined(ASMJIT_NO_LOGGING)
+  constexpr bool no_logging = true;
+#else
+  constexpr bool no_logging = false;
+#endif
+
+#if defined(ASMJIT_NO_VALIDATION)
+  constexpr bool no_validation = true;
+#else
+  constexpr bool no_validation = false;
+#endif
+
+#if defined(ASMJIT_NO_INTROSPECTION)
+  constexpr bool no_introspection = true;
+#else
+  constexpr bool no_introspection = false;
+#endif
+
+#if defined(ASMJIT_NO_BUILDER)
+  constexpr bool no_builder = true;
+#else
+  constexpr bool no_builder = false;
+#endif
+
+#if defined(ASMJIT_NO_COMPILER)
+  constexpr bool no_compiler = true;
+#else
+  constexpr bool no_compiler = false;
+#endif
+
+  printf("Build Options:\n");
+  printf("  Build Type             : %s\n", build_type);
+  printf("  ASMJIT_NO_X86          : %s\n", stringifyBuildDefinition(no_x86));
+  printf("  ASMJIT_NO_AARCH64      : %s\n", stringifyBuildDefinition(no_aarch64));
+  printf("  ASMJIT_NO_FOREIGN      : %s\n", stringifyBuildDefinition(no_foreign));
+  printf("  ASMJIT_NO_DEPRECATED   : %s\n", stringifyBuildDefinition(no_deprecated));
+  printf("  ASMJIT_NO_ABI_NAMESPACE: %s\n", stringifyBuildDefinition(no_abi_namespace));
+  printf("  ASMJIT_NO_SHM_OPEN     : %s\n", stringifyBuildDefinition(no_shm_open));
+  printf("  ASMJIT_NO_JIT          : %s\n", stringifyBuildDefinition(no_jit));
+  printf("  ASMJIT_NO_TEXT         : %s\n", stringifyBuildDefinition(no_text));
+  printf("  ASMJIT_NO_LOGGING      : %s\n", stringifyBuildDefinition(no_logging));
+  printf("  ASMJIT_NO_VALIDATION   : %s\n", stringifyBuildDefinition(no_validation));
+  printf("  ASMJIT_NO_INTROSPECTION: %s\n", stringifyBuildDefinition(no_introspection));
+  printf("  ASMJIT_NO_BUILDER      : %s\n", stringifyBuildDefinition(no_builder));
+  printf("  ASMJIT_NO_COMPILER     : %s\n", stringifyBuildDefinition(no_compiler));
+  printf("\n");
 }
 
 } // {anonymous}
