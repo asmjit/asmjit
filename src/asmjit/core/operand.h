@@ -70,6 +70,7 @@ enum class RegType : uint8_t {
   kGp32 = 6,
   //! 64-bit general purpose register (X86|AArch64).
   kGp64 = 7,
+
   //! 8-bit view of a vector register (AArch64).
   kVec8 = 8,
   //! 16-bit view of a vector register (AArch64).

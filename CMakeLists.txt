@@ -50,6 +50,10 @@ if (NOT DEFINED ASMJIT_NO_X86)
   set(ASMJIT_NO_X86 FALSE)
 endif()
 
+if (NOT DEFINED ASMJIT_NO_AARCH32)
+  set(ASMJIT_NO_AARCH32 FALSE)
+endif()
+
 if (NOT DEFINED ASMJIT_NO_AARCH64)
   set(ASMJIT_NO_AARCH64 FALSE)
 endif()
@@ -113,6 +117,7 @@ set(ASMJIT_NO_NATVIS        "${ASMJIT_NO_NATVIS}"        CACHE BOOL "Disable nat
 set(ASMJIT_NO_CUSTOM_FLAGS  "${ASMJIT_NO_CUSTOM_FLAGS}"  CACHE BOOL "Disable extra compilation flags added by AsmJit to its targets")
 
 set(ASMJIT_NO_X86           "${ASMJIT_NO_X86}"           CACHE BOOL "Disable X86/X64 backend")
+set(ASMJIT_NO_AARCH32       "${ASMJIT_NO_AARCH32}"       CACHE BOOL "Disable AArch32 backend (ARM and THUMB)")
 set(ASMJIT_NO_AARCH64       "${ASMJIT_NO_AARCH64}"       CACHE BOOL "Disable AArch64 backend")
 set(ASMJIT_NO_FOREIGN       "${ASMJIT_NO_FOREIGN}"       CACHE BOOL "Disable all foreign architectures (enables only a target architecture)")
 
@@ -335,6 +340,7 @@ foreach(build_option # AsmJit build options.
                      ASMJIT_NO_DEPRECATED
                      # AsmJit backends selection.
                      ASMJIT_NO_X86
+                     ASMJIT_NO_AARCH32
                      ASMJIT_NO_AARCH64
                      ASMJIT_NO_FOREIGN
                      # AsmJit features selection.
@@ -457,6 +463,7 @@ set(ASMJIT_SRC_LIST
   asmjit/core/zonevector.cpp
   asmjit/core/zonevector.h
 
+  asmjit/a32.h
   asmjit/a64.h
   asmjit/arm.h
   asmjit/arm/armformatter.cpp
@@ -464,6 +471,22 @@ set(ASMJIT_SRC_LIST
   asmjit/arm/armglobals.h
   asmjit/arm/armoperand.h
   asmjit/arm/armutils.h
+  asmjit/arm/a32archtraits_p.h
+  asmjit/arm/a32assembler.cpp
+  asmjit/arm/a32assembler.h
+  asmjit/arm/a32builder.cpp
+  asmjit/arm/a32builder.h
+  asmjit/arm/a32emithelper.cpp
+  asmjit/arm/a32emithelper_p.h
+  asmjit/arm/a32emitter.h
+  asmjit/arm/a32formatter.cpp
+  asmjit/arm/a32formatter_p.h
+  asmjit/arm/a32globals.h
+  asmjit/arm/a32instapi.cpp
+  asmjit/arm/a32instapi_p.h
+  asmjit/arm/a32instdb.cpp
+  asmjit/arm/a32instdb_p.h
+  asmjit/arm/a32operand.h
   asmjit/arm/a64archtraits_p.h
   asmjit/arm/a64assembler.cpp
   asmjit/arm/a64assembler.h
@@ -608,6 +631,7 @@ if (NOT ASMJIT_EMBED)
     asmjit_add_target(asmjit_test_assembler TEST
                       SOURCES    test/asmjit_test_assembler.cpp
                                  test/asmjit_test_assembler.h
+                                 test/asmjit_test_assembler_a32.cpp
                                  test/asmjit_test_assembler_a64.cpp
                                  test/asmjit_test_assembler_x64.cpp
                                  test/asmjit_test_assembler_x86.cpp
@@ -618,6 +642,7 @@ if (NOT ASMJIT_EMBED)
 
     asmjit_add_target(asmjit_test_perf EXECUTABLE
                       SOURCES    test/asmjit_test_perf.cpp
+                                 test/asmjit_test_perf_a32.cpp
                                  test/asmjit_test_perf_a64.cpp
                                  test/asmjit_test_perf_x86.cpp
                       SOURCES    test/asmjit_test_perf.h
