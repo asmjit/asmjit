@@ -1299,13 +1299,27 @@ void X86RAPass::onInit() noexcept {
   _scratchRegIndexes[0] = uint8_t(Gp::kIdCx);
   _scratchRegIndexes[1] = uint8_t(baseRegCount - 1);
 
+  const FuncFrame& frame = _func->frame();
+
   // The architecture specific setup makes implicitly all registers available. So
   // make unavailable all registers that are special and cannot be used in general.
-  bool hasFP = _func->frame().hasPreservedFP();
+  bool hasFP = frame.hasPreservedFP();
 
   makeUnavailable(RegGroup::kGp, Gp::kIdSp);   // ESP|RSP used as a stack-pointer (SP).
   if (hasFP) {
     makeUnavailable(RegGroup::kGp, Gp::kIdBp); // EBP|RBP used as a frame-pointer (FP).
+  }
+
+  // Initialize WorkData::workRegs.
+  for (RegGroup group : RegGroupVirtValues{}) {
+    // Exclude all user-reserved general-purpose registers from use.
+    RegMask unavailableRegs = frame.unavailableRegs(group);
+    if (unavailableRegs != 0) {
+      for (uint32_t regId = 0; regId < 32; ++regId) {
+        if (Support::bitTest(unavailableRegs, regId))
+          makeUnavailable(group, regId);
+      }
+    }
   }
 
   _sp = cc()->zsp();
