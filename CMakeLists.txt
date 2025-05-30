@@ -626,10 +626,10 @@ if (NOT ASMJIT_EMBED)
                       CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
                       CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
 
-    foreach(_target asmjit_test_emitters
+    foreach(_target asmjit_test_environment
+                    asmjit_test_emitters
                     asmjit_test_execute
-                    asmjit_test_x86_sections
-                    asmjit_environment_info)
+                    asmjit_test_x86_sections)
       asmjit_add_target(${_target} TEST
                         SOURCES    test/${_target}.cpp
                         LIBRARIES  asmjit::asmjit

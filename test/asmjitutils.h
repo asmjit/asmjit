@@ -65,9 +65,9 @@ static void printCpuInfo() noexcept {
   printf("CPU Info:\n");
   printf("  Vendor                  : %s\n", cpu.vendor());
   printf("  Brand                   : %s\n", cpu.brand());
-  printf("  Model ID                : %u\n", cpu.modelId());
-  printf("  Brand ID                : %u\n", cpu.brandId());
-  printf("  Family ID               : %u\n", cpu.familyId());
+  printf("  Model ID                : 0x%08X (%u)\n", cpu.modelId(), cpu.modelId());
+  printf("  Brand ID                : 0x%08X (%u)\n", cpu.brandId(), cpu.brandId());
+  printf("  Family ID               : 0x%08X (%u)\n", cpu.familyId(), cpu.familyId());
   printf("  Stepping                : %u\n", cpu.stepping());
   printf("  Processor Type          : %u\n", cpu.processorType());
   printf("  Max logical Processors  : %u\n", cpu.maxLogicalProcessors());
