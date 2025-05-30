@@ -194,6 +194,10 @@ namespace asmjit {
 //!
 //! Defined to 1 if the target architecture is big endian.
 
+//! \def ASMJIT_ARCH_LOONGARCH
+//!
+//! Defined to either 0, 32, or 64 depending on whether the target CPU is LA32 (32) or LA64 (64).
+
 //! \}
 
 //! \cond NONE
@@ -229,7 +233,15 @@ namespace asmjit {
   #define ASMJIT_ARCH_RISCV 0
 #endif
 
-#define ASMJIT_ARCH_BITS (ASMJIT_ARCH_X86 | ASMJIT_ARCH_ARM | ASMJIT_ARCH_MIPS | ASMJIT_ARCH_RISCV)
+#if defined(__loongarch64)
+  #define ASMJIT_ARCH_LOONGARCH 64
+#elif defined(__loongarch32)
+  #define ASMJIT_ARCH_LOONGARCH 32
+#else
+  #define ASMJIT_ARCH_LOONGARCH 0
+#endif
+
+#define ASMJIT_ARCH_BITS (ASMJIT_ARCH_X86 | ASMJIT_ARCH_ARM | ASMJIT_ARCH_MIPS | ASMJIT_ARCH_RISCV | ASMJIT_ARCH_LOONGARCH)
 #if ASMJIT_ARCH_BITS == 0
   #undef ASMJIT_ARCH_BITS
   #if defined(__LP64__) || defined(_LP64)
