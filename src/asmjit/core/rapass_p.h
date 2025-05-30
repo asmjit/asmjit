@@ -883,8 +883,6 @@ public:
 
   //! Registers available for allocation.
   RARegMask _availableRegs = RARegMask();
-  //! Count of physical registers per group.
-  RARegCount _availableRegCount = RARegCount();
   //! Registers clobbered by the function.
   RARegMask _clobberedRegs = RARegMask();
 
@@ -990,7 +988,10 @@ public:
 
   inline void makeUnavailable(RegGroup group, uint32_t regId) noexcept {
     _availableRegs[group] &= ~Support::bitMask(regId);
-    _availableRegCount[group]--;
+  }
+
+  inline void makeUnavailable(const RARegMask::RegMasks& regs) noexcept {
+    _availableRegs.clear(regs);
   }
 
   //! Runs the register allocator for the given `func`.
@@ -1230,9 +1231,6 @@ public:
   //! Returns a native size of the general-purpose register of the target architecture.
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t registerSize() const noexcept { return _sp.size(); }
-
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t availableRegCount(RegGroup group) const noexcept { return _availableRegCount[group]; }
 
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG RAWorkReg* workRegById(uint32_t workId) const noexcept { return _workRegs[workId]; }

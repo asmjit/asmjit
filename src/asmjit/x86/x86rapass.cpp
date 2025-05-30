@@ -1291,7 +1291,6 @@ void X86RAPass::onInit() noexcept {
   _physRegCount.set(RegGroup::kX86_MM, 8);
   _buildPhysIndex();
 
-  _availableRegCount = _physRegCount;
   _availableRegs[RegGroup::kGp] = Support::lsbMask<RegMask>(_physRegCount.get(RegGroup::kGp));
   _availableRegs[RegGroup::kVec] = Support::lsbMask<RegMask>(_physRegCount.get(RegGroup::kVec));
   _availableRegs[RegGroup::kX86_K] = Support::lsbMask<RegMask>(_physRegCount.get(RegGroup::kX86_K)) ^ 1u;

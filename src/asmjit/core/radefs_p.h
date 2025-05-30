@@ -314,6 +314,10 @@ struct RARegMask {
     _masks[group] = _masks[group] & ~mask;
   }
 
+  inline void clear(const RegMasks& masks) noexcept {
+    _masks.combine<Support::AndNot>(masks);
+  }
+
   //! \}
 };
 

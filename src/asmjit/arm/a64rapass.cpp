@@ -646,7 +646,6 @@ void ARMRAPass::onInit() noexcept {
   _physRegCount.set(RegGroup::kExtraVirt3, 0);
   _buildPhysIndex();
 
-  _availableRegCount = _physRegCount;
   _availableRegs[RegGroup::kGp] = Support::lsbMask<uint32_t>(_physRegCount.get(RegGroup::kGp));
   _availableRegs[RegGroup::kVec] = Support::lsbMask<uint32_t>(_physRegCount.get(RegGroup::kVec));
   _availableRegs[RegGroup::kMask] = Support::lsbMask<uint32_t>(_physRegCount.get(RegGroup::kMask));

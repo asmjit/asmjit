@@ -77,7 +77,6 @@ static void BaseRAPass_reset(BaseRAPass* self, FuncDetail* funcDetail) noexcept 
   self->_scratchRegIndexes.fill(BaseReg::kIdBad);
 
   self->_availableRegs.reset();
-  self->_availableRegCount.reset();
   self->_clobberedRegs.reset();
 
   self->_workRegs.reset();
