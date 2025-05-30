@@ -44,12 +44,12 @@ protected:
   //! \{
 
   //! Creates a new instance of `ZoneVectorBase`.
-  inline ZoneVectorBase() noexcept {}
+  ASMJIT_INLINE_NODEBUG ZoneVectorBase() noexcept {}
 
-  inline ZoneVectorBase(ZoneVectorBase&& other) noexcept
+  ASMJIT_INLINE_NODEBUG ZoneVectorBase(ZoneVectorBase&& other) noexcept
     : _data(other._data),
       _size(other._size),
-      _capacity(other._capacity) {}
+      _capacity(other._capacity) { other.reset(); }
 
   //! \}
 
@@ -64,12 +64,26 @@ protected:
     }
   }
 
+  ASMJIT_INLINE_NODEBUG void _moveFrom(ZoneVectorBase&& other) noexcept {
+    void* data = other._data;
+    size_type size = other._size = 0;
+    size_type capacity = other._capacity = 0;
+
+    other._data = nullptr;
+    other._size = 0;
+    other._capacity = 0;
+
+    _data = data;
+    _size = size;
+    _capacity = capacity;
+  }
+
   ASMJIT_API Error _grow(ZoneAllocator* allocator, uint32_t sizeOfT, uint32_t n) noexcept;
   ASMJIT_API Error _resize(ZoneAllocator* allocator, uint32_t sizeOfT, uint32_t n) noexcept;
   ASMJIT_API Error _reserve(ZoneAllocator* allocator, uint32_t sizeOfT, uint32_t n) noexcept;
   ASMJIT_API Error _growingReserve(ZoneAllocator* allocator, uint32_t sizeOfT, uint32_t n) noexcept;
 
-  inline void _swap(ZoneVectorBase& other) noexcept {
+  ASMJIT_INLINE_NODEBUG void _swap(ZoneVectorBase& other) noexcept {
     std::swap(_data, other._data);
     std::swap(_size, other._size);
     std::swap(_capacity, other._capacity);
@@ -153,21 +167,44 @@ public:
   //! \name Construction & Destruction
   //! \{
 
+  //! Creates a default constructed ZoneVector (data pointer is null, and both length/capacity is zero).
   ASMJIT_INLINE_NODEBUG ZoneVector() noexcept : ZoneVectorBase() {}
-  ASMJIT_INLINE_NODEBUG ZoneVector(ZoneVector&& other) noexcept : ZoneVector(other) {}
+
+  //! Moves an existing zone vector into this instance and resets the `other` instance.
+  ASMJIT_INLINE_NODEBUG ZoneVector(ZoneVector&& other) noexcept
+    : ZoneVectorBase(std::move(other)) {}
+
+  //! \}
+
+  //! \name Overloaded Operators
+  //! \{
+
+  //! Implements a move assignment operator. The `other` instance is reset before this instance is set.
+  //!
+  //! \note It's recommended to first release the memory of the destination vector as there is no way
+  //! how to do it after the move, unless it's guaranteed that the destination vector is default
+  //! constructed.
+  ASMJIT_INLINE_NODEBUG ZoneVector& operator=(ZoneVector&& other) noexcept {
+    _moveFrom(other);
+    return *this;
+  }
 
   //! \}
 
   //! \name Accessors
   //! \{
 
-  //! Returns vector data.
+  //! Returns vector data (mutable).
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG T* data() noexcept { return static_cast<T*>(_data); }
 
   //! Returns vector data (const)
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const T* data() const noexcept { return static_cast<const T*>(_data); }
+
+  //! Returns vector data (const)
+  [[nodiscard]]
+  ASMJIT_INLINE_NODEBUG const T* cdata() const noexcept { return static_cast<const T*>(_data); }
 
   //! Returns item at the given index `i` (const).
   [[nodiscard]]

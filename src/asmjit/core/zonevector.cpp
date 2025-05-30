@@ -376,9 +376,15 @@ static void test_zone_vector(ZoneAllocator* allocator, const char* typeName) {
   for (auto it = vec.rbegin(); it != vec.rend(); ++it) {
     rsum += *it;
   }
-
   EXPECT_EQ(fsum, rsum);
-  vec.release(allocator);
+
+  INFO("ZoneVector<%s>::operator=(ZoneVector<%s>&&)", typeName, typeName);
+  ZoneVector<T> movedVec(std::move(vec));
+  EXPECT_EQ(vec.data(), nullptr);
+  EXPECT_EQ(vec.size(), 0u);
+  EXPECT_EQ(vec.capacity(), 0u);
+
+  movedVec.release(allocator);
 
   INFO("ZoneVector<%s>::growingReserve()", typeName);
   for (uint32_t j = 0; j < 40 / sizeof(T); j += 8) {
