@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_CORE_GLOBALS_H_INCLUDED
@@ -386,14 +386,25 @@ ASMJIT_API void assertionFailed(const char* file, int line, const char* msg) noe
 //!
 //! AsmJit's own assert macro used in AsmJit code-base.
 #if defined(ASMJIT_BUILD_DEBUG)
-#define ASMJIT_ASSERT(...)                                                     \
-  do {                                                                         \
-    if (ASMJIT_UNLIKELY(!(__VA_ARGS__))) {                                     \
-      ::asmjit::DebugUtils::assertionFailed(__FILE__, __LINE__, #__VA_ARGS__); \
-    }                                                                          \
-  } while (0)
+  #define ASMJIT_ASSERT(...)                                                     \
+    do {                                                                         \
+      if (ASMJIT_UNLIKELY(!(__VA_ARGS__))) {                                     \
+        ::asmjit::DebugUtils::assertionFailed(__FILE__, __LINE__, #__VA_ARGS__); \
+      }                                                                          \
+    } while (0)
 #else
-#define ASMJIT_ASSERT(...) ((void)0)
+  #define ASMJIT_ASSERT(...) ((void)0)
+#endif
+
+//! \def ASMJIT_NOT_REACHED()
+//!
+//! Run-time assertion used in code that should never be reached.
+#if defined(ASMJIT_BUILD_DEBUG)
+  #define ASMJIT_NOT_REACHED() ::asmjit::DebugUtils::assertionFailed(__FILE__, __LINE__, "ASMJIT_NOT_REACHED()")
+#elif defined(__GNUC__)
+  #define ASMJIT_NOT_REACHED() __builtin_unreachable()
+#else
+  #define ASMJIT_NOT_REACHED() ASMJIT_ASSUME(0)
 #endif
 
 //! \def ASMJIT_PROPAGATE(...)

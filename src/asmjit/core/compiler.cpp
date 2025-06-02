@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
@@ -364,7 +364,7 @@ Error BaseCompiler::_newReg(BaseReg* out, const BaseReg& ref, const char* name) 
     }
   }
   else {
-    typeId = ArchTraits::byArch(arch()).regTypeToTypeId(ref.type());
+    typeId = ArchTraits::byArch(arch()).regTypeToTypeId(ref.regType());
   }
 
   Error err = ArchUtils::typeIdToRegSignature(arch(), typeId, &typeId, &regSignature);

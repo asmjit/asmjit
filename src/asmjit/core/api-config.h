@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_CORE_API_CONFIG_H_INCLUDED
@@ -78,23 +78,20 @@ namespace asmjit {
 //! \note Can be defined explicitly to bypass auto-detection.
 #define ASMJIT_BUILD_RELEASE
 
+//! Disables deprecated API at compile time (deprecated API won't be available).
+#define ASMJIT_NO_DEPRECATED
+
+//! Disables the use of an inline ABI namespace within asmjit namespace (the inline namespace is used as an ABI tag).
+#define ASMJIT_NO_ABI_NAMESPACE
+
 //! Disables X86/X64 backends.
 #define ASMJIT_NO_X86
 
 //! Disables AArch64 backend.
 #define ASMJIT_NO_AARCH64
 
-//! Disables non-host backends entirely (useful for JIT compilers to minimize the library size).
-#define ASMJIT_NO_FOREIGN
-
-//! Disables deprecated API at compile time (deprecated API won't be available).
-#define ASMJIT_NO_DEPRECATED
-
-//! Disables \ref asmjit_builder functionality completely.
-#define ASMJIT_NO_BUILDER
-
-//! Disables \ref asmjit_compiler functionality completely.
-#define ASMJIT_NO_COMPILER
+//! Disables the use of `shm_open` on all targets even when it's supported.
+#define ASMJIT_NO_SHM_OPEN
 
 //! Disables JIT memory management and \ref asmjit::JitRuntime.
 #define ASMJIT_NO_JIT
@@ -111,21 +108,39 @@ namespace asmjit {
 //! Disables instruction introspection API.
 #define ASMJIT_NO_INTROSPECTION
 
+//! Disables non-host backends entirely (useful for JIT compilers to minimize the library size).
+#define ASMJIT_NO_FOREIGN
+
+//! Disables \ref asmjit_builder functionality completely.
+#define ASMJIT_NO_BUILDER
+
+//! Disables \ref asmjit_compiler functionality completely.
+#define ASMJIT_NO_COMPILER
+
+//! Disables \ref asmjit_ujit functionality completely.
+#define ASMJIT_NO_UJIT
+
 // Avoid doxygen preprocessor using feature-selection definitions.
 #undef ASMJIT_BUILD_EMBED
 #undef ASMJIT_BUILD_STATIC
 #undef ASMJIT_BUILD_DEBUG
 #undef ASMJIT_BUILD_RELEASE
-#undef ASMJIT_NO_X86
-#undef ASMJIT_NO_FOREIGN
+
 // (keep ASMJIT_NO_DEPRECATED defined, we don't document deprecated APIs).
-#undef ASMJIT_NO_BUILDER
-#undef ASMJIT_NO_COMPILER
+#undef ASMJIT_NO_ABI_NAMESPACE
+
+#undef ASMJIT_NO_X86
+#undef ASMJIT_NO_AARCH64
+#undef ASMJIT_NO_FOREIGN
+
 #undef ASMJIT_NO_JIT
 #undef ASMJIT_NO_LOGGING
 #undef ASMJIT_NO_TEXT
 #undef ASMJIT_NO_VALIDATION
 #undef ASMJIT_NO_INTROSPECTION
+#undef ASMJIT_NO_BUILDER
+#undef ASMJIT_NO_COMPILER
+#undef ASMJIT_NO_UJIT
 
 //! \}
 
@@ -135,6 +150,11 @@ namespace asmjit {
 // ASMJIT_NO_BUILDER implies ASMJIT_NO_COMPILER.
 #if defined(ASMJIT_NO_BUILDER) && !defined(ASMJIT_NO_COMPILER)
   #define ASMJIT_NO_COMPILER
+#endif
+
+// ASMJIT_NO_COMPILER implies ASMJIT_NO_UJIT.
+#if defined(ASMJIT_NO_COMPILER) && !defined(ASMJIT_NO_UJIT)
+  #define ASMJIT_NO_UJIT
 #endif
 
 // Prevent compile-time errors caused by misconfiguration.
@@ -256,6 +276,16 @@ namespace asmjit {
 
   #if ASMJIT_ARCH_ARM != 64 && !defined(ASMJIT_NO_AARCH64)
     #define ASMJIT_NO_AARCH64
+  #endif
+#endif
+
+#if !defined(ASMJIT_NO_UJIT)
+  #if !defined(ASMJIT_NO_X86) && ASMJIT_ARCH_X86 != 0
+    #define ASMJIT_UJIT_X86
+  #elif !defined(ASMJIT_NO_AARCH64) && ASMJIT_ARCH_ARM == 64
+    #define ASMJIT_UJIT_AARCH64
+  #else
+    #define ASMJIT_NO_UJIT
   #endif
 #endif
 
@@ -424,11 +454,11 @@ namespace asmjit {
 
 // Type alignment (not allowed by C++17 'alignas' keyword).
 #if defined(__GNUC__)
-  #define ASMJIT_ALIGN_TYPE(TYPE, N) __attribute__((__aligned__(N))) TYPE
+  #define ASMJIT_ALIGN_TYPE(N, ...) __attribute__((__aligned__(N))) __VA_ARGS__
 #elif defined(_MSC_VER)
-  #define ASMJIT_ALIGN_TYPE(TYPE, N) __declspec(align(N)) TYPE
+  #define ASMJIT_ALIGN_TYPE(N, ...) __declspec(align(N)) __VA_ARGS__
 #else
-  #define ASMJIT_ALIGN_TYPE(TYPE, N) TYPE
+  #define ASMJIT_ALIGN_TYPE(N, ...) __VA_ARGS__
 #endif
 
 //! \def ASMJIT_MAY_ALIAS

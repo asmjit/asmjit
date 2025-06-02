@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_ARM_A64OPERAND_H_INCLUDED
@@ -74,9 +74,9 @@ public:
 };
 
 //! 32-bit general purpose W register (AArch64).
-class GpW : public Gp { ASMJIT_DEFINE_FINAL_REG(GpW, Gp, RegTraits<RegType::kARM_GpW>); };
+class GpW : public Gp { ASMJIT_DEFINE_FINAL_REG(GpW, Gp, RegTraits<RegType::kGp32>); };
 //! 64-bit general purpose X register (AArch64).
-class GpX : public Gp { ASMJIT_DEFINE_FINAL_REG(GpX, Gp, RegTraits<RegType::kARM_GpX>); };
+class GpX : public Gp { ASMJIT_DEFINE_FINAL_REG(GpX, Gp, RegTraits<RegType::kGp64>); };
 
 #ifndef _DOXYGEN
 ASMJIT_INLINE_NODEBUG GpW Gp::w() const noexcept { return GpW(id()); }
@@ -147,52 +147,52 @@ public:
 
   [[nodiscard]]
   ASMJIT_INLINE_CONSTEXPR bool isVecB8() const noexcept {
-    return _signature.subset(uint32_t(kBaseSignatureMask) | uint32_t(kSignatureRegElementTypeMask)) == (RegTraits<RegType::kARM_VecD>::kSignature | kSignatureElementB);
+    return _signature.subset(uint32_t(kBaseSignatureMask) | uint32_t(kSignatureRegElementTypeMask)) == (RegTraits<RegType::kVec64>::kSignature | kSignatureElementB);
   }
 
   [[nodiscard]]
   ASMJIT_INLINE_CONSTEXPR bool isVecH4() const noexcept {
-    return _signature.subset(uint32_t(kBaseSignatureMask) | uint32_t(kSignatureRegElementTypeMask)) == (RegTraits<RegType::kARM_VecD>::kSignature | kSignatureElementH);
+    return _signature.subset(uint32_t(kBaseSignatureMask) | uint32_t(kSignatureRegElementTypeMask)) == (RegTraits<RegType::kVec64>::kSignature | kSignatureElementH);
   }
 
   [[nodiscard]]
   ASMJIT_INLINE_CONSTEXPR bool isVecS2() const noexcept {
-    return _signature.subset(uint32_t(kBaseSignatureMask) | uint32_t(kSignatureRegElementTypeMask)) == (RegTraits<RegType::kARM_VecD>::kSignature | kSignatureElementS);
+    return _signature.subset(uint32_t(kBaseSignatureMask) | uint32_t(kSignatureRegElementTypeMask)) == (RegTraits<RegType::kVec64>::kSignature | kSignatureElementS);
   }
 
   [[nodiscard]]
   ASMJIT_INLINE_CONSTEXPR bool isVecD1() const noexcept {
-    return _signature.subset(uint32_t(kBaseSignatureMask) | uint32_t(kSignatureRegElementTypeMask)) == (RegTraits<RegType::kARM_VecD>::kSignature);
+    return _signature.subset(uint32_t(kBaseSignatureMask) | uint32_t(kSignatureRegElementTypeMask)) == (RegTraits<RegType::kVec64>::kSignature);
   }
 
   [[nodiscard]]
   ASMJIT_INLINE_CONSTEXPR bool isVecB16() const noexcept {
-    return _signature.subset(uint32_t(kBaseSignatureMask) | uint32_t(kSignatureRegElementTypeMask)) == (RegTraits<RegType::kARM_VecV>::kSignature | kSignatureElementB);
+    return _signature.subset(uint32_t(kBaseSignatureMask) | uint32_t(kSignatureRegElementTypeMask)) == (RegTraits<RegType::kVec128>::kSignature | kSignatureElementB);
   }
 
   [[nodiscard]]
   ASMJIT_INLINE_CONSTEXPR bool isVecH8() const noexcept {
-    return _signature.subset(uint32_t(kBaseSignatureMask) | uint32_t(kSignatureRegElementTypeMask)) == (RegTraits<RegType::kARM_VecV>::kSignature | kSignatureElementH);
+    return _signature.subset(uint32_t(kBaseSignatureMask) | uint32_t(kSignatureRegElementTypeMask)) == (RegTraits<RegType::kVec128>::kSignature | kSignatureElementH);
   }
 
   [[nodiscard]]
   ASMJIT_INLINE_CONSTEXPR bool isVecS4() const noexcept {
-    return _signature.subset(uint32_t(kBaseSignatureMask) | uint32_t(kSignatureRegElementTypeMask)) == (RegTraits<RegType::kARM_VecV>::kSignature | kSignatureElementS);
+    return _signature.subset(uint32_t(kBaseSignatureMask) | uint32_t(kSignatureRegElementTypeMask)) == (RegTraits<RegType::kVec128>::kSignature | kSignatureElementS);
   }
 
   [[nodiscard]]
   ASMJIT_INLINE_CONSTEXPR bool isVecD2() const noexcept {
-    return _signature.subset(uint32_t(kBaseSignatureMask) | uint32_t(kSignatureRegElementTypeMask)) == (RegTraits<RegType::kARM_VecV>::kSignature | kSignatureElementD);
+    return _signature.subset(uint32_t(kBaseSignatureMask) | uint32_t(kSignatureRegElementTypeMask)) == (RegTraits<RegType::kVec128>::kSignature | kSignatureElementD);
   }
 
   [[nodiscard]]
   ASMJIT_INLINE_CONSTEXPR bool isVecB4x4() const noexcept {
-    return _signature.subset(uint32_t(kBaseSignatureMask) | uint32_t(kSignatureRegElementTypeMask)) == (RegTraits<RegType::kARM_VecV>::kSignature | kSignatureElementB4);
+    return _signature.subset(uint32_t(kBaseSignatureMask) | uint32_t(kSignatureRegElementTypeMask)) == (RegTraits<RegType::kVec128>::kSignature | kSignatureElementB4);
   }
 
   [[nodiscard]]
   ASMJIT_INLINE_CONSTEXPR bool isVecH2x4() const noexcept {
-    return _signature.subset(uint32_t(kBaseSignatureMask) | uint32_t(kSignatureRegElementTypeMask)) == (RegTraits<RegType::kARM_VecV>::kSignature | kSignatureElementH2);
+    return _signature.subset(uint32_t(kBaseSignatureMask) | uint32_t(kSignatureRegElementTypeMask)) == (RegTraits<RegType::kVec128>::kSignature | kSignatureElementH2);
   }
 
   //! Creates a cloned register with element access.
@@ -304,7 +304,7 @@ public:
   [[nodiscard]]
   static ASMJIT_INLINE_CONSTEXPR OperandSignature _makeElementAccessSignature(VecElementType elementType, uint32_t elementIndex) noexcept {
     return OperandSignature{
-      uint32_t(RegTraits<RegType::kARM_VecV>::kSignature)       |
+      uint32_t(RegTraits<RegType::kVec128>::kSignature)       |
       uint32_t(kSignatureRegElementFlagMask)                    |
       (uint32_t(elementType) << kSignatureRegElementTypeShift)  |
       (uint32_t(elementIndex << kSignatureRegElementIndexShift))};
@@ -314,31 +314,31 @@ public:
 //! 8-bit view (S) of VFP/SIMD register.
 class VecB : public Vec {
 public:
-  ASMJIT_DEFINE_FINAL_REG(VecB, Vec, RegTraits<RegType::kARM_VecB>)
+  ASMJIT_DEFINE_FINAL_REG(VecB, Vec, RegTraits<RegType::kVec8>)
 };
 
 //! 16-bit view (S) of VFP/SIMD register.
 class VecH : public Vec {
 public:
-  ASMJIT_DEFINE_FINAL_REG(VecH, Vec, RegTraits<RegType::kARM_VecH>)
+  ASMJIT_DEFINE_FINAL_REG(VecH, Vec, RegTraits<RegType::kVec16>)
 };
 
 //! 32-bit view (S) of VFP/SIMD register.
 class VecS : public Vec {
 public:
-  ASMJIT_DEFINE_FINAL_REG(VecS, Vec, RegTraits<RegType::kARM_VecS>)
+  ASMJIT_DEFINE_FINAL_REG(VecS, Vec, RegTraits<RegType::kVec32>)
 };
 
 //! 64-bit view (D) of VFP/SIMD register.
 class VecD : public Vec {
 public:
-  ASMJIT_DEFINE_FINAL_REG(VecD, Vec, RegTraits<RegType::kARM_VecD>)
+  ASMJIT_DEFINE_FINAL_REG(VecD, Vec, RegTraits<RegType::kVec64>)
 };
 
 //! 128-bit vector register (Q or V).
 class VecV : public Vec {
 public:
-  ASMJIT_DEFINE_FINAL_REG(VecV, Vec, RegTraits<RegType::kARM_VecV>)
+  ASMJIT_DEFINE_FINAL_REG(VecV, Vec, RegTraits<RegType::kVec128>)
 };
 
 ASMJIT_INLINE_NODEBUG VecB Vec::b() const noexcept { return VecB(id()); }

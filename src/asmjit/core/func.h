@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_CORE_FUNC_H_INCLUDED
@@ -799,7 +799,7 @@ public:
   inline void assignReg(size_t index, const BaseReg& reg, TypeId typeId = TypeId::kVoid) noexcept {
     ASMJIT_ASSERT(index < Globals::kMaxValuePack);
     ASMJIT_ASSERT(reg.isPhysReg());
-    _values[index].initReg(reg.type(), reg.id(), typeId);
+    _values[index].initReg(reg.regType(), reg.id(), typeId);
   }
 
   //! Assigns a register at the given `index` to `regType`, `regId`, and an optional `typeId`.
@@ -1514,7 +1514,7 @@ public:
   //! \overload
   inline void addDirtyRegs(const BaseReg& reg) noexcept {
     ASMJIT_ASSERT(reg.id() < Globals::kMaxPhysRegs);
-    addDirtyRegs(reg.group(), Support::bitMask(reg.id()));
+    addDirtyRegs(reg.regGroup(), Support::bitMask(reg.id()));
   }
 
   //! \overload
@@ -1724,7 +1724,7 @@ public:
   inline void assignReg(size_t argIndex, const BaseReg& reg, TypeId typeId = TypeId::kVoid) noexcept {
     ASMJIT_ASSERT(argIndex < ASMJIT_ARRAY_SIZE(_argPacks));
     ASMJIT_ASSERT(reg.isPhysReg());
-    _argPacks[argIndex][0].initReg(reg.type(), reg.id(), typeId);
+    _argPacks[argIndex][0].initReg(reg.regType(), reg.id(), typeId);
   }
 
   //! Assigns register at `argIndex` and value index of 0 to `regType`, `regId`, and an optional `typeId`.
@@ -1743,7 +1743,7 @@ public:
   inline void assignRegInPack(size_t argIndex, size_t valueIndex, const BaseReg& reg, TypeId typeId = TypeId::kVoid) noexcept {
     ASMJIT_ASSERT(argIndex < ASMJIT_ARRAY_SIZE(_argPacks));
     ASMJIT_ASSERT(reg.isPhysReg());
-    _argPacks[argIndex][valueIndex].initReg(reg.type(), reg.id(), typeId);
+    _argPacks[argIndex][valueIndex].initReg(reg.regType(), reg.id(), typeId);
   }
 
   //! Assigns register at `argIndex` and `valueIndex` to `regType`, `regId`, and an optional `typeId`.

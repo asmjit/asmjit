@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
@@ -426,7 +426,7 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& i
         RegMask inOutRegs = _pass->_availableRegs[group];
         uint32_t rewriteMask = Support::bitMask(inst->getRewriteIndex(&inst->extraReg()._id));
 
-        if (group == RegGroup::kX86_K) {
+        if (group == RegGroup::kMask) {
           // AVX-512 mask selector {k} register - read-only, allocable to any register except {k0}.
           ASMJIT_PROPAGATE(ib.add(workReg, RATiedFlags::kUse | RATiedFlags::kRead, inOutRegs, BaseReg::kIdBad, rewriteMask, inOutRegs, BaseReg::kIdBad, 0));
           singleRegOps = 0;
@@ -438,7 +438,7 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& i
       }
       else {
         RegGroup group = inst->extraReg().group();
-        if (group == RegGroup::kX86_K && inst->extraReg().id() != 0) {
+        if (group == RegGroup::kMask && inst->extraReg().id() != 0) {
           singleRegOps = 0;
         }
       }
@@ -585,7 +585,7 @@ Error RACFGBuilder::onBeforeInvoke(InvokeNode* invokeNode) noexcept {
 
           if (arg.isIndirect()) {
             if (reg.isGp()) {
-              if (reg.type() != nativeRegType) {
+              if (reg.regType() != nativeRegType) {
                 return DebugUtils::errored(kErrorInvalidAssignment);
               }
               // It's considered allocated if this is an indirect argument and the user used GP.
@@ -606,7 +606,7 @@ Error RACFGBuilder::onBeforeInvoke(InvokeNode* invokeNode) noexcept {
         else {
           if (arg.isIndirect()) {
             if (reg.isGp()) {
-              if (reg.type() != nativeRegType) {
+              if (reg.regType() != nativeRegType) {
                 return DebugUtils::errored(kErrorInvalidAssignment);
               }
 
@@ -963,7 +963,7 @@ Error RACFGBuilder::moveRegToStackArg(InvokeNode* invokeNode, const FuncValue& a
     case TypeId::kUInt64:
       // Extend BYTE->QWORD (GP).
       if (TypeUtils::isGp8(srcTypeId)) {
-        r1.setRegT<RegType::kX86_GpbLo>(reg.id());
+        r1.setRegT<RegType::kGp8Lo>(reg.id());
 
         instId = (dstTypeId == TypeId::kInt64 && srcTypeId == TypeId::kInt8) ? Inst::kIdMovsx : Inst::kIdMovzx;
         goto ExtendMovGpXQ;
@@ -971,7 +971,7 @@ Error RACFGBuilder::moveRegToStackArg(InvokeNode* invokeNode, const FuncValue& a
 
       // Extend WORD->QWORD (GP).
       if (TypeUtils::isGp16(srcTypeId)) {
-        r1.setRegT<RegType::kX86_Gpw>(reg.id());
+        r1.setRegT<RegType::kGp16>(reg.id());
 
         instId = (dstTypeId == TypeId::kInt64 && srcTypeId == TypeId::kInt16) ? Inst::kIdMovsx : Inst::kIdMovzx;
         goto ExtendMovGpXQ;
@@ -979,7 +979,7 @@ Error RACFGBuilder::moveRegToStackArg(InvokeNode* invokeNode, const FuncValue& a
 
       // Extend DWORD->QWORD (GP).
       if (TypeUtils::isGp32(srcTypeId)) {
-        r1.setRegT<RegType::kX86_Gpd>(reg.id());
+        r1.setRegT<RegType::kGp32>(reg.id());
 
         instId = Inst::kIdMovsxd;
         if (dstTypeId == TypeId::kInt64 && srcTypeId == TypeId::kInt32) {
@@ -1005,7 +1005,7 @@ Error RACFGBuilder::moveRegToStackArg(InvokeNode* invokeNode, const FuncValue& a
         bool isDstSigned = dstTypeId == TypeId::kInt16 || dstTypeId == TypeId::kInt32;
         bool isSrcSigned = srcTypeId == TypeId::kInt8  || srcTypeId == TypeId::kInt16;
 
-        r1.setRegT<RegType::kX86_Gpw>(reg.id());
+        r1.setRegT<RegType::kGp16>(reg.id());
         instId = isDstSigned && isSrcSigned ? Inst::kIdMovsx : Inst::kIdMovzx;
         goto ExtendMovGpD;
       }
@@ -1015,7 +1015,7 @@ Error RACFGBuilder::moveRegToStackArg(InvokeNode* invokeNode, const FuncValue& a
         bool isDstSigned = dstTypeId == TypeId::kInt16 || dstTypeId == TypeId::kInt32;
         bool isSrcSigned = srcTypeId == TypeId::kInt8  || srcTypeId == TypeId::kInt16;
 
-        r1.setRegT<RegType::kX86_GpbLo>(reg.id());
+        r1.setRegT<RegType::kGp8Lo>(reg.id());
         instId = isDstSigned && isSrcSigned ? Inst::kIdMovsx : Inst::kIdMovzx;
         goto ExtendMovGpD;
       }
@@ -1032,7 +1032,7 @@ Error RACFGBuilder::moveRegToStackArg(InvokeNode* invokeNode, const FuncValue& a
     case TypeId::kMmx64:
       // Extend BYTE->QWORD (GP).
       if (TypeUtils::isGp8(srcTypeId)) {
-        r1.setRegT<RegType::kX86_GpbLo>(reg.id());
+        r1.setRegT<RegType::kGp8Lo>(reg.id());
 
         instId = Inst::kIdMovzx;
         goto ExtendMovGpXQ;
@@ -1040,7 +1040,7 @@ Error RACFGBuilder::moveRegToStackArg(InvokeNode* invokeNode, const FuncValue& a
 
       // Extend WORD->QWORD (GP).
       if (TypeUtils::isGp16(srcTypeId)) {
-        r1.setRegT<RegType::kX86_Gpw>(reg.id());
+        r1.setRegT<RegType::kGp16>(reg.id());
 
         instId = Inst::kIdMovzx;
         goto ExtendMovGpXQ;
@@ -1068,13 +1068,13 @@ Error RACFGBuilder::moveRegToStackArg(InvokeNode* invokeNode, const FuncValue& a
         uint32_t vMovInstId = choose(Inst::kIdMovaps, Inst::kIdVmovaps);
 
         if (TypeUtils::isVec128(dstTypeId)) {
-          r0.setRegT<RegType::kX86_Xmm>(reg.id());
+          r0.setRegT<RegType::kVec128>(reg.id());
         }
         else if (TypeUtils::isVec256(dstTypeId)) {
-          r0.setRegT<RegType::kX86_Ymm>(reg.id());
+          r0.setRegT<RegType::kVec256>(reg.id());
         }
         else if (TypeUtils::isVec512(dstTypeId)) {
-          r0.setRegT<RegType::kX86_Zmm>(reg.id());
+          r0.setRegT<RegType::kVec512>(reg.id());
         }
         else {
           break;
@@ -1089,7 +1089,7 @@ Error RACFGBuilder::moveRegToStackArg(InvokeNode* invokeNode, const FuncValue& a
   // Extend+Move Gp.
 ExtendMovGpD:
   stackPtr.setSize(4);
-  r0.setRegT<RegType::kX86_Gpd>(reg.id());
+  r0.setRegT<RegType::kGp32>(reg.id());
 
   ASMJIT_PROPAGATE(cc()->emit(instId, r0, r1));
   ASMJIT_PROPAGATE(cc()->emit(Inst::kIdMov, stackPtr, r0));
@@ -1098,14 +1098,14 @@ ExtendMovGpD:
 ExtendMovGpXQ:
   if (registerSize == 8) {
     stackPtr.setSize(8);
-    r0.setRegT<RegType::kX86_Gpq>(reg.id());
+    r0.setRegT<RegType::kGp64>(reg.id());
 
     ASMJIT_PROPAGATE(cc()->emit(instId, r0, r1));
     ASMJIT_PROPAGATE(cc()->emit(Inst::kIdMov, stackPtr, r0));
   }
   else {
     stackPtr.setSize(4);
-    r0.setRegT<RegType::kX86_Gpd>(reg.id());
+    r0.setRegT<RegType::kGp32>(reg.id());
 
     ASMJIT_PROPAGATE(cc()->emit(instId, r0, r1));
 
@@ -1118,17 +1118,17 @@ ExtendMovGpDQ:
 
 ZeroExtendGpDQ:
   stackPtr.setSize(4);
-  r0.setRegT<RegType::kX86_Gpd>(reg.id());
+  r0.setRegT<RegType::kGp32>(reg.id());
   goto ExtendMovGpDQ;
 
 MovGpD:
   stackPtr.setSize(4);
-  r0.setRegT<RegType::kX86_Gpd>(reg.id());
+  r0.setRegT<RegType::kGp32>(reg.id());
   return cc()->emit(Inst::kIdMov, stackPtr, r0);
 
 MovGpQ:
   stackPtr.setSize(8);
-  r0.setRegT<RegType::kX86_Gpq>(reg.id());
+  r0.setRegT<RegType::kGp64>(reg.id());
   return cc()->emit(Inst::kIdMov, stackPtr, r0);
 
 MovMmD:
@@ -1143,12 +1143,12 @@ MovMmQ:
 
 MovXmmD:
   stackPtr.setSize(4);
-  r0.setRegT<RegType::kX86_Xmm>(reg.id());
+  r0.setRegT<RegType::kVec128>(reg.id());
   return cc()->emit(choose(Inst::kIdMovss, Inst::kIdVmovss), stackPtr, r0);
 
 MovXmmQ:
   stackPtr.setSize(8);
-  r0.setRegT<RegType::kX86_Xmm>(reg.id());
+  r0.setRegT<RegType::kVec128>(reg.id());
   return cc()->emit(choose(Inst::kIdMovlps, Inst::kIdVmovlps), stackPtr, r0);
 }
 
@@ -1287,13 +1287,13 @@ void X86RAPass::onInit() noexcept {
   _archTraits = &ArchTraits::byArch(arch);
   _physRegCount.set(RegGroup::kGp, baseRegCount);
   _physRegCount.set(RegGroup::kVec, simdRegCount);
-  _physRegCount.set(RegGroup::kX86_K, 8);
+  _physRegCount.set(RegGroup::kMask, 8);
   _physRegCount.set(RegGroup::kX86_MM, 8);
   _buildPhysIndex();
 
   _availableRegs[RegGroup::kGp] = Support::lsbMask<RegMask>(_physRegCount.get(RegGroup::kGp));
   _availableRegs[RegGroup::kVec] = Support::lsbMask<RegMask>(_physRegCount.get(RegGroup::kVec));
-  _availableRegs[RegGroup::kX86_K] = Support::lsbMask<RegMask>(_physRegCount.get(RegGroup::kX86_K)) ^ 1u;
+  _availableRegs[RegGroup::kMask] = Support::lsbMask<RegMask>(_physRegCount.get(RegGroup::kMask)) ^ 1u;
   _availableRegs[RegGroup::kX86_MM] = Support::lsbMask<RegMask>(_physRegCount.get(RegGroup::kX86_MM));
 
   _scratchRegIndexes[0] = uint8_t(Gp::kIdCx);
@@ -1498,7 +1498,7 @@ ASMJIT_FAVOR_SPEED Error X86RAPass::_rewrite(BaseNode* first, BaseNode* stop) no
             RAStackSlot* slot = workReg->stackSlot();
             int32_t offset = slot->offset();
 
-            mem._setBase(_sp.type(), slot->baseRegId());
+            mem._setBase(_sp.regType(), slot->baseRegId());
             mem.clearRegHome();
             mem.addOffsetLo32(offset);
           }
@@ -1538,8 +1538,8 @@ Error X86RAPass::emitSwap(uint32_t aWorkId, uint32_t aPhysId, uint32_t bWorkId, 
   RAWorkReg* wbReg = workRegById(bWorkId);
 
   bool is64Bit = Support::max(waReg->typeId(), wbReg->typeId()) >= TypeId::kInt64;
-  OperandSignature sign = is64Bit ? OperandSignature{RegTraits<RegType::kX86_Gpq>::kSignature}
-                                  : OperandSignature{RegTraits<RegType::kX86_Gpd>::kSignature};
+  OperandSignature sign = is64Bit ? OperandSignature{RegTraits<RegType::kGp64>::kSignature}
+                                  : OperandSignature{RegTraits<RegType::kGp32>::kSignature};
 
 #ifndef ASMJIT_NO_LOGGING
   if (hasDiagnosticOption(DiagnosticOptions::kRAAnnotate)) {

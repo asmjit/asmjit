@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
@@ -172,29 +172,29 @@ struct X86MemInfo_T {
   static inline constexpr uint32_t I = (X >> 5) & 0x1F;
 
   static inline constexpr uint32_t kBase =
-    (B >= uint32_t(RegType::kX86_Gpw)  && B <= uint32_t(RegType::kX86_Gpq)) ? kX86MemInfo_BaseGp    :
-    (B == uint32_t(RegType::kX86_Rip)                                     ) ? kX86MemInfo_BaseRip   :
+    (B >= uint32_t(RegType::kGp16)     && B <= uint32_t(RegType::kGp64)   ) ? kX86MemInfo_BaseGp    :
+    (B == uint32_t(RegType::kPC)                                          ) ? kX86MemInfo_BaseRip   :
     (B == uint32_t(RegType::kLabelTag)                                    ) ? kX86MemInfo_BaseLabel : 0;
 
   static inline constexpr uint32_t kIndex =
-    (I >= uint32_t(RegType::kX86_Gpw)  && I <= uint32_t(RegType::kX86_Gpq)) ? kX86MemInfo_Index     :
-    (I >= uint32_t(RegType::kX86_Xmm)  && I <= uint32_t(RegType::kX86_Zmm)) ? kX86MemInfo_Index     : 0;
+    (I >= uint32_t(RegType::kGp16)     && I <= uint32_t(RegType::kGp64)   ) ? kX86MemInfo_Index     :
+    (I >= uint32_t(RegType::kVec128)   && I <= uint32_t(RegType::kVec512) ) ? kX86MemInfo_Index     : 0;
 
   static inline constexpr uint32_t k67H =
-    (B == uint32_t(RegType::kX86_Gpw)  && I == uint32_t(RegType::kNone)   ) ? kX86MemInfo_67H_X86   :
-    (B == uint32_t(RegType::kX86_Gpd)  && I == uint32_t(RegType::kNone)   ) ? kX86MemInfo_67H_X64   :
-    (B == uint32_t(RegType::kNone)     && I == uint32_t(RegType::kX86_Gpw)) ? kX86MemInfo_67H_X86   :
-    (B == uint32_t(RegType::kNone)     && I == uint32_t(RegType::kX86_Gpd)) ? kX86MemInfo_67H_X64   :
-    (B == uint32_t(RegType::kX86_Gpw)  && I == uint32_t(RegType::kX86_Gpw)) ? kX86MemInfo_67H_X86   :
-    (B == uint32_t(RegType::kX86_Gpd)  && I == uint32_t(RegType::kX86_Gpd)) ? kX86MemInfo_67H_X64   :
-    (B == uint32_t(RegType::kX86_Gpw)  && I == uint32_t(RegType::kX86_Xmm)) ? kX86MemInfo_67H_X86   :
-    (B == uint32_t(RegType::kX86_Gpd)  && I == uint32_t(RegType::kX86_Xmm)) ? kX86MemInfo_67H_X64   :
-    (B == uint32_t(RegType::kX86_Gpw)  && I == uint32_t(RegType::kX86_Ymm)) ? kX86MemInfo_67H_X86   :
-    (B == uint32_t(RegType::kX86_Gpd)  && I == uint32_t(RegType::kX86_Ymm)) ? kX86MemInfo_67H_X64   :
-    (B == uint32_t(RegType::kX86_Gpw)  && I == uint32_t(RegType::kX86_Zmm)) ? kX86MemInfo_67H_X86   :
-    (B == uint32_t(RegType::kX86_Gpd)  && I == uint32_t(RegType::kX86_Zmm)) ? kX86MemInfo_67H_X64   :
-    (B == uint32_t(RegType::kLabelTag) && I == uint32_t(RegType::kX86_Gpw)) ? kX86MemInfo_67H_X86   :
-    (B == uint32_t(RegType::kLabelTag) && I == uint32_t(RegType::kX86_Gpd)) ? kX86MemInfo_67H_X64   : 0;
+    (B == uint32_t(RegType::kGp16)     && I == uint32_t(RegType::kNone)   ) ? kX86MemInfo_67H_X86   :
+    (B == uint32_t(RegType::kGp32)     && I == uint32_t(RegType::kNone)   ) ? kX86MemInfo_67H_X64   :
+    (B == uint32_t(RegType::kNone)     && I == uint32_t(RegType::kGp16)   ) ? kX86MemInfo_67H_X86   :
+    (B == uint32_t(RegType::kNone)     && I == uint32_t(RegType::kGp32)   ) ? kX86MemInfo_67H_X64   :
+    (B == uint32_t(RegType::kGp16)     && I == uint32_t(RegType::kGp16)   ) ? kX86MemInfo_67H_X86   :
+    (B == uint32_t(RegType::kGp32)     && I == uint32_t(RegType::kGp32)   ) ? kX86MemInfo_67H_X64   :
+    (B == uint32_t(RegType::kGp16)     && I == uint32_t(RegType::kVec128) ) ? kX86MemInfo_67H_X86   :
+    (B == uint32_t(RegType::kGp32)     && I == uint32_t(RegType::kVec128) ) ? kX86MemInfo_67H_X64   :
+    (B == uint32_t(RegType::kGp16)     && I == uint32_t(RegType::kVec256) ) ? kX86MemInfo_67H_X86   :
+    (B == uint32_t(RegType::kGp32)     && I == uint32_t(RegType::kVec256) ) ? kX86MemInfo_67H_X64   :
+    (B == uint32_t(RegType::kGp16)     && I == uint32_t(RegType::kVec512) ) ? kX86MemInfo_67H_X86   :
+    (B == uint32_t(RegType::kGp32)     && I == uint32_t(RegType::kVec512) ) ? kX86MemInfo_67H_X64   :
+    (B == uint32_t(RegType::kLabelTag) && I == uint32_t(RegType::kGp16)   ) ? kX86MemInfo_67H_X86   :
+    (B == uint32_t(RegType::kLabelTag) && I == uint32_t(RegType::kGp32)   ) ? kX86MemInfo_67H_X64   : 0;
 
   static inline constexpr uint32_t kValue = kBase | kIndex | k67H | 0x04u | 0x08u;
 };
@@ -227,8 +227,8 @@ static const uint32_t x86LLBySizeDiv16[] = { ASMJIT_LOOKUP_TABLE_16(VALUE, 0) };
 
 // Table that contains LL opcode field addressed by a register size / 16. It's used to propagate L.256 or L.512 when
 // YMM or ZMM registers are used, respectively.
-#define VALUE(x) x == uint32_t(RegType::kX86_Zmm) ? Opcode::kLL_2 : \
-                 x == uint32_t(RegType::kX86_Ymm) ? Opcode::kLL_1 : Opcode::kLL_0
+#define VALUE(x) x == uint32_t(RegType::kVec512) ? Opcode::kLL_2 : \
+                 x == uint32_t(RegType::kVec256) ? Opcode::kLL_1 : Opcode::kLL_0
 static const uint32_t x86LLByRegType[] = { ASMJIT_LOOKUP_TABLE_16(VALUE, 0) };
 #undef VALUE
 
@@ -345,7 +345,7 @@ static ASMJIT_INLINE uint32_t x86AltOpcodeOf(const InstDB::InstInfo* info) noexc
 }
 
 static ASMJIT_INLINE bool x86IsMmxOrXmm(const Reg& reg) noexcept {
-  return reg.type() == RegType::kX86_Mm || reg.type() == RegType::kX86_Xmm;
+  return reg.regType() == RegType::kX86_Mm || reg.regType() == RegType::kVec128;
 }
 
 // x86::Assembler - X86BufferWriter
@@ -711,7 +711,7 @@ ASMJIT_FAVOR_SPEED Error Assembler::_emit(InstId instId, const Operand_& o0, con
       if (ASMJIT_UNLIKELY(!o0.isReg()))
         goto InvalidInstruction;
 
-      rmInfo = x86MemInfo[size_t(o0.as<Reg>().type())];
+      rmInfo = x86MemInfo[size_t(o0.as<Reg>().regType())];
       writer.emitAddressOverride((rmInfo & _addressOverrideMask()) != 0);
       goto EmitX86Op;
 
@@ -1189,8 +1189,9 @@ CaseX86M_GPB_MulDiv:
     case InstDB::kEncodingX86Cmpxchg: {
       // Convert explicit to implicit.
       if (isign3 & (0x7 << 6)) {
-        if (!Reg::isGp(o2) || o2.id() != Gp::kIdAx)
+        if (!o2.isGp() || o2.id() != Gp::kIdAx) {
           goto InvalidInstruction;
+        }
         isign3 &= 0x3F;
       }
 
@@ -1473,8 +1474,9 @@ CaseX86M_GPB_MulDiv:
       rmRel = &o0;
       // Explicit jecxz|loop [r|e]cx, dst
       if (o0.isReg()) {
-        if (ASMJIT_UNLIKELY(!Reg::isGp(o0, Gp::kIdCx)))
+        if (ASMJIT_UNLIKELY(!o0.isGp(Gp::kIdCx))) {
           goto InvalidInstruction;
+        }
 
         writer.emitAddressOverride((is32Bit() && o0.x86RmSize() == 2) || (is64Bit() && o0.x86RmSize() == 4));
         rmRel = &o1;
@@ -1553,12 +1555,12 @@ CaseX86M_GPB_MulDiv:
         // register. The segment register is always `opReg`, because the MOV instruction uses either RM or MR encoding.
 
         // GP <- ??
-        if (Reg::isGp(o0)) {
+        if (o0.as<Reg>().isGp()) {
           rbReg = o0.id();
           opReg = o1.id();
 
           // GP <- GP
-          if (Reg::isGp(o1)) {
+          if (o1.as<Reg>().isGp()) {
             uint32_t opSize = o0.x86RmSize();
             if (opSize != o1.x86RmSize())
               goto InvalidInstruction;
@@ -1619,7 +1621,7 @@ CaseX86M_GPB_MulDiv:
           rbReg = o1.id();
 
           // ?? <- GP
-          if (!Reg::isGp(o1))
+          if (!o1.as<Reg>().isGp())
             goto InvalidInstruction;
 
           // SReg <- GP
@@ -1853,7 +1855,7 @@ CaseX86M_GPB_MulDiv:
 
     case InstDB::kEncodingX86MovntiMovdiri:
       if (isign3 == ENC_OPS2(Mem, Reg)) {
-        opcode.addWIf(Reg::isGpq(o1));
+        opcode.addWIf(o1.as<Reg>().isGp64());
 
         opReg = o1.id();
         rmRel = &o0;
@@ -2129,7 +2131,7 @@ CaseX86PushPop_Gp:
     case InstDB::kEncodingX86StrRm:
       if (isign3 == ENC_OPS2(Reg, Mem)) {
         rmRel = &o1;
-        if (ASMJIT_UNLIKELY(rmRel->as<Mem>().offsetLo32() || !Reg::isGp(o0.as<Reg>(), Gp::kIdAx)))
+        if (ASMJIT_UNLIKELY(rmRel->as<Mem>().offsetLo32() || !o0.as<Reg>().isGp(Gp::kIdAx)))
           goto InvalidInstruction;
 
         uint32_t size = o0.x86RmSize();
@@ -2144,7 +2146,7 @@ CaseX86PushPop_Gp:
     case InstDB::kEncodingX86StrMr:
       if (isign3 == ENC_OPS2(Mem, Reg)) {
         rmRel = &o0;
-        if (ASMJIT_UNLIKELY(rmRel->as<Mem>().offsetLo32() || !Reg::isGp(o1.as<Reg>(), Gp::kIdAx)))
+        if (ASMJIT_UNLIKELY(rmRel->as<Mem>().offsetLo32() || !o1.isGp(Gp::kIdAx)))
           goto InvalidInstruction;
 
         uint32_t size = o1.x86RmSize();
@@ -2608,7 +2610,7 @@ CaseExtMovd:
         opcode.add66hIf(Reg::isXmm(o0));
 
         // MM/XMM <- Gp
-        if (isign3 == ENC_OPS2(Reg, Reg) && Reg::isGp(o1)) {
+        if (isign3 == ENC_OPS2(Reg, Reg) && o1.as<BaseReg>().isGp()) {
           rbReg = o1.id();
           goto EmitX86R;
         }
@@ -2628,7 +2630,7 @@ CaseExtMovd:
         opcode.add66hIf(Reg::isXmm(o1));
 
         // GP <- MM/XMM
-        if (isign3 == ENC_OPS2(Reg, Reg) && Reg::isGp(o0)) {
+        if (isign3 == ENC_OPS2(Reg, Reg) && o0.as<BaseReg>().isGp()) {
           rbReg = o0.id();
           goto EmitX86R;
         }
@@ -2944,13 +2946,13 @@ CaseExtRm:
         rbReg = o1.id();
 
         // Form 'k, reg'.
-        if (Reg::isGp(o1)) {
+        if (o1.as<BaseReg>().isGp()) {
           opcode = x86AltOpcodeOf(instInfo);
           goto EmitVexEvexR;
         }
 
         // Form 'reg, k'.
-        if (Reg::isGp(o0)) {
+        if (o0.as<BaseReg>().isGp()) {
           opcode = x86AltOpcodeOf(instInfo) + 1;
           goto EmitVexEvexR;
         }
@@ -3037,7 +3039,7 @@ CaseExtRm:
 
     case InstDB::kEncodingVexMvr_Wx:
       if (isign3 == ENC_OPS3(Mem, Reg, Reg)) {
-        opcode.addWIf(unsigned(Reg::isGpq(o1)));
+        opcode.addWIf(o1.isGp64());
         opReg = x86PackRegAndVvvvv(o1.id(), o2.id());
         rmRel = &o0;
         goto EmitVexEvexM;
@@ -3085,7 +3087,7 @@ CaseVexMri:
       goto CaseVexRm;
 
     case InstDB::kEncodingVexRm_Lx_Bcst:
-      if (isign3 == ENC_OPS2(Reg, Reg) && Reg::isGp(o1.as<Reg>())) {
+      if (isign3 == ENC_OPS2(Reg, Reg) && o1.as<BaseReg>().isGp()) {
         opcode = x86AltOpcodeOf(instInfo) | x86OpcodeLBySize(o0.x86RmSize() | o1.x86RmSize());
         opReg = o0.id();
         rbReg = o1.id();
@@ -3165,7 +3167,7 @@ CaseVexRvm_R:
 
     case InstDB::kEncodingVexRvm_ZDX_Wx: {
       const Operand_& o3 = opExt[EmitterUtils::kOp3];
-      if (ASMJIT_UNLIKELY(!o3.isNone() && !Reg::isGp(o3, Gp::kIdDx)))
+      if (ASMJIT_UNLIKELY(!o3.isNone() && !o3.isGp(Gp::kIdDx)))
         goto InvalidInstruction;
       [[fallthrough]];
     }
@@ -3335,7 +3337,7 @@ VexRvmi:
 
     case InstDB::kEncodingVexMovdMovq:
       if (isign3 == ENC_OPS2(Reg, Reg)) {
-        if (Reg::isGp(o0)) {
+        if (o0.as<BaseReg>().isGp()) {
           opcode = x86AltOpcodeOf(instInfo);
           opcode.addWBySize(o0.x86RmSize());
           opReg = o1.id();
@@ -3343,7 +3345,7 @@ VexRvmi:
           goto EmitVexEvexR;
         }
 
-        if (Reg::isGp(o1)) {
+        if (o1.as<BaseReg>().isGp()) {
           opcode.addWBySize(o1.x86RmSize());
           opReg = o0.id();
           rbReg = o1.id();

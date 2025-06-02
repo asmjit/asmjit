@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
@@ -163,7 +163,7 @@ Error EmitHelper::emitArgMove(
   // Deduce optional `dstTypeId`, which may be `TypeId::kVoid` in some cases.
   if (dstTypeId == TypeId::kVoid) {
     const ArchTraits& archTraits = ArchTraits::byArch(_emitter->arch());
-    dstTypeId = archTraits.regTypeToTypeId(dst_.type());
+    dstTypeId = archTraits.regTypeToTypeId(dst_.regType());
   }
 
   // Invalid or abstract TypeIds are not allowed.

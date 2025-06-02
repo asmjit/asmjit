@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_ARM_A64EMITTER_H_INCLUDED
@@ -225,6 +225,9 @@ struct EmitterExplicitT {
 
   ASMJIT_INST_2x(mvn, Mvn, Gp, Gp)
   ASMJIT_INST_3x(mvn, Mvn, Gp, Gp, Imm)
+
+  ASMJIT_INST_2x(mvn_, Mvn, Gp, Gp)
+  ASMJIT_INST_3x(mvn_, Mvn, Gp, Gp, Imm)
 
   ASMJIT_INST_2x(neg, Neg, Gp, Gp)
   ASMJIT_INST_3x(neg, Neg, Gp, Gp, Imm)
@@ -874,6 +877,7 @@ struct EmitterExplicitT {
   ASMJIT_INST_3x(movi, Movi_v, Vec, Imm, Imm);
   ASMJIT_INST_3x(mul, Mul_v, Vec, Vec, Vec);
   ASMJIT_INST_2x(mvn, Mvn_v, Vec, Vec);
+  ASMJIT_INST_2x(mvn_, Mvn_v, Vec, Vec);
   ASMJIT_INST_2x(mvni, Mvni_v, Vec, Imm);
   ASMJIT_INST_3x(mvni, Mvni_v, Vec, Imm, Imm);
   ASMJIT_INST_2x(neg, Neg_v, Vec, Vec);

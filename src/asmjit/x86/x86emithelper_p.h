@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_X86_X86EMITHELPER_P_H_INCLUDED
@@ -21,8 +21,8 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
 [[nodiscard]]
 static ASMJIT_INLINE_NODEBUG RegType vecTypeIdToRegType(TypeId typeId) noexcept {
-  return uint32_t(typeId) <= uint32_t(TypeId::_kVec128End) ? RegType::kX86_Xmm :
-         uint32_t(typeId) <= uint32_t(TypeId::_kVec256End) ? RegType::kX86_Ymm : RegType::kX86_Zmm;
+  return uint32_t(typeId) <= uint32_t(TypeId::_kVec128End) ? RegType::kVec128 :
+         uint32_t(typeId) <= uint32_t(TypeId::_kVec256End) ? RegType::kVec256 : RegType::kVec512;
 }
 
 class EmitHelper : public BaseEmitHelper {

@@ -1,7 +1,26 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
+// Official GitHub Repository: https://github.com/asmjit/asmjit
+//
+// Copyright (c) 2008-2025 The AsmJit Authors
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//    claim that you wrote the original software. If you use this software
+//    in a product, an acknowledgment in the product documentation would be
+//    appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//    misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
+
 
 #ifndef ASMJIT_CORE_H_INCLUDED
 #define ASMJIT_CORE_H_INCLUDED
@@ -274,6 +293,53 @@ namespace asmjit {
 //!     it's not using anything, which was deprecated.
 //!
 //! \section api_changes API Changes
+//!
+//! ### Changes committed at 2025-06-XX
+//!
+//! Core changes:
+//!
+//!   - No more architecture specific \ref RegTraits - removed `BaseRegTraits` and kept just \ref RegTraits:
+//!
+//!     - `BaseRegTraits` -> `RegTraits`
+//!     - `arm::RegTraits` -> `RegTraits`
+//!     - `x86::RegTraits` -> `RegTraits`
+//!
+//!   - No more architecture specific Gp/Vec/Mask register types in \ref RegType and \ref RegGroup:
+//!
+//!     - `RegGroup::kX86_Rip`  -> `RegGroup::kPC`
+//!     - `RegGroup::kX86_KReg` -> `RegGroup::kMask`
+//!     - `RegType::kX86_GpbLo` -> `RegType::kGp8Lo`
+//!     - `RegType::kX86_GpbLo` -> `RegType::kGp8Lo`
+//!     - `RegType::kX86_GpbHi` -> `RegType::kGp8Hi`
+//!     - `RegType::kX86_Gpw`   -> `RegType::kGp16`
+//!     - `RegType::kX86_Gpd`   -> `RegType::kGp32`
+//!     - `RegType::kX86_Gpq`   -> `RegType::kGp64`
+//!     - `RegType::kX86_Xmm`   -> `RegType::kVec128`
+//!     - `RegType::kX86_Ymm`   -> `RegType::kVec256`
+//!     - `RegType::kX86_Zmm`   -> `RegType::kVec512`
+//!     - `RegType::kX86_KReg`  -> `RegType::kMask`
+//!     - `RegType::kARM_PC`    -> `RegType::kPC`
+//!     - `RegType::kARM_GpW`   -> `RegType::kGp32`
+//!     - `RegType::kARM_GpX`   -> `RegType::kGp64`
+//!     - `RegType::kARM_VecB`  -> `RegType::kVec8`
+//!     - `RegType::kARM_VecH`  -> `RegType::kVec16`
+//!     - `RegType::kARM_VecS`  -> `RegType::kVec32`
+//!     - `RegType::kARM_VecD`  -> `RegType::kVec64`
+//!     - `RegType::kARM_VecQ`  -> `RegType::kVec128`
+//!     - `RegType::kARM_VecV`  -> `RegType::kVec128`
+//!
+//!   - Renamed some member functions in Operand and Reg:
+//!
+//!     - `isType(regId)` -> `isReg(regId)`
+//!     - `isGroup(regGroup)` -> `isReg(regGroup)`
+//!     - `regOp.type()` -> `regOp.regType()`
+//!     - `regOp.group()` -> `regOp.regGroup()`
+//!
+//!   - Removed some static functions from \ref Operand, \reg BaseReg, etc... in favor of member functions. Most
+//!     of the operand functionality is now provided by \ref Operand_:
+//!
+//!     - `Operand::isGp(op)` -> op.isGp();
+//!     - `x86::Reg::isGp(op, id)` -> op.isGp(id);
 //!
 //! ### Changes committed at 2025-05-24
 //!
@@ -1108,7 +1174,7 @@ namespace asmjit {
 //!   // Constructs [src + idx] memory address - referencing [rax + r10].
 //!   x86::Mem m = x86::ptr(src, idx);
 //!
-//!   // Examine `m`: Returns `RegType::kX86_Gpq`.
+//!   // Examine `m`: Returns `RegType::kGp64`.
 //!   m.indexType();
 //!   // Examine `m`: Returns 10 (`r10`).
 //!   m.indexId();
@@ -2005,6 +2071,8 @@ namespace asmjit {
 //! \defgroup asmjit_a64 AArch64 Backend
 //! \brief AArch64 backend.
 
+//! \defgroup asmjit_ujit UJIT
+//! \brief Universal JIT - abstracts X86, X86_64, and AArch64 dode generation.
 
 //! \cond INTERNAL
 //! \defgroup asmjit_ra RA

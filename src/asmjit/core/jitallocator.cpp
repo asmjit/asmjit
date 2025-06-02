@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
@@ -14,6 +14,10 @@
 #include "../core/zone.h"
 #include "../core/zonelist.h"
 #include "../core/zonetree.h"
+
+#if defined(ASMJIT_TEST)
+#include "../../../test/asmjit_test_random.h"
+#endif // ASMJIT_TEST
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -1226,56 +1230,6 @@ Error JitAllocator::scopedWrite(WriteScopeData& scope, Span& span, WriteFunc wri
 // ====================
 
 #if defined(ASMJIT_TEST)
-// A pseudo random number generator based on a paper by Sebastiano Vigna:
-//   http://vigna.di.unimi.it/ftp/papers/xorshiftplus.pdf
-class Random {
-public:
-  // Constants suggested as `23/18/5`.
-  enum Steps : uint32_t {
-    kStep1_SHL = 23,
-    kStep2_SHR = 18,
-    kStep3_SHR = 5
-  };
-
-  inline explicit Random(uint64_t seed = 0) noexcept { reset(seed); }
-  inline Random(const Random& other) noexcept = default;
-
-  inline void reset(uint64_t seed = 0) noexcept {
-    // The number is arbitrary, it means nothing.
-    constexpr uint64_t kZeroSeed = 0x1F0A2BE71D163FA0u;
-
-    // Generate the state data by using splitmix64.
-    for (uint32_t i = 0; i < 2; i++) {
-      seed += 0x9E3779B97F4A7C15u;
-      uint64_t x = seed;
-      x = (x ^ (x >> 30)) * 0xBF58476D1CE4E5B9u;
-      x = (x ^ (x >> 27)) * 0x94D049BB133111EBu;
-      x = (x ^ (x >> 31));
-      _state[i] = x != 0 ? x : kZeroSeed;
-    }
-  }
-
-  inline uint32_t nextUInt32() noexcept {
-    return uint32_t(nextUInt64() >> 32);
-  }
-
-  inline uint64_t nextUInt64() noexcept {
-    uint64_t x = _state[0];
-    uint64_t y = _state[1];
-
-    x ^= x << kStep1_SHL;
-    y ^= y >> kStep3_SHR;
-    x ^= x >> kStep2_SHR;
-    x ^= y;
-
-    _state[0] = y;
-    _state[1] = x;
-    return x + y;
-  }
-
-  uint64_t _state[2];
-};
-
 namespace JitAllocatorUtils {
   static void fillPattern64(void* p_, uint64_t pattern, size_t sizeInBytes) noexcept {
     uint64_t* p = static_cast<uint64_t*>(p_);
@@ -1346,7 +1300,7 @@ public:
   ZoneAllocator _heap;
   ZoneTree<Record> _records;
   JitAllocator _allocator;
-  Random _rng;
+  TestUtils::Random _rng;
 
   explicit JitAllocatorWrapper(const JitAllocator::CreateParams* params) noexcept
     : _zone(1024u * 1024u),
@@ -1428,7 +1382,7 @@ public:
   }
 };
 
-static void JitAllocatorTest_shuffle(void** ptrArray, size_t count, Random& prng) noexcept {
+static void JitAllocatorTest_shuffle(void** ptrArray, size_t count, TestUtils::Random& prng) noexcept {
   for (size_t i = 0; i < count; ++i)
     std::swap(ptrArray[i], ptrArray[size_t(prng.nextUInt32() % count)]);
 }
@@ -1442,7 +1396,7 @@ static void JitAllocatorTest_usage(JitAllocator& allocator) noexcept {
 }
 
 template<typename T, size_t kPatternSize, bool Bit>
-static void BitVectorRangeIterator_testRandom(Random& rnd, size_t count) noexcept {
+static void BitVectorRangeIterator_testRandom(TestUtils::Random& rnd, size_t count) noexcept {
   for (size_t i = 0; i < count; i++) {
     T in[kPatternSize];
     T out[kPatternSize];
@@ -1508,13 +1462,13 @@ static void test_jit_allocator_alloc_release() noexcept {
 
   INFO("BitVectorRangeIterator<uint32_t>");
   {
-    Random rnd;
+    TestUtils::Random rnd;
     BitVectorRangeIterator_testRandom<uint32_t, 64, 0>(rnd, kCount);
   }
 
   INFO("BitVectorRangeIterator<uint64_t>");
   {
-    Random rnd;
+    TestUtils::Random rnd;
     BitVectorRangeIterator_testRandom<uint64_t, 64, 0>(rnd, kCount);
   }
 
@@ -1535,7 +1489,7 @@ static void test_jit_allocator_alloc_release() noexcept {
     size_t fixedBlockSize = 256;
 
     JitAllocatorWrapper wrapper(&params);
-    Random prng(100);
+    TestUtils::Random prng(100);
 
     size_t i;
 

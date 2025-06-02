@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
@@ -765,7 +765,7 @@ ASMJIT_FAVOR_SPEED Error ARMRAPass::_rewrite(BaseNode* first, BaseNode* stop) no
             RAStackSlot* slot = workReg->stackSlot();
             int32_t offset = slot->offset();
 
-            mem._setBase(_sp.type(), slot->baseRegId());
+            mem._setBase(_sp.regType(), slot->baseRegId());
             mem.clearRegHome();
             mem.addOffsetLo32(offset);
           }

@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include <asmjit/core.h>
@@ -137,18 +137,12 @@ static void onBeforeRun(void) noexcept {
 }
 
 int main(int argc, const char* argv[]) {
-#if defined(ASMJIT_BUILD_DEBUG)
-  const char buildType[] = "Debug";
-#else
-  const char buildType[] = "Release";
-#endif
-
   printf("AsmJit Unit-Test v%u.%u.%u [Arch=%s] [Mode=%s]\n\n",
     unsigned((ASMJIT_LIBRARY_VERSION >> 16)       ),
     unsigned((ASMJIT_LIBRARY_VERSION >>  8) & 0xFF),
     unsigned((ASMJIT_LIBRARY_VERSION      ) & 0xFF),
     asmjitArchAsString(Arch::kHost),
-    buildType
+    asmjitBuildType()
   );
 
   return BrokenAPI::run(argc, argv, onBeforeRun);

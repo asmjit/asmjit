@@ -1,34 +1,38 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include <asmjit/core.h>
-
-static void printInfo() noexcept {
-  printf("AsmJit Execute Test-Suite v%u.%u.%u\n",
-    unsigned((ASMJIT_LIBRARY_VERSION >> 16)       ),
-    unsigned((ASMJIT_LIBRARY_VERSION >>  8) & 0xFF),
-    unsigned((ASMJIT_LIBRARY_VERSION      ) & 0xFF));
-}
-
-#if !defined(ASMJIT_NO_JIT) && ( \
-    (ASMJIT_ARCH_X86 != 0  && !defined(ASMJIT_NO_X86    )) || \
-    (ASMJIT_ARCH_ARM == 64 && !defined(ASMJIT_NO_AARCH64)) )
-
-#if ASMJIT_ARCH_X86 != 0
-#include <asmjit/x86.h>
-#endif
-
-#if ASMJIT_ARCH_ARM == 64
-#include <asmjit/a64.h>
-#endif
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#if ASMJIT_ARCH_X86 != 0
+  #include <asmjit/x86.h>
+#endif
+
+#if ASMJIT_ARCH_ARM == 64
+  #include <asmjit/a64.h>
+#endif
+
+#include "asmjitutils.h"
+
 using namespace asmjit;
+
+static void printAppInfo() noexcept {
+  printf("AsmJit Execute Tests v%u.%u.%u [Arch=%s] [Mode=%s]\n\n",
+    unsigned((ASMJIT_LIBRARY_VERSION >> 16)       ),
+    unsigned((ASMJIT_LIBRARY_VERSION >>  8) & 0xFF),
+    unsigned((ASMJIT_LIBRARY_VERSION      ) & 0xFF),
+    asmjitArchAsString(Arch::kHost),
+    asmjitBuildType()
+  );
+}
+
+#if !defined(ASMJIT_NO_JIT) && ((ASMJIT_ARCH_X86 != 0  && !defined(ASMJIT_NO_X86    )) || \
+                                (ASMJIT_ARCH_ARM == 64 && !defined(ASMJIT_NO_AARCH64)) )
 
 // Signature of the generated function.
 using EmptyFunc = void (*)(void);
@@ -73,8 +77,7 @@ static void executeEmptyFunc(JitRuntime& rt) noexcept {
 }
 
 int main() {
-  printInfo();
-  printf("\n");
+  printAppInfo();
 
   {
     printf("Trying to execute empty function with JitRuntime (default settings)\n");
@@ -96,8 +99,8 @@ int main() {
 }
 #else
 int main() {
-  printInfo();
-  printf("\nThis test is currently disabled - no JIT or no support for the target architecture\n");
+  printAppInfo();
+  printf("!! Execution test suite is disabled: <ASMJIT_NO_JIT> or unsuitable target architecture !!\n");
   return 0;
 }
 #endif // ASMJIT_ARCH_X86 && !ASMJIT_NO_X86 && !ASMJIT_NO_JIT

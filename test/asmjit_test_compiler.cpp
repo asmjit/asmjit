@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include <asmjit/core.h>
@@ -16,8 +16,9 @@
 #if !defined(ASMJIT_NO_COMPILER)
 
 #include "cmdline.h"
-#include "asmjitutils.h"
 #include "performancetimer.h"
+
+#include "asmjitutils.h"
 #include "asmjit_test_compiler.h"
 
 #if !defined(ASMJIT_NO_X86)
@@ -50,11 +51,13 @@ int TestApp::handleArgs(int argc, const char* const* argv) {
 }
 
 void TestApp::showInfo() {
-  printf("AsmJit Compiler Test-Suite v%u.%u.%u (Arch=%s):\n",
+  printf("AsmJit Compiler Test-Suite v%u.%u.%u [Arch=%s] [Mode=%s]\n\n",
     unsigned((ASMJIT_LIBRARY_VERSION >> 16)       ),
     unsigned((ASMJIT_LIBRARY_VERSION >>  8) & 0xFF),
     unsigned((ASMJIT_LIBRARY_VERSION      ) & 0xFF),
-    asmjitArchAsString(Arch::kHost));
+    asmjitArchAsString(Arch::kHost),
+    asmjitBuildType()
+  );
 
   printf("Usage:\n");
   printf("  --help          Show usage only\n");

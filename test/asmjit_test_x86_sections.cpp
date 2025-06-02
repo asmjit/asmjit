@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 // ----------------------------------------------------------------------------
@@ -163,7 +163,7 @@ int main() {
 
 #else
 int main() {
-  printf("AsmJit X86 Sections Test is disabled on non-x86 host or when compiled with ASMJIT_NO_JIT\n\n");
+  printf("!! X86 sections test is disabled: ASMJIT_NO_JIT or unsuitable target architecture!!\n\n");
   return 0;
 }
 #endif // ASMJIT_ARCH_X86 && !ASMJIT_NO_X86 && !ASMJIT_NO_JIT

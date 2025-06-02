@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_ARM_ARMOPERAND_H_INCLUDED
@@ -19,65 +19,43 @@ ASMJIT_BEGIN_SUB_NAMESPACE(arm)
 class Reg;
 class Mem;
 
-//! Register traits (AArch32/AArch64).
-//!
-//! Register traits contains information about a particular register type. It's used by asmjit to setup register
-//! information on-the-fly and to populate tables that contain register information (this way it's possible to
-//! change register types and groups without having to reorder these tables).
-template<RegType kRegType>
-struct RegTraits : public BaseRegTraits {};
-
-//! \cond
-// <--------------------+------------------------+------------------------+---+------------------+
-//                      |       Reg-Type         |        Reg-Group       |Sz |      TypeId      |
-// <--------------------+------------------------+------------------------+---+------------------+
-ASMJIT_DEFINE_REG_TRAITS(RegType::kARM_GpW       , RegGroup::kGp          , 4 , TypeId::kInt32   ); // AArch32 & AArch64
-ASMJIT_DEFINE_REG_TRAITS(RegType::kARM_GpX       , RegGroup::kGp          , 8 , TypeId::kInt64   ); //           AArch64
-ASMJIT_DEFINE_REG_TRAITS(RegType::kARM_VecB      , RegGroup::kVec         , 1 , TypeId::kVoid    ); //           AArch64
-ASMJIT_DEFINE_REG_TRAITS(RegType::kARM_VecH      , RegGroup::kVec         , 2 , TypeId::kVoid    ); //           AArch64
-ASMJIT_DEFINE_REG_TRAITS(RegType::kARM_VecS      , RegGroup::kVec         , 4 , TypeId::kInt32x1 ); // AArch32 & AArch64
-ASMJIT_DEFINE_REG_TRAITS(RegType::kARM_VecD      , RegGroup::kVec         , 8 , TypeId::kInt32x2 ); // AArch32 & AArch64
-ASMJIT_DEFINE_REG_TRAITS(RegType::kARM_VecQ      , RegGroup::kVec         , 16, TypeId::kInt32x4 ); // AArch32 & AArch64
-ASMJIT_DEFINE_REG_TRAITS(RegType::kARM_PC        , RegGroup::kPC          , 8 , TypeId::kInt64   ); //           AArch64
-//! \endcond
-
 //! Register operand that can represent AArch32 and AArch64 registers.
 class Reg : public BaseReg {
 public:
   ASMJIT_DEFINE_ABSTRACT_REG(Reg, BaseReg)
 
   //! Gets whether the register is either `R` or `W` register (32-bit).
-  ASMJIT_INLINE_CONSTEXPR bool isGpR() const noexcept { return baseSignature() == RegTraits<RegType::kARM_GpW>::kSignature; }
+  ASMJIT_INLINE_CONSTEXPR bool isGpR() const noexcept { return baseSignature() == RegTraits<RegType::kGp32>::kSignature; }
   //! Gets whether the register is either `R` or `W` register (32-bit).
-  ASMJIT_INLINE_CONSTEXPR bool isGpW() const noexcept { return baseSignature() == RegTraits<RegType::kARM_GpW>::kSignature; }
+  ASMJIT_INLINE_CONSTEXPR bool isGpW() const noexcept { return baseSignature() == RegTraits<RegType::kGp32>::kSignature; }
   //! Gets whether the register is an `X` register (64-bit).
-  ASMJIT_INLINE_CONSTEXPR bool isGpX() const noexcept { return baseSignature() == RegTraits<RegType::kARM_GpX>::kSignature; }
+  ASMJIT_INLINE_CONSTEXPR bool isGpX() const noexcept { return baseSignature() == RegTraits<RegType::kGp64>::kSignature; }
 
   //! Gets whether the register is a VEC-B register (8-bit).
-  ASMJIT_INLINE_CONSTEXPR bool isVecB() const noexcept { return baseSignature() == RegTraits<RegType::kARM_VecB>::kSignature; }
+  ASMJIT_INLINE_CONSTEXPR bool isVecB() const noexcept { return baseSignature() == RegTraits<RegType::kVec8>::kSignature; }
   //! Gets whether the register is a VEC-H register (16-bit).
-  ASMJIT_INLINE_CONSTEXPR bool isVecH() const noexcept { return baseSignature() == RegTraits<RegType::kARM_VecH>::kSignature; }
+  ASMJIT_INLINE_CONSTEXPR bool isVecH() const noexcept { return baseSignature() == RegTraits<RegType::kVec16>::kSignature; }
   //! Gets whether the register is a VEC-S register (32-bit).
-  ASMJIT_INLINE_CONSTEXPR bool isVecS() const noexcept { return baseSignature() == RegTraits<RegType::kARM_VecS>::kSignature; }
+  ASMJIT_INLINE_CONSTEXPR bool isVecS() const noexcept { return baseSignature() == RegTraits<RegType::kVec32>::kSignature; }
   //! Gets whether the register is a VEC-D register (64-bit).
-  ASMJIT_INLINE_CONSTEXPR bool isVecD() const noexcept { return baseSignature() == RegTraits<RegType::kARM_VecD>::kSignature; }
+  ASMJIT_INLINE_CONSTEXPR bool isVecD() const noexcept { return baseSignature() == RegTraits<RegType::kVec64>::kSignature; }
   //! Gets whether the register is a VEC-Q register (128-bit).
-  ASMJIT_INLINE_CONSTEXPR bool isVecQ() const noexcept { return baseSignature() == RegTraits<RegType::kARM_VecV>::kSignature; }
+  ASMJIT_INLINE_CONSTEXPR bool isVecQ() const noexcept { return baseSignature() == RegTraits<RegType::kVec128>::kSignature; }
   //! Gets whether the register is either VEC-D (64-bit) or VEC-Q (128-bit).
-  ASMJIT_INLINE_CONSTEXPR bool isVecDOrQ() const noexcept { return uint32_t(type()) - uint32_t(RegType::kARM_VecD) <= 1u; }
+  ASMJIT_INLINE_CONSTEXPR bool isVecDOrQ() const noexcept { return uint32_t(regType()) - uint32_t(RegType::kVec64) <= 1u; }
   //! Gets whether the register is a VEC-V register (128-bit).
-  ASMJIT_INLINE_CONSTEXPR bool isVecV() const noexcept { return baseSignature() == RegTraits<RegType::kARM_VecV>::kSignature; }
+  ASMJIT_INLINE_CONSTEXPR bool isVecV() const noexcept { return baseSignature() == RegTraits<RegType::kVec128>::kSignature; }
 
   //! Gets whether the register is an 8-bit vector register or view, alias if \ref isVecB().
-  ASMJIT_INLINE_CONSTEXPR bool isVec8() const noexcept { return baseSignature() == RegTraits<RegType::kARM_VecB>::kSignature; }
+  ASMJIT_INLINE_CONSTEXPR bool isVec8() const noexcept { return baseSignature() == RegTraits<RegType::kVec8>::kSignature; }
   //! Gets whether the register is a 16-bit vector register or view, alias if \ref isVecH().
-  ASMJIT_INLINE_CONSTEXPR bool isVec16() const noexcept { return baseSignature() == RegTraits<RegType::kARM_VecH>::kSignature; }
+  ASMJIT_INLINE_CONSTEXPR bool isVec16() const noexcept { return baseSignature() == RegTraits<RegType::kVec16>::kSignature; }
   //! Gets whether the register is a 32-bit vector register or view, alias if \ref isVecS().
-  ASMJIT_INLINE_CONSTEXPR bool isVec32() const noexcept { return baseSignature() == RegTraits<RegType::kARM_VecS>::kSignature; }
+  ASMJIT_INLINE_CONSTEXPR bool isVec32() const noexcept { return baseSignature() == RegTraits<RegType::kVec32>::kSignature; }
   //! Gets whether the register is a 64-bit vector register or view, alias if \ref isVecD().
-  ASMJIT_INLINE_CONSTEXPR bool isVec64() const noexcept { return baseSignature() == RegTraits<RegType::kARM_VecD>::kSignature; }
+  ASMJIT_INLINE_CONSTEXPR bool isVec64() const noexcept { return baseSignature() == RegTraits<RegType::kVec64>::kSignature; }
   //! Gets whether the register is a 128-bit vector register or view, alias if \ref isVecQ().
-  ASMJIT_INLINE_CONSTEXPR bool isVec128() const noexcept { return baseSignature() == RegTraits<RegType::kARM_VecV>::kSignature; }
+  ASMJIT_INLINE_CONSTEXPR bool isVec128() const noexcept { return baseSignature() == RegTraits<RegType::kVec128>::kSignature; }
 
   template<RegType kRegType>
   ASMJIT_INLINE_CONSTEXPR void setRegT(uint32_t id) noexcept {
@@ -206,19 +184,19 @@ public:
 
   ASMJIT_INLINE_CONSTEXPR explicit Mem(const BaseReg& base, int32_t off = 0, Signature signature = Signature{0}) noexcept
     : BaseMem(Signature::fromOpType(OperandType::kMem) |
-              Signature::fromMemBaseType(base.type()) |
+              Signature::fromMemBaseType(base.regType()) |
               signature, base.id(), 0, off) {}
 
   ASMJIT_INLINE_CONSTEXPR Mem(const BaseReg& base, const BaseReg& index, Signature signature = Signature{0}) noexcept
     : BaseMem(Signature::fromOpType(OperandType::kMem) |
-              Signature::fromMemBaseType(base.type()) |
-              Signature::fromMemIndexType(index.type()) |
+              Signature::fromMemBaseType(base.regType()) |
+              Signature::fromMemIndexType(index.regType()) |
               signature, base.id(), index.id(), 0) {}
 
   ASMJIT_INLINE_CONSTEXPR Mem(const BaseReg& base, const BaseReg& index, const Shift& shift, Signature signature = Signature{0}) noexcept
     : BaseMem(Signature::fromOpType(OperandType::kMem) |
-              Signature::fromMemBaseType(base.type()) |
-              Signature::fromMemIndexType(index.type()) |
+              Signature::fromMemBaseType(base.regType()) |
+              Signature::fromMemIndexType(index.regType()) |
               Signature::fromValue<kSignatureMemShiftOpMask>(uint32_t(shift.op())) |
               Signature::fromValue<kSignatureMemShiftValueMask>(shift.value()) |
               signature, base.id(), index.id(), 0) {}

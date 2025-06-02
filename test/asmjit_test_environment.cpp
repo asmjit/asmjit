@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include <asmjit/core.h>
@@ -16,6 +16,21 @@
 #include "asmjitutils.h"
 
 using namespace asmjit;
+
+static void printAppInfo() {
+  printf("AsmJit Environment Test v%u.%u.%u [Arch=%s] [Mode=%s]\n\n",
+    unsigned((ASMJIT_LIBRARY_VERSION >> 16)       ),
+    unsigned((ASMJIT_LIBRARY_VERSION >>  8) & 0xFF),
+    unsigned((ASMJIT_LIBRARY_VERSION      ) & 0xFF),
+    asmjitArchAsString(Arch::kHost),
+    asmjitBuildType()
+  );
+
+  printf("This application can be used to verify AsmJit build options and to verify the\n");
+  printf("environment where it runs. For example to check CPU extensions available, system\n");
+  printf("hardening (RWX restrictions), large page support, and virtual memory allocations.\n");
+  printf("\n");
+}
 
 using VoidFunc = void (ASMJIT_CDECL*)(void);
 
@@ -227,18 +242,7 @@ static void printVirtMemInfo() noexcept {
 #endif // !ASMJIT_NO_JIT
 
 int main() {
-  printf("AsmJit Environment Test v%u.%u.%u [Arch=%s]\n\n",
-    unsigned((ASMJIT_LIBRARY_VERSION >> 16)       ),
-    unsigned((ASMJIT_LIBRARY_VERSION >>  8) & 0xFF),
-    unsigned((ASMJIT_LIBRARY_VERSION      ) & 0xFF),
-    asmjitArchAsString(Arch::kHost)
-  );
-
-  printf("This application can be used to verify AsmJit build options and to verify the\n");
-  printf("environment where it runs. For example to check CPU extensions available, system\n");
-  printf("hardening (RWX restrictions), large page support, and virtual memory allocations.\n");
-  printf("\n");
-
+  printAppInfo();
   printBuildOptions();
   printCpuInfo();
 

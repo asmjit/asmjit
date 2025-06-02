@@ -1,17 +1,28 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include <asmjit/core.h>
 
 #if !defined(ASMJIT_NO_X86)
-#include <asmjit/x86.h>
+  #include <asmjit/x86.h>
 #endif
 
 #include <stdio.h>
+#include "asmjitutils.h"
 
 using namespace asmjit;
+
+static void printAppInfo() noexcept {
+  printf("AsmJit Instruction Info Test Suite v%u.%u.%u [Arch=%s] [Mode=%s]\n\n",
+    unsigned((ASMJIT_LIBRARY_VERSION >> 16)       ),
+    unsigned((ASMJIT_LIBRARY_VERSION >>  8) & 0xFF),
+    unsigned((ASMJIT_LIBRARY_VERSION      ) & 0xFF),
+    asmjitArchAsString(Arch::kHost),
+    asmjitBuildType()
+  );
+}
 
 namespace {
 
@@ -187,12 +198,7 @@ static void testX86Arch() {
 } // {anonymous}
 
 int main() {
-  printf("AsmJit Instruction Info Test-Suite v%u.%u.%u\n",
-    unsigned((ASMJIT_LIBRARY_VERSION >> 16)       ),
-    unsigned((ASMJIT_LIBRARY_VERSION >>  8) & 0xFF),
-    unsigned((ASMJIT_LIBRARY_VERSION      ) & 0xFF));
-  printf("\n");
-
+  printAppInfo();
   testX86Arch();
 
   return 0;

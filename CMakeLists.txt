@@ -43,6 +43,14 @@ if (ASMJIT_EMBED AND NOT ASMJIT_STATIC)
   set(ASMJIT_STATIC TRUE)
 endif()
 
+if (NOT DEFINED ASMJIT_NO_DEPRECATED)
+  set(ASMJIT_NO_DEPRECATED FALSE)
+endif()
+
+if (NOT DEFINED ASMJIT_NO_ABI_NAMESPACE)
+  set(ASMJIT_NO_ABI_NAMESPACE FALSE)
+endif()
+
 # AsmJit - Configuration - Backend
 # ================================
 
@@ -60,10 +68,6 @@ endif()
 
 # AsmJit - Configuration - Features
 # =================================
-
-if (NOT DEFINED ASMJIT_NO_DEPRECATED)
-  set(ASMJIT_NO_DEPRECATED FALSE)
-endif()
 
 if (NOT DEFINED ASMJIT_NO_SHM_OPEN)
   set(ASMJIT_NO_SHM_OPEN FALSE)
@@ -101,6 +105,14 @@ if (NOT DEFINED ASMJIT_NO_COMPILER)
   endif()
 endif()
 
+if (NOT DEFINED ASMJIT_NO_UJIT)
+  if (ASMJIT_NO_COMPILER)
+    set(ASMJIT_NO_UJIT TRUE)
+  else()
+    set(ASMJIT_NO_UJIT FALSE)
+  endif()
+endif()
+
 # AsmJit - Configuration - CMake Introspection
 # ============================================
 
@@ -117,14 +129,17 @@ set(ASMJIT_NO_AARCH64       "${ASMJIT_NO_AARCH64}"       CACHE BOOL "Disable AAr
 set(ASMJIT_NO_FOREIGN       "${ASMJIT_NO_FOREIGN}"       CACHE BOOL "Disable all foreign architectures (enables only a target architecture)")
 
 set(ASMJIT_NO_DEPRECATED    "${ASMJIT_NO_DEPRECATED}"    CACHE BOOL "Disable deprecated API at build time")
+set(ASMJIT_NO_ABI_NAMESPACE "${ASMJIT_NO_ABI_NAMESPACE}" CACHE BOOL "Disable the use of ABI namespace (inline namespace in {asmjit} adding ABI version)")
+
 set(ASMJIT_NO_SHM_OPEN      "${ASMJIT_NO_SHM_OPEN}"      CACHE BOOL "Disable the use of shm_open() even on platforms where it's supported")
 set(ASMJIT_NO_JIT           "${ASMJIT_NO_JIT}"           CACHE BOOL "Disable VirtMem, JitAllocator, and JitRuntime at build time")
 set(ASMJIT_NO_TEXT          "${ASMJIT_NO_TEXT}"          CACHE BOOL "Disable textual representation of instructions, enums, cpu features, ...")
 set(ASMJIT_NO_LOGGING       "${ASMJIT_NO_LOGGING}"       CACHE BOOL "Disable logging features at build time")
 set(ASMJIT_NO_VALIDATION    "${ASMJIT_NO_VALIDATION}"    CACHE BOOL "Disable instruction validation API at build time")
 set(ASMJIT_NO_INTROSPECTION "${ASMJIT_NO_INTROSPECTION}" CACHE BOOL "Disable instruction introspection API at build time")
-set(ASMJIT_NO_BUILDER       "${ASMJIT_NO_BUILDER}"       CACHE BOOL "Disable Builder emitter at build time")
-set(ASMJIT_NO_COMPILER      "${ASMJIT_NO_COMPILER}"      CACHE BOOL "Disable Compiler emitter at build time")
+set(ASMJIT_NO_BUILDER       "${ASMJIT_NO_BUILDER}"       CACHE BOOL "Disable Builder at build time")
+set(ASMJIT_NO_COMPILER      "${ASMJIT_NO_COMPILER}"      CACHE BOOL "Disable Compiler at build time")
+set(ASMJIT_NO_UJIT          "${ASMJIT_NO_UJIT}"          CACHE BOOL "Disable UniCompiler at build time")
 
 # AsmJit - Project
 # ================
@@ -333,18 +348,21 @@ endif()
 foreach(build_option # AsmJit build options.
                      ASMJIT_STATIC
                      ASMJIT_NO_DEPRECATED
+                     ASMJIT_NO_ABI_NAMESPACE
                      # AsmJit backends selection.
                      ASMJIT_NO_X86
                      ASMJIT_NO_AARCH64
                      ASMJIT_NO_FOREIGN
                      # AsmJit features selection.
+                     ASMJIT_NO_SHM_OPEN
                      ASMJIT_NO_JIT
                      ASMJIT_NO_TEXT
                      ASMJIT_NO_LOGGING
                      ASMJIT_NO_INTROSPECTION
                      ASMJIT_NO_VALIDATION
                      ASMJIT_NO_BUILDER
-                     ASMJIT_NO_COMPILER)
+                     ASMJIT_NO_COMPILER
+                     ASMJIT_NO_UJIT)
   if (${build_option})
     List(APPEND ASMJIT_CFLAGS         "-D${build_option}")
     List(APPEND ASMJIT_PRIVATE_CFLAGS "-D${build_option}")
@@ -513,6 +531,14 @@ set(ASMJIT_SRC_LIST
   asmjit/x86/x86operand.h
   asmjit/x86/x86rapass.cpp
   asmjit/x86/x86rapass_p.h
+
+  asmjit/ujit/ujitbase.h
+  asmjit/ujit/unicompiler_a64.cpp
+  asmjit/ujit/unicompiler_x86.cpp
+  asmjit/ujit/unicompiler.h
+  asmjit/ujit/uniop.h
+  asmjit/ujit/vecconsttable.cpp
+  asmjit/ujit/vecconsttable.h
 )
 
 if (MSVC AND NOT ASMJIT_NO_NATVIS)
@@ -655,29 +681,54 @@ if (NOT ASMJIT_EMBED)
       set(ASMJIT_SSE2_CFLAGS "")
 
       check_cxx_source_compiles("
-        #if defined(_M_IX86) || defined(__X86__) || defined(__i386__)
-          int target_is_32_bit_x86() { return 1; }
-        #else
-          // Compile error...
+        #if defined(_M_X64) || defined(__x86_64__)
+          // Skip...
+        #elif defined(_M_IX86) || defined(__X86__) || defined(__i386__)
+          int target_arch_is_x86() { return 1; }
         #endif
+        int main() { return target_arch_is_x86(); }
+        " ASMJIT_TARGET_ARCH_X86)
 
-        int main() {
-          return target_is_32_bit_x86();
-        }
-        " ASMJIT_TARGET_IS_32_BIT_X86)
+      check_cxx_source_compiles("
+        #if defined(_M_X64) || defined(__x86_64__)
+          int target_arch_is_x86_64() { return 1; }
+        #endif
+        int main() { return target_arch_is_x86_64(); }
+        " ASMJIT_TARGET_ARCH_X86_64)
 
-      if (ASMJIT_TARGET_IS_32_BIT_X86)
-        if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" OR "x${CMAKE_CXX_COMPILER_FRONTEND_VARIANT}" STREQUAL "xMSVC")
-          asmjit_detect_cflags(ASMJIT_SSE2_CFLAGS "-arch:SSE2")
-        else()
-          asmjit_detect_cflags(ASMJIT_SSE2_CFLAGS "-msse2")
+      if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" OR "x${CMAKE_CXX_COMPILER_FRONTEND_VARIANT}" STREQUAL "xMSVC")
+        if (ASMJIT_TARGET_ARCH_X86)
+          asmjit_detect_cflags(ASMJIT_SSE2_CFLAGS -arch:SSE2)
+        endif()
+        if (ASMJIT_TARGET_ARCH_X86 OR ASMJIT_TARGET_ARCH_X86_64)
+          asmjit_detect_cflags(ASMJIT_AVX2FMA_CFLAGS -arch:AVX2)
+        endif()
+      else()
+        if (ASMJIT_TARGET_ARCH_X86)
+          asmjit_detect_cflags(ASMJIT_SSE2_CFLAGS -msse2)
+        endif()
+        if (ASMJIT_TARGET_ARCH_X86 OR ASMJIT_TARGET_ARCH_X86_64)
+          asmjit_detect_cflags(ASMJIT_AVX2FMA_CFLAGS -mavx2 -mfma)
         endif()
       endif()
+
+      set_property(SOURCE test/asmjit_test_unicompiler_avx2fma.cpp APPEND PROPERTY COMPILE_OPTIONS ${ASMJIT_AVX2FMA_CFLAGS})
+
       asmjit_add_target(asmjit_test_compiler TEST
                         SOURCES    test/asmjit_test_compiler.cpp
                                    test/asmjit_test_compiler.h
                                    test/asmjit_test_compiler_a64.cpp
                                    test/asmjit_test_compiler_x86.cpp
+                        LIBRARIES  asmjit::asmjit
+                        CFLAGS     ${ASMJIT_PRIVATE_CFLAGS} ${ASMJIT_SSE2_CFLAGS}
+                        CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
+                        CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
+
+      asmjit_add_target(asmjit_test_unicompiler TEST
+                        SOURCES    test/asmjit_test_unicompiler.cpp
+                                   test/asmjit_test_unicompiler_sse2.cpp
+                                   test/asmjit_test_unicompiler_avx2fma.cpp
+                                   test/broken.cpp
                         LIBRARIES  asmjit::asmjit
                         CFLAGS     ${ASMJIT_PRIVATE_CFLAGS} ${ASMJIT_SSE2_CFLAGS}
                         CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}

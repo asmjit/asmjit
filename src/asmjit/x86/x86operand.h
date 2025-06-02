@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_X86_X86OPERAND_H_INCLUDED
@@ -40,37 +40,6 @@ class Bnd;
 class Tmm;
 class Rip;
 
-//! Register traits (X86).
-//!
-//! Register traits contains information about a particular register type. It's used by asmjit to setup register
-//! information on-the-fly and to populate tables that contain register information (this way it's possible to change
-//! register types and groups without having to reorder these tables).
-template<RegType kRegType>
-struct RegTraits : public BaseRegTraits {};
-
-//! \cond
-// <--------------------+------------------------+------------------------+---+------------------+
-//                      |       Reg-Type         |        Reg-Group       |Sz |      TypeId      |
-// <--------------------+------------------------+------------------------+---+------------------+
-ASMJIT_DEFINE_REG_TRAITS(RegType::kX86_Rip       , RegGroup::kX86_Rip     , 0 , TypeId::kVoid    );
-ASMJIT_DEFINE_REG_TRAITS(RegType::kX86_GpbLo     , RegGroup::kGp          , 1 , TypeId::kInt8    );
-ASMJIT_DEFINE_REG_TRAITS(RegType::kX86_GpbHi     , RegGroup::kGp          , 1 , TypeId::kInt8    );
-ASMJIT_DEFINE_REG_TRAITS(RegType::kX86_Gpw       , RegGroup::kGp          , 2 , TypeId::kInt16   );
-ASMJIT_DEFINE_REG_TRAITS(RegType::kX86_Gpd       , RegGroup::kGp          , 4 , TypeId::kInt32   );
-ASMJIT_DEFINE_REG_TRAITS(RegType::kX86_Gpq       , RegGroup::kGp          , 8 , TypeId::kInt64   );
-ASMJIT_DEFINE_REG_TRAITS(RegType::kX86_Xmm       , RegGroup::kVec         , 16, TypeId::kInt32x4 );
-ASMJIT_DEFINE_REG_TRAITS(RegType::kX86_Ymm       , RegGroup::kVec         , 32, TypeId::kInt32x8 );
-ASMJIT_DEFINE_REG_TRAITS(RegType::kX86_Zmm       , RegGroup::kVec         , 64, TypeId::kInt32x16);
-ASMJIT_DEFINE_REG_TRAITS(RegType::kX86_KReg      , RegGroup::kX86_K       , 0 , TypeId::kVoid    );
-ASMJIT_DEFINE_REG_TRAITS(RegType::kX86_Mm        , RegGroup::kX86_MM      , 8 , TypeId::kMmx64   );
-ASMJIT_DEFINE_REG_TRAITS(RegType::kX86_SReg      , RegGroup::kX86_SReg    , 2 , TypeId::kVoid    );
-ASMJIT_DEFINE_REG_TRAITS(RegType::kX86_CReg      , RegGroup::kX86_CReg    , 0 , TypeId::kVoid    );
-ASMJIT_DEFINE_REG_TRAITS(RegType::kX86_DReg      , RegGroup::kX86_DReg    , 0 , TypeId::kVoid    );
-ASMJIT_DEFINE_REG_TRAITS(RegType::kX86_St        , RegGroup::kX86_St      , 10, TypeId::kFloat80 );
-ASMJIT_DEFINE_REG_TRAITS(RegType::kX86_Bnd       , RegGroup::kX86_Bnd     , 16, TypeId::kVoid    );
-ASMJIT_DEFINE_REG_TRAITS(RegType::kX86_Tmm       , RegGroup::kX86_Tmm     , 0 , TypeId::kVoid    );
-//! \endcond
-
 //! Register (X86).
 class Reg : public BaseReg {
 public:
@@ -82,55 +51,55 @@ public:
 
   //! Tests whether the register is a low GPB register (8-bit).
   [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isGpbLo() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_GpbLo>::kSignature); }
+  ASMJIT_INLINE_CONSTEXPR bool isGpbLo() const noexcept { return hasBaseSignature(RegTraits<RegType::kGp8Lo>::kSignature); }
 
   //! Tests whether the register is a high GPB register (8-bit).
   [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isGpbHi() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_GpbHi>::kSignature); }
+  ASMJIT_INLINE_CONSTEXPR bool isGpbHi() const noexcept { return hasBaseSignature(RegTraits<RegType::kGp8Hi>::kSignature); }
 
   //! Tests whether the register is a GPW register (16-bit).
   [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isGpw() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Gpw>::kSignature); }
+  ASMJIT_INLINE_CONSTEXPR bool isGpw() const noexcept { return hasBaseSignature(RegTraits<RegType::kGp16>::kSignature); }
 
   //! Tests whether the register is a GPD register (32-bit).
   [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isGpd() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Gpd>::kSignature); }
+  ASMJIT_INLINE_CONSTEXPR bool isGpd() const noexcept { return hasBaseSignature(RegTraits<RegType::kGp32>::kSignature); }
 
   //! Tests whether the register is a GPQ register (64-bit).
   [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isGpq() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Gpq>::kSignature); }
+  ASMJIT_INLINE_CONSTEXPR bool isGpq() const noexcept { return hasBaseSignature(RegTraits<RegType::kGp64>::kSignature); }
 
   //! Tests whether the register is a 32-bit general purpose register, alias of \ref isGpd().
   [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isGp32() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Gpd>::kSignature); }
+  ASMJIT_INLINE_CONSTEXPR bool isGp32() const noexcept { return hasBaseSignature(RegTraits<RegType::kGp32>::kSignature); }
 
   //! Tests whether the register is a 64-bit general purpose register, alias of \ref isGpq()
   [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isGp64() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Gpq>::kSignature); }
+  ASMJIT_INLINE_CONSTEXPR bool isGp64() const noexcept { return hasBaseSignature(RegTraits<RegType::kGp64>::kSignature); }
 
   //! Tests whether the register is an XMM register (128-bit).
   [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isXmm() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Xmm>::kSignature); }
+  ASMJIT_INLINE_CONSTEXPR bool isXmm() const noexcept { return hasBaseSignature(RegTraits<RegType::kVec128>::kSignature); }
 
   //! Tests whether the register is a YMM register (256-bit).
   [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isYmm() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Ymm>::kSignature); }
+  ASMJIT_INLINE_CONSTEXPR bool isYmm() const noexcept { return hasBaseSignature(RegTraits<RegType::kVec256>::kSignature); }
 
   //! Tests whether the register is a ZMM register (512-bit).
   [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isZmm() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Zmm>::kSignature); }
+  ASMJIT_INLINE_CONSTEXPR bool isZmm() const noexcept { return hasBaseSignature(RegTraits<RegType::kVec512>::kSignature); }
 
   //! Tests whether the register is a 128-bit vector register, alias of \ref isXmm().
   [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isVec128() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Xmm>::kSignature); }
+  ASMJIT_INLINE_CONSTEXPR bool isVec128() const noexcept { return hasBaseSignature(RegTraits<RegType::kVec128>::kSignature); }
 
   //! Tests whether the register is a 256-bit vector register, alias of \ref isYmm().
   [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isVec256() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Ymm>::kSignature); }
+  ASMJIT_INLINE_CONSTEXPR bool isVec256() const noexcept { return hasBaseSignature(RegTraits<RegType::kVec256>::kSignature); }
 
   //! Tests whether the register is a 512-bit vector register, alias of \ref isZmm().
   [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isVec512() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Zmm>::kSignature); }
+  ASMJIT_INLINE_CONSTEXPR bool isVec512() const noexcept { return hasBaseSignature(RegTraits<RegType::kVec512>::kSignature); }
 
   //! Tests whether the register is an MMX register (64-bit).
   [[nodiscard]]
@@ -138,7 +107,7 @@ public:
 
   //! Tests whether the register is a K register (64-bit).
   [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isKReg() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_KReg>::kSignature); }
+  ASMJIT_INLINE_CONSTEXPR bool isKReg() const noexcept { return hasBaseSignature(RegTraits<RegType::kMask>::kSignature); }
 
   //! Tests whether the register is a segment register.
   [[nodiscard]]
@@ -166,7 +135,7 @@ public:
 
   //! Tests whether the register is RIP.
   [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isRip() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Rip>::kSignature); }
+  ASMJIT_INLINE_CONSTEXPR bool isRip() const noexcept { return hasBaseSignature(RegTraits<RegType::kPC>::kSignature); }
 
   template<RegType REG_TYPE>
   ASMJIT_INLINE_NODEBUG void setRegT(uint32_t rId) noexcept {
@@ -202,16 +171,16 @@ public:
 
   [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG OperandSignature signatureOfVecByType(TypeId typeId) noexcept {
-    return OperandSignature{typeId <= TypeId::_kVec128End ? uint32_t(RegTraits<RegType::kX86_Xmm>::kSignature) :
-                            typeId <= TypeId::_kVec256End ? uint32_t(RegTraits<RegType::kX86_Ymm>::kSignature) :
-                                                            uint32_t(RegTraits<RegType::kX86_Zmm>::kSignature)};
+    return OperandSignature{typeId <= TypeId::_kVec128End ? uint32_t(RegTraits<RegType::kVec128>::kSignature) :
+                            typeId <= TypeId::_kVec256End ? uint32_t(RegTraits<RegType::kVec256>::kSignature) :
+                                                            uint32_t(RegTraits<RegType::kVec512>::kSignature)};
   }
 
   [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG OperandSignature signatureOfVecBySize(uint32_t size) noexcept {
-    return OperandSignature{size <= 16 ? uint32_t(RegTraits<RegType::kX86_Xmm>::kSignature) :
-                            size <= 32 ? uint32_t(RegTraits<RegType::kX86_Ymm>::kSignature) :
-                                         uint32_t(RegTraits<RegType::kX86_Zmm>::kSignature)};
+    return OperandSignature{size <= 16 ? uint32_t(RegTraits<RegType::kVec128>::kSignature) :
+                            size <= 32 ? uint32_t(RegTraits<RegType::kVec256>::kSignature) :
+                                         uint32_t(RegTraits<RegType::kVec512>::kSignature)};
   }
 
   //! Tests whether the `op` operand is either a low or high 8-bit GPB register.
@@ -412,7 +381,7 @@ class Vec : public Reg {
   //! Casts this register to a register that has half the size (or XMM if it's already XMM).
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Vec half() const noexcept {
-    return Vec(type() == RegType::kX86_Zmm ? signatureOfT<RegType::kX86_Ymm>() : signatureOfT<RegType::kX86_Xmm>(), id());
+    return Vec(regType() == RegType::kVec512 ? signatureOfT<RegType::kVec256>() : signatureOfT<RegType::kVec128>(), id());
   }
 };
 
@@ -449,41 +418,41 @@ class SReg : public Reg {
 //! GPB low or high register (X86).
 class Gpb : public Gp { ASMJIT_DEFINE_ABSTRACT_REG(Gpb, Gp) };
 //! GPB low register (X86).
-class GpbLo : public Gpb { ASMJIT_DEFINE_FINAL_REG(GpbLo, Gpb, RegTraits<RegType::kX86_GpbLo>) };
+class GpbLo : public Gpb { ASMJIT_DEFINE_FINAL_REG(GpbLo, Gpb, RegTraits<RegType::kGp8Lo>) };
 //! GPB high register (X86).
-class GpbHi : public Gpb { ASMJIT_DEFINE_FINAL_REG(GpbHi, Gpb, RegTraits<RegType::kX86_GpbHi>) };
+class GpbHi : public Gpb { ASMJIT_DEFINE_FINAL_REG(GpbHi, Gpb, RegTraits<RegType::kGp8Hi>) };
 //! GPW register (X86).
-class Gpw : public Gp { ASMJIT_DEFINE_FINAL_REG(Gpw, Gp, RegTraits<RegType::kX86_Gpw>) };
+class Gpw : public Gp { ASMJIT_DEFINE_FINAL_REG(Gpw, Gp, RegTraits<RegType::kGp16>) };
 //! GPD register (X86).
-class Gpd : public Gp { ASMJIT_DEFINE_FINAL_REG(Gpd, Gp, RegTraits<RegType::kX86_Gpd>) };
+class Gpd : public Gp { ASMJIT_DEFINE_FINAL_REG(Gpd, Gp, RegTraits<RegType::kGp32>) };
 //! GPQ register (X86_64).
-class Gpq : public Gp { ASMJIT_DEFINE_FINAL_REG(Gpq, Gp, RegTraits<RegType::kX86_Gpq>) };
+class Gpq : public Gp { ASMJIT_DEFINE_FINAL_REG(Gpq, Gp, RegTraits<RegType::kGp64>) };
 
 //! 128-bit XMM register (SSE+).
 class Xmm : public Vec {
-  ASMJIT_DEFINE_FINAL_REG(Xmm, Vec, RegTraits<RegType::kX86_Xmm>)
+  ASMJIT_DEFINE_FINAL_REG(Xmm, Vec, RegTraits<RegType::kVec128>)
   //! Casts this register to a register that has half the size (XMM).
   ASMJIT_INLINE_NODEBUG Xmm half() const noexcept { return Xmm(id()); }
 };
 
 //! 256-bit YMM register (AVX+).
 class Ymm : public Vec {
-  ASMJIT_DEFINE_FINAL_REG(Ymm, Vec, RegTraits<RegType::kX86_Ymm>)
+  ASMJIT_DEFINE_FINAL_REG(Ymm, Vec, RegTraits<RegType::kVec256>)
   //! Casts this register to a register that has half the size (XMM).
   ASMJIT_INLINE_NODEBUG Xmm half() const noexcept { return Xmm(id()); }
 };
 
 //! 512-bit ZMM register (AVX512+).
 class Zmm : public Vec {
-  ASMJIT_DEFINE_FINAL_REG(Zmm, Vec, RegTraits<RegType::kX86_Zmm>)
+  ASMJIT_DEFINE_FINAL_REG(Zmm, Vec, RegTraits<RegType::kVec512>)
   //! Casts this register to a register that has half the size (YMM).
   ASMJIT_INLINE_NODEBUG Ymm half() const noexcept { return Ymm(id()); }
 };
 
+//! 64-bit K register (AVX512+).
+class KReg : public Reg { ASMJIT_DEFINE_FINAL_REG(KReg, Reg, RegTraits<RegType::kMask>) };
 //! 64-bit MMX register (MMX+).
 class Mm : public Reg { ASMJIT_DEFINE_FINAL_REG(Mm, Reg, RegTraits<RegType::kX86_Mm>) };
-//! 64-bit K register (AVX512+).
-class KReg : public Reg { ASMJIT_DEFINE_FINAL_REG(KReg, Reg, RegTraits<RegType::kX86_KReg>) };
 //! 32-bit or 64-bit control register (X86).
 class CReg : public Reg { ASMJIT_DEFINE_FINAL_REG(CReg, Reg, RegTraits<RegType::kX86_CReg>) };
 //! 32-bit or 64-bit debug register (X86).
@@ -495,7 +464,7 @@ class Bnd : public Reg { ASMJIT_DEFINE_FINAL_REG(Bnd, Reg, RegTraits<RegType::kX
 //! 8192-bit TMM register (AMX).
 class Tmm : public Reg { ASMJIT_DEFINE_FINAL_REG(Tmm, Reg, RegTraits<RegType::kX86_Tmm>) };
 //! RIP register (X86).
-class Rip : public Reg { ASMJIT_DEFINE_FINAL_REG(Rip, Reg, RegTraits<RegType::kX86_Rip>) };
+class Rip : public Reg { ASMJIT_DEFINE_FINAL_REG(Rip, Reg, RegTraits<RegType::kPC>) };
 
 //! \cond
 ASMJIT_INLINE_NODEBUG GpbLo Gp::r8() const noexcept { return GpbLo(id()); }
@@ -557,13 +526,13 @@ static ASMJIT_INLINE_CONSTEXPR Ymm ymm(uint32_t rId) noexcept { return Ymm(rId);
 [[nodiscard]]
 static ASMJIT_INLINE_CONSTEXPR Zmm zmm(uint32_t rId) noexcept { return Zmm(rId); }
 
-//! Creates a 64-bit Mm register operand.
-[[nodiscard]]
-static ASMJIT_INLINE_CONSTEXPR Mm mm(uint32_t rId) noexcept { return Mm(rId); }
-
 //! Creates a 64-bit K register operand.
 [[nodiscard]]
 static ASMJIT_INLINE_CONSTEXPR KReg k(uint32_t rId) noexcept { return KReg(rId); }
+
+//! Creates a 64-bit MM register operand.
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Mm mm(uint32_t rId) noexcept { return Mm(rId); }
 
 //! Creates a 32-bit or 64-bit control register operand.
 [[nodiscard]]
@@ -936,21 +905,21 @@ public:
   ASMJIT_INLINE_CONSTEXPR Mem(const Label& base, const BaseReg& index, uint32_t shift, int32_t off, uint32_t size = 0, Signature signature = OperandSignature{0}) noexcept
     : BaseMem(Signature::fromOpType(OperandType::kMem) |
               Signature::fromMemBaseType(RegType::kLabelTag) |
-              Signature::fromMemIndexType(index.type()) |
+              Signature::fromMemIndexType(index.regType()) |
               Signature::fromValue<kSignatureMemShiftValueMask>(shift) |
               Signature::fromSize(size) |
               signature, base.id(), index.id(), off) {}
 
   ASMJIT_INLINE_CONSTEXPR Mem(const BaseReg& base, int32_t off, uint32_t size = 0, Signature signature = OperandSignature{0}) noexcept
     : BaseMem(Signature::fromOpType(OperandType::kMem) |
-              Signature::fromMemBaseType(base.type()) |
+              Signature::fromMemBaseType(base.regType()) |
               Signature::fromSize(size) |
               signature, base.id(), 0, off) {}
 
   ASMJIT_INLINE_CONSTEXPR Mem(const BaseReg& base, const BaseReg& index, uint32_t shift, int32_t off, uint32_t size = 0, Signature signature = OperandSignature{0}) noexcept
     : BaseMem(Signature::fromOpType(OperandType::kMem) |
-              Signature::fromMemBaseType(base.type()) |
-              Signature::fromMemIndexType(index.type()) |
+              Signature::fromMemBaseType(base.regType()) |
+              Signature::fromMemIndexType(index.regType()) |
               Signature::fromValue<kSignatureMemShiftValueMask>(shift) |
               Signature::fromSize(size) |
               signature, base.id(), index.id(), off) {}
@@ -962,7 +931,7 @@ public:
 
   ASMJIT_INLINE_CONSTEXPR Mem(uint64_t base, const BaseReg& index, uint32_t shift = 0, uint32_t size = 0, Signature signature = OperandSignature{0}) noexcept
     : BaseMem(Signature::fromOpType(OperandType::kMem) |
-              Signature::fromMemIndexType(index.type()) |
+              Signature::fromMemIndexType(index.regType()) |
               Signature::fromValue<kSignatureMemShiftValueMask>(shift) |
               Signature::fromSize(size) |
               signature, uint32_t(base >> 32), index.id(), int32_t(uint32_t(base & 0xFFFFFFFFu))) {}

@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_CORE_SUPPORT_H_INCLUDED
@@ -39,12 +39,12 @@ namespace Internal {
   template<> struct AliasedUInt<uint32_t, 4> { typedef uint32_t ASMJIT_MAY_ALIAS T; };
   template<> struct AliasedUInt<uint64_t, 8> { typedef uint64_t ASMJIT_MAY_ALIAS T; };
 
-  template<> struct AliasedUInt<uint16_t, 1> { typedef uint16_t ASMJIT_MAY_ALIAS ASMJIT_ALIGN_TYPE(T, 1); };
-  template<> struct AliasedUInt<uint32_t, 1> { typedef uint32_t ASMJIT_MAY_ALIAS ASMJIT_ALIGN_TYPE(T, 1); };
-  template<> struct AliasedUInt<uint32_t, 2> { typedef uint32_t ASMJIT_MAY_ALIAS ASMJIT_ALIGN_TYPE(T, 2); };
-  template<> struct AliasedUInt<uint64_t, 1> { typedef uint64_t ASMJIT_MAY_ALIAS ASMJIT_ALIGN_TYPE(T, 1); };
-  template<> struct AliasedUInt<uint64_t, 2> { typedef uint64_t ASMJIT_MAY_ALIAS ASMJIT_ALIGN_TYPE(T, 2); };
-  template<> struct AliasedUInt<uint64_t, 4> { typedef uint64_t ASMJIT_MAY_ALIAS ASMJIT_ALIGN_TYPE(T, 4); };
+  template<> struct AliasedUInt<uint16_t, 1> { typedef uint16_t ASMJIT_MAY_ALIAS ASMJIT_ALIGN_TYPE(1, T); };
+  template<> struct AliasedUInt<uint32_t, 1> { typedef uint32_t ASMJIT_MAY_ALIAS ASMJIT_ALIGN_TYPE(1, T); };
+  template<> struct AliasedUInt<uint32_t, 2> { typedef uint32_t ASMJIT_MAY_ALIAS ASMJIT_ALIGN_TYPE(2, T); };
+  template<> struct AliasedUInt<uint64_t, 1> { typedef uint64_t ASMJIT_MAY_ALIAS ASMJIT_ALIGN_TYPE(1, T); };
+  template<> struct AliasedUInt<uint64_t, 2> { typedef uint64_t ASMJIT_MAY_ALIAS ASMJIT_ALIGN_TYPE(2, T); };
+  template<> struct AliasedUInt<uint64_t, 4> { typedef uint64_t ASMJIT_MAY_ALIAS ASMJIT_ALIGN_TYPE(4, T); };
 
   // StdInt    - Make an int-type by size (signed or unsigned) that is the
   //             same as types defined by <stdint.h>.
@@ -120,6 +120,25 @@ struct EnumValues {
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Iterator end() const noexcept { return Iterator{ValueType(to) + 1}; }
 };
+
+// Support - Boolean Operations
+// ============================
+
+namespace Internal {
+  static ASMJIT_INLINE_CONSTEXPR unsigned unsigned_from_bool(bool b) noexcept {
+    return unsigned(b);
+  }
+}
+
+template<typename... Args>
+static ASMJIT_INLINE_CONSTEXPR bool bool_and(Args&&... args) noexcept {
+  return bool( (... & Internal::unsigned_from_bool(args)) );
+}
+
+template<typename... Args>
+static ASMJIT_INLINE_CONSTEXPR bool bool_or(Args&&... args) noexcept {
+  return bool( (... | Internal::unsigned_from_bool(args)) );
+}
 
 // Support - BitCast
 // =================
@@ -637,7 +656,7 @@ namespace Internal {
   inline T subOverflowFallback(T x, T y, FastUInt8* of) noexcept {
     using U = std::make_unsigned_t<T>;
 
-    U result = U(x) - U(y);
+    U result = U(U(x) - U(y));
     *of = FastUInt8(*of | FastUInt8(std::is_unsigned_v<T> ? result > U(x) : T((U(x) ^ U(y)) & (U(x) ^ result)) < 0));
     return T(result);
   }

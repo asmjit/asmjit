@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
@@ -63,8 +63,8 @@ UNIT(operand) {
   EXPECT_TRUE(r1.isPhysReg());
   EXPECT_FALSE(r1.isVirtReg());
   EXPECT_EQ(r1.signature(), rSig);
-  EXPECT_EQ(r1.type(), RegType::kVec128);
-  EXPECT_EQ(r1.group(), RegGroup::kVec);
+  EXPECT_EQ(r1.regType(), RegType::kVec128);
+  EXPECT_EQ(r1.regGroup(), RegGroup::kVec);
   EXPECT_EQ(r1.size(), 8u);
   EXPECT_EQ(r1.id(), 5u);
   EXPECT_TRUE(r1.isReg(RegType::kVec128, 5)); // RegType and Id.
@@ -79,8 +79,8 @@ UNIT(operand) {
   EXPECT_TRUE(r2.isPhysReg());
   EXPECT_FALSE(r2.isVirtReg());
   EXPECT_EQ(r2.signature(), rSig);
-  EXPECT_EQ(r2.type(), r1.type());
-  EXPECT_EQ(r2.group(), r1.group());
+  EXPECT_EQ(r2.regType(), r1.regType());
+  EXPECT_EQ(r2.regGroup(), r1.regGroup());
   EXPECT_EQ(r2.size(), r1.size());
   EXPECT_EQ(r2.id(), 6u);
   EXPECT_TRUE(r2.isReg(RegType::kVec128, 6));
