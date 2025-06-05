@@ -1299,14 +1299,17 @@ void X86RAPass::onInit() noexcept {
   _scratchRegIndexes[0] = uint8_t(Gp::kIdCx);
   _scratchRegIndexes[1] = uint8_t(baseRegCount - 1);
 
+  const FuncFrame& frame = _func->frame();
+
   // The architecture specific setup makes implicitly all registers available. So
   // make unavailable all registers that are special and cannot be used in general.
-  bool hasFP = _func->frame().hasPreservedFP();
+  bool hasFP = frame.hasPreservedFP();
 
   makeUnavailable(RegGroup::kGp, Gp::kIdSp);   // ESP|RSP used as a stack-pointer (SP).
   if (hasFP) {
     makeUnavailable(RegGroup::kGp, Gp::kIdBp); // EBP|RBP used as a frame-pointer (FP).
   }
+  makeUnavailable(frame._unavailableRegs);
 
   _sp = cc()->zsp();
   _fp = cc()->zbp();

@@ -654,18 +654,20 @@ void ARMRAPass::onInit() noexcept {
   _scratchRegIndexes[0] = uint8_t(27);
   _scratchRegIndexes[1] = uint8_t(28);
 
+  const FuncFrame& frame = _func->frame();
+
   // The architecture specific setup makes implicitly all registers available. So
   // make unavailable all registers that are special and cannot be used in general.
-  bool hasFP = _func->frame().hasPreservedFP();
+  bool hasFP = frame.hasPreservedFP();
 
   // Apple ABI requires that the frame-pointer register is not changed by leaf functions and properly updated
   // by non-leaf functions. So, let's make this register unavailable as it's just not safe to update it.
   if (hasFP || cc()->environment().isDarwin()) {
     makeUnavailable(RegGroup::kGp, Gp::kIdFp);
   }
-
   makeUnavailable(RegGroup::kGp, Gp::kIdSp);
   makeUnavailable(RegGroup::kGp, Gp::kIdOs); // OS-specific use, usually TLS.
+  makeUnavailable(frame._unavailableRegs);
 
   _sp = sp;
   _fp = x29;
