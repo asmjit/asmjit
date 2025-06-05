@@ -1309,18 +1309,7 @@ void X86RAPass::onInit() noexcept {
   if (hasFP) {
     makeUnavailable(RegGroup::kGp, Gp::kIdBp); // EBP|RBP used as a frame-pointer (FP).
   }
-
-  // Initialize WorkData::workRegs.
-  for (RegGroup group : RegGroupVirtValues{}) {
-    // Exclude all user-reserved general-purpose registers from use.
-    RegMask unavailableRegs = frame.unavailableRegs(group);
-    if (unavailableRegs != 0) {
-      for (uint32_t regId = 0; regId < 32; ++regId) {
-        if (Support::bitTest(unavailableRegs, regId))
-          makeUnavailable(group, regId);
-      }
-    }
-  }
+  makeUnavailable(frame._unavailableRegs);
 
   _sp = cc()->zsp();
   _fp = cc()->zbp();

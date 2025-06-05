@@ -1195,7 +1195,7 @@ public:
   //! Registers that must be preserved (copied from CallConv).
   RegMasks _preservedRegs {};
   //! Registers that are unavailable.
-  RegMasks _unavailableRegs = {};
+  RegMasks _unavailableRegs {};
   //! Size to save/restore per register group.
   Support::Array<uint8_t, Globals::kNumVirtGroups> _saveRestoreRegSize {};
   //! Alignment of save/restore area per register group.
@@ -1571,45 +1571,45 @@ public:
   //! Sets which registers (as a mask) are unavailable for allocation.
   //!
   //! \note This completely overwrites the current unavailable mask.
-  ASMJIT_INLINE_NODEBUG void setUnavailableRegs(RegGroup group, RegMask regs) noexcept {
+  inline void setUnavailableRegs(RegGroup group, RegMask regs) noexcept {
     ASMJIT_ASSERT(group <= RegGroup::kMaxVirt);
     _unavailableRegs[group] = regs;
   }
 
   //! Adds registers (as a mask) to the unavailable set.
-  ASMJIT_INLINE_NODEBUG void addUnavailableRegs(RegGroup group, RegMask regs) noexcept {
+  inline void addUnavailableRegs(RegGroup group, RegMask regs) noexcept {
     ASMJIT_ASSERT(group <= RegGroup::kMaxVirt);
     _unavailableRegs[group] |= regs;
   }
 
   //! Adds a single register to the unavailable set.
-  ASMJIT_INLINE_NODEBUG void addUnavailableRegs(const BaseReg& reg) noexcept {
+  inline void addUnavailableRegs(const BaseReg& reg) noexcept {
     ASMJIT_ASSERT(reg.id() < Globals::kMaxPhysRegs);
     addUnavailableRegs(reg.group(), Support::bitMask(reg.id()));
   }
 
   //! Adds multiple registers to the unavailable set.
   template<typename... Args>
-  ASMJIT_INLINE_NODEBUG void addUnavailableRegs(const BaseReg& reg, Args&&... args) noexcept {
+  inline void addUnavailableRegs(const BaseReg& reg, Args&&... args) noexcept {
     addUnavailableRegs(reg);
     addUnavailableRegs(std::forward<Args>(args)...);
   }
 
   //! Clears all unavailable registers across all register groups (i.e., makes them all available again).
-  ASMJIT_INLINE_NODEBUG void makeAllRegsAvailable() noexcept {
+  ASMJIT_INLINE_NODEBUG void clearUnavailableRegs() noexcept {
     for (size_t i = 0; i < ASMJIT_ARRAY_SIZE(_unavailableRegs); i++)
       _unavailableRegs[i] = 0;
   }
 
   //! Clears all unavailable registers in a specific register group.
-  ASMJIT_INLINE_NODEBUG void makeAllRegsAvailable(RegGroup group) noexcept {
+  inline void clearUnavailableRegs(RegGroup group) noexcept {
     ASMJIT_ASSERT(group <= RegGroup::kMaxVirt);
     _unavailableRegs[group] = 0;
   }
 
   //! Returns the set of unavailable registers for the given group.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG RegMask unavailableRegs(RegGroup group) const noexcept {
+  inline RegMask unavailableRegs(RegGroup group) const noexcept {
     ASMJIT_ASSERT(group <= RegGroup::kMaxVirt);
     return _unavailableRegs[group];
   }
