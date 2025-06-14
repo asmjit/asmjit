@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_CORE_FUNCARGSCONTEXT_P_H_INCLUDED
@@ -22,30 +22,30 @@ ASMJIT_BEGIN_NAMESPACE
 static inline OperandSignature getSuitableRegForMemToMemMove(Arch arch, TypeId dstTypeId, TypeId srcTypeId) noexcept {
   const ArchTraits& archTraits = ArchTraits::byArch(arch);
 
+  uint32_t signature = 0u;
   uint32_t dstSize = TypeUtils::sizeOf(dstTypeId);
   uint32_t srcSize = TypeUtils::sizeOf(srcTypeId);
   uint32_t maxSize = Support::max<uint32_t>(dstSize, srcSize);
   uint32_t regSize = Environment::registerSizeFromArch(arch);
 
-  OperandSignature signature{0};
   if (maxSize <= regSize || (TypeUtils::isInt(dstTypeId) && TypeUtils::isInt(srcTypeId))) {
-    signature = maxSize <= 4 ? archTraits.regTypeToSignature(RegType::kGp32)
-                             : archTraits.regTypeToSignature(RegType::kGp64);
+    signature = maxSize <= 4 ? RegTraits<RegType::kGp32>::kSignature
+                             : RegTraits<RegType::kGp64>::kSignature;
   }
   else if (maxSize <= 8 && archTraits.hasRegType(RegType::kVec64)) {
-    signature = archTraits.regTypeToSignature(RegType::kVec64);
+    signature = RegTraits<RegType::kVec64>::kSignature;
   }
   else if (maxSize <= 16 && archTraits.hasRegType(RegType::kVec128)) {
-    signature = archTraits.regTypeToSignature(RegType::kVec128);
+    signature = RegTraits<RegType::kVec128>::kSignature;
   }
   else if (maxSize <= 32 && archTraits.hasRegType(RegType::kVec256)) {
-    signature = archTraits.regTypeToSignature(RegType::kVec256);
+    signature = RegTraits<RegType::kVec256>::kSignature;
   }
   else if (maxSize <= 64 && archTraits.hasRegType(RegType::kVec512)) {
-    signature = archTraits.regTypeToSignature(RegType::kVec512);
+    signature = RegTraits<RegType::kVec512>::kSignature;
   }
 
-  return signature;
+  return OperandSignature{signature};
 }
 
 class FuncArgsContext {

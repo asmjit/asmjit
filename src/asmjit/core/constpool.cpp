@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
@@ -40,8 +40,9 @@ void ConstPool::reset(Zone* zone) noexcept {
 
 static inline ConstPool::Gap* ConstPool_allocGap(ConstPool* self) noexcept {
   ConstPool::Gap* gap = self->_gapPool;
+
   if (!gap) {
-    return self->_zone->allocT<ConstPool::Gap>();
+    return self->_zone->alloc<ConstPool::Gap>();
   }
 
   self->_gapPool = gap->_next;

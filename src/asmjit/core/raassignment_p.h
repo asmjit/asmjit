@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_CORE_RAASSIGNMENT_P_H_INCLUDED
@@ -68,10 +68,10 @@ public:
 
     [[nodiscard]]
     static ASMJIT_INLINE_NODEBUG size_t sizeOf(size_t count) noexcept {
-      return sizeof(PhysToWorkMap) - sizeof(uint32_t) + count * sizeof(uint32_t);
+      return Support::alignUp(sizeof(PhysToWorkMap) - sizeof(uint32_t) + count * sizeof(uint32_t), Globals::kZoneAlignment);
     }
 
-    inline void reset(size_t count) noexcept {
+    ASMJIT_INLINE void reset(size_t count) noexcept {
       assigned.reset();
       dirty.reset();
 
@@ -80,12 +80,12 @@ public:
       }
     }
 
-    inline void copyFrom(const PhysToWorkMap* other, size_t count) noexcept {
+    ASMJIT_INLINE void copyFrom(const PhysToWorkMap* other, size_t count) noexcept {
       size_t size = sizeOf(count);
       memcpy(this, other, size);
     }
 
-    inline void unassign(RegGroup group, uint32_t physId, uint32_t indexInWorkIds) noexcept {
+    ASMJIT_INLINE void unassign(RegGroup group, uint32_t physId, uint32_t indexInWorkIds) noexcept {
       assigned.clear(group, Support::bitMask(physId));
       dirty.clear(group, Support::bitMask(physId));
       workIds[indexInWorkIds] = kWorkNone;
@@ -97,17 +97,17 @@ public:
     uint8_t physIds[1 /* ... */];
 
     [[nodiscard]]
-    static inline size_t sizeOf(size_t count) noexcept {
-      return size_t(count) * sizeof(uint8_t);
+    static ASMJIT_INLINE_NODEBUG size_t sizeOf(size_t count) noexcept {
+      return Support::alignUp(size_t(count) * sizeof(uint8_t), Globals::kZoneAlignment);
     }
 
-    inline void reset(size_t count) noexcept {
+    ASMJIT_INLINE void reset(size_t count) noexcept {
       for (size_t i = 0; i < count; i++) {
         physIds[i] = kPhysNone;
       }
     }
 
-    inline void copyFrom(const WorkToPhysMap* other, size_t count) noexcept {
+    ASMJIT_INLINE void copyFrom(const WorkToPhysMap* other, size_t count) noexcept {
       size_t size = sizeOf(count);
       if (ASMJIT_LIKELY(size)) {
         memcpy(this, other, size);
@@ -334,7 +334,7 @@ public:
   }
 
   inline void assignWorkIdsFromPhysIds() noexcept {
-    memset(_workToPhysMap, uint8_t(BaseReg::kIdBad), WorkToPhysMap::sizeOf(_layout.workCount));
+    memset(_workToPhysMap, uint8_t(Reg::kIdBad), WorkToPhysMap::sizeOf(_layout.workCount));
 
     for (RegGroup group : RegGroupVirtValues{}) {
       uint32_t physBaseIndex = _layout.physIndex[group];

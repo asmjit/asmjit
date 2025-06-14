@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include <asmjit/core.h>
@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "asmjit_test_perf.h"
+#include "asmjit_bench_codegen.h"
 
 using namespace asmjit;
 
@@ -459,10 +459,10 @@ static void generateGpSequenceInternal(
   cc.msub(xA, xB, xC, xD);
   cc.mul(wA, wB, wC);
   cc.mul(xA, xB, xC);
-  cc.mvn(wA, wB);
-  cc.mvn(xA, xB);
-  cc.mvn(wA, wB, lsl(4));
-  cc.mvn(xA, xB, lsl(4));
+  cc.mvn_(wA, wB);
+  cc.mvn_(xA, xB);
+  cc.mvn_(wA, wB, lsl(4));
+  cc.mvn_(xA, xB, lsl(4));
   cc.neg(wA, wB);
   cc.neg(xA, xB);
   cc.neg(wA, wB, lsl(4));

@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
@@ -14,93 +14,181 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-// Globals
-// =======
+// CodeHolder - X86 Utilities
+// ==========================
 
-static const char CodeHolder_addrTabName[] = ".addrtab";
-
-//! Encode MOD byte.
+//! Encodes a MOD byte.
 static inline uint32_t x86EncodeMod(uint32_t m, uint32_t o, uint32_t rm) noexcept {
   return (m << 6) | (o << 3) | rm;
 }
 
-// LabelLinkIterator
-// =================
+// CodeHolder - LabelEntry Globals & Utilities
+// ===========================================
 
-class LabelLinkIterator {
+static constexpr LabelEntry::ExtraData _makeSharedLabelExtraData() noexcept {
+  LabelEntry::ExtraData extraData {};
+  extraData._sectionId = Globals::kInvalidId;
+  extraData._parentId = Globals::kInvalidId;
+  return extraData;
+}
+
+static constexpr LabelEntry::ExtraData CodeHolder_sharedLabelExtraData = _makeSharedLabelExtraData();
+
+class ResolveFixupIterator {
 public:
-  inline LabelLinkIterator(LabelEntry* le) noexcept { reset(le); }
+  Fixup* _fixup {};
+  Fixup** _pPrev {};
+  size_t _resolvedCount {};
+  size_t _unresolvedCount {};
 
-  inline explicit operator bool() const noexcept { return isValid(); }
-  inline bool isValid() const noexcept { return _link != nullptr; }
+  ASMJIT_INLINE_NODEBUG explicit ResolveFixupIterator(Fixup** ppFixup) noexcept { reset(ppFixup); }
+  ASMJIT_INLINE_NODEBUG bool isValid() const noexcept { return _fixup != nullptr; }
+  ASMJIT_INLINE_NODEBUG Fixup* fixup() const noexcept { return _fixup; }
 
-  inline LabelLink* link() const noexcept { return _link; }
-  inline LabelLink* operator->() const noexcept { return _link; }
-
-  inline void reset(LabelEntry* le) noexcept {
-    _pPrev = &le->_links;
-    _link = *_pPrev;
+  ASMJIT_INLINE void reset(Fixup** ppFixup) noexcept {
+    _pPrev = ppFixup;
+    _fixup = *_pPrev;
   }
 
-  inline void next() noexcept {
-    _pPrev = &_link->next;
-    _link = *_pPrev;
+  ASMJIT_INLINE void next() noexcept {
+    _pPrev = &_fixup->next;
+    _fixup = *_pPrev;
+    _unresolvedCount++;
   }
 
-  inline void resolveAndNext(CodeHolder* code) noexcept {
-    LabelLink* linkToDelete = _link;
+  ASMJIT_INLINE void resolveAndNext(CodeHolder* code) noexcept {
+    Fixup* fixupToDelete = _fixup;
 
-    _link = _link->next;
-    *_pPrev = _link;
+    _fixup = _fixup->next;
+    *_pPrev = _fixup;
 
-    code->_unresolvedLinkCount--;
-    code->_allocator.release(linkToDelete, sizeof(LabelLink));
+    _resolvedCount++;
+    code->_fixupDataPool.release(fixupToDelete);
   }
 
-  LabelLink** _pPrev;
-  LabelLink* _link;
+  ASMJIT_INLINE_NODEBUG size_t resolvedCount() const noexcept { return _resolvedCount; }
+  ASMJIT_INLINE_NODEBUG size_t unresolvedCount() const noexcept { return _unresolvedCount; }
 };
+
+// CodeHolder - Section Globals & Utilities
+// ========================================
+
+static const char CodeHolder_addrTabName[] = ".addrtab";
+
+static ASMJIT_INLINE void Section_initName(
+  Section* section,
+  char c0 = 0, char c1 = 0, char c2 = 0, char c3 = 0,
+  char c4 = 0, char c5 = 0, char c6 = 0, char c7 = 0) noexcept {
+
+  section->_name.u32[0] = Support::bytepack32_4x8(uint8_t(c0), uint8_t(c1), uint8_t(c2), uint8_t(c3));
+  section->_name.u32[1] = Support::bytepack32_4x8(uint8_t(c4), uint8_t(c5), uint8_t(c6), uint8_t(c7));
+  section->_name.u32[2] = 0u;
+  section->_name.u32[3] = 0u;
+}
+
+static ASMJIT_INLINE void Section_initData(Section* section, uint32_t sectionId, SectionFlags flags, uint32_t alignment, int order) noexcept {
+  section->_sectionId = sectionId;
+
+  // These two fields are not used by sections (see \ref LabelEntry for more details about why).
+  section->_internalLabelType = LabelType::kAnonymous;
+  section->_internalLabelFlags = LabelFlags::kNone;
+
+  section->assignFlags(flags);
+  section->_alignment = alignment;
+  section->_order = order;
+  section->_offset = 0;
+  section->_virtualSize = 0;
+}
+
+static ASMJIT_INLINE void Section_initBuffer(Section* section) noexcept {
+  section->_buffer = CodeBuffer{};
+}
+
+static ASMJIT_INLINE void Section_releaseBuffer(Section* section) noexcept {
+  if (Support::bool_and(section->_buffer.data() != nullptr, !section->_buffer.isExternal())) {
+    ::free(section->_buffer._data);
+  }
+}
 
 // CodeHolder - Utilities
 // ======================
 
-static void CodeHolder_resetInternal(CodeHolder* self, ResetPolicy resetPolicy) noexcept {
-  uint32_t i;
-  const ZoneVector<BaseEmitter*>& emitters = self->emitters();
+static ASMJIT_INLINE Error CodeHolder_initSectionStorage(CodeHolder* self) noexcept {
+  Error err1 = self->_sections.willGrow(&self->_allocator);
+  Error err2 = self->_sectionsByOrder.willGrow(&self->_allocator);
 
-  i = emitters.size();
-  while (i)
-    self->detach(emitters[--i]);
+  return err1 | err2;
+}
 
-  // Reset everything into its construction state.
+static ASMJIT_INLINE void CodeHolder_addTextSection(CodeHolder* self) noexcept {
+  Section* textSection = &self->_textSection;
+
+  Section_initData(textSection, 0u, SectionFlags::kExecutable | SectionFlags::kReadOnly | SectionFlags::kBuiltIn, 0u, 0);
+  Section_initName(textSection, '.', 't', 'e', 'x', 't');
+
+  self->_sections.appendUnsafe(textSection);
+  self->_sectionsByOrder.appendUnsafe(textSection);
+}
+
+static ASMJIT_NOINLINE void CodeHolder_detachEmitters(CodeHolder* self) noexcept {
+  BaseEmitter* emitter = self->_attachedFirst;
+
+  while (emitter) {
+    BaseEmitter* next = emitter->_attachedNext;
+
+    emitter->_attachedPrev = nullptr;
+    (void)emitter->onDetach(*self);
+    emitter->_attachedNext = nullptr;
+    emitter->_code = nullptr;
+
+    emitter = next;
+    self->_attachedFirst = next;
+  }
+
+  self->_attachedLast = nullptr;
+}
+
+static ASMJIT_INLINE void CodeHolder_resetEnvAndAttachedLogAndEH(CodeHolder* self) noexcept {
   self->_environment.reset();
   self->_cpuFeatures.reset();
   self->_baseAddress = Globals::kNoBaseAddress;
   self->_logger = nullptr;
   self->_errorHandler = nullptr;
+}
 
-  // Reset all sections.
-  uint32_t numSections = self->_sections.size();
-  for (i = 0; i < numSections; i++) {
+// Reset zone allocator and all containers using it.
+static ASMJIT_INLINE void CodeHolder_resetSections(CodeHolder* self, ResetPolicy resetPolicy) noexcept {
+  // Reset all sections except the first one (.text section).
+  uint32_t fromSection = resetPolicy == ResetPolicy::kHard ? 0u : 1u;
+  uint32_t sectionCount = self->_sections.size();
+
+  for (uint32_t i = fromSection; i < sectionCount; i++) {
     Section* section = self->_sections[i];
-    if (section->_buffer.data() && !section->_buffer.isExternal()) {
-      ::free(section->_buffer._data);
-    }
+
+    Section_releaseBuffer(section);
     section->_buffer._data = nullptr;
     section->_buffer._capacity = 0;
   }
+}
 
-  // Reset zone allocator and all containers using it.
+// Reset zone allocator and all containers using it.
+static ASMJIT_INLINE void CodeHolder_resetContainers(CodeHolder* self, ResetPolicy resetPolicy) noexcept {
+  // Soft reset won't wipe out the .text section, so set its size to 0 for future reuse.
+  self->_textSection._buffer._size = 0;
+
   ZoneAllocator* allocator = self->allocator();
 
-  self->_emitters.reset();
   self->_namedLabels.reset();
   self->_relocations.reset();
   self->_labelEntries.reset();
+
+  self->_fixups = nullptr;
+  self->_fixupDataPool.reset();
+  self->_unresolvedFixupCount = 0;
+
   self->_sections.reset();
   self->_sectionsByOrder.reset();
 
-  self->_unresolvedLinkCount = 0;
   self->_addressTableSection = nullptr;
   self->_addressTableEntries.reset();
 
@@ -108,10 +196,18 @@ static void CodeHolder_resetInternal(CodeHolder* self, ResetPolicy resetPolicy) 
   self->_zone.reset(resetPolicy);
 }
 
-static void CodeHolder_onSettingsUpdated(CodeHolder* self) noexcept {
+// Reset zone allocator and all containers using it.
+static ASMJIT_NOINLINE void CodeHolder_resetSectionsAndContainers(CodeHolder* self, ResetPolicy resetPolicy) noexcept {
+  CodeHolder_resetSections(self, resetPolicy);
+  CodeHolder_resetContainers(self, resetPolicy);
+}
+
+static ASMJIT_INLINE void CodeHolder_onSettingsUpdated(CodeHolder* self) noexcept {
   // Notify all attached emitters about a settings update.
-  for (BaseEmitter* emitter : self->emitters()) {
+  BaseEmitter* emitter = self->_attachedFirst;
+  while (emitter) {
     emitter->onSettingsUpdated();
+    emitter = emitter->_attachedNext;
   }
 }
 
@@ -124,70 +220,85 @@ CodeHolder::CodeHolder(const Support::Temporary* temporary) noexcept
     _baseAddress(Globals::kNoBaseAddress),
     _logger(nullptr),
     _errorHandler(nullptr),
-    _zone(16u * 1024u, 1, temporary),
+    _zone(16u * 1024u, temporary),
     _allocator(&_zone),
-    _unresolvedLinkCount(0),
+    _attachedFirst(nullptr),
+    _attachedLast(nullptr),
+    _fixups(nullptr),
+    _unresolvedFixupCount(0),
+    _textSection{},
     _addressTableSection(nullptr) {}
 
 CodeHolder::~CodeHolder() noexcept {
-  CodeHolder_resetInternal(this, ResetPolicy::kHard);
+  if (isInitialized()) {
+    CodeHolder_detachEmitters(this);
+    CodeHolder_resetSections(this, ResetPolicy::kHard);
+  }
+  else {
+    Section_releaseBuffer(&_textSection);
+  }
 }
 
 // CodeHolder - Initialization & Reset
 // ===================================
-
-inline void CodeHolder_setSectionDefaultName(
-  Section* section,
-  char c0 = 0, char c1 = 0, char c2 = 0, char c3 = 0,
-  char c4 = 0, char c5 = 0, char c6 = 0, char c7 = 0) noexcept {
-
-  section->_name.u32[0] = Support::bytepack32_4x8(uint8_t(c0), uint8_t(c1), uint8_t(c2), uint8_t(c3));
-  section->_name.u32[1] = Support::bytepack32_4x8(uint8_t(c4), uint8_t(c5), uint8_t(c6), uint8_t(c7));
-}
 
 Error CodeHolder::init(const Environment& environment, uint64_t baseAddress) noexcept {
   return init(environment, CpuFeatures{}, baseAddress);
 }
 
 Error CodeHolder::init(const Environment& environment, const CpuFeatures& cpuFeatures, uint64_t baseAddress) noexcept {
-  // Cannot reinitialize if it's locked or there is one or more emitter attached.
-  if (isInitialized()) {
-    return DebugUtils::errored(kErrorAlreadyInitialized);
+  // Cannot initialize if it's already initialized or the environment passed is invalid.
+  if (ASMJIT_UNLIKELY(Support::bool_or(isInitialized(), !environment.isInitialized()))) {
+    Error err = isInitialized() ? kErrorAlreadyInitialized : kErrorInvalidArgument;
+    return DebugUtils::errored(err);
   }
 
   // If we are just initializing there should be no emitters attached.
-  ASMJIT_ASSERT(_emitters.empty());
+  ASMJIT_ASSERT(_attachedFirst == nullptr);
+  ASMJIT_ASSERT(_attachedLast == nullptr);
 
   // Create a default section and insert it to the `_sections` array.
-  Error err = _sections.willGrow(&_allocator) |
-              _sectionsByOrder.willGrow(&_allocator);
-  if (err == kErrorOk) {
-    Section* section = _allocator.allocZeroedT<Section>();
-    if (ASMJIT_LIKELY(section)) {
-      section->_flags = SectionFlags::kExecutable | SectionFlags::kReadOnly;
-      CodeHolder_setSectionDefaultName(section, '.', 't', 'e', 'x', 't');
-      _sections.appendUnsafe(section);
-      _sectionsByOrder.appendUnsafe(section);
-    }
-    else {
-      err = DebugUtils::errored(kErrorOutOfMemory);
-    }
-  }
-
+  Error err = CodeHolder_initSectionStorage(this);
   if (ASMJIT_UNLIKELY(err)) {
     _zone.reset();
-    return err;
+    return DebugUtils::errored(kErrorOutOfMemory);
   }
-  else {
-    _environment = environment;
-    _cpuFeatures = cpuFeatures;
-    _baseAddress = baseAddress;
-    return kErrorOk;
+
+  _environment = environment;
+  _cpuFeatures = cpuFeatures;
+  _baseAddress = baseAddress;
+
+  CodeHolder_addTextSection(this);
+  return kErrorOk;
+}
+
+Error CodeHolder::reinit() noexcept {
+  // Cannot reinitialize if it's not initialized.
+  if (ASMJIT_UNLIKELY(!isInitialized())) {
+    return DebugUtils::errored(kErrorNotInitialized);
   }
+
+  CodeHolder_resetSectionsAndContainers(this, ResetPolicy::kSoft);
+
+  // Create a default section and insert it to the `_sections` array.
+  (void)CodeHolder_initSectionStorage(this);
+  CodeHolder_addTextSection(this);
+
+  BaseEmitter* emitter = _attachedFirst;
+  while (emitter) {
+    emitter->onReinit(*this);
+    emitter = emitter->_attachedNext;
+  }
+
+  return kErrorOk;
 }
 
 void CodeHolder::reset(ResetPolicy resetPolicy) noexcept {
-  CodeHolder_resetInternal(this, resetPolicy);
+  if (isInitialized()) {
+    CodeHolder_detachEmitters(this);
+    CodeHolder_resetEnvAndAttachedLogAndEH(this);
+    CodeHolder_resetSectionsAndContainers(this, resetPolicy);
+  }
 }
 
 // CodeHolder - Attach / Detach
@@ -220,12 +331,25 @@ Error CodeHolder::attach(BaseEmitter* emitter) noexcept {
   }
 
   // Reserve the space now as we cannot fail after `onAttach()` succeeded.
-  ASMJIT_PROPAGATE(_emitters.willGrow(&_allocator, 1));
-  ASMJIT_PROPAGATE(emitter->onAttach(this));
+  ASMJIT_PROPAGATE(emitter->onAttach(*this));
 
-  // Connect CodeHolder <-> BaseEmitter.
+  // Make sure CodeHolder <-> BaseEmitter are connected.
   ASMJIT_ASSERT(emitter->_code == this);
-  _emitters.appendUnsafe(emitter);
+
+  // Add `emitter` to a double linked-list.
+  {
+    BaseEmitter* last = _attachedLast;
+
+    emitter->_attachedPrev = last;
+    _attachedLast = emitter;
+
+    if (last) {
+      last->_attachedNext = emitter;
+    }
+    else {
+      _attachedFirst = emitter;
+    }
+  }
 
   return kErrorOk;
 }
@@ -244,15 +368,21 @@ Error CodeHolder::detach(BaseEmitter* emitter) noexcept {
   // be detached.
   Error err = kErrorOk;
   if (!emitter->isDestroyed()) {
-    err = emitter->onDetach(this);
+    err = emitter->onDetach(*this);
   }
 
-  // Disconnect CodeHolder <-> BaseEmitter.
-  uint32_t index = _emitters.indexOf(emitter);
-  ASMJIT_ASSERT(index != Globals::kNotFound);
+  // Remove `emitter` from a double linked-list.
+  {
+    BaseEmitter* prev = emitter->_attachedPrev;
+    BaseEmitter* next = emitter->_attachedNext;
 
-  _emitters.removeAt(index);
-  emitter->_code = nullptr;
+    if (prev) { prev->_attachedNext = next; } else { _attachedFirst = next; }
+    if (next) { next->_attachedPrev = prev; } else { _attachedLast = prev; }
+
+    emitter->_code = nullptr;
+    emitter->_attachedPrev = nullptr;
+    emitter->_attachedNext = nullptr;
+  }
 
   return err;
 }
@@ -299,7 +429,8 @@ static Error CodeHolder_reserveInternal(CodeHolder* self, CodeBuffer* cb, size_t
   cb->_capacity = n;
 
   // Update pointers used by assemblers, if attached.
-  for (BaseEmitter* emitter : self->emitters()) {
+  BaseEmitter* emitter = self->_attachedFirst;
+  while (emitter) {
     if (emitter->isAssembler()) {
       BaseAssembler* a = static_cast<BaseAssembler*>(emitter);
       if (&a->_section->_buffer == cb) {
@@ -310,6 +441,7 @@ static Error CodeHolder_reserveInternal(CodeHolder* self, CodeBuffer* cb, size_t
         a->_bufferPtr  = newData + offset;
       }
     }
+    emitter = emitter->_attachedNext;
   }
 
   return kErrorOk;
@@ -335,7 +467,7 @@ Error CodeHolder::growBuffer(CodeBuffer* cb, size_t n) noexcept {
     return DebugUtils::errored(kErrorTooLarge);
   }
 
-  size_t kInitialCapacity = 8096;
+  size_t kInitialCapacity = 8192u - Globals::kAllocOverhead;
   if (capacity < kInitialCapacity) {
     capacity = kInitialCapacity;
   }
@@ -345,12 +477,9 @@ Error CodeHolder::growBuffer(CodeBuffer* cb, size_t n) noexcept {
 
   do {
     size_t old = capacity;
-    if (capacity < Globals::kGrowThreshold) {
-      capacity *= 2;
-    }
-    else {
-      capacity += Globals::kGrowThreshold;
-    }
+    size_t capacityIncrease = capacity < Globals::kGrowThreshold ? capacity : Globals::kGrowThreshold;
+
+    capacity += capacityIncrease;
 
     // Overflow.
     if (ASMJIT_UNLIKELY(old > capacity)) {
@@ -381,16 +510,13 @@ Error CodeHolder::reserveBuffer(CodeBuffer* cb, size_t n) noexcept {
 Error CodeHolder::newSection(Section** sectionOut, const char* name, size_t nameSize, SectionFlags flags, uint32_t alignment, int32_t order) noexcept {
   *sectionOut = nullptr;
 
+
+  if (ASMJIT_UNLIKELY(!Support::isZeroOrPowerOf2(alignment))) {
+    return DebugUtils::errored(kErrorInvalidArgument);
+  }
+
   if (nameSize == SIZE_MAX) {
     nameSize = strlen(name);
-  }
-
-  if (alignment == 0) {
-    alignment = 1;
-  }
-
-  if (ASMJIT_UNLIKELY(!Support::isPowerOf2(alignment))) {
-    return DebugUtils::errored(kErrorInvalidArgument);
   }
 
   if (ASMJIT_UNLIKELY(nameSize > Globals::kMaxSectionNameSize)) {
@@ -405,19 +531,21 @@ Error CodeHolder::newSection(Section** sectionOut, const char* name, size_t name
   ASMJIT_PROPAGATE(_sections.willGrow(&_allocator));
   ASMJIT_PROPAGATE(_sectionsByOrder.willGrow(&_allocator));
 
-  Section* section = _allocator.allocZeroedT<Section>();
+  Section* section = _zone.alloc<Section>();
   if (ASMJIT_UNLIKELY(!section)) {
     return DebugUtils::errored(kErrorOutOfMemory);
   }
 
-  section->_id = sectionId;
-  section->_flags = flags;
-  section->_alignment = alignment;
-  section->_order = order;
+  if (alignment == 0u) {
+    alignment = 1u;
+  }
+
+  Section_initData(section, sectionId, flags, alignment, order);
+  Section_initBuffer(section);
   memcpy(section->_name.str, name, nameSize);
 
   Section** insertPosition = std::lower_bound(_sectionsByOrder.begin(), _sectionsByOrder.end(), section, [](const Section* a, const Section* b) {
-    return std::make_tuple(a->order(), a->id()) < std::make_tuple(b->order(), b->id());
+    return std::make_tuple(a->order(), a->sectionId()) < std::make_tuple(b->order(), b->sectionId());
   });
 
   _sections.appendUnsafe(section);
@@ -432,9 +560,8 @@ Section* CodeHolder::sectionByName(const char* name, size_t nameSize) const noex
     nameSize = strlen(name);
   }
 
-  // This could be also put in a hash-table similarly like we do with labels,
-  // however it's questionable as the number of sections should be pretty low
-  // in general. Create an issue if this becomes a problem.
+  // This could be also put in a hash-table similarly like we do with labels, however it's questionable as
+  // the number of sections should be pretty low in general. Create an issue if this becomes a problem.
   if (nameSize <= Globals::kMaxSectionNameSize) {
     for (Section* section : _sections) {
       if (memcmp(section->_name.str, name, nameSize) == 0 && section->_name.str[nameSize] == '\0') {
@@ -503,10 +630,10 @@ public:
   inline uint32_t hashCode() const noexcept { return _hashCode; }
 
   [[nodiscard]]
-  inline bool matches(const LabelEntry* entry) const noexcept {
-    return entry->nameSize() == _keySize &&
-           entry->parentId() == _parentId &&
-           ::memcmp(entry->name(), _key, _keySize) == 0;
+  inline bool matches(const CodeHolder::NamedLabelExtraData* node) const noexcept {
+    return Support::bool_and(node->extraData._nameSize == _keySize,
+                             node->extraData._parentId == _parentId) &&
+           ::memcmp(node->extraData.name(), _key, _keySize) == 0;
   }
 };
 
@@ -537,64 +664,65 @@ static uint32_t CodeHolder_hashNameAndGetSize(const char* name, size_t& nameSize
   return hashCode;
 }
 
-LabelLink* CodeHolder::newLabelLink(LabelEntry* le, uint32_t sectionId, size_t offset, intptr_t rel, const OffsetFormat& format) noexcept {
-  LabelLink* link = _allocator.allocT<LabelLink>();
+Fixup* CodeHolder::newFixup(LabelEntry* le, uint32_t sectionId, size_t offset, intptr_t rel, const OffsetFormat& format) noexcept {
+  // Cannot be bound if we are creating a link.
+  ASMJIT_ASSERT(!le->isBound());
+
+  Fixup* link = _fixupDataPool.alloc(_zone);
   if (ASMJIT_UNLIKELY(!link)) {
     return nullptr;
   }
 
-  link->next = le->_links;
-  le->_links = link;
-
+  link->next = le->_getFixups();
   link->sectionId = sectionId;
-  link->relocId = Globals::kInvalidId;
+  link->labelOrRelocId = Globals::kInvalidId;
   link->offset = offset;
   link->rel = rel;
   link->format = format;
 
-  _unresolvedLinkCount++;
+  le->_setFixups(link);
+  _unresolvedFixupCount++;
+
   return link;
 }
 
-Error CodeHolder::newLabelEntry(LabelEntry** entryOut) noexcept {
-  *entryOut = nullptr;
-
+Error CodeHolder::newLabelId(uint32_t* labelIdOut) noexcept {
   uint32_t labelId = _labelEntries.size();
-  if (ASMJIT_UNLIKELY(labelId == Globals::kInvalidId)) {
-    return DebugUtils::errored(kErrorTooManyLabels);
+  Error err = _labelEntries.willGrow(&_allocator);
+
+  if (ASMJIT_UNLIKELY(err != kErrorOk)) {
+    *labelIdOut = Globals::kInvalidId;
+    return err;
   }
-
-  ASMJIT_PROPAGATE(_labelEntries.willGrow(&_allocator));
-  LabelEntry* le = _allocator.allocZeroedT<LabelEntry>();
-
-  if (ASMJIT_UNLIKELY(!le)) {
-    return DebugUtils::errored(kErrorOutOfMemory);
+  else {
+    *labelIdOut = labelId;
+    _labelEntries.appendUnsafe(LabelEntry{const_cast<LabelEntry::ExtraData*>(&CodeHolder_sharedLabelExtraData), uint64_t(0)});
+    return kErrorOk;
   }
-
-  le->_setId(labelId);
-  le->_parentId = Globals::kInvalidId;
-  le->_offset = 0;
-  _labelEntries.appendUnsafe(le);
-
-  *entryOut = le;
-  return kErrorOk;
 }
 
-Error CodeHolder::newNamedLabelEntry(LabelEntry** entryOut, const char* name, size_t nameSize, LabelType type, uint32_t parentId) noexcept {
-  *entryOut = nullptr;
+Error CodeHolder::newNamedLabelId(uint32_t* labelIdOut, const char* name, size_t nameSize, LabelType type, uint32_t parentId) noexcept {
+  uint32_t labelId = _labelEntries.size();
   uint32_t hashCode = CodeHolder_hashNameAndGetSize(name, nameSize);
 
-  if (ASMJIT_UNLIKELY(nameSize == 0)) {
-    if (type == LabelType::kAnonymous) {
-      return newLabelEntry(entryOut);
-    }
-    else {
+  *labelIdOut = Globals::kInvalidId;
+  ASMJIT_PROPAGATE(_labelEntries.willGrow(&_allocator));
+
+  if (nameSize == 0) {
+    if (type != LabelType::kAnonymous) {
       return DebugUtils::errored(kErrorInvalidLabelName);
     }
+
+    *labelIdOut = labelId;
+    _labelEntries.appendUnsafe(LabelEntry{const_cast<LabelEntry::ExtraData*>(&CodeHolder_sharedLabelExtraData), uint64_t(0)});
+    return kErrorOk;
   }
 
-  if (ASMJIT_UNLIKELY(nameSize > Globals::kMaxLabelNameSize))
+  if (ASMJIT_UNLIKELY(nameSize > Globals::kMaxLabelNameSize)) {
     return DebugUtils::errored(kErrorLabelNameTooLong);
+  }
+
+  size_t extraDataSize = sizeof(LabelEntry::ExtraData) + nameSize + 1u;
 
   switch (type) {
     case LabelType::kAnonymous: {
@@ -603,27 +731,23 @@ Error CodeHolder::newNamedLabelEntry(LabelEntry** entryOut, const char* name, si
         return DebugUtils::errored(kErrorInvalidParentLabel);
       }
 
-      uint32_t labelId = _labelEntries.size();
-      if (ASMJIT_UNLIKELY(labelId == Globals::kInvalidId)) {
-        return DebugUtils::errored(kErrorTooManyLabels);
-      }
-
-      ASMJIT_PROPAGATE(_labelEntries.willGrow(&_allocator));
-      LabelEntry* le = _allocator.allocZeroedT<LabelEntry>();
-
-      if (ASMJIT_UNLIKELY(!le)) {
+      LabelEntry::ExtraData* extraData = _zone.alloc<LabelEntry::ExtraData>(Support::alignUp(extraDataSize, Globals::kZoneAlignment));
+      if (ASMJIT_UNLIKELY(!extraData)) {
         return DebugUtils::errored(kErrorOutOfMemory);
       }
 
-      // NOTE: This LabelEntry has a name, but we leave its hashCode as zero as it's anonymous.
-      le->_setId(labelId);
-      le->_parentId = Globals::kInvalidId;
-      le->_offset = 0;
-      ASMJIT_PROPAGATE(le->_name.setData(&_zone, name, nameSize));
+      char* namePtr = reinterpret_cast<char*>(extraData) + sizeof(LabelEntry::ExtraData);
+      extraData->_sectionId = Globals::kInvalidId;
+      extraData->_internalLabelType = type;
+      extraData->_internalLabelFlags = LabelFlags::kHasOwnExtraData | LabelFlags::kHasName;
+      extraData->_internalUInt16Data = 0;
+      extraData->_parentId = Globals::kInvalidId;
+      extraData->_nameSize = uint32_t(nameSize);
+      memcpy(namePtr, name, nameSize);
+      namePtr[nameSize] = '\0';
 
-      _labelEntries.appendUnsafe(le);
-
-      *entryOut = le;
+      *labelIdOut = labelId;
+      _labelEntries.appendUnsafe(LabelEntry{extraData, uint64_t(0)});
       return kErrorOk;
     }
 
@@ -649,40 +773,44 @@ Error CodeHolder::newNamedLabelEntry(LabelEntry** entryOut, const char* name, si
     }
   }
 
-  // Don't allow to insert duplicates. Local labels allow duplicates that have
-  // different id, this is already accomplished by having a different hashes
-  // between the same label names having different parent labels.
-  LabelEntry* le = _namedLabels.get(LabelByName(name, nameSize, hashCode, parentId));
-  if (ASMJIT_UNLIKELY(le)) {
+  extraDataSize += sizeof(ZoneHashNode);
+
+  // Don't allow to insert duplicates. Local labels allow duplicates that have different ids, however, this is
+  // already accomplished by having a different hashes between the same label names having different parent labels.
+  NamedLabelExtraData* namedNode = _namedLabels.get(LabelByName(name, nameSize, hashCode, parentId));
+  if (ASMJIT_UNLIKELY(namedNode)) {
     return DebugUtils::errored(kErrorLabelAlreadyDefined);
   }
 
-  Error err = kErrorOk;
-  uint32_t labelId = _labelEntries.size();
-
-  if (ASMJIT_UNLIKELY(labelId == Globals::kInvalidId)) {
-    return DebugUtils::errored(kErrorTooManyLabels);
-  }
-
-  ASMJIT_PROPAGATE(_labelEntries.willGrow(&_allocator));
-  le = _allocator.allocZeroedT<LabelEntry>();
-
-  if (ASMJIT_UNLIKELY(!le)) {
+  namedNode = _zone.alloc<NamedLabelExtraData>(Support::alignUp(extraDataSize, Globals::kZoneAlignment));
+  if (ASMJIT_UNLIKELY(!namedNode)) {
     return DebugUtils::errored(kErrorOutOfMemory);
   }
 
-  le->_hashCode = hashCode;
-  le->_setId(labelId);
-  le->_type = type;
-  le->_parentId = parentId;
-  le->_offset = 0;
-  ASMJIT_PROPAGATE(le->_name.setData(&_zone, name, nameSize));
+  LabelFlags labelFlags =
+    (parentId == Globals::kInvalidId)
+      ? LabelFlags::kHasOwnExtraData | LabelFlags::kHasName
+      : LabelFlags::kHasOwnExtraData | LabelFlags::kHasName | LabelFlags::kHasParent;
 
-  _labelEntries.appendUnsafe(le);
-  _namedLabels.insert(allocator(), le);
+  namedNode->_hashNext = nullptr;
+  namedNode->_hashCode = hashCode;
+  namedNode->_customData = labelId;
+  namedNode->extraData._sectionId = Globals::kInvalidId;
+  namedNode->extraData._internalLabelType = type;
+  namedNode->extraData._internalLabelFlags = labelFlags;
+  namedNode->extraData._internalUInt16Data = 0;
+  namedNode->extraData._parentId = parentId;
+  namedNode->extraData._nameSize = uint32_t(nameSize);
 
-  *entryOut = le;
-  return err;
+  char* namePtr = reinterpret_cast<char*>(&namedNode->extraData) + sizeof(LabelEntry::ExtraData);
+  memcpy(namePtr, name, nameSize);
+  namePtr[nameSize] = '\0';
+
+  *labelIdOut = labelId;
+  _labelEntries.appendUnsafe(LabelEntry{&namedNode->extraData, uint64_t(0)});
+  _namedLabels.insert(allocator(), namedNode);
+
+  return kErrorOk;
 }
 
 uint32_t CodeHolder::labelIdByName(const char* name, size_t nameSize, uint32_t parentId) noexcept {
@@ -695,125 +823,148 @@ uint32_t CodeHolder::labelIdByName(const char* name, size_t nameSize, uint32_t p
     hashCode ^= parentId;
   }
 
-  LabelEntry* le = _namedLabels.get(LabelByName(name, nameSize, hashCode, parentId));
-  return le ? le->id() : uint32_t(Globals::kInvalidId);
+  NamedLabelExtraData* namedNode = _namedLabels.get(LabelByName(name, nameSize, hashCode, parentId));
+  return namedNode ? namedNode->labelId() : uint32_t(Globals::kInvalidId);
 }
 
-ASMJIT_API Error CodeHolder::resolveUnresolvedLinks() noexcept {
-  if (!hasUnresolvedLinks()) {
+
+ASMJIT_API Error CodeHolder::resolveCrossSectionFixups() noexcept {
+  if (!hasUnresolvedFixups()) {
     return kErrorOk;
   }
 
   Error err = kErrorOk;
-  for (LabelEntry* le : labelEntries()) {
-    if (!le->isBound()) {
-      continue;
+  ResolveFixupIterator it(&_fixups);
+
+  while (it.isValid()) {
+    Fixup* fixup = it.fixup();
+    LabelEntry& le = labelEntry(fixup->labelOrRelocId);
+
+    Support::FastUInt8 of{};
+    Section* toSection = _sections[le.sectionId()];
+    uint64_t toOffset = Support::addOverflow(toSection->offset(), le.offset(), &of);
+
+    Section* fromSection = sectionById(fixup->sectionId);
+    size_t fixupOffset = fixup->offset;
+
+    CodeBuffer& buf = fromSection->buffer();
+    ASMJIT_ASSERT(fixupOffset < buf.size());
+
+    // Calculate the offset relative to the start of the virtual base.
+    uint64_t fromOffset = Support::addOverflow<uint64_t>(fromSection->offset(), fixupOffset, &of);
+    int64_t displacement = int64_t(toOffset - fromOffset + uint64_t(int64_t(fixup->rel)));
+
+    if (ASMJIT_UNLIKELY(of)) {
+      err = DebugUtils::errored(kErrorInvalidDisplacement);
+    }
+    else {
+      ASMJIT_ASSERT(size_t(fixupOffset) < buf.size());
+      ASMJIT_ASSERT(buf.size() - size_t(fixupOffset) >= fixup->format.valueSize());
+
+      // Overwrite a real displacement in the CodeBuffer.
+      if (CodeWriterUtils::writeOffset(buf._data + fixupOffset, displacement, fixup->format)) {
+        it.resolveAndNext(this);
+        continue;
+      }
     }
 
-    LabelLinkIterator link(le);
-    if (link) {
-      Support::FastUInt8 of = 0;
-      Section* toSection = le->section();
-      uint64_t toOffset = Support::addOverflow(toSection->offset(), le->offset(), &of);
-
-      do {
-        uint32_t linkSectionId = link->sectionId;
-        if (link->relocId == Globals::kInvalidId) {
-          Section* fromSection = sectionById(linkSectionId);
-          size_t linkOffset = link->offset;
-
-          CodeBuffer& buf = _sections[linkSectionId]->buffer();
-          ASMJIT_ASSERT(linkOffset < buf.size());
-
-          // Calculate the offset relative to the start of the virtual base.
-          Support::FastUInt8 localOF = of;
-          uint64_t fromOffset = Support::addOverflow<uint64_t>(fromSection->offset(), linkOffset, &localOF);
-          int64_t displacement = int64_t(toOffset - fromOffset + uint64_t(int64_t(link->rel)));
-
-          if (!localOF) {
-            ASMJIT_ASSERT(size_t(linkOffset) < buf.size());
-            ASMJIT_ASSERT(buf.size() - size_t(linkOffset) >= link->format.valueSize());
-
-            // Overwrite a real displacement in the CodeBuffer.
-            if (CodeWriterUtils::writeOffset(buf._data + linkOffset, displacement, link->format)) {
-              link.resolveAndNext(this);
-              continue;
-            }
-          }
-
-          err = DebugUtils::errored(kErrorInvalidDisplacement);
-          // Falls through to `link.next()`.
-        }
-
-        link.next();
-      } while (link);
-    }
+    it.next();
   }
 
+  _unresolvedFixupCount -= it.resolvedCount();
   return err;
 }
 
 ASMJIT_API Error CodeHolder::bindLabel(const Label& label, uint32_t toSectionId, uint64_t toOffset) noexcept {
-  LabelEntry* le = labelEntry(label);
-  if (ASMJIT_UNLIKELY(!le)) {
+  uint32_t labelId = label.id();
+
+  if (ASMJIT_UNLIKELY(labelId >= _labelEntries.size())) {
     return DebugUtils::errored(kErrorInvalidLabel);
   }
 
-  if (ASMJIT_UNLIKELY(toSectionId > _sections.size())) {
+  if (ASMJIT_UNLIKELY(toSectionId >= _sections.size())) {
     return DebugUtils::errored(kErrorInvalidSection);
   }
 
+  LabelEntry& le = _labelEntries[labelId];
+
   // Label can be bound only once.
-  if (ASMJIT_UNLIKELY(le->isBound())) {
+  if (ASMJIT_UNLIKELY(le.isBound())) {
     return DebugUtils::errored(kErrorLabelAlreadyBound);
   }
 
-  // Bind the label.
   Section* section = _sections[toSectionId];
-  le->_section = section;
-  le->_offset = toOffset;
-
-  Error err = kErrorOk;
   CodeBuffer& buf = section->buffer();
 
-  // Fix all links to this label we have collected so far if they are within
-  // the same section. We ignore any inter-section links as these have to be
-  // fixed later.
-  LabelLinkIterator link(le);
-  while (link) {
-    uint32_t linkSectionId = link->sectionId;
-    size_t linkOffset = link->offset;
+  // Bind the label - this either assigns a section to LabelEntry's `_objectData` or `_sectionId` in own `ExtraData`.
+  // This is basically how this works - when the ExtraData is shared, we replace it by section as the section header
+  // is compatible with ExtraData header, and when the LabelEntry has its own ExtraData, the section identifier must
+  // be assigned.
+  if (le._hasOwnExtraData()) {
+    le._ownExtraData()->_sectionId = toSectionId;
+  }
+  else {
+    le._objectData = section;
+  }
 
-    uint32_t relocId = link->relocId;
+  // It must be in this order as _offsetsOrFixups as basically a union.
+  Fixup* labelFixups = le._getFixups();
+  le._offsetOrFixups = toOffset;
+
+  if (!labelFixups) {
+    return kErrorOk;
+  }
+
+  // Fix all fixups of this label we have collected so far if they are within the same
+  // section. We ignore any cross-section fixups as these have to be fixed later.
+  Error err = kErrorOk;
+
+  ResolveFixupIterator it(&labelFixups);
+  ASMJIT_ASSERT(it.isValid());
+
+  do {
+    Fixup* fixup = it.fixup();
+
+    uint32_t relocId = fixup->labelOrRelocId;
+    uint32_t fromSectionId = fixup->sectionId;
+    size_t fromOffset = fixup->offset;
+
     if (relocId != Globals::kInvalidId) {
-      // Adjust relocation data only.
+      // Adjust the relocation payload.
       RelocEntry* re = _relocations[relocId];
       re->_payload += toOffset;
       re->_targetSectionId = toSectionId;
     }
+    else if (fromSectionId != toSectionId) {
+      fixup->labelOrRelocId = labelId;
+      it.next();
+      continue;
+    }
     else {
-      if (linkSectionId != toSectionId) {
-        link.next();
-        continue;
-      }
+      ASMJIT_ASSERT(fromOffset < buf.size());
+      int64_t displacement = int64_t(toOffset - uint64_t(fromOffset) + uint64_t(int64_t(fixup->rel)));
 
-      ASMJIT_ASSERT(linkOffset < buf.size());
-      int64_t displacement = int64_t(toOffset - uint64_t(linkOffset) + uint64_t(int64_t(link->rel)));
-
-      // Size of the value we are going to patch. Only BYTE/DWORD is allowed.
-      ASMJIT_ASSERT(buf.size() - size_t(linkOffset) >= link->format.regionSize());
+      // Size of the value we are going to patch.
+      ASMJIT_ASSERT(buf.size() - size_t(fromOffset) >= fixup->format.regionSize());
 
       // Overwrite a real displacement in the CodeBuffer.
-      if (!CodeWriterUtils::writeOffset(buf._data + linkOffset, displacement, link->format)) {
+      if (!CodeWriterUtils::writeOffset(buf._data + fromOffset, displacement, fixup->format)) {
         err = DebugUtils::errored(kErrorInvalidDisplacement);
-        link.next();
+        fixup->labelOrRelocId = labelId;
+        it.next();
         continue;
       }
     }
 
-    link.resolveAndNext(this);
+    it.resolveAndNext(this);
+  } while (it.isValid());
+
+  if (it.unresolvedCount()) {
+    *it._pPrev = _fixups;
+    _fixups = labelFixups;
   }
 
+  _unresolvedFixupCount -= it.resolvedCount();
   return err;
 }
 
@@ -828,15 +979,18 @@ Error CodeHolder::newRelocEntry(RelocEntry** dst, RelocType relocType) noexcept 
     return DebugUtils::errored(kErrorTooManyRelocations);
   }
 
-  RelocEntry* re = _allocator.allocZeroedT<RelocEntry>();
+  RelocEntry* re = _zone.alloc<RelocEntry>();
   if (ASMJIT_UNLIKELY(!re)) {
     return DebugUtils::errored(kErrorOutOfMemory);
   }
 
   re->_id = relocId;
   re->_relocType = relocType;
+  re->_format = OffsetFormat{};
   re->_sourceSectionId = Globals::kInvalidId;
   re->_targetSectionId = Globals::kInvalidId;
+  re->_sourceOffset = 0;
+  re->_payload = 0;
   _relocations.appendUnsafe(re);
 
   *dst = re;
@@ -862,11 +1016,17 @@ static Error CodeHolder_evaluateExpression(CodeHolder* self, Expression* exp, ui
       }
 
       case ExpressionValueType::kLabel: {
-        LabelEntry* le = exp->value[i].label;
-        if (!le->isBound()) {
+        uint32_t labelId = exp->value[i].labelId;
+        if (ASMJIT_UNLIKELY(labelId >= self->labelCount())) {
+          return DebugUtils::errored(kErrorInvalidLabel);
+        }
+
+        LabelEntry& le = self->_labelEntries[labelId];
+        if (!le.isBound()) {
           return DebugUtils::errored(kErrorExpressionLabelNotBound);
         }
-        v = le->section()->offset() + le->offset();
+
+        v = self->_sections[le.sectionId()]->offset() + le.offset();
         break;
       }
 
@@ -985,7 +1145,16 @@ size_t CodeHolder::codeSize() const noexcept {
   return size_t(offset);
 }
 
-Error CodeHolder::relocateToBase(uint64_t baseAddress) noexcept {
+Error CodeHolder::relocateToBase(uint64_t baseAddress, RelocationSummary* summaryOut) noexcept {
+  // Make sure `summaryOut` pointer is always valid as we want to fill it.
+  RelocationSummary summaryTmp;
+  if (summaryOut == nullptr) {
+    summaryOut = &summaryTmp;
+  }
+
+  // Fill `summaryOut` defaults.
+  summaryOut->codeSizeReduction = 0u;
+
   // Base address must be provided.
   if (ASMJIT_UNLIKELY(baseAddress == Globals::kNoBaseAddress)) {
     return DebugUtils::errored(kErrorInvalidArgument);
@@ -1118,7 +1287,7 @@ Error CodeHolder::relocateToBase(uint64_t baseAddress) noexcept {
           buffer[valueOffset - 2] = uint8_t(byte0);
           buffer[valueOffset - 1] = uint8_t(byte1);
 
-          Support::writeU64uLE(addressTableEntryData + atEntryIndex, re->payload());
+          Support::storeu_u64_le(addressTableEntryData + atEntryIndex, re->payload());
         }
         break;
       }
@@ -1136,9 +1305,16 @@ Error CodeHolder::relocateToBase(uint64_t baseAddress) noexcept {
   if (_sectionsByOrder.last() == addressTableSection) {
     ASMJIT_ASSERT(addressTableSection != nullptr);
 
+    size_t reservedSize = size_t(addressTableSection->_virtualSize);
     size_t addressTableSize = addressTableEntryCount * addressSize;
+
     addressTableSection->_buffer._size = addressTableSize;
     addressTableSection->_virtualSize = addressTableSize;
+
+    ASMJIT_ASSERT(reservedSize >= addressTableSize);
+    size_t codeSizeReduction = reservedSize - addressTableSize;
+
+    summaryOut->codeSizeReduction = codeSizeReduction;
   }
 
   return kErrorOk;
@@ -1214,10 +1390,30 @@ UNIT(code_holder) {
   EXPECT_EQ(code.arch(), Arch::kX86);
 
   INFO("Verifying named labels");
-  LabelEntry* le;
-  EXPECT_EQ(code.newNamedLabelEntry(&le, "NamedLabel", SIZE_MAX, LabelType::kGlobal), kErrorOk);
-  EXPECT_EQ(strcmp(le->name(), "NamedLabel"), 0);
-  EXPECT_EQ(code.labelIdByName("NamedLabel"), le->id());
+  uint32_t dummyId;
+  uint32_t labelId1;
+  uint32_t labelId2;
+
+  // Anonymous labels can have no-name (this is basically like calling `code.newLabelId()`).
+  EXPECT_EQ(code.newNamedLabelId(&dummyId, "", SIZE_MAX, LabelType::kAnonymous), kErrorOk);
+
+  // Global labels must have a name - not providing one is an error.
+  EXPECT_EQ(code.newNamedLabelId(&dummyId, "", SIZE_MAX, LabelType::kGlobal), kErrorInvalidLabelName);
+
+  // A name of a global label cannot repeat.
+  EXPECT_EQ(code.newNamedLabelId(&labelId1, "NamedLabel1", SIZE_MAX, LabelType::kGlobal), kErrorOk);
+  EXPECT_EQ(code.newNamedLabelId(&dummyId, "NamedLabel1", SIZE_MAX, LabelType::kGlobal), kErrorLabelAlreadyDefined);
+  EXPECT_TRUE(code.isLabelValid(labelId1));
+  EXPECT_EQ(code.labelEntry(labelId1).nameSize(), 11u);
+  EXPECT_EQ(strcmp(code.labelEntry(labelId1).name(), "NamedLabel1"), 0);
+  EXPECT_EQ(code.labelIdByName("NamedLabel1"), labelId1);
+
+  EXPECT_EQ(code.newNamedLabelId(&labelId2, "NamedLabel2", SIZE_MAX, LabelType::kGlobal), kErrorOk);
+  EXPECT_EQ(code.newNamedLabelId(&dummyId, "NamedLabel2", SIZE_MAX, LabelType::kGlobal), kErrorLabelAlreadyDefined);
+  EXPECT_TRUE(code.isLabelValid(labelId2));
+  EXPECT_EQ(code.labelEntry(labelId2).nameSize(), 11u);
+  EXPECT_EQ(strcmp(code.labelEntry(labelId2).name(), "NamedLabel2"), 0);
+  EXPECT_EQ(code.labelIdByName("NamedLabel2"), labelId2);
 
   INFO("Verifying section ordering");
   Section* section1;

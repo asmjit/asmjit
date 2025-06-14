@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_ARM_A64COMPILER_H_INCLUDED
@@ -98,6 +98,11 @@ public:
   ASMJIT_INLINE_NODEBUG Gp newIntPtr(Args&&... args) { return _newRegInternal<Gp>(TypeId::kIntPtr, std::forward<Args>(args)...); }
   template<typename... Args>
   ASMJIT_INLINE_NODEBUG Gp newUIntPtr(Args&&... args) { return _newRegInternal<Gp>(TypeId::kUIntPtr, std::forward<Args>(args)...); }
+
+  template<typename... Args>
+  ASMJIT_INLINE_NODEBUG Gp newGp32(Args&&... args) { return _newRegInternal<Gp>(TypeId::kUInt32, std::forward<Args>(args)...); }
+  template<typename... Args>
+  ASMJIT_INLINE_NODEBUG Gp newGp64(Args&&... args) { return _newRegInternal<Gp>(TypeId::kUInt64, std::forward<Args>(args)...); }
 
   template<typename... Args>
   ASMJIT_INLINE_NODEBUG Gp newGpw(Args&&... args) { return _newRegInternal<Gp>(TypeId::kUInt32, std::forward<Args>(args)...); }
@@ -214,9 +219,9 @@ public:
   //! Return.
   ASMJIT_INLINE_NODEBUG Error ret() { return addRet(Operand(), Operand()); }
   //! \overload
-  ASMJIT_INLINE_NODEBUG Error ret(const BaseReg& o0) { return addRet(o0, Operand()); }
+  ASMJIT_INLINE_NODEBUG Error ret(const Reg& o0) { return addRet(o0, Operand()); }
   //! \overload
-  ASMJIT_INLINE_NODEBUG Error ret(const BaseReg& o0, const BaseReg& o1) { return addRet(o0, o1); }
+  ASMJIT_INLINE_NODEBUG Error ret(const Reg& o0, const Reg& o1) { return addRet(o0, o1); }
 
   //! \}
 
@@ -226,15 +231,16 @@ public:
   using EmitterExplicitT<Compiler>::br;
 
   //! Adds a jump to the given `target` with the provided jump `annotation`.
-  ASMJIT_INLINE_NODEBUG Error br(const BaseReg& target, JumpAnnotation* annotation) { return emitAnnotatedJump(Inst::kIdBr, target, annotation); }
+  ASMJIT_INLINE_NODEBUG Error br(const Reg& target, JumpAnnotation* annotation) { return emitAnnotatedJump(Inst::kIdBr, target, annotation); }
 
   //! \}
 
   //! \name Events
   //! \{
 
-  ASMJIT_API Error onAttach(CodeHolder* code) noexcept override;
-  ASMJIT_API Error onDetach(CodeHolder* code) noexcept override;
+  ASMJIT_API Error onAttach(CodeHolder& code) noexcept override;
+  ASMJIT_API Error onDetach(CodeHolder& code) noexcept override;
+  ASMJIT_API Error onReinit(CodeHolder& code) noexcept override;
 
   //! \}
 

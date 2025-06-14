@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_TEST_MISC_H_INCLUDED
@@ -20,15 +20,15 @@ static void generateSseAlphaBlendInternal(
   Emitter& cc,
   const x86::Gp& dst, const x86::Gp& src, const x86::Gp& n,
   const x86::Gp& gp0,
-  const x86::Xmm& simd0, const x86::Xmm& simd1, const x86::Xmm& simd2, const x86::Xmm& simd3,
-  const x86::Xmm& simd4, const x86::Xmm& simd5, const x86::Xmm& simd6, const x86::Xmm& simd7) {
+  const x86::Vec& simd0, const x86::Vec& simd1, const x86::Vec& simd2, const x86::Vec& simd3,
+  const x86::Vec& simd4, const x86::Vec& simd5, const x86::Vec& simd6, const x86::Vec& simd7) {
 
   x86::Gp i = n;
   x86::Gp j = gp0;
 
-  x86::Xmm vzero = simd0;
-  x86::Xmm v0080 = simd1;
-  x86::Xmm v0101 = simd2;
+  x86::Vec vzero = simd0;
+  x86::Vec v0080 = simd1;
+  x86::Vec v0101 = simd2;
 
   Label L_SmallLoop = cc.newLabel();
   Label L_SmallEnd  = cc.newLabel();
@@ -59,9 +59,9 @@ static void generateSseAlphaBlendInternal(
   // Small loop.
   cc.bind(L_SmallLoop);
   {
-    x86::Xmm x0 = simd3;
-    x86::Xmm y0 = simd4;
-    x86::Xmm a0 = simd5;
+    x86::Vec x0 = simd3;
+    x86::Vec y0 = simd4;
+    x86::Vec a0 = simd5;
 
     cc.movd(y0, x86::ptr(src));
     cc.movd(x0, x86::ptr(dst));
@@ -104,11 +104,11 @@ static void generateSseAlphaBlendInternal(
   // Aligned loop.
   cc.bind(L_LargeLoop);
   {
-    x86::Xmm x0 = simd3;
-    x86::Xmm x1 = simd4;
-    x86::Xmm y0 = simd5;
-    x86::Xmm a0 = simd6;
-    x86::Xmm a1 = simd7;
+    x86::Vec x0 = simd3;
+    x86::Vec x1 = simd4;
+    x86::Vec y0 = simd5;
+    x86::Vec a0 = simd6;
+    x86::Vec a1 = simd7;
 
     cc.movups(y0, x86::ptr(src));
     cc.movaps(x0, x86::ptr(dst));
@@ -233,14 +233,14 @@ static void generateSseAlphaBlend(asmjit::BaseEmitter& emitter, bool emitPrologE
     Gp i = cc.newIntPtr("i");
     Gp j = cc.newIntPtr("j");
 
-    Xmm v0 = cc.newXmm("v0");
-    Xmm v1 = cc.newXmm("v1");
-    Xmm v2 = cc.newXmm("v2");
-    Xmm v3 = cc.newXmm("v3");
-    Xmm v4 = cc.newXmm("v4");
-    Xmm v5 = cc.newXmm("v5");
-    Xmm v6 = cc.newXmm("v6");
-    Xmm v7 = cc.newXmm("v7");
+    Vec v0 = cc.newXmm("v0");
+    Vec v1 = cc.newXmm("v1");
+    Vec v2 = cc.newXmm("v2");
+    Vec v3 = cc.newXmm("v3");
+    Vec v4 = cc.newXmm("v4");
+    Vec v5 = cc.newXmm("v5");
+    Vec v6 = cc.newXmm("v6");
+    Vec v7 = cc.newXmm("v7");
 
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<void, void*, const void*, size_t>());
     funcNode->setArg(0, dst);

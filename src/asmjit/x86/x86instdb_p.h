@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_X86_X86INSTDB_P_H_INCLUDED
@@ -17,7 +17,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
 namespace InstDB {
 
-//! Instruction encoding (X86).
+//! Instruction encoding (X86|X86_64).
 //!
 //! This is a specific identifier that is used by AsmJit to describe the way each instruction is encoded. Some
 //! encodings are special only for a single instruction as X86 instruction set contains a lot of legacy encodings,

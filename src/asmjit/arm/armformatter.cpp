@@ -1,11 +1,12 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
 #ifndef ASMJIT_NO_LOGGING
 
+#include "../core/formatter_p.h"
 #include "../core/misc_p.h"
 #include "../core/support.h"
 #include "../arm/armformatter_p.h"
@@ -333,14 +334,7 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatRegister(
         VirtReg* vReg = cc->virtRegById(rId);
         ASMJIT_ASSERT(vReg != nullptr);
 
-        const char* name = vReg->name();
-        if (name && name[0] != '\0') {
-          ASMJIT_PROPAGATE(sb.append(name));
-        }
-        else {
-          ASMJIT_PROPAGATE(sb.appendFormat("%%%u", unsigned(Operand::virtIdToIndex(rId))));
-        }
-
+        ASMJIT_PROPAGATE(Formatter::formatVirtRegName(sb, vReg));
         virtRegFormatted = true;
       }
     }
@@ -352,18 +346,18 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatRegister(
   if (!virtRegFormatted) {
     char letter = '\0';
     switch (regType) {
-      case RegType::kARM_VecB:
-      case RegType::kARM_VecH:
-      case RegType::kARM_VecS:
-      case RegType::kARM_VecD:
-      case RegType::kARM_VecV:
-        letter = bhsdq[uint32_t(regType) - uint32_t(RegType::kARM_VecB)];
+      case RegType::kVec8:
+      case RegType::kVec16:
+      case RegType::kVec32:
+      case RegType::kVec64:
+      case RegType::kVec128:
+        letter = bhsdq[uint32_t(regType) - uint32_t(RegType::kVec8)];
         if (elementType) {
           letter = 'v';
         }
         break;
 
-      case RegType::kARM_GpW:
+      case RegType::kGp32:
         if (Environment::is64Bit(arch)) {
           letter = 'w';
 
@@ -380,7 +374,7 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatRegister(
         }
         break;
 
-      case RegType::kARM_GpX:
+      case RegType::kGp64:
         if (Environment::is64Bit(arch)) {
           if (rId == a64::Gp::kIdZr) {
             return sb.append("xzr", 3);
@@ -413,7 +407,7 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatRegister(
     FormatElementData elementData = formatElementDataTable[elementType];
     uint32_t elementCount = elementData.elementCount;
 
-    if (regType == RegType::kARM_VecD) {
+    if (regType == RegType::kVec64) {
       elementCount /= 2u;
     }
 
@@ -481,20 +475,20 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatOperand(
   const Operand_& op) noexcept {
 
   if (op.isReg()) {
-    const BaseReg& reg = op.as<BaseReg>();
+    const Reg& reg = op.as<Reg>();
 
-    uint32_t elementType = op._signature.getField<BaseVec::kSignatureRegElementTypeMask>();
-    uint32_t elementIndex = op.as<BaseVec>().elementIndex();
+    uint32_t elementType = op._signature.getField<a64::Vec::kSignatureRegElementTypeMask>();
+    uint32_t elementIndex = op.as<a64::Vec>().elementIndex();
 
-    if (!op.as<BaseVec>().hasElementIndex()) {
+    if (!op.as<a64::Vec>().hasElementIndex()) {
       elementIndex = 0xFFFFFFFFu;
     }
 
-    return formatRegister(sb, flags, emitter, arch, reg.type(), reg.id(), elementType, elementIndex);
+    return formatRegister(sb, flags, emitter, arch, reg.regType(), reg.id(), elementType, elementIndex);
   }
 
   if (op.isMem()) {
-    const Mem& m = op.as<Mem>();
+    const a64::Mem& m = op.as<a64::Mem>();
     ASMJIT_PROPAGATE(sb.append('['));
 
     if (m.hasBase()) {
@@ -591,7 +585,7 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatOperand(
 
   if (op.isRegList()) {
     const BaseRegList& regList = op.as<BaseRegList>();
-    return formatRegisterList(sb, flags, emitter, arch, regList.type(), regList.list());
+    return formatRegisterList(sb, flags, emitter, arch, regList.regType(), regList.list());
   }
 
   return sb.append("<None>");

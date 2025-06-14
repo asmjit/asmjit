@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include <asmjit/core.h>
@@ -8,8 +8,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "asmjit_test_assembler.h"
+#include "asmjitutils.h"
 #include "cmdline.h"
+
+#include "asmjit_test_assembler.h"
 
 using namespace asmjit;
 
@@ -22,18 +24,17 @@ bool testX64Assembler(const TestSettings& settings) noexcept;
 bool testA64Assembler(const TestSettings& settings) noexcept;
 #endif
 
-int main(int argc, char* argv[]) {
-  CmdLine cmdLine(argc, argv);
-
-  TestSettings settings {};
-  settings.verbose = cmdLine.hasArg("--verbose");
-  settings.validate = cmdLine.hasArg("--validate");
-
-  printf("AsmJit Assembler Test-Suite v%u.%u.%u:\n\n",
+static void printAppInfo() noexcept {
+  printf("AsmJit Assembler Test-Suite v%u.%u.%u [Arch=%s] [Mode=%s]\n\n",
     unsigned((ASMJIT_LIBRARY_VERSION >> 16)       ),
     unsigned((ASMJIT_LIBRARY_VERSION >>  8) & 0xFF),
-    unsigned((ASMJIT_LIBRARY_VERSION      ) & 0xFF));
+    unsigned((ASMJIT_LIBRARY_VERSION      ) & 0xFF),
+    asmjitArchAsString(Arch::kHost),
+    asmjitBuildType()
+  );
+}
 
+static void printAppUsage(const TestSettings& settings) noexcept {
   printf("Usage:\n");
   printf("  --help         Show usage only\n");
   printf("  --verbose      Show only assembling errors [%s]\n", settings.verbose ? "x" : " ");
@@ -50,8 +51,21 @@ int main(int argc, char* argv[]) {
   printf("  --arch=aarch64 64-bit ARM architecture (AArch64)\n");
 #endif
   printf("\n");
-  if (cmdLine.hasArg("--help"))
+}
+
+int main(int argc, char* argv[]) {
+  CmdLine cmdLine(argc, argv);
+
+  TestSettings settings {};
+  settings.verbose = cmdLine.hasArg("--verbose");
+  settings.validate = cmdLine.hasArg("--validate");
+
+  printAppInfo();
+  printAppUsage(settings);
+
+  if (cmdLine.hasArg("--help")) {
     return 0;
+  }
 
   const char* arch = cmdLine.valueOf("--arch", "all");
   bool x86Failed = false;

@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
@@ -121,7 +121,9 @@ void BaseEmitter::setErrorHandler(ErrorHandler* errorHandler) noexcept {
   }
 }
 
-Error BaseEmitter::reportError(Error err, const char* message) {
+Error BaseEmitter::_reportError(Error err, const char* message) {
+  ASMJIT_ASSERT(err != kErrorOk);
+
   ErrorHandler* eh = _errorHandler;
   if (eh) {
     if (!message) {
@@ -129,6 +131,7 @@ Error BaseEmitter::reportError(Error err, const char* message) {
     }
     eh->handleError(err, message, this);
   }
+
   return err;
 }
 
@@ -370,20 +373,22 @@ Error BaseEmitter::commentv(const char* fmt, va_list ap) {
 // BaseEmitter - Events
 // ====================
 
-Error BaseEmitter::onAttach(CodeHolder* code) noexcept {
-  _code = code;
-  _environment = code->environment();
+Error BaseEmitter::onAttach(CodeHolder& code) noexcept {
+  _code = &code;
+  _environment = code.environment();
   _addEmitterFlags(EmitterFlags::kAttached);
 
-  const ArchTraits& archTraits = ArchTraits::byArch(code->arch());
-  RegType nativeRegType = Environment::is32Bit(code->arch()) ? RegType::kGp32 : RegType::kGp64;
-  _gpSignature = archTraits.regTypeToSignature(nativeRegType);
+  _gpSignature.setBits(
+    Environment::is32Bit(code.arch())
+      ? RegTraits<RegType::kGp32>::kSignature
+      : RegTraits<RegType::kGp64>::kSignature
+  );
 
   onSettingsUpdated();
   return kErrorOk;
 }
 
-Error BaseEmitter::onDetach(CodeHolder* code) noexcept {
+Error BaseEmitter::onDetach(CodeHolder& code) noexcept {
   DebugUtils::unused(code);
 
   if (!hasOwnLogger()) {
@@ -405,7 +410,17 @@ Error BaseEmitter::onDetach(CodeHolder* code) noexcept {
   _instOptions = InstOptions::kNone;
   _extraReg.reset();
   _inlineComment = nullptr;
-  _funcs.reset();
+
+  return kErrorOk;
+}
+
+Error BaseEmitter::onReinit(CodeHolder& code) noexcept {
+  ASMJIT_ASSERT(_code == &code);
+  DebugUtils::unused(code);
+
+  _instOptions = InstOptions::kNone;
+  _extraReg.reset();
+  _inlineComment = nullptr;
 
   return kErrorOk;
 }

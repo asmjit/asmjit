@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_X86_X86BUILDER_H_INCLUDED
@@ -56,8 +56,8 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //!   x86::Gp srcA = cb.zcx();
 //!   x86::Gp srcB = cb.zdx();
 //!
-//!   X86::Xmm vec0 = x86::xmm0;
-//!   X86::Xmm vec1 = x86::xmm1;
+//!   X86::Vec vec0 = x86::xmm0;
+//!   X86::Vec vec1 = x86::xmm1;
 //!
 //!   // Create and initialize `FuncDetail`.
 //!   FuncDetail func;
@@ -336,8 +336,8 @@ public:
   //! \name Events
   //! \{
 
-  ASMJIT_API Error onAttach(CodeHolder* code) noexcept override;
-  ASMJIT_API Error onDetach(CodeHolder* code) noexcept override;
+  ASMJIT_API Error onAttach(CodeHolder& code) noexcept override;
+  ASMJIT_API Error onDetach(CodeHolder& code) noexcept override;
 
   //! \}
 

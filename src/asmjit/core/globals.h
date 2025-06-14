@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_CORE_GLOBALS_H_INCLUDED
@@ -30,13 +30,13 @@ namespace Support {
   ASMJIT_INLINE void operatorDelete(void* p) noexcept { if (p) free(p); }
 } // {Support}
 
-#define ASMJIT_BASE_CLASS(TYPE)                                                                          \
+#define ASMJIT_BASE_CLASS(TYPE)                                                                    \
   ASMJIT_INLINE void* operator new(size_t n) noexcept { return Support::operatorNew(n); }          \
   ASMJIT_INLINE void operator delete(void* ptr) noexcept { Support::operatorDelete(ptr); }         \
-                                                                                                         \
+                                                                                                   \
   ASMJIT_INLINE void* operator new(size_t, void* ptr) noexcept { return ptr; }                     \
   ASMJIT_INLINE void operator delete(void*, void*) noexcept {}                                     \
-                                                                                                         \
+                                                                                                   \
   ASMJIT_INLINE void* operator new(size_t, Support::PlacementNew ptr) noexcept { return ptr.ptr; } \
   ASMJIT_INLINE void operator delete(void*, Support::PlacementNew) noexcept {}
 #else
@@ -73,13 +73,16 @@ enum class ResetPolicy : uint32_t {
 namespace Globals {
 
 //! Host memory allocator overhead.
-static constexpr uint32_t kAllocOverhead = uint32_t(sizeof(intptr_t) * 4);
+static constexpr uint32_t kAllocOverhead = uint32_t(sizeof(intptr_t) * 4u);
 
 //! Host memory allocator alignment.
-static constexpr uint32_t kAllocAlignment = 8;
+static constexpr uint32_t kAllocAlignment = 8u;
 
 //! Aggressive growing strategy threshold.
-static constexpr uint32_t kGrowThreshold = 1024 * 1024 * 16;
+static constexpr uint32_t kGrowThreshold = 1024u * 1024u * 16u;
+
+//! Default alignment of allocation requests to use when using Zone.
+static constexpr uint32_t kZoneAlignment = 8u;
 
 //! Maximum depth of RB-Tree is:
 //!
@@ -212,8 +215,8 @@ enum ErrorCode : uint32_t {
   kErrorLabelNameTooLong,
   //! Label must always be local if it's anonymous (without a name).
   kErrorInvalidLabelName,
-  //! Parent id passed to \ref CodeHolder::newNamedLabelEntry() was either invalid or parent is not supported
-  //! by the requested `LabelType`.
+  //! Parent id passed to \ref CodeHolder::newNamedLabelId() was either invalid or parent is not supported by
+  //! the requested `LabelType`.
   kErrorInvalidParentLabel,
 
   //! Invalid section.
@@ -278,7 +281,7 @@ enum ErrorCode : uint32_t {
   kErrorInvalidAddress64BitZeroExtension,
   //! Invalid displacement (not encodable).
   kErrorInvalidDisplacement,
-  //! Invalid segment (X86).
+  //! Invalid segment (X86|X86_64).
   kErrorInvalidSegment,
 
   //! Invalid immediate (out of bounds on X86 and invalid pattern on ARM).
@@ -386,14 +389,32 @@ ASMJIT_API void assertionFailed(const char* file, int line, const char* msg) noe
 //!
 //! AsmJit's own assert macro used in AsmJit code-base.
 #if defined(ASMJIT_BUILD_DEBUG)
-#define ASMJIT_ASSERT(...)                                                     \
+  #define ASMJIT_ASSERT(...)                                                     \
+    do {                                                                         \
+      if (ASMJIT_UNLIKELY(!(__VA_ARGS__))) {                                     \
+        ::asmjit::DebugUtils::assertionFailed(__FILE__, __LINE__, #__VA_ARGS__); \
+      }                                                                          \
+    } while (0)
+#else
+  #define ASMJIT_ASSERT(...) ((void)0)
+#endif
+
+#define ASMJIT_RUNTIME_ASSERT(...)                                             \
   do {                                                                         \
     if (ASMJIT_UNLIKELY(!(__VA_ARGS__))) {                                     \
       ::asmjit::DebugUtils::assertionFailed(__FILE__, __LINE__, #__VA_ARGS__); \
     }                                                                          \
   } while (0)
+
+//! \def ASMJIT_NOT_REACHED()
+//!
+//! Run-time assertion used in code that should never be reached.
+#if defined(ASMJIT_BUILD_DEBUG)
+  #define ASMJIT_NOT_REACHED() ::asmjit::DebugUtils::assertionFailed(__FILE__, __LINE__, "ASMJIT_NOT_REACHED()")
+#elif defined(__GNUC__)
+  #define ASMJIT_NOT_REACHED() __builtin_unreachable()
 #else
-#define ASMJIT_ASSERT(...) ((void)0)
+  #define ASMJIT_NOT_REACHED() ASMJIT_ASSUME(0)
 #endif
 
 //! \def ASMJIT_PROPAGATE(...)

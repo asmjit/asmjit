@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
@@ -58,7 +58,7 @@ ASMJIT_FAVOR_SIZE Error FuncArgsContext::initWorkData(const FuncFrame& frame, co
       FuncValue& dst = var.out;
 
       RegGroup dstGroup = RegGroup::kMaxValue;
-      uint32_t dstId = BaseReg::kIdBad;
+      uint32_t dstId = Reg::kIdBad;
       WorkData* dstWd = nullptr;
 
       // Not supported.
@@ -75,10 +75,10 @@ ASMJIT_FAVOR_SIZE Error FuncArgsContext::initWorkData(const FuncFrame& frame, co
         // Copy TypeId from source if the destination doesn't have it. The RA used by BaseCompiler would never
         // leave TypeId undefined, but users of FuncAPI can just assign phys regs without specifying their types.
         if (!dst.hasTypeId()) {
-          dst.setTypeId(archTraits().regTypeToTypeId(dst.regType()));
+          dst.setTypeId(RegUtils::typeIdOf(dst.regType()));
         }
 
-        dstGroup = archTraits().regTypeToGroup(dstType);
+        dstGroup = RegUtils::groupOf(dstType);
         if (ASMJIT_UNLIKELY(dstGroup > RegGroup::kMaxVirt)) {
           return DebugUtils::errored(kErrorInvalidRegGroup);
         }
@@ -112,7 +112,7 @@ ASMJIT_FAVOR_SIZE Error FuncArgsContext::initWorkData(const FuncFrame& frame, co
 
       if (src.isReg()) {
         uint32_t srcId = src.regId();
-        RegGroup srcGroup = archTraits().regTypeToGroup(src.regType());
+        RegGroup srcGroup = RegUtils::groupOf(src.regType());
 
         if (dstGroup == srcGroup) {
           ASMJIT_ASSERT(dstWd != nullptr);
@@ -173,14 +173,14 @@ ASMJIT_FAVOR_SIZE Error FuncArgsContext::initWorkData(const FuncFrame& frame, co
   uint32_t saCurRegId = frame.saRegId();
   uint32_t saOutRegId = args.saRegId();
 
-  if (saCurRegId != BaseReg::kIdBad) {
+  if (saCurRegId != Reg::kIdBad) {
     // Check if the provided `SARegId` doesn't collide with input registers.
     if (ASMJIT_UNLIKELY(gpRegs.isAssigned(saCurRegId))) {
       return DebugUtils::errored(kErrorOverlappedRegs);
     }
   }
 
-  if (saOutRegId != BaseReg::kIdBad) {
+  if (saOutRegId != Reg::kIdBad) {
     // Check if the provided `SARegId` doesn't collide with argument assignments.
     if (ASMJIT_UNLIKELY(Support::bitTest(gpRegs.dstRegs(), saOutRegId))) {
       return DebugUtils::errored(kErrorOverlappedRegs);
@@ -198,8 +198,8 @@ ASMJIT_FAVOR_SIZE Error FuncArgsContext::initWorkData(const FuncFrame& frame, co
     Var& var = _vars[varId];
     var.reset();
 
-    if (saCurRegId == BaseReg::kIdBad) {
-      if (saOutRegId != BaseReg::kIdBad && !gpRegs.isAssigned(saOutRegId)) {
+    if (saCurRegId == Reg::kIdBad) {
+      if (saOutRegId != Reg::kIdBad && !gpRegs.isAssigned(saOutRegId)) {
         saCurRegId = saOutRegId;
       }
       else {
@@ -220,7 +220,7 @@ ASMJIT_FAVOR_SIZE Error FuncArgsContext::initWorkData(const FuncFrame& frame, co
     gpRegs.assign(varId, saCurRegId);
     gpRegs._workRegs |= Support::bitMask(saCurRegId);
 
-    if (saOutRegId != BaseReg::kIdBad) {
+    if (saOutRegId != Reg::kIdBad) {
       var.out.initReg(ptrRegType, saOutRegId, ptrTypeId);
       gpRegs._dstRegs  |= Support::bitMask(saOutRegId);
       gpRegs._workRegs |= Support::bitMask(saOutRegId);
@@ -241,15 +241,15 @@ ASMJIT_FAVOR_SIZE Error FuncArgsContext::initWorkData(const FuncFrame& frame, co
       uint32_t srcId = var.cur.regId();
       uint32_t dstId = var.out.regId();
 
-      RegGroup group = archTraits().regTypeToGroup(var.cur.regType());
-      if (group != archTraits().regTypeToGroup(var.out.regType())) {
+      RegGroup group = RegUtils::groupOf(var.cur.regType());
+      if (group != RegUtils::groupOf(var.out.regType())) {
         continue;
       }
 
       WorkData& wd = _workData[group];
       if (wd.isAssigned(dstId)) {
         Var& other = _vars[wd._physToVarId[dstId]];
-        if (archTraits().regTypeToGroup(other.out.regType()) == group && other.out.regId() == srcId) {
+        if (RegUtils::groupOf(other.out.regType()) == group && other.out.regId() == srcId) {
           wd._numSwaps++;
           _regSwapsMask = uint8_t(_regSwapsMask | Support::bitMask(group));
         }

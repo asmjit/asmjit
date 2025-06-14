@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_CORE_FUNC_H_INCLUDED
@@ -49,7 +49,7 @@ enum class CallConvId : uint8_t {
   //! this calling convention it will be replaced by \ref CallConvId::kCDecl.
   kFastCall = 2,
 
-  //! `__vectorcall` on targets that support this calling convention (X86/X64).
+  //! `__vectorcall` on targets that support this calling convention (X86|X86_64).
   //!
   //! \note This calling convention is only supported on 32-bit and 64-bit X86 architecture on Windows platform.
   //! If used on environment that doesn't support this calling it will be replaced by \ref CallConvId::kCDecl.
@@ -796,10 +796,10 @@ public:
   }
 
   //! Assigns a register at the given `index` to `reg` and an optional `typeId`.
-  inline void assignReg(size_t index, const BaseReg& reg, TypeId typeId = TypeId::kVoid) noexcept {
+  inline void assignReg(size_t index, const Reg& reg, TypeId typeId = TypeId::kVoid) noexcept {
     ASMJIT_ASSERT(index < Globals::kMaxValuePack);
     ASMJIT_ASSERT(reg.isPhysReg());
-    _values[index].initReg(reg.type(), reg.id(), typeId);
+    _values[index].initReg(reg.regType(), reg.id(), typeId);
   }
 
   //! Assigns a register at the given `index` to `regType`, `regId`, and an optional `typeId`.
@@ -849,7 +849,7 @@ enum class FuncAttributes : uint32_t {
   kAlignedVecSR = 0x00000040u,
   //! Function must begin with an instruction that marks a start of a branch or function.
   //!
-  //!   * `ENDBR32/ENDBR64` instruction is inserted at the beginning of the function (X86, X86_64).
+  //!   * `ENDBR32/ENDBR64` instruction is inserted at the beginning of the function (X86|X86_64).
   //!   * `BTI` instruction is inserted at the beginning of the function (AArch64)
   kIndirectBranchProtection = 0x00000080u,
   //! FuncFrame is finalized and can be used by prolog/epilog inserter (PEI).
@@ -858,22 +858,22 @@ enum class FuncAttributes : uint32_t {
   // X86 Specific Attributes
   // -----------------------
 
-  //! Enables the use of AVX within the function's body, prolog, and epilog (X86).
+  //! Enables the use of AVX within the function's body, prolog, and epilog (X86|X86_64).
   //!
   //! This flag instructs prolog and epilog emitter to use AVX instead of SSE for manipulating XMM registers.
   kX86_AVXEnabled = 0x00010000u,
 
-  //! Enables the use of AVX-512 within the function's body, prolog, and epilog (X86).
+  //! Enables the use of AVX-512 within the function's body, prolog, and epilog (X86|X86_64).
   //!
   //! This flag instructs Compiler register allocator to use additional 16 registers introduced by AVX-512.
   //! Additionally, if the functions saves full width of ZMM registers (custom calling conventions only) then
   //! the prolog/epilog inserter would use AVX-512 move instructions to emit the save and restore sequence.
   kX86_AVX512Enabled = 0x00020000u,
 
-  //! This flag instructs the epilog writer to emit EMMS instruction before RET (X86).
+  //! This flag instructs the epilog writer to emit EMMS instruction before RET (X86|X86_64).
   kX86_MMXCleanup = 0x00040000u,
 
-  //! This flag instructs the epilog writer to emit VZEROUPPER instruction before RET (X86).
+  //! This flag instructs the epilog writer to emit VZEROUPPER instruction before RET (X86|X86_64).
   kX86_AVXCleanup = 0x00080000u
 };
 ASMJIT_DEFINE_ENUM_FLAGS(FuncAttributes)
@@ -1148,9 +1148,9 @@ public:
   //! Target architecture.
   Arch _arch {};
   //! SP register ID (to access call stack and local stack).
-  uint8_t _spRegId = uint8_t(BaseReg::kIdBad);
+  uint8_t _spRegId = uint8_t(Reg::kIdBad);
   //! SA register ID (to access stack arguments).
-  uint8_t _saRegId = uint8_t(BaseReg::kIdBad);
+  uint8_t _saRegId = uint8_t(Reg::kIdBad);
 
   //! Red zone size (copied from CallConv).
   uint8_t _redZoneSize = 0;
@@ -1514,14 +1514,14 @@ public:
   }
 
   //! \overload
-  inline void addDirtyRegs(const BaseReg& reg) noexcept {
+  inline void addDirtyRegs(const Reg& reg) noexcept {
     ASMJIT_ASSERT(reg.id() < Globals::kMaxPhysRegs);
-    addDirtyRegs(reg.group(), Support::bitMask(reg.id()));
+    addDirtyRegs(reg.regGroup(), Support::bitMask(reg.id()));
   }
 
   //! \overload
   template<typename... Args>
-  inline void addDirtyRegs(const BaseReg& reg, Args&&... args) noexcept {
+  inline void addDirtyRegs(const Reg& reg, Args&&... args) noexcept {
     addDirtyRegs(reg);
     addDirtyRegs(std::forward<Args>(args)...);
   }
@@ -1583,14 +1583,14 @@ public:
   }
 
   //! Adds a single register to the unavailable set.
-  inline void addUnavailableRegs(const BaseReg& reg) noexcept {
+  inline void addUnavailableRegs(const Reg& reg) noexcept {
     ASMJIT_ASSERT(reg.id() < Globals::kMaxPhysRegs);
-    addUnavailableRegs(reg.group(), Support::bitMask(reg.id()));
+    addUnavailableRegs(reg.regGroup(), Support::bitMask(reg.id()));
   }
 
   //! Adds multiple registers to the unavailable set.
   template<typename... Args>
-  inline void addUnavailableRegs(const BaseReg& reg, Args&&... args) noexcept {
+  inline void addUnavailableRegs(const Reg& reg, Args&&... args) noexcept {
     addUnavailableRegs(reg);
     addUnavailableRegs(std::forward<Args>(args)...);
   }
@@ -1635,14 +1635,14 @@ public:
   }
 
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool hasSARegId() const noexcept { return _saRegId != BaseReg::kIdBad; }
+  ASMJIT_INLINE_NODEBUG bool hasSARegId() const noexcept { return _saRegId != Reg::kIdBad; }
 
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t saRegId() const noexcept { return _saRegId; }
 
   ASMJIT_INLINE_NODEBUG void setSARegId(uint32_t regId) { _saRegId = uint8_t(regId); }
 
-  ASMJIT_INLINE_NODEBUG void resetSARegId() { setSARegId(BaseReg::kIdBad); }
+  ASMJIT_INLINE_NODEBUG void resetSARegId() { setSARegId(Reg::kIdBad); }
 
   //! Returns stack size required to save/restore registers via push/pop.
   [[nodiscard]]
@@ -1694,7 +1694,7 @@ public:
   //! Function detail.
   const FuncDetail* _funcDetail {};
   //! Register that can be used to access arguments passed by stack.
-  uint8_t _saRegId = uint8_t(BaseReg::kIdBad);
+  uint8_t _saRegId = uint8_t(Reg::kIdBad);
   //! Reserved for future use.
   uint8_t _reserved[3] {};
   //! Mapping of each function argument.
@@ -1715,7 +1715,7 @@ public:
   //! if non-null.
   inline void reset(const FuncDetail* fd = nullptr) noexcept {
     _funcDetail = fd;
-    _saRegId = uint8_t(BaseReg::kIdBad);
+    _saRegId = uint8_t(Reg::kIdBad);
     memset(_reserved, 0, sizeof(_reserved));
     memset(_argPacks, 0, sizeof(_argPacks));
   }
@@ -1741,14 +1741,14 @@ public:
   ASMJIT_INLINE_NODEBUG void setFuncDetail(const FuncDetail* fd) noexcept { _funcDetail = fd; }
 
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool hasSARegId() const noexcept { return _saRegId != BaseReg::kIdBad; }
+  ASMJIT_INLINE_NODEBUG bool hasSARegId() const noexcept { return _saRegId != Reg::kIdBad; }
 
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t saRegId() const noexcept { return _saRegId; }
 
   ASMJIT_INLINE_NODEBUG void setSARegId(uint32_t regId) { _saRegId = uint8_t(regId); }
 
-  ASMJIT_INLINE_NODEBUG void resetSARegId() { _saRegId = uint8_t(BaseReg::kIdBad); }
+  ASMJIT_INLINE_NODEBUG void resetSARegId() { _saRegId = uint8_t(Reg::kIdBad); }
 
   //! Returns assigned argument at `argIndex` and `valueIndex`.
   //!
@@ -1775,10 +1775,10 @@ public:
   }
 
   //! Assigns register at `argIndex` and value index of 0 to `reg` and an optional `typeId`.
-  inline void assignReg(size_t argIndex, const BaseReg& reg, TypeId typeId = TypeId::kVoid) noexcept {
+  inline void assignReg(size_t argIndex, const Reg& reg, TypeId typeId = TypeId::kVoid) noexcept {
     ASMJIT_ASSERT(argIndex < ASMJIT_ARRAY_SIZE(_argPacks));
     ASMJIT_ASSERT(reg.isPhysReg());
-    _argPacks[argIndex][0].initReg(reg.type(), reg.id(), typeId);
+    _argPacks[argIndex][0].initReg(reg.regType(), reg.id(), typeId);
   }
 
   //! Assigns register at `argIndex` and value index of 0 to `regType`, `regId`, and an optional `typeId`.
@@ -1794,10 +1794,10 @@ public:
   }
 
   //! Assigns register at `argIndex` and `valueIndex` to `reg` and an optional `typeId`.
-  inline void assignRegInPack(size_t argIndex, size_t valueIndex, const BaseReg& reg, TypeId typeId = TypeId::kVoid) noexcept {
+  inline void assignRegInPack(size_t argIndex, size_t valueIndex, const Reg& reg, TypeId typeId = TypeId::kVoid) noexcept {
     ASMJIT_ASSERT(argIndex < ASMJIT_ARRAY_SIZE(_argPacks));
     ASMJIT_ASSERT(reg.isPhysReg());
-    _argPacks[argIndex][valueIndex].initReg(reg.type(), reg.id(), typeId);
+    _argPacks[argIndex][valueIndex].initReg(reg.regType(), reg.id(), typeId);
   }
 
   //! Assigns register at `argIndex` and `valueIndex` to `regType`, `regId`, and an optional `typeId`.
@@ -1815,12 +1815,12 @@ public:
   // NOTE: All `assignAll()` methods are shortcuts to assign all arguments at once, however, since registers are
   // passed all at once these initializers don't provide any way to pass TypeId and/or to keep any argument between
   // the arguments passed unassigned.
-  inline void _assignAllInternal(size_t argIndex, const BaseReg& reg) noexcept {
+  inline void _assignAllInternal(size_t argIndex, const Reg& reg) noexcept {
     assignReg(argIndex, reg);
   }
 
   template<typename... Args>
-  inline void _assignAllInternal(size_t argIndex, const BaseReg& reg, Args&&... args) noexcept {
+  inline void _assignAllInternal(size_t argIndex, const Reg& reg, Args&&... args) noexcept {
     assignReg(argIndex, reg);
     _assignAllInternal(argIndex + 1, std::forward<Args>(args)...);
   }

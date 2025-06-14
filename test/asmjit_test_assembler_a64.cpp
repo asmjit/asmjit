@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include <asmjit/core.h>
@@ -22,6 +22,8 @@ using namespace asmjit;
 static void ASMJIT_NOINLINE testA64AssemblerBase(AssemblerTester<a64::Assembler>& tester) noexcept {
   using namespace a64;
 
+  TEST_INSTRUCTION("4120C05A", abs(w1, w2));
+  TEST_INSTRUCTION("4120C0DA", abs(x1, x2));
   TEST_INSTRUCTION("4100031A", adc(w1, w2, w3));
   TEST_INSTRUCTION("4100039A", adc(x1, x2, x3));
   TEST_INSTRUCTION("E103031A", adc(w1, wzr, w3));
@@ -140,6 +142,7 @@ static void ASMJIT_NOINLINE testA64AssemblerBase(AssemblerTester<a64::Assembler>
   TEST_INSTRUCTION("60031FD6", br(x27));
   TEST_INSTRUCTION("E0031FD6", br(xzr));
   TEST_INSTRUCTION("200020D4", brk(1));
+  TEST_INSTRUCTION("DF2403D5", bti(Predicate::BTI::kJC));
   TEST_INSTRUCTION("627CA188", cas(w1, w2, ptr(x3)));
   TEST_INSTRUCTION("627CA1C8", cas(x1, x2, ptr(x3)));
   TEST_INSTRUCTION("627CE188", casa(w1, w2, ptr(x3)));
@@ -189,6 +192,8 @@ static void ASMJIT_NOINLINE testA64AssemblerBase(AssemblerTester<a64::Assembler>
   TEST_INSTRUCTION("E1139F5A", cinv(w1, wzr, CondCode::kEQ));
   TEST_INSTRUCTION("5F1082DA", cinv(xzr, x2, CondCode::kEQ));
   TEST_INSTRUCTION("E1139FDA", cinv(x1, xzr, CondCode::kEQ));
+  TEST_INSTRUCTION("DF2203D5", clrbhb());
+  TEST_INSTRUCTION("1F2503D5", chkfeat(x16));
   TEST_INSTRUCTION("5F3B03D5", clrex(11));
   TEST_INSTRUCTION("4114C05A", cls(w1, w2));
   TEST_INSTRUCTION("4114C0DA", cls(x1, x2));
@@ -236,6 +241,8 @@ static void ASMJIT_NOINLINE testA64AssemblerBase(AssemblerTester<a64::Assembler>
   TEST_INSTRUCTION("3F00DFBA", cmpp(x1, sp));
   TEST_INSTRUCTION("FF03C2BA", cmpp(sp, x2));
   TEST_INSTRUCTION("FF03DFBA", cmpp(sp, sp));
+  TEST_INSTRUCTION("411CC05A", cnt(w1, w2));
+  TEST_INSTRUCTION("411CC0DA", cnt(x1, x2));
   TEST_INSTRUCTION("4140C31A", crc32b(w1, w2, w3));
   TEST_INSTRUCTION("5F40C31A", crc32b(wzr, w2, w3));
   TEST_INSTRUCTION("E143C31A", crc32b(w1, wzr, w3));
@@ -283,6 +290,8 @@ static void ASMJIT_NOINLINE testA64AssemblerBase(AssemblerTester<a64::Assembler>
   TEST_INSTRUCTION("410083DA", csinv(x1, x2, x3, CondCode::kEQ));
   TEST_INSTRUCTION("4104835A", csneg(w1, w2, w3, CondCode::kEQ));
   TEST_INSTRUCTION("410483DA", csneg(x1, x2, x3, CondCode::kEQ));
+  TEST_INSTRUCTION("4118C05A", ctz(w1, w2));
+  TEST_INSTRUCTION("4118C0DA", ctz(x1, x2));
   TEST_INSTRUCTION("2F740BD5", dc(Predicate::DC::kZVA, x15));
   TEST_INSTRUCTION("2100B0D4", dcps1(0x8001));
   TEST_INSTRUCTION("2200B0D4", dcps2(0x8001));
@@ -825,10 +834,10 @@ static void ASMJIT_NOINLINE testA64AssemblerBase(AssemblerTester<a64::Assembler>
   TEST_INSTRUCTION("4190039B", msub(x1, x2, x3, x4));
   TEST_INSTRUCTION("417C031B", mul(w1, w2, w3));
   TEST_INSTRUCTION("417C039B", mul(x1, x2, x3));
-  TEST_INSTRUCTION("E103222A", mvn(w1, w2));
-  TEST_INSTRUCTION("E10322AA", mvn(x1, x2));
-  TEST_INSTRUCTION("E113222A", mvn(w1, w2, lsl(4)));
-  TEST_INSTRUCTION("E11322AA", mvn(x1, x2, lsl(4)));
+  TEST_INSTRUCTION("E103222A", mvn_(w1, w2));
+  TEST_INSTRUCTION("E10322AA", mvn_(x1, x2));
+  TEST_INSTRUCTION("E113222A", mvn_(w1, w2, lsl(4)));
+  TEST_INSTRUCTION("E11322AA", mvn_(x1, x2, lsl(4)));
   TEST_INSTRUCTION("E103024B", neg(w1, w2));
   TEST_INSTRUCTION("E10302CB", neg(x1, x2));
   TEST_INSTRUCTION("E113024B", neg(w1, w2, lsl(4)));
@@ -902,7 +911,15 @@ static void ASMJIT_NOINLINE testA64AssemblerBase(AssemblerTester<a64::Assembler>
   TEST_INSTRUCTION("2D08003A", setf8(w1));
   TEST_INSTRUCTION("2D48003A", setf16(w1));
   TEST_INSTRUCTION("4110239B", smaddl(x1, w2, w3, x4));
+  TEST_INSTRUCTION("4160C31A", smax(w1, w2, w3));
+  TEST_INSTRUCTION("4160C39A", smax(x1, x2, x3));
+  TEST_INSTRUCTION("4134C011", smax(w1, w2, 13));
+  TEST_INSTRUCTION("4134C091", smax(x1, x2, 13));
   TEST_INSTRUCTION("230000D4", smc(1));
+  TEST_INSTRUCTION("4168C31A", smin(w1, w2, w3));
+  TEST_INSTRUCTION("4168C39A", smin(x1, x2, x3));
+  TEST_INSTRUCTION("4134C811", smin(w1, w2, 13));
+  TEST_INSTRUCTION("4134C891", smin(x1, x2, 13));
   TEST_INSTRUCTION("41FC239B", smnegl(x1, w2, w3));
   TEST_INSTRUCTION("4190239B", smsubl(x1, w2, w3, x4));
   TEST_INSTRUCTION("417C439B", smulh(x1, x2, x3));
@@ -1098,6 +1115,14 @@ static void ASMJIT_NOINLINE testA64AssemblerBase(AssemblerTester<a64::Assembler>
   TEST_INSTRUCTION("41380553", ubfx(w1, w2, 5, 10));
   TEST_INSTRUCTION("413845D3", ubfx(x1, x2, 5, 10));
   TEST_INSTRUCTION("4110A39B", umaddl(x1, w2, w3, x4));
+  TEST_INSTRUCTION("4164C31A", umax(w1, w2, w3));
+  TEST_INSTRUCTION("4164C39A", umax(x1, x2, x3));
+  TEST_INSTRUCTION("4134C411", umax(w1, w2, 13));
+  TEST_INSTRUCTION("4134C491", umax(x1, x2, 13));
+  TEST_INSTRUCTION("416CC31A", umin(w1, w2, w3));
+  TEST_INSTRUCTION("416CC39A", umin(x1, x2, x3));
+  TEST_INSTRUCTION("4134CC11", umin(w1, w2, 13));
+  TEST_INSTRUCTION("4134CC91", umin(x1, x2, 13));
   TEST_INSTRUCTION("41FCA39B", umnegl(x1, w2, w3));
   TEST_INSTRUCTION("4190A39B", umsubl(x1, w2, w3, x4));
   TEST_INSTRUCTION("417CC39B", umulh(x1, x2, x3));
@@ -2593,8 +2618,8 @@ static void ASMJIT_NOINLINE testA64AssemblerSIMD(AssemblerTester<a64::Assembler>
   TEST_INSTRUCTION("419C234E", mul(v1.b16(), v2.b16(), v3.b16()));
   TEST_INSTRUCTION("419C634E", mul(v1.h8(), v2.h8(), v3.h8()));
   TEST_INSTRUCTION("419CA34E", mul(v1.s4(), v2.s4(), v3.s4()));
-  TEST_INSTRUCTION("4158202E", mvn(v1.b8(), v2.b8()));
-  TEST_INSTRUCTION("4158206E", mvn(v1.b16(), v2.b16()));
+  TEST_INSTRUCTION("4158202E", mvn_(v1.b8(), v2.b8()));
+  TEST_INSTRUCTION("4158206E", mvn_(v1.b16(), v2.b16()));
   TEST_INSTRUCTION("4185012F", mvni(v1.h4(), 42));
   TEST_INSTRUCTION("4105012F", mvni(v1.s2(), 42));
   TEST_INSTRUCTION("4185016F", mvni(v1.h8(), 42));

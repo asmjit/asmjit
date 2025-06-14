@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_CORE_ZONELIST_H_INCLUDED
@@ -38,10 +38,10 @@ public:
   //! \{
 
   ASMJIT_INLINE_NODEBUG ZoneListNode() noexcept
-    : _listNodes { nullptr, nullptr } {}
+    : _listNodes{nullptr, nullptr} {}
 
   ASMJIT_INLINE_NODEBUG ZoneListNode(ZoneListNode&& other) noexcept
-    : _listNodes { other._listNodes[0], other._listNodes[1] } {}
+    : _listNodes{other._listNodes[0], other._listNodes[1]} {}
 
   //! \}
 
@@ -164,8 +164,8 @@ public:
     NodeT* prev = node->prev();
     NodeT* next = node->next();
 
-    if (prev) { prev->_listNodes[1] = next; node->_listNodes[0] = nullptr; } else { _nodes[0] = next; }
-    if (next) { next->_listNodes[0] = prev; node->_listNodes[1] = nullptr; } else { _nodes[1] = prev; }
+    if (prev) { prev->_listNodes[1] = next; } else { _nodes[0] = next; }
+    if (next) { next->_listNodes[0] = prev; } else { _nodes[1] = prev; }
 
     node->_listNodes[0] = nullptr;
     node->_listNodes[1] = nullptr;

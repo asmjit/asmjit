@@ -1,12 +1,13 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
 #if !defined(ASMJIT_NO_X86) && !defined(ASMJIT_NO_LOGGING)
 
 #include "../core/cpuinfo.h"
+#include "../core/formatter_p.h"
 #include "../core/misc_p.h"
 #include "../core/support.h"
 #include "../x86/x86formatter_p.h"
@@ -45,79 +46,79 @@ struct RegFormatInfo {
 template<uint32_t X>
 struct RegFormatInfo_T {
   static inline constexpr uint32_t kTypeIndex =
-    X == uint32_t(RegType::kX86_GpbLo) ? 1   :
-    X == uint32_t(RegType::kX86_GpbHi) ? 8   :
-    X == uint32_t(RegType::kX86_Gpw  ) ? 15  :
-    X == uint32_t(RegType::kX86_Gpd  ) ? 19  :
-    X == uint32_t(RegType::kX86_Gpq  ) ? 23  :
-    X == uint32_t(RegType::kX86_Xmm  ) ? 27  :
-    X == uint32_t(RegType::kX86_Ymm  ) ? 31  :
-    X == uint32_t(RegType::kX86_Zmm  ) ? 35  :
+    X == uint32_t(RegType::kPC       ) ? 39  :
+    X == uint32_t(RegType::kGp8Lo    ) ? 1   :
+    X == uint32_t(RegType::kGp8Hi    ) ? 8   :
+    X == uint32_t(RegType::kGp16     ) ? 15  :
+    X == uint32_t(RegType::kGp32     ) ? 19  :
+    X == uint32_t(RegType::kGp64     ) ? 23  :
+    X == uint32_t(RegType::kVec128   ) ? 27  :
+    X == uint32_t(RegType::kVec256   ) ? 31  :
+    X == uint32_t(RegType::kVec512   ) ? 35  :
+    X == uint32_t(RegType::kMask     ) ? 53  :
     X == uint32_t(RegType::kX86_Mm   ) ? 50  :
-    X == uint32_t(RegType::kX86_KReg ) ? 53  :
-    X == uint32_t(RegType::kX86_SReg ) ? 43  :
-    X == uint32_t(RegType::kX86_CReg ) ? 59  :
-    X == uint32_t(RegType::kX86_DReg ) ? 62  :
+    X == uint32_t(RegType::kSegment  ) ? 43  :
+    X == uint32_t(RegType::kControl  ) ? 59  :
+    X == uint32_t(RegType::kDebug    ) ? 62  :
     X == uint32_t(RegType::kX86_St   ) ? 47  :
     X == uint32_t(RegType::kX86_Bnd  ) ? 55  :
-    X == uint32_t(RegType::kX86_Tmm  ) ? 65  :
-    X == uint32_t(RegType::kX86_Rip  ) ? 39  : 0;
+    X == uint32_t(RegType::kTile     ) ? 65  : 0;
 
   static inline constexpr uint32_t kFormatIndex =
-    X == uint32_t(RegType::kX86_GpbLo) ? 1   :
-    X == uint32_t(RegType::kX86_GpbHi) ? 6   :
-    X == uint32_t(RegType::kX86_Gpw  ) ? 11  :
-    X == uint32_t(RegType::kX86_Gpd  ) ? 16  :
-    X == uint32_t(RegType::kX86_Gpq  ) ? 21  :
-    X == uint32_t(RegType::kX86_Xmm  ) ? 25  :
-    X == uint32_t(RegType::kX86_Ymm  ) ? 31  :
-    X == uint32_t(RegType::kX86_Zmm  ) ? 37  :
+    X == uint32_t(RegType::kPC       ) ? 43  :
+    X == uint32_t(RegType::kGp8Lo    ) ? 1   :
+    X == uint32_t(RegType::kGp8Hi    ) ? 6   :
+    X == uint32_t(RegType::kGp16     ) ? 11  :
+    X == uint32_t(RegType::kGp32     ) ? 16  :
+    X == uint32_t(RegType::kGp64     ) ? 21  :
+    X == uint32_t(RegType::kVec128   ) ? 25  :
+    X == uint32_t(RegType::kVec256   ) ? 31  :
+    X == uint32_t(RegType::kVec512   ) ? 37  :
+    X == uint32_t(RegType::kMask     ) ? 65  :
     X == uint32_t(RegType::kX86_Mm   ) ? 60  :
-    X == uint32_t(RegType::kX86_KReg ) ? 65  :
-    X == uint32_t(RegType::kX86_SReg ) ? 49  :
-    X == uint32_t(RegType::kX86_CReg ) ? 75  :
-    X == uint32_t(RegType::kX86_DReg ) ? 80  :
+    X == uint32_t(RegType::kSegment  ) ? 49  :
+    X == uint32_t(RegType::kControl  ) ? 75  :
+    X == uint32_t(RegType::kDebug    ) ? 80  :
     X == uint32_t(RegType::kX86_St   ) ? 55  :
     X == uint32_t(RegType::kX86_Bnd  ) ? 69  :
-    X == uint32_t(RegType::kX86_Tmm  ) ? 89  :
-    X == uint32_t(RegType::kX86_Rip  ) ? 43  : 0;
+    X == uint32_t(RegType::kTile     ) ? 89  : 0;
 
   static inline constexpr uint32_t kSpecialIndex =
-    X == uint32_t(RegType::kX86_GpbLo) ? 96  :
-    X == uint32_t(RegType::kX86_GpbHi) ? 128 :
-    X == uint32_t(RegType::kX86_Gpw  ) ? 161 :
-    X == uint32_t(RegType::kX86_Gpd  ) ? 160 :
-    X == uint32_t(RegType::kX86_Gpq  ) ? 192 :
-    X == uint32_t(RegType::kX86_SReg ) ? 224 :
-    X == uint32_t(RegType::kX86_Rip  ) ? 85  : 0;
+    X == uint32_t(RegType::kPC       ) ? 85  :
+    X == uint32_t(RegType::kGp8Lo    ) ? 96  :
+    X == uint32_t(RegType::kGp8Hi    ) ? 128 :
+    X == uint32_t(RegType::kGp16     ) ? 161 :
+    X == uint32_t(RegType::kGp32     ) ? 160 :
+    X == uint32_t(RegType::kGp64     ) ? 192 :
+    X == uint32_t(RegType::kSegment  ) ? 224 : 0;
 
   static inline constexpr uint32_t kSpecialCount =
-    X == uint32_t(RegType::kX86_GpbLo) ? 8   :
-    X == uint32_t(RegType::kX86_GpbHi) ? 4   :
-    X == uint32_t(RegType::kX86_Gpw  ) ? 8   :
-    X == uint32_t(RegType::kX86_Gpd  ) ? 8   :
-    X == uint32_t(RegType::kX86_Gpq  ) ? 8   :
-    X == uint32_t(RegType::kX86_SReg ) ? 7   :
-    X == uint32_t(RegType::kX86_Rip  ) ? 1   : 0;
+    X == uint32_t(RegType::kPC       ) ? 1   :
+    X == uint32_t(RegType::kGp8Lo    ) ? 8   :
+    X == uint32_t(RegType::kGp8Hi    ) ? 4   :
+    X == uint32_t(RegType::kGp16     ) ? 8   :
+    X == uint32_t(RegType::kGp32     ) ? 8   :
+    X == uint32_t(RegType::kGp64     ) ? 8   :
+    X == uint32_t(RegType::kSegment  ) ? 7   : 0;
 
   static inline constexpr uint32_t kRegCount =
-    X == uint32_t(RegType::kX86_GpbLo) ? 32  :
-    X == uint32_t(RegType::kX86_GpbHi) ? 4   :
-    X == uint32_t(RegType::kX86_Gpw  ) ? 32  :
-    X == uint32_t(RegType::kX86_Gpd  ) ? 32  :
-    X == uint32_t(RegType::kX86_Gpq  ) ? 32  :
-    X == uint32_t(RegType::kX86_Xmm  ) ? 32  :
-    X == uint32_t(RegType::kX86_Ymm  ) ? 32  :
-    X == uint32_t(RegType::kX86_Zmm  ) ? 32  :
+    X == uint32_t(RegType::kPC       ) ? 1   :
+    X == uint32_t(RegType::kGp8Lo    ) ? 32  :
+    X == uint32_t(RegType::kGp8Hi    ) ? 4   :
+    X == uint32_t(RegType::kGp16     ) ? 32  :
+    X == uint32_t(RegType::kGp32     ) ? 32  :
+    X == uint32_t(RegType::kGp64     ) ? 32  :
+    X == uint32_t(RegType::kVec128   ) ? 32  :
+    X == uint32_t(RegType::kVec256   ) ? 32  :
+    X == uint32_t(RegType::kVec512   ) ? 32  :
+    X == uint32_t(RegType::kMask     ) ? 8   :
     X == uint32_t(RegType::kX86_Mm   ) ? 8   :
-    X == uint32_t(RegType::kX86_KReg ) ? 8   :
-    X == uint32_t(RegType::kX86_SReg ) ? 7   :
-    X == uint32_t(RegType::kX86_CReg ) ? 16  :
-    X == uint32_t(RegType::kX86_DReg ) ? 16  :
+    X == uint32_t(RegType::kSegment  ) ? 7   :
+    X == uint32_t(RegType::kControl  ) ? 16  :
+    X == uint32_t(RegType::kDebug    ) ? 16  :
     X == uint32_t(RegType::kX86_St   ) ? 8   :
     X == uint32_t(RegType::kX86_Bnd  ) ? 4   :
-    X == uint32_t(RegType::kX86_Tmm  ) ? 8   :
-    X == uint32_t(RegType::kX86_Rip  ) ? 1   : 0;
+    X == uint32_t(RegType::kTile     ) ? 8   : 0;
 };
 
 #define ASMJIT_REG_TYPE_ENTRY(TYPE) {   \
@@ -395,13 +396,7 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatRegister(String& sb, FormatFlag
         VirtReg* vReg = cc->virtRegById(id);
         ASMJIT_ASSERT(vReg != nullptr);
 
-        const char* name = vReg->name();
-        if (name && name[0] != '\0') {
-          ASMJIT_PROPAGATE(sb.append(name));
-        }
-        else {
-          ASMJIT_PROPAGATE(sb.appendFormat("%%%u", unsigned(Operand::virtIdToIndex(id))));
-        }
+        ASMJIT_PROPAGATE(Formatter::formatVirtRegName(sb, vReg));
 
         bool formatType = (Support::test(formatFlags, FormatFlags::kRegType)) ||
                           (Support::test(formatFlags, FormatFlags::kRegCasts) && vReg->type() != type);
@@ -452,7 +447,7 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatOperand(
   const Operand_& op) noexcept {
 
   if (op.isReg()) {
-    return formatRegister(sb, formatFlags, emitter, arch, op.as<BaseReg>().type(), op.as<BaseReg>().id());
+    return formatRegister(sb, formatFlags, emitter, arch, op.as<Reg>().regType(), op.as<Reg>().id());
   }
 
   if (op.isMem()) {
@@ -936,7 +931,7 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatInstruction(
       ASMJIT_PROPAGATE(sb.append(Support::test(options, InstOptions::kX86_Rep) ? "rep " : "repnz "));
       if (inst.hasExtraReg()) {
         ASMJIT_PROPAGATE(sb.append("{"));
-        ASMJIT_PROPAGATE(formatOperand(sb, formatFlags, emitter, arch, inst.extraReg().toReg<BaseReg>()));
+        ASMJIT_PROPAGATE(formatOperand(sb, formatFlags, emitter, arch, inst.extraReg().toReg<Reg>()));
         ASMJIT_PROPAGATE(sb.append("} "));
       }
     }
@@ -1005,7 +1000,7 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatInstruction(
 
     // Support AVX-512 masking - {k}{z}.
     if (i == 0) {
-      if (inst.extraReg().group() == RegGroup::kX86_K) {
+      if (inst.extraReg().group() == RegGroup::kMask) {
         ASMJIT_PROPAGATE(sb.append(" {"));
         ASMJIT_PROPAGATE(formatRegister(sb, formatFlags, emitter, arch, inst.extraReg().type(), inst.extraReg().id()));
         ASMJIT_PROPAGATE(sb.append('}'));

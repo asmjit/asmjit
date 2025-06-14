@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
@@ -148,8 +148,8 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitRegMove(
 }
 
 Error EmitHelper::emitRegSwap(
-  const BaseReg& a,
-  const BaseReg& b, const char* comment) {
+  const Reg& a,
+  const Reg& b, const char* comment) {
 
   DebugUtils::unused(a, b, comment);
   return DebugUtils::errored(kErrorInvalidState);
@@ -157,13 +157,12 @@ Error EmitHelper::emitRegSwap(
 
 // TODO: [ARM] EmitArgMove is unfinished.
 Error EmitHelper::emitArgMove(
-  const BaseReg& dst_, TypeId dstTypeId,
+  const Reg& dst_, TypeId dstTypeId,
   const Operand_& src_, TypeId srcTypeId, const char* comment) {
 
   // Deduce optional `dstTypeId`, which may be `TypeId::kVoid` in some cases.
   if (dstTypeId == TypeId::kVoid) {
-    const ArchTraits& archTraits = ArchTraits::byArch(_emitter->arch());
-    dstTypeId = archTraits.regTypeToTypeId(dst_.type());
+    dstTypeId = RegUtils::typeIdOf(dst_.regType());
   }
 
   // Invalid or abstract TypeIds are not allowed.
@@ -180,7 +179,7 @@ Error EmitHelper::emitArgMove(
     if (TypeUtils::isInt(srcTypeId)) {
       uint32_t x = uint32_t(dstSize == 8);
 
-      dst.setSignature(OperandSignature{x ? uint32_t(GpX::kSignature) : uint32_t(GpW::kSignature)});
+      dst.setSignature(OperandSignature{x ? RegTraits<RegType::kGp64>::kSignature : RegTraits<RegType::kGp32>::kSignature});
       _emitter->setInlineComment(comment);
 
       if (src.isReg()) {
@@ -209,10 +208,10 @@ Error EmitHelper::emitArgMove(
   if (TypeUtils::isFloat(dstTypeId) || TypeUtils::isVec(dstTypeId)) {
     if (TypeUtils::isFloat(srcTypeId) || TypeUtils::isVec(srcTypeId)) {
       switch (srcSize) {
-        case 2: dst.as<Vec>().setSignature(OperandSignature{VecH::kSignature}); break;
-        case 4: dst.as<Vec>().setSignature(OperandSignature{VecS::kSignature}); break;
-        case 8: dst.as<Vec>().setSignature(OperandSignature{VecD::kSignature}); break;
-        case 16: dst.as<Vec>().setSignature(OperandSignature{VecV::kSignature}); break;
+        case 2: dst.as<Vec>().setSignature(RegTraits<RegType::kVec16>::kSignature); break;
+        case 4: dst.as<Vec>().setSignature(RegTraits<RegType::kVec32>::kSignature); break;
+        case 8: dst.as<Vec>().setSignature(RegTraits<RegType::kVec64>::kSignature); break;
+        case 16: dst.as<Vec>().setSignature(RegTraits<RegType::kVec128>::kSignature); break;
         default:
           return DebugUtils::errored(kErrorInvalidState);
       }
@@ -295,7 +294,7 @@ struct PrologEpilogInfo {
       }
 
       if (n == 1) {
-        pairs[pairCount].ids[1] = uint8_t(BaseReg::kIdBad);
+        pairs[pairCount].ids[1] = uint8_t(Reg::kIdBad);
         pairs[pairCount].offset = uint16_t(offset);
         offset += slotSize * 2;
         pairCount++;
@@ -321,10 +320,9 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitProlog(const FuncFrame& frame) {
     { Inst::kIdStr_v, Inst::kIdStp_v }
   }};
 
-  // Emit: 'bti' (indirect branch protection).
+  // Emit: 'bti {jc}' (indirect branch protection).
   if (frame.hasIndirectBranchProtection()) {
-    // TODO: The instruction is not available at the moment (would be ABI break).
-    // ASMJIT_PROPAGATE(emitter->bti());
+    ASMJIT_PROPAGATE(emitter->bti(Predicate::BTI::kJC));
   }
 
   uint32_t adjustInitialOffset = pei.sizeTotal;
@@ -349,7 +347,7 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitProlog(const FuncFrame& frame) {
         mem.makePreIndex();
       }
 
-      if (pair.ids[1] == BaseReg::kIdBad) {
+      if (pair.ids[1] == Reg::kIdBad) {
         ASMJIT_PROPAGATE(emitter->emit(insts.singleInstId, regs[0], mem));
       }
       else {
@@ -433,7 +431,7 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitEpilog(const FuncFrame& frame) {
         mem.makePostIndex();
       }
 
-      if (pair.ids[1] == BaseReg::kIdBad) {
+      if (pair.ids[1] == Reg::kIdBad) {
         ASMJIT_PROPAGATE(emitter->emit(insts.singleInstId, regs[0], mem));
       }
       else {
@@ -464,7 +462,7 @@ static Error ASMJIT_CDECL Emitter_emitArgsAssignment(BaseEmitter* emitter, const
   return emitHelper.emitArgsAssignment(frame, args);
 }
 
-void assignEmitterFuncs(BaseEmitter* emitter) {
+void initEmitterFuncs(BaseEmitter* emitter) {
   emitter->_funcs.emitProlog = Emitter_emitProlog;
   emitter->_funcs.emitEpilog = Emitter_emitEpilog;
   emitter->_funcs.emitArgsAssignment = Emitter_emitArgsAssignment;

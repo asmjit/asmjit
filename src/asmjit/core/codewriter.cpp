@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
@@ -258,7 +258,7 @@ bool CodeWriterUtils::writeOffset(void* dst, int64_t offset64, const OffsetForma
         return false;
       }
 
-      Support::writeU8(dst, uint8_t(Support::readU8(dst) | mask));
+      Support::store_u8(dst, uint8_t(Support::load_u8(dst) | mask));
       return true;
     }
 
@@ -268,7 +268,7 @@ bool CodeWriterUtils::writeOffset(void* dst, int64_t offset64, const OffsetForma
         return false;
       }
 
-      Support::writeU16uLE(dst, uint16_t(Support::readU16uLE(dst) | mask));
+      Support::storeu_u16_le(dst, uint16_t(Support::loadu_u16_le(dst) | mask));
       return true;
     }
 
@@ -278,7 +278,7 @@ bool CodeWriterUtils::writeOffset(void* dst, int64_t offset64, const OffsetForma
         return false;
       }
 
-      Support::writeU32uLE(dst, Support::readU32uLE(dst) | mask);
+      Support::storeu_u32_le(dst, Support::loadu_u32_le(dst) | mask);
       return true;
     }
 
@@ -288,7 +288,7 @@ bool CodeWriterUtils::writeOffset(void* dst, int64_t offset64, const OffsetForma
         return false;
       }
 
-      Support::writeU64uLE(dst, Support::readU64uLE(dst) | mask);
+      Support::storeu_u64_le(dst, Support::loadu_u64_le(dst) | mask);
       return true;
     }
 

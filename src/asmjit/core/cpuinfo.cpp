@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
@@ -66,7 +66,7 @@ ASMJIT_BEGIN_NAMESPACE
 // CPU features detection is a minefield on non-X86 platforms. The following list describes which
 // operating systems and architectures are supported and the status of the implementation:
 //
-//   * X86, X86_64:
+//   * X86|X86_64:
 //     - All OSes supported
 //     - Detection is based on using a CPUID instruction, which is a user-space instruction, so there
 //       is no need to use any OS specific APIs or syscalls to detect all features provided by the CPU.

@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_CORE_CODEBUFFERWRITER_P_H_INCLUDED
@@ -70,28 +70,28 @@ public:
   template<typename T>
   ASMJIT_INLINE void emit16uLE(T val) noexcept {
     using U = std::make_unsigned_t<T>;
-    Support::writeU16uLE(_cursor, uint16_t(U(val) & 0xFFFFu));
+    Support::storeu_u16_le(_cursor, uint16_t(U(val) & 0xFFFFu));
     _cursor += 2;
   }
 
   template<typename T>
   ASMJIT_INLINE void emit16uBE(T val) noexcept {
     using U = std::make_unsigned_t<T>;
-    Support::writeU16uBE(_cursor, uint16_t(U(val) & 0xFFFFu));
+    Support::storeu_u16_be(_cursor, uint16_t(U(val) & 0xFFFFu));
     _cursor += 2;
   }
 
   template<typename T>
   ASMJIT_INLINE void emit32uLE(T val) noexcept {
     using U = std::make_unsigned_t<T>;
-    Support::writeU32uLE(_cursor, uint32_t(U(val) & 0xFFFFFFFFu));
+    Support::storeu_u32_le(_cursor, uint32_t(U(val) & 0xFFFFFFFFu));
     _cursor += 4;
   }
 
   template<typename T>
   ASMJIT_INLINE void emit32uBE(T val) noexcept {
     using U = std::make_unsigned_t<T>;
-    Support::writeU32uBE(_cursor, uint32_t(U(val) & 0xFFFFFFFFu));
+    Support::storeu_u32_be(_cursor, uint32_t(U(val) & 0xFFFFFFFFu));
     _cursor += 4;
   }
 

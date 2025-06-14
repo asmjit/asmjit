@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include <asmjit/core.h>
@@ -12,8 +12,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "asmjit_bench_codegen.h"
 #include "asmjit_test_misc.h"
-#include "asmjit_test_perf.h"
 
 using namespace asmjit;
 
@@ -322,6 +322,176 @@ static void generateGpSequenceInternal(
   }
 }
 
+static void generateRetSequence(BaseEmitter& emitter, bool emitPrologEpilog) {
+  using namespace asmjit::x86;
+
+  if (emitter.isAssembler()) {
+    Assembler& cc = *emitter.as<Assembler>();
+
+    Gp rv = eax;
+
+    if (emitPrologEpilog) {
+      FuncDetail func;
+      func.init(FuncSignature::build<uint32_t>(), cc.environment());
+
+      FuncFrame frame;
+      frame.init(func);
+      frame.addDirtyRegs(rv);
+      frame.finalize();
+
+      cc.emitProlog(frame);
+      cc.mov(rv, 0);
+      cc.emitEpilog(frame);
+    }
+    else {
+      cc.mov(rv, 0);
+      cc.ret();
+    }
+  }
+#ifndef ASMJIT_NO_BUILDER
+  else if (emitter.isBuilder()) {
+    Builder& cc = *emitter.as<Builder>();
+
+    Gp rv = eax;
+
+    if (emitPrologEpilog) {
+      FuncDetail func;
+      func.init(FuncSignature::build<uint32_t>(), cc.environment());
+
+      FuncFrame frame;
+      frame.init(func);
+      frame.addDirtyRegs(rv);
+      frame.finalize();
+
+      cc.emitProlog(frame);
+      cc.mov(rv, 0);
+      cc.emitEpilog(frame);
+    }
+    else {
+      cc.mov(rv, 0);
+      cc.ret();
+    }
+  }
+#endif
+#ifndef ASMJIT_NO_COMPILER
+  else if (emitter.isCompiler()) {
+    Compiler& cc = *emitter.as<Compiler>();
+
+    Gp rv = cc.newGp32("rv");
+
+    cc.addFunc(FuncSignature::build<uint32_t>());
+    cc.mov(rv, 0);
+    cc.ret(rv);
+    cc.endFunc();
+  }
+#endif
+}
+
+static void generateNOpsSequence(BaseEmitter& emitter, uint32_t ops, bool emitPrologEpilog) {
+  using namespace asmjit::x86;
+
+  if (emitter.isAssembler()) {
+    Assembler& cc = *emitter.as<Assembler>();
+
+    Gp ra = eax;
+    Gp rb = ebx;
+    Gp rc = ecx;
+    Gp rd = edx;
+
+    if (emitPrologEpilog) {
+      FuncDetail func;
+      func.init(FuncSignature::build<uint32_t, uint32_t, uint32_t, uint32_t, uint32_t>(), cc.environment());
+
+      FuncFrame frame;
+      frame.init(func);
+      frame.addDirtyRegs(ra, rb, rc, rd);
+      frame.finalize();
+
+      cc.emitProlog(frame);
+      for (uint32_t i = 0; i < ops; i += 4) {
+        cc.add(ra, rb);
+        cc.imul(ra, rc);
+        cc.sub(ra, rd);
+        cc.imul(ra, rc);
+      }
+      cc.emitEpilog(frame);
+    }
+    else {
+      for (uint32_t i = 0; i < ops; i += 4) {
+        cc.add(ra, rb);
+        cc.imul(ra, rc);
+        cc.sub(ra, rd);
+        cc.imul(ra, rc);
+      }
+      cc.ret();
+    }
+  }
+#ifndef ASMJIT_NO_BUILDER
+  else if (emitter.isBuilder()) {
+    Builder& cc = *emitter.as<Builder>();
+
+    Gp ra = eax;
+    Gp rb = ebx;
+    Gp rc = ecx;
+    Gp rd = edx;
+
+    if (emitPrologEpilog) {
+      FuncDetail func;
+      func.init(FuncSignature::build<uint32_t, uint32_t, uint32_t, uint32_t, uint32_t>(), cc.environment());
+
+      FuncFrame frame;
+      frame.init(func);
+      frame.addDirtyRegs(ra, rb, rc, rd);
+      frame.finalize();
+
+      cc.emitProlog(frame);
+      for (uint32_t i = 0; i < ops; i += 4) {
+        cc.add(ra, rb);
+        cc.imul(ra, rc);
+        cc.sub(ra, rd);
+        cc.imul(ra, rc);
+      }
+      cc.emitEpilog(frame);
+    }
+    else {
+      for (uint32_t i = 0; i < ops; i += 4) {
+        cc.add(ra, rb);
+        cc.imul(ra, rc);
+        cc.sub(ra, rd);
+        cc.imul(ra, rc);
+      }
+      cc.ret();
+    }
+  }
+#endif
+#ifndef ASMJIT_NO_COMPILER
+  else if (emitter.isCompiler()) {
+    Compiler& cc = *emitter.as<Compiler>();
+
+    Gp ra = cc.newGp32("ra");
+    Gp rb = cc.newGp32("rb");
+    Gp rc = cc.newGp32("rc");
+    Gp rd = cc.newGp32("rd");
+
+    FuncNode* f = cc.addFunc(FuncSignature::build<uint32_t, uint32_t, uint32_t, uint32_t, uint32_t>());
+    f->setArg(0, ra);
+    f->setArg(1, rb);
+    f->setArg(2, rc);
+    f->setArg(3, rd);
+
+    for (uint32_t i = 0; i < ops; i += 4) {
+      cc.add(ra, rb);
+      cc.imul(ra, rc);
+      cc.sub(ra, rd);
+      cc.imul(ra, rc);
+    }
+
+    cc.ret(ra);
+    cc.endFunc();
+  }
+#endif
+}
+
 static void generateGpSequence(BaseEmitter& emitter, InstForm form, bool emitPrologEpilog) {
   using namespace asmjit::x86;
 
@@ -399,7 +569,7 @@ static void generateSseSequenceInternal(
   Emitter& cc,
   InstForm form,
   const x86::Gp& gp,
-  const x86::Xmm& xmmA, const x86::Xmm& xmmB, const x86::Xmm& xmmC, const x86::Xmm& xmmD) {
+  const x86::Vec& xmmA, const x86::Vec& xmmB, const x86::Vec& xmmC, const x86::Vec& xmmD) {
 
   x86::Gp gpd = gp.r32();
   x86::Gp gpq = gp.r64();
@@ -969,10 +1139,10 @@ static void generateSseSequence(BaseEmitter& emitter, InstForm form, bool emitPr
     Compiler& cc = *emitter.as<Compiler>();
 
     Gp gp = cc.newGpz("gp");
-    Xmm a = cc.newXmm("a");
-    Xmm b = cc.newXmm("b");
-    Xmm c = cc.newXmm("c");
-    Xmm d = cc.newXmm("d");
+    Vec a = cc.newXmm("a");
+    Vec b = cc.newXmm("b");
+    Vec c = cc.newXmm("c");
+    Vec d = cc.newXmm("d");
 
     cc.addFunc(FuncSignature::build<void>());
     generateSseSequenceInternal(cc, form, gp, a, b, c, d);
@@ -992,14 +1162,14 @@ static void generateAvxSequenceInternalRegOnly(
   x86::Gp gpq = gp.r64();
   x86::Gp gpz = cc.is32Bit() ? gpd : gpq;
 
-  x86::Xmm xmmA = vecA.xmm();
-  x86::Xmm xmmB = vecB.xmm();
-  x86::Xmm xmmC = vecC.xmm();
-  x86::Xmm xmmD = vecD.xmm();
+  x86::Vec xmmA = vecA.xmm();
+  x86::Vec xmmB = vecB.xmm();
+  x86::Vec xmmC = vecC.xmm();
+  x86::Vec xmmD = vecD.xmm();
 
-  x86::Ymm ymmA = vecA.ymm();
-  x86::Ymm ymmB = vecB.ymm();
-  x86::Ymm ymmC = vecC.ymm();
+  x86::Vec ymmA = vecA.ymm();
+  x86::Vec ymmB = vecB.ymm();
+  x86::Vec ymmC = vecC.ymm();
 
   cc.xor_(gpd, gpd);
   cc.vxorps(xmmA, xmmA, xmmA);
@@ -1586,15 +1756,15 @@ static void generateAvxSequenceInternalRegMem(
   x86::Gp gpq = gp.r64();
   x86::Gp gpz = cc.is32Bit() ? gpd : gpq;
 
-  x86::Xmm xmmA = vecA.xmm();
-  x86::Xmm xmmB = vecB.xmm();
-  x86::Xmm xmmC = vecC.xmm();
-  x86::Xmm xmmD = vecD.xmm();
+  x86::Vec xmmA = vecA.xmm();
+  x86::Vec xmmB = vecB.xmm();
+  x86::Vec xmmC = vecC.xmm();
+  x86::Vec xmmD = vecD.xmm();
 
-  x86::Ymm ymmA = vecA.ymm();
-  x86::Ymm ymmB = vecB.ymm();
-  x86::Ymm ymmC = vecC.ymm();
-  x86::Ymm ymmD = vecD.ymm();
+  x86::Vec ymmA = vecA.ymm();
+  x86::Vec ymmB = vecB.ymm();
+  x86::Vec ymmC = vecC.ymm();
+  x86::Vec ymmD = vecD.ymm();
 
   x86::Mem m = x86::ptr(gpz);
   x86::Mem m128 = x86::xmmword_ptr(gpz);
@@ -2176,10 +2346,10 @@ static void generateAvxSequence(BaseEmitter& emitter, InstForm form, bool emitPr
     Compiler& cc = *emitter.as<Compiler>();
 
     Gp gp = cc.newGpz("gp");
-    Ymm a = cc.newYmm("a");
-    Ymm b = cc.newYmm("b");
-    Ymm c = cc.newYmm("c");
-    Ymm d = cc.newYmm("d");
+    x86::Vec a = cc.newYmm("a");
+    x86::Vec b = cc.newYmm("b");
+    x86::Vec c = cc.newYmm("c");
+    x86::Vec d = cc.newYmm("d");
 
     cc.addFunc(FuncSignature::build<void>());
     generateAvxSequenceInternal(cc, form, gp, a, b, c, d);
@@ -2200,18 +2370,18 @@ static void generateAvx512SequenceInternalRegOnly(
   x86::Gp gpq = gp.r64();
   x86::Gp gpz = cc.is32Bit() ? gpd : gpq;
 
-  x86::Xmm xmmA = vecA.xmm();
-  x86::Xmm xmmB = vecB.xmm();
-  x86::Xmm xmmC = vecC.xmm();
-  x86::Xmm xmmD = vecD.xmm();
+  x86::Vec xmmA = vecA.xmm();
+  x86::Vec xmmB = vecB.xmm();
+  x86::Vec xmmC = vecC.xmm();
+  x86::Vec xmmD = vecD.xmm();
 
-  x86::Ymm ymmA = vecA.ymm();
-  x86::Ymm ymmB = vecB.ymm();
-  x86::Ymm ymmC = vecC.ymm();
+  x86::Vec ymmA = vecA.ymm();
+  x86::Vec ymmB = vecB.ymm();
+  x86::Vec ymmC = vecC.ymm();
 
-  x86::Zmm zmmA = vecA.zmm();
-  x86::Zmm zmmB = vecB.zmm();
-  x86::Zmm zmmC = vecC.zmm();
+  x86::Vec zmmA = vecA.zmm();
+  x86::Vec zmmB = vecB.zmm();
+  x86::Vec zmmC = vecC.zmm();
 
   cc.xor_(gpd, gpd);
   cc.vxorps(xmmA, xmmA, xmmA);
@@ -3542,18 +3712,18 @@ static void generateAvx512SequenceInternalRegMem(
   x86::Gp gpq = gp.r64();
   x86::Gp gpz = cc.is32Bit() ? gpd : gpq;
 
-  x86::Xmm xmmA = vecA.xmm();
-  x86::Xmm xmmB = vecB.xmm();
-  x86::Xmm xmmC = vecC.xmm();
-  x86::Xmm xmmD = vecD.xmm();
+  x86::Vec xmmA = vecA.xmm();
+  x86::Vec xmmB = vecB.xmm();
+  x86::Vec xmmC = vecC.xmm();
+  x86::Vec xmmD = vecD.xmm();
 
-  x86::Ymm ymmA = vecA.ymm();
-  x86::Ymm ymmB = vecB.ymm();
-  x86::Ymm ymmD = vecD.ymm();
+  x86::Vec ymmA = vecA.ymm();
+  x86::Vec ymmB = vecB.ymm();
+  x86::Vec ymmD = vecD.ymm();
 
-  x86::Zmm zmmA = vecA.zmm();
-  x86::Zmm zmmB = vecB.zmm();
-  x86::Zmm zmmD = vecD.zmm();
+  x86::Vec zmmA = vecA.zmm();
+  x86::Vec zmmB = vecB.zmm();
+  x86::Vec zmmD = vecD.zmm();
 
   x86::Mem m = x86::ptr(gpz);
   x86::Mem m32 = x86::dword_ptr(gpz);
@@ -4934,10 +5104,10 @@ static void generateAvx512Sequence(BaseEmitter& emitter, InstForm form, bool emi
     Compiler& cc = *emitter.as<Compiler>();
 
     Gp gp = cc.newGpz("gp");
-    Zmm vecA = cc.newZmm("vecA");
-    Zmm vecB = cc.newZmm("vecB");
-    Zmm vecC = cc.newZmm("vecC");
-    Zmm vecD = cc.newZmm("vecD");
+    Vec vecA = cc.newZmm("vecA");
+    Vec vecB = cc.newZmm("vecB");
+    Vec vecC = cc.newZmm("vecC");
+    Vec vecD = cc.newZmm("vecD");
 
     KReg kA = cc.newKq("kA");
     KReg kB = cc.newKq("kB");
@@ -5014,6 +5184,41 @@ void benchmarkX86Emitters(uint32_t numIterations, bool testX86, bool testX64) {
 
   if (testX86) archs[n++] = Arch::kX86;
   if (testX64) archs[n++] = Arch::kX64;
+
+  for (i = 0; i < n; i++) {
+    static const char description[] = "TinySequence (mov + return from function)";
+    benchmarkX86Function(archs[i], numIterations, description, [](BaseEmitter& emitter, bool emitPrologEpilog) {
+      generateRetSequence(emitter, emitPrologEpilog);
+    });
+  }
+
+  for (i = 0; i < n; i++) {
+    static const char description[] = "4-OpsSequence (4 ops + return from function)";
+    benchmarkX86Function(archs[i], numIterations, description, [](BaseEmitter& emitter, bool emitPrologEpilog) {
+      generateNOpsSequence(emitter, 4, emitPrologEpilog);
+    });
+  }
+
+  for (i = 0; i < n; i++) {
+    static const char description[] = "16-OpsSequence (16 ops + return from function)";
+    benchmarkX86Function(archs[i], numIterations, description, [](BaseEmitter& emitter, bool emitPrologEpilog) {
+      generateNOpsSequence(emitter, 16, emitPrologEpilog);
+    });
+  }
+
+  for (i = 0; i < n; i++) {
+    static const char description[] = "32-OpsSequence (32 ops + return from function)";
+    benchmarkX86Function(archs[i], numIterations, description, [](BaseEmitter& emitter, bool emitPrologEpilog) {
+      generateNOpsSequence(emitter, 32, emitPrologEpilog);
+    });
+  }
+
+  for (i = 0; i < n; i++) {
+    static const char description[] = "64-OpsSequence (64 ops + return from function)";
+    benchmarkX86Function(archs[i], numIterations, description, [](BaseEmitter& emitter, bool emitPrologEpilog) {
+      generateNOpsSequence(emitter, 64, emitPrologEpilog);
+    });
+  }
 
   for (i = 0; i < n; i++) {
     static const char description[] = "GpSequence<Reg> (Sequence of GP instructions - reg-only)";

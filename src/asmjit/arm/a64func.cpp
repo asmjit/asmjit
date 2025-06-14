@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
@@ -26,19 +26,19 @@ static inline bool shouldTreatAsCDecl(CallConvId ccId) noexcept {
 
 static RegType regTypeFromFpOrVecTypeId(TypeId typeId) noexcept {
   if (typeId == TypeId::kFloat32) {
-    return RegType::kARM_VecS;
+    return RegType::kVec32;
   }
   else if (typeId == TypeId::kFloat64) {
-    return RegType::kARM_VecD;
+    return RegType::kVec64;
   }
   else if (TypeUtils::isVec32(typeId)) {
-    return RegType::kARM_VecS;
+    return RegType::kVec32;
   }
   else if (TypeUtils::isVec64(typeId)) {
-    return RegType::kARM_VecD;
+    return RegType::kVec64;
   }
   else if (TypeUtils::isVec128(typeId)) {
-    return RegType::kARM_VecV;
+    return RegType::kVec128;
   }
   else {
     return RegType::kNone;
@@ -103,20 +103,20 @@ ASMJIT_FAVOR_SIZE Error initFuncDetail(FuncDetail& func, const FuncSignature& si
         case TypeId::kInt8:
         case TypeId::kInt16:
         case TypeId::kInt32: {
-          func._rets[valueIndex].initReg(RegType::kARM_GpW, valueIndex, TypeId::kInt32);
+          func._rets[valueIndex].initReg(RegType::kGp32, valueIndex, TypeId::kInt32);
           break;
         }
 
         case TypeId::kUInt8:
         case TypeId::kUInt16:
         case TypeId::kUInt32: {
-          func._rets[valueIndex].initReg(RegType::kARM_GpW, valueIndex, TypeId::kUInt32);
+          func._rets[valueIndex].initReg(RegType::kGp32, valueIndex, TypeId::kUInt32);
           break;
         }
 
         case TypeId::kInt64:
         case TypeId::kUInt64: {
-          func._rets[valueIndex].initReg(RegType::kARM_GpX, valueIndex, typeId);
+          func._rets[valueIndex].initReg(RegType::kGp64, valueIndex, typeId);
           break;
         }
 
@@ -144,14 +144,14 @@ ASMJIT_FAVOR_SIZE Error initFuncDetail(FuncDetail& func, const FuncSignature& si
         TypeId typeId = arg.typeId();
 
         if (TypeUtils::isInt(typeId)) {
-          uint32_t regId = BaseReg::kIdBad;
+          uint32_t regId = Reg::kIdBad;
 
           if (gpzPos < CallConv::kMaxRegArgsPerGroup) {
             regId = cc._passedOrder[RegGroup::kGp].id[gpzPos];
           }
 
-          if (regId != BaseReg::kIdBad) {
-            RegType regType = typeId <= TypeId::kUInt32 ? RegType::kARM_GpW : RegType::kARM_GpX;
+          if (regId != Reg::kIdBad) {
+            RegType regType = typeId <= TypeId::kUInt32 ? RegType::kGp32 : RegType::kGp64;
             arg.assignRegData(regType, regId);
             func.addUsedRegs(RegGroup::kGp, Support::bitMask(regId));
             gpzPos++;
@@ -168,13 +168,13 @@ ASMJIT_FAVOR_SIZE Error initFuncDetail(FuncDetail& func, const FuncSignature& si
         }
 
         if (TypeUtils::isFloat(typeId) || TypeUtils::isVec(typeId)) {
-          uint32_t regId = BaseReg::kIdBad;
+          uint32_t regId = Reg::kIdBad;
 
           if (vecPos < CallConv::kMaxRegArgsPerGroup) {
             regId = cc._passedOrder[RegGroup::kVec].id[vecPos];
           }
 
-          if (regId != BaseReg::kIdBad) {
+          if (regId != Reg::kIdBad) {
             RegType regType = regTypeFromFpOrVecTypeId(typeId);
             if (regType == RegType::kNone) {
               return DebugUtils::errored(kErrorInvalidRegType);

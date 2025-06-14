@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
@@ -113,10 +113,92 @@ static void testBitUtils() noexcept {
   EXPECT_EQ(Support::popcnt(0x7FFFFFFF), 31u);
 
   INFO("Support::isPowerOf2()");
+  EXPECT_FALSE(Support::isPowerOf2(uint8_t(0)));
+  EXPECT_FALSE(Support::isPowerOf2(uint16_t(0)));
+  EXPECT_FALSE(Support::isPowerOf2(uint32_t(0)));
+  EXPECT_FALSE(Support::isPowerOf2(uint64_t(0)));
+
+  EXPECT_FALSE(Support::isPowerOf2(uint8_t(0xFFu)));
+  EXPECT_FALSE(Support::isPowerOf2(uint16_t(0xFFFFu)));
+  EXPECT_FALSE(Support::isPowerOf2(uint32_t(0xFFFFFFFFu)));
+  EXPECT_FALSE(Support::isPowerOf2(uint64_t(0xFFFFFFFFFFFFFFFFu)));
+
+  for (i = 0; i < 32; i++) {
+    EXPECT_TRUE(Support::isPowerOf2(uint32_t(1) << i));
+    EXPECT_FALSE(Support::isPowerOf2((uint32_t(1) << i) ^ 0x001101));
+  }
+
   for (i = 0; i < 64; i++) {
     EXPECT_TRUE(Support::isPowerOf2(uint64_t(1) << i));
     EXPECT_FALSE(Support::isPowerOf2((uint64_t(1) << i) ^ 0x001101));
   }
+
+  INFO("Support::isPowerOf2UpTo()");
+  EXPECT_FALSE(Support::isPowerOf2UpTo(uint8_t(0), 8));
+  EXPECT_FALSE(Support::isPowerOf2UpTo(uint16_t(0), 8));
+  EXPECT_FALSE(Support::isPowerOf2UpTo(uint32_t(0), 8));
+  EXPECT_FALSE(Support::isPowerOf2UpTo(uint64_t(0), 8));
+
+  EXPECT_FALSE(Support::isPowerOf2UpTo(uint8_t(0xFFu), 8));
+  EXPECT_FALSE(Support::isPowerOf2UpTo(uint16_t(0xFFFFu), 8));
+  EXPECT_FALSE(Support::isPowerOf2UpTo(uint32_t(0xFFFFFFFFu), 8));
+  EXPECT_FALSE(Support::isPowerOf2UpTo(uint64_t(0xFFFFFFFFFFFFFFFFu), 8));
+
+  EXPECT_TRUE(Support::isPowerOf2UpTo(uint32_t(1), 8));
+  EXPECT_TRUE(Support::isPowerOf2UpTo(uint32_t(2), 8));
+  EXPECT_FALSE(Support::isPowerOf2UpTo(uint32_t(3), 8));
+  EXPECT_TRUE(Support::isPowerOf2UpTo(uint32_t(4), 8));
+  EXPECT_TRUE(Support::isPowerOf2UpTo(uint32_t(8), 8));
+  EXPECT_FALSE(Support::isPowerOf2UpTo(uint32_t(9), 8));
+  EXPECT_FALSE(Support::isPowerOf2UpTo(uint32_t(16), 8));
+  EXPECT_FALSE(Support::isPowerOf2UpTo(uint32_t(0xFFFFFFFFu), 8));
+
+  EXPECT_TRUE(Support::isPowerOf2UpTo(uint32_t(16), 16));
+  EXPECT_FALSE(Support::isPowerOf2UpTo(uint32_t(32), 16));
+
+  INFO("Support::isZeroOrPowerOf2()");
+  EXPECT_TRUE(Support::isZeroOrPowerOf2(uint8_t(0)));
+  EXPECT_TRUE(Support::isZeroOrPowerOf2(uint16_t(0)));
+  EXPECT_TRUE(Support::isZeroOrPowerOf2(uint32_t(0)));
+  EXPECT_TRUE(Support::isZeroOrPowerOf2(uint64_t(0)));
+
+  EXPECT_FALSE(Support::isZeroOrPowerOf2(uint8_t(0xFFu)));
+  EXPECT_FALSE(Support::isZeroOrPowerOf2(uint16_t(0xFFFFu)));
+  EXPECT_FALSE(Support::isZeroOrPowerOf2(uint32_t(0xFFFFFFFFu)));
+  EXPECT_FALSE(Support::isZeroOrPowerOf2(uint64_t(0xFFFFFFFFFFFFFFFFu)));
+
+  for (i = 0; i < 32; i++) {
+    EXPECT_TRUE(Support::isZeroOrPowerOf2(uint32_t(1) << i));
+    EXPECT_FALSE(Support::isZeroOrPowerOf2((uint32_t(1) << i) ^ 0x001101));
+  }
+
+  for (i = 0; i < 64; i++) {
+    EXPECT_TRUE(Support::isZeroOrPowerOf2(uint64_t(1) << i));
+    EXPECT_FALSE(Support::isZeroOrPowerOf2((uint64_t(1) << i) ^ 0x001101));
+  }
+
+  INFO("Support::isZeroOrPowerOf2UpTo()");
+  EXPECT_TRUE(Support::isZeroOrPowerOf2UpTo(uint8_t(0), 8));
+  EXPECT_TRUE(Support::isZeroOrPowerOf2UpTo(uint16_t(0), 8));
+  EXPECT_TRUE(Support::isZeroOrPowerOf2UpTo(uint32_t(0), 8));
+  EXPECT_TRUE(Support::isZeroOrPowerOf2UpTo(uint64_t(0), 8));
+
+  EXPECT_FALSE(Support::isZeroOrPowerOf2UpTo(uint8_t(0xFFu), 8));
+  EXPECT_FALSE(Support::isZeroOrPowerOf2UpTo(uint16_t(0xFFFFu), 8));
+  EXPECT_FALSE(Support::isZeroOrPowerOf2UpTo(uint32_t(0xFFFFFFFFu), 8));
+  EXPECT_FALSE(Support::isZeroOrPowerOf2UpTo(uint64_t(0xFFFFFFFFFFFFFFFFu), 8));
+
+  EXPECT_TRUE(Support::isZeroOrPowerOf2UpTo(uint32_t(1), 8));
+  EXPECT_TRUE(Support::isZeroOrPowerOf2UpTo(uint32_t(2), 8));
+  EXPECT_FALSE(Support::isZeroOrPowerOf2UpTo(uint32_t(3), 8));
+  EXPECT_TRUE(Support::isZeroOrPowerOf2UpTo(uint32_t(4), 8));
+  EXPECT_TRUE(Support::isZeroOrPowerOf2UpTo(uint32_t(8), 8));
+  EXPECT_FALSE(Support::isZeroOrPowerOf2UpTo(uint32_t(9), 8));
+  EXPECT_FALSE(Support::isZeroOrPowerOf2UpTo(uint32_t(16), 8));
+  EXPECT_FALSE(Support::isZeroOrPowerOf2UpTo(uint32_t(0xFFFFFFFFu), 8));
+
+  EXPECT_TRUE(Support::isZeroOrPowerOf2UpTo(uint32_t(16), 16));
+  EXPECT_FALSE(Support::isZeroOrPowerOf2UpTo(uint32_t(32), 16));
 }
 
 static void testIntUtils() noexcept {
@@ -194,19 +276,19 @@ static void testReadWrite() noexcept {
 
   uint8_t arr[32] = { 0 };
 
-  Support::writeU16uBE(arr + 1, 0x0102u);
-  Support::writeU16uBE(arr + 3, 0x0304u);
-  EXPECT_EQ(Support::readU32uBE(arr + 1), 0x01020304u);
-  EXPECT_EQ(Support::readU32uLE(arr + 1), 0x04030201u);
-  EXPECT_EQ(Support::readU32uBE(arr + 2), 0x02030400u);
-  EXPECT_EQ(Support::readU32uLE(arr + 2), 0x00040302u);
+  Support::storeu_u16_be(arr + 1, 0x0102u);
+  Support::storeu_u16_be(arr + 3, 0x0304u);
+  EXPECT_EQ(Support::loadu_u32_be(arr + 1), 0x01020304u);
+  EXPECT_EQ(Support::loadu_u32_le(arr + 1), 0x04030201u);
+  EXPECT_EQ(Support::loadu_u32_be(arr + 2), 0x02030400u);
+  EXPECT_EQ(Support::loadu_u32_le(arr + 2), 0x00040302u);
 
-  Support::writeU32uLE(arr + 5, 0x05060708u);
-  EXPECT_EQ(Support::readU64uBE(arr + 1), 0x0102030408070605u);
-  EXPECT_EQ(Support::readU64uLE(arr + 1), 0x0506070804030201u);
+  Support::storeu_u32_le(arr + 5, 0x05060708u);
+  EXPECT_EQ(Support::loadu_u64_be(arr + 1), 0x0102030408070605u);
+  EXPECT_EQ(Support::loadu_u64_le(arr + 1), 0x0506070804030201u);
 
-  Support::writeU64uLE(arr + 7, 0x1122334455667788u);
-  EXPECT_EQ(Support::readU32uBE(arr + 8), 0x77665544u);
+  Support::storeu_u64_le(arr + 7, 0x1122334455667788u);
+  EXPECT_EQ(Support::loadu_u32_be(arr + 8), 0x77665544u);
 }
 
 static void testBitVector() noexcept {

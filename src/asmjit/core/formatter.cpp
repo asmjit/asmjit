@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
@@ -31,6 +31,26 @@ class VirtReg;
 #endif
 
 namespace Formatter {
+
+Error formatVirtRegName(String& sb, const VirtReg* vReg) noexcept {
+  if (vReg->nameSize()) {
+    return sb.append(vReg->name(), vReg->nameSize());
+  }
+  else {
+    return sb.appendFormat("%%%u", unsigned(Operand::virtIdToIndex(vReg->id())));
+  }
+}
+
+Error formatVirtRegNameWithPrefix(String& sb, const char* prefix, size_t prefixSize, const VirtReg* vReg) noexcept {
+  ASMJIT_PROPAGATE(sb.append(prefix, prefixSize));
+
+  if (vReg->nameSize()) {
+    return sb.append(vReg->name(), vReg->nameSize());
+  }
+  else {
+    return sb.appendFormat("%%%u", unsigned(Operand::virtIdToIndex(vReg->id())));
+  }
+}
 
 static const char wordNameTable[][8] = {
   "db",
@@ -128,33 +148,31 @@ Error formatLabel(
   DebugUtils::unused(formatFlags);
 
   if (emitter && emitter->code()) {
-    const LabelEntry* le = emitter->code()->labelEntry(labelId);
-    if (ASMJIT_UNLIKELY(!le)) {
+    CodeHolder* code = emitter->code();
+    if (ASMJIT_UNLIKELY(!code->isLabelValid(labelId))) {
       return sb.appendFormat("<InvalidLabel:%u>", labelId);
     }
 
-    if (le->hasName()) {
-      if (le->hasParent()) {
-        uint32_t parentId = le->parentId();
-        const LabelEntry* pe = emitter->code()->labelEntry(parentId);
+    const LabelEntry& le = code->labelEntry(labelId);
+    if (le.hasName()) {
+      if (le.hasParent()) {
+        uint32_t parentId = le.parentId();
+        const LabelEntry& pe = code->labelEntry(parentId);
 
-        if (ASMJIT_UNLIKELY(!pe)) {
-          ASMJIT_PROPAGATE(sb.appendFormat("<InvalidLabel:%u>", labelId));
-        }
-        else if (ASMJIT_UNLIKELY(!pe->hasName())) {
-          ASMJIT_PROPAGATE(sb.appendFormat("L%u", parentId));
+        if (pe.hasName()) {
+          ASMJIT_PROPAGATE(sb.append(pe.name()));
         }
         else {
-          ASMJIT_PROPAGATE(sb.append(pe->name()));
+          ASMJIT_PROPAGATE(sb.appendFormat("L%u", parentId));
         }
 
         ASMJIT_PROPAGATE(sb.append('.'));
       }
 
-      if (le->type() == LabelType::kAnonymous) {
+      if (le.labelType() == LabelType::kAnonymous) {
         ASMJIT_PROPAGATE(sb.appendFormat("L%u@", labelId));
       }
-      return sb.append(le->name());
+      return sb.append(le.name());
     }
   }
 
@@ -241,9 +259,9 @@ static Error formatDataHelper(String& sb, const char* typeName, uint32_t typeSiz
 
     switch (typeSize) {
       case 1: v = data[0]; break;
-      case 2: v = Support::readU16u(data); break;
-      case 4: v = Support::readU32u(data); break;
-      case 8: v = Support::readU64u(data); break;
+      case 2: v = Support::loadu_u16(data); break;
+      case 4: v = Support::loadu_u32(data); break;
+      case 8: v = Support::loadu_u64(data); break;
     }
 
     ASMJIT_PROPAGATE(sb.appendUInt(v, 16, typeSize * 2, StringFormatFlags::kAlternate));
@@ -381,7 +399,14 @@ static Error formatFuncValuePack(
         virtReg = cc->virtRegById(vRegs[valueIndex].id());
       }
 
-      ASMJIT_PROPAGATE(sb.appendFormat(" %s", virtReg ? virtReg->name() : nullReg));
+      ASMJIT_PROPAGATE(sb.append(' '));
+
+      if (virtReg) {
+        ASMJIT_PROPAGATE(Formatter::formatVirtRegName(sb, virtReg));
+      }
+      else {
+        ASMJIT_PROPAGATE(sb.append(nullReg, sizeof(nullReg) - 1));
+      }
     }
   }
 
@@ -448,8 +473,8 @@ Error formatNode(
 
     case NodeType::kSection: {
       const SectionNode* sectionNode = node->as<SectionNode>();
-      if (builder->_code->isSectionValid(sectionNode->id())) {
-        const Section* section = builder->_code->sectionById(sectionNode->id());
+      if (builder->_code->isSectionValid(sectionNode->sectionId())) {
+        const Section* section = builder->_code->sectionById(sectionNode->sectionId());
         ASMJIT_PROPAGATE(sb.appendFormat(".section %s", section->name()));
       }
       break;

@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
@@ -58,8 +58,6 @@ BaseRAPass::~BaseRAPass() noexcept {}
 // ==========================
 
 static void BaseRAPass_reset(BaseRAPass* self, FuncDetail* funcDetail) noexcept {
-  ZoneAllocator* allocator = self->allocator();
-
   self->_blocks.reset();
   self->_exits.reset();
   self->_pov.reset();
@@ -74,7 +72,7 @@ static void BaseRAPass_reset(BaseRAPass* self, FuncDetail* funcDetail) noexcept 
   self->_physRegIndex.reset();
   self->_physRegCount.reset();
   self->_physRegTotal = 0;
-  self->_scratchRegIndexes.fill(BaseReg::kIdBad);
+  self->_scratchRegIndexes.fill(Reg::kIdBad);
 
   self->_availableRegs.reset();
   self->_clobberedRegs.reset();
@@ -86,7 +84,7 @@ static void BaseRAPass_reset(BaseRAPass* self, FuncDetail* funcDetail) noexcept 
   self->_globalMaxLiveCount.reset();
   self->_temporaryMem.reset();
 
-  self->_stackAllocator.reset(allocator);
+  self->_stackAllocator.reset(self->_allocator.zone(), &self->_allocator);
   self->_argsAssignment.reset(funcDetail);
   self->_numStackArgsToStackSlots = 0;
   self->_maxWorkRegNameSize = 0;
@@ -716,7 +714,7 @@ RAAssignment::WorkToPhysMap* BaseRAPass::newWorkToPhysMap() noexcept {
     return const_cast<RAAssignment::WorkToPhysMap*>(&nullMap);
   }
 
-  WorkToPhysMap* map = zone()->allocT<WorkToPhysMap>(size);
+  WorkToPhysMap* map = zone()->alloc<WorkToPhysMap>(size);
   if (ASMJIT_UNLIKELY(!map)) {
     return nullptr;
   }
@@ -729,7 +727,7 @@ RAAssignment::PhysToWorkMap* BaseRAPass::newPhysToWorkMap() noexcept {
   uint32_t count = physRegTotal();
   size_t size = PhysToWorkMap::sizeOf(count);
 
-  PhysToWorkMap* map = zone()->allocT<PhysToWorkMap>(size);
+  PhysToWorkMap* map = zone()->alloc<PhysToWorkMap>(size);
   if (ASMJIT_UNLIKELY(!map)) {
     return nullptr;
   }
@@ -1188,7 +1186,7 @@ Error BaseRAPass::assignArgIndexToWorkRegs() noexcept {
       workReg->setArgIndex(argIndex, valueIndex);
       const FuncValue& arg = func()->detail().arg(argIndex, valueIndex);
 
-      if (arg.isReg() && _archTraits->regTypeToGroup(arg.regType()) == workReg->group()) {
+      if (arg.isReg() && RegUtils::groupOf(arg.regType()) == workReg->group()) {
         workReg->setHintRegId(arg.regId());
       }
     }
@@ -1232,7 +1230,7 @@ ASMJIT_FAVOR_SPEED Error BaseRAPass::initGlobalLiveSpans() noexcept {
     LiveRegSpans* liveSpans = nullptr;
 
     if (physCount) {
-      liveSpans = allocator()->allocT<LiveRegSpans>(physCount * sizeof(LiveRegSpans));
+      liveSpans = allocator()->zone()->alloc<LiveRegSpans>(physCount * sizeof(LiveRegSpans));
       if (ASMJIT_UNLIKELY(!liveSpans)) {
         return DebugUtils::errored(kErrorOutOfMemory);
       }
@@ -2072,7 +2070,7 @@ ASMJIT_FAVOR_SIZE Error BaseRAPass::annotateCode() noexcept {
         }
       }
 
-      node->setInlineComment(static_cast<char*>(cc()->_dataZone.dup(sb.data(), sb.size(), true)));
+      node->setInlineComment(static_cast<char*>(cc()->_codeZone.dup(sb.data(), sb.size(), true)));
       if (node == last) {
         break;
       }
