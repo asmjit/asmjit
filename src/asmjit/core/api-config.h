@@ -117,6 +117,9 @@ namespace asmjit {
 //! Disables \ref asmjit_compiler functionality completely.
 #define ASMJIT_NO_COMPILER
 
+//! Disables \ref asmjit_ujit functionality completely.
+#define ASMJIT_NO_UJIT
+
 // Avoid doxygen preprocessor using feature-selection definitions.
 #undef ASMJIT_BUILD_EMBED
 #undef ASMJIT_BUILD_STATIC

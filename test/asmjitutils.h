@@ -183,6 +183,12 @@ static void printBuildOptions() {
   constexpr bool no_compiler = false;
 #endif
 
+#if defined(ASMJIT_NO_UJIT)
+  constexpr bool no_ujit = true;
+#else
+  constexpr bool no_ujit = false;
+#endif
+
   printf("Build Options:\n");
   printf("  BUILD_TYPE             : %s\n", asmjitBuildType());
   printf("  ASMJIT_NO_DEPRECATED   : %s\n", stringifyBuildDefinition(no_deprecated));
@@ -204,6 +210,7 @@ static void printBuildOptions() {
   printf("  ASMJIT_NO_INTROSPECTION: %s\n", stringifyBuildDefinition(no_introspection));
   printf("  ASMJIT_NO_BUILDER      : %s\n", stringifyBuildDefinition(no_builder));
   printf("  ASMJIT_NO_COMPILER     : %s\n", stringifyBuildDefinition(no_compiler));
+  printf("  ASMJIT_NO_UJIT         : %s\n", stringifyBuildDefinition(no_ujit));
   printf("\n");
 }
 

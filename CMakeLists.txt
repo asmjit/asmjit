@@ -105,6 +105,14 @@ if (NOT DEFINED ASMJIT_NO_COMPILER)
   endif()
 endif()
 
+if (NOT DEFINED ASMJIT_NO_UJIT)
+  if (ASMJIT_NO_COMPILER)
+    set(ASMJIT_NO_UJIT TRUE)
+  else()
+    set(ASMJIT_NO_UJIT FALSE)
+  endif()
+endif()
+
 # AsmJit - Configuration - CMake Introspection
 # ============================================
 
@@ -131,6 +139,7 @@ set(ASMJIT_NO_VALIDATION    "${ASMJIT_NO_VALIDATION}"    CACHE BOOL "Disable ins
 set(ASMJIT_NO_INTROSPECTION "${ASMJIT_NO_INTROSPECTION}" CACHE BOOL "Disable instruction introspection API at build time")
 set(ASMJIT_NO_BUILDER       "${ASMJIT_NO_BUILDER}"       CACHE BOOL "Disable Builder at build time")
 set(ASMJIT_NO_COMPILER      "${ASMJIT_NO_COMPILER}"      CACHE BOOL "Disable Compiler at build time")
+set(ASMJIT_NO_UJIT          "${ASMJIT_NO_UJIT}"          CACHE BOOL "Disable UniCompiler at build time")
 
 # AsmJit - Project
 # ================
@@ -352,7 +361,8 @@ foreach(build_option # AsmJit build options.
                      ASMJIT_NO_INTROSPECTION
                      ASMJIT_NO_VALIDATION
                      ASMJIT_NO_BUILDER
-                     ASMJIT_NO_COMPILER)
+                     ASMJIT_NO_COMPILER
+                     ASMJIT_NO_UJIT)
   if (${build_option})
     List(APPEND ASMJIT_CFLAGS         "-D${build_option}")
     List(APPEND ASMJIT_PRIVATE_CFLAGS "-D${build_option}")
@@ -521,6 +531,14 @@ set(ASMJIT_SRC_LIST
   asmjit/x86/x86operand.h
   asmjit/x86/x86rapass.cpp
   asmjit/x86/x86rapass_p.h
+
+  asmjit/ujit/ujitbase.h
+  asmjit/ujit/unicompiler_a64.cpp
+  asmjit/ujit/unicompiler_x86.cpp
+  asmjit/ujit/unicompiler.h
+  asmjit/ujit/uniop.h
+  asmjit/ujit/vecconsttable.cpp
+  asmjit/ujit/vecconsttable.h
 )
 
 if (MSVC AND NOT ASMJIT_NO_NATVIS)
@@ -695,11 +713,23 @@ if (NOT ASMJIT_EMBED)
         endif()
       endif()
 
+      set_property(SOURCE test/asmjit_test_unicompiler_avx2fma.cpp APPEND PROPERTY COMPILE_OPTIONS ${ASMJIT_AVX2FMA_CFLAGS})
+
       asmjit_add_target(asmjit_test_compiler TEST
                         SOURCES    test/asmjit_test_compiler.cpp
                                    test/asmjit_test_compiler.h
                                    test/asmjit_test_compiler_a64.cpp
                                    test/asmjit_test_compiler_x86.cpp
+                        LIBRARIES  asmjit::asmjit
+                        CFLAGS     ${ASMJIT_PRIVATE_CFLAGS} ${ASMJIT_SSE2_CFLAGS}
+                        CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
+                        CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
+
+      asmjit_add_target(asmjit_test_unicompiler TEST
+                        SOURCES    test/asmjit_test_unicompiler.cpp
+                                   test/asmjit_test_unicompiler_sse2.cpp
+                                   test/asmjit_test_unicompiler_avx2fma.cpp
+                                   test/broken.cpp
                         LIBRARIES  asmjit::asmjit
                         CFLAGS     ${ASMJIT_PRIVATE_CFLAGS} ${ASMJIT_SSE2_CFLAGS}
                         CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}

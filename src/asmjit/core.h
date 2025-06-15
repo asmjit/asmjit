@@ -294,7 +294,7 @@ namespace asmjit {
 //!
 //! \section api_changes API Changes
 //!
-//! ### Changes committed at 2025-06-15
+//! ### Changes committed at 2025-06-XX
 //!
 //! Core changes:
 //!
@@ -2087,6 +2087,9 @@ namespace asmjit {
 
 //! \defgroup asmjit_a64 AArch64 Backend
 //! \brief AArch64 backend.
+
+//! \defgroup asmjit_ujit UJIT
+//! \brief Universal JIT - abstracts X86|X86_64 and AArch64 code generation.
 
 //! \cond INTERNAL
 //! \defgroup asmjit_ra RA
