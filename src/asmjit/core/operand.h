@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_CORE_OPERAND_H_INCLUDED
@@ -35,7 +35,7 @@ enum class OperandType : uint32_t {
 };
 
 static_assert(uint32_t(OperandType::kMem) == uint32_t(OperandType::kReg) + 1,
-              "AsmJit requires that `OperandType::kMem` equals to `OperandType::kReg + 1`");
+              "AsmJit requires that `OperandType::kMem` equals `OperandType::kReg + 1`");
 
 //! Register mask is a convenience typedef that describes a mask where each bit describes a physical register id
 //! in the same \ref RegGroup. At the moment 32 bits are enough as AsmJit doesn't support any architecture that
@@ -56,106 +56,65 @@ enum class RegType : uint8_t {
   //! operand (register vs. label) by just assigning its type (register type or label-tag) and operand id.
   kLabelTag = 1,
 
-  //! Universal type describing program counter (PC) or instruction pointer (IP) register, if the target architecture
-  //! actually exposes it as a separate register type, which most modern architectures do.
-  kPC = 2,
+  //! 8-bit low general purpose register (X86|X86_64).
+  kGp8Lo = 2,
+  //! 8-bit high general purpose register (X86|X86_64).
+  kGp8Hi = 3,
+  //! 16-bit general purpose register (X86|X86_64).
+  kGp16 = 4,
+  //! 32-bit general purpose register (X86|X86_64|AArch32|AArch64).
+  kGp32 = 5,
+  //! 64-bit general purpose register (X86_64|AArch64).
+  kGp64 = 6,
 
-  //! 8-bit low general purpose register (X86).
-  kGp8Lo = 3,
-  //! 8-bit high general purpose register (X86).
-  kGp8Hi = 4,
-  //! 16-bit general purpose register (X86).
-  kGp16 = 5,
-  //! 32-bit general purpose register (X86|AArch32|AArch64).
-  kGp32 = 6,
-  //! 64-bit general purpose register (X86|AArch64).
-  kGp64 = 7,
   //! 8-bit view of a vector register (AArch64).
-  kVec8 = 8,
+  kVec8 = 7,
   //! 16-bit view of a vector register (AArch64).
-  kVec16 = 9,
+  kVec16 = 8,
   //! 32-bit view of a vector register (AArch32|AArch64).
-  kVec32 = 10,
+  kVec32 = 9,
   //! 64-bit view of a vector register (AArch32|AArch64).
   //!
   //! \note This is never used for MMX registers on X86, MMX registers have its own category.
-  kVec64 = 11,
-  //! 128-bit view of a vector register (X86|AArch32|AArch64).
-  kVec128 = 12,
-  //! 256-bit view of a vector register (X86).
-  kVec256 = 13,
-  //! 512-bit view of a vector register (X86).
-  kVec512 = 14,
+  kVec64 = 10,
+  //! 128-bit view of a vector register (X86|X86_64|AArch32|AArch64).
+  kVec128 = 11,
+  //! 256-bit view of a vector register (X86|X86_64).
+  kVec256 = 12,
+  //! 512-bit view of a vector register (X86|X86_64).
+  kVec512 = 13,
   //! 1024-bit view of a vector register (future).
-  kVec1024 = 15,
+  kVec1024 = 14,
   //! View of a vector register, which width is implementation specific (AArch64).
-  kVecNLen = 16,
+  kVecNLen = 15,
 
-  //! Mask register (X86).
-  kMask = 17,
+  //! Mask register (X86|X86_64|AArch64).
+  kMask = 16,
+  //! Tile register (X86_64: `TMM`).
+  kTile = 17,
 
-  //! Start of architecture dependent register types.
-  kExtra = 18,
+  //! Segment register (X86|X86_64: None, ES, CS, SS, DS, FS, GS).
+  kSegment = 25,
+  //! Control register (X86|X86_64: `CR`).
+  kControl = 26,
+  //! Debug register (X86|X86_64: `DR`).
+  kDebug = 27,
 
-  // X86 Specific Register Types
-  // ---------------------------
+  //! MMX register (X86|X86_64: `MM`).
+  kX86_Mm = 28,
+  //! FPU (x87) register (X86|X86_64: `ST`).
+  kX86_St = 29,
+  //! Bound register (X86|X86_64: `BND`).
+  kX86_Bnd = 30,
 
+  //! Universal type describing program counter (PC) or instruction pointer (EIP/RIP) register, if the target
+  //! architecture actually exposes it as a separate register type, which most modern architectures do.
+  //!
+  //! X86 Specific
+  //! ------------
+  //!
   //! Instruction pointer (RIP), only addressable in \ref x86::Mem in 64-bit targets.
-  kX86_Rip = kPC,
-  //! Low GPB register (AL, BL, CL, DL, ...).
-  kX86_GpbLo = kGp8Lo,
-  //! High GPB register (AH, BH, CH, DH only).
-  kX86_GpbHi = kGp8Hi,
-  //! GPW register.
-  kX86_Gpw = kGp16,
-  //! GPD register.
-  kX86_Gpd = kGp32,
-  //! GPQ register (64-bit).
-  kX86_Gpq = kGp64,
-  //! XMM register (SSE+).
-  kX86_Xmm = kVec128,
-  //! YMM register (AVX+).
-  kX86_Ymm = kVec256,
-  //! ZMM register (AVX512+).
-  kX86_Zmm = kVec512,
-  //! K register (AVX512+).
-  kX86_KReg = kMask,
-  //! MMX register.
-  kX86_Mm = kExtra + 0,
-  //! Segment register (None, ES, CS, SS, DS, FS, GS).
-  kX86_SReg = kExtra + 1,
-  //! Control register (CR).
-  kX86_CReg = kExtra + 2,
-  //! Debug register (DR).
-  kX86_DReg = kExtra + 3,
-  //! FPU (x87) register.
-  kX86_St = kExtra + 4,
-  //! Bound register (BND).
-  kX86_Bnd = kExtra + 5,
-  //! TMM register (AMX_TILE)
-  kX86_Tmm = kExtra + 6,
-
-  // ARM Specific Register Types
-  // ---------------------------
-
-  //! Program pointer (PC) register (AArch64).
-  kARM_PC = kPC,
-  //! 32-bit general purpose register (R or W).
-  kARM_GpW = kGp32,
-  //! 64-bit general purpose register (X).
-  kARM_GpX = kGp64,
-  //! 8-bit view of VFP/ASIMD register (B).
-  kARM_VecB = kVec8,
-  //! 16-bit view of VFP/ASIMD register (H).
-  kARM_VecH = kVec16,
-  //! 32-bit view of VFP/ASIMD register (S).
-  kARM_VecS = kVec32,
-  //! 64-bit view of VFP/ASIMD register (D).
-  kARM_VecD = kVec64,
-  //! 128-bit view of VFP/ASIMD register (Q).
-  kARM_VecQ = kVec128,
-  //! 128-bit view of VFP/ASIMD register (V).
-  kARM_VecV = kVec128,
+  kPC = 31,
 
   //! Maximum value of `RegType`.
   kMaxValue = 31
@@ -168,51 +127,47 @@ ASMJIT_DEFINE_ENUM_COMPARE(RegType)
 enum class RegGroup : uint8_t {
   //! General purpose register group compatible with all backends.
   kGp = 0,
+
   //! Vector register group compatible with all backends.
   //!
-  //! Describes X86 XMM|YMM|ZMM registers ARM/AArch64 V registers.
+  //! Describes `XMM|YMM|ZMM` registers on X86|X86_64 targets and `V|Q|D|S|H|B` registers on ARM/AArch64 targets.
   kVec = 1,
 
   //! Mask register group compatible with all backends that can use masking.
+  //!
+  //! Describes `K` registers on X86|X86_64 targets (AVX-512) and `P` registers on AArch64 targets (SVE/SVE2).
   kMask = 2,
+
   //! Extra virtual group #3 that can be used by Compiler for register allocation.
   kExtraVirt3 = 3,
 
-  //! Program counter group.
-  kPC = 4,
+  //! TMM register group (X86|X86_64).
+  kTile = 4,
 
-  //! Extra non-virtual group that can be used by registers not managed by Compiler.
-  kExtraNonVirt = 5,
+  //! Segment register group (X86|X86_64).
+  kSegment = 10,
 
-  // X86 Specific Register Groups
-  // ----------------------------
+  //! Control register group (X86|X86_64).
+  kControl = 11,
 
-  //! K register group (KReg) - maps to \ref RegGroup::kMask (X86, X86_64).
-  kX86_K = kMask,
-  //! MMX register group (MM) - maps to \ref RegGroup::kExtraVirt3 (X86, X86_64).
+  //! Debug register group (X86|X86_64).
+  kDebug = 12,
+
+  //! MMX register group (MM) - maps to \ref RegGroup::kExtraVirt3 (X86|X86_64).
   kX86_MM = kExtraVirt3,
+  //! FPU register group (X86|X86_64).
+  kX86_St = 13,
+  //! BND register group (X86|X86_64).
+  kX86_Bnd = 14,
 
-  //! Instruction pointer (X86, X86_64).
-  kX86_Rip = kPC,
-  //! Segment register group (X86, X86_64).
-  kX86_SReg = kExtraNonVirt + 0,
-  //! CR register group (X86, X86_64).
-  kX86_CReg = kExtraNonVirt + 1,
-  //! DR register group (X86, X86_64).
-  kX86_DReg = kExtraNonVirt + 2,
-  //! FPU register group (X86, X86_64).
-  kX86_St = kExtraNonVirt + 3,
-  //! BND register group (X86, X86_64).
-  kX86_Bnd = kExtraNonVirt + 4,
-  //! TMM register group (X86, X86_64).
-  kX86_Tmm = kExtraNonVirt + 5,
+  //! Program counter group (represents also EIP/RIP on X86|X86_64 targets).
+  kPC = 15,
 
-  //! First group - only used in loops.
-  k0 = 0,
-  //! Last value of a virtual register that is managed by \ref BaseCompiler.
-  kMaxVirt = Globals::kNumVirtGroups - 1,
   //! Maximum value of `RegGroup`.
-  kMaxValue = 15
+  kMaxValue = 15,
+
+  //! Last value of a virtual register that is managed by \ref BaseCompiler.
+  kMaxVirt = Globals::kNumVirtGroups - 1
 };
 ASMJIT_DEFINE_ENUM_COMPARE(RegGroup)
 
@@ -284,6 +239,72 @@ struct OperandSignature {
   //! \{
 
   uint32_t _bits;
+
+  //! \}
+
+  //! \name Static Constructors
+  //! \{
+
+  //! Constructs operand signature from the given `bits`.
+  [[nodiscard]]
+  static ASMJIT_INLINE_CONSTEXPR OperandSignature fromBits(uint32_t bits) noexcept {
+    return OperandSignature{bits};
+  }
+
+  //! Constructs operand signature from the given `value`, use `kFieldMask` to describe where the value is in the signature.
+  template<uint32_t kFieldMask, typename T>
+  [[nodiscard]]
+  static ASMJIT_INLINE_CONSTEXPR OperandSignature fromValue(const T& value) noexcept {
+    return OperandSignature{uint32_t(value) << Support::ConstCTZ<kFieldMask>::value};
+  }
+
+  //! Constructs operand signature describing the given operand type `opType`.
+  [[nodiscard]]
+  static ASMJIT_INLINE_CONSTEXPR OperandSignature fromOpType(OperandType opType) noexcept {
+    return OperandSignature{uint32_t(opType) << kOpTypeShift};
+  }
+
+  //! Constructs operand signature describing the given register type `regType`.
+  [[nodiscard]]
+  static ASMJIT_INLINE_CONSTEXPR OperandSignature fromRegType(RegType regType) noexcept {
+    return OperandSignature{uint32_t(regType) << kRegTypeShift};
+  }
+
+  //! Constructs operand signature describing the given register group `regGroup`.
+  [[nodiscard]]
+  static ASMJIT_INLINE_CONSTEXPR OperandSignature fromRegGroup(RegGroup regGroup) noexcept {
+    return OperandSignature{uint32_t(regGroup) << kRegGroupShift};
+  }
+
+  //! Constructs operand signature describing both register type `regType` and register group `regGroup`.
+  [[nodiscard]]
+  static ASMJIT_INLINE_CONSTEXPR OperandSignature fromRegTypeAndGroup(RegType regType, RegGroup regGroup) noexcept {
+    return fromRegType(regType) | fromRegGroup(regGroup);
+  }
+
+  //! Constructs operand signature describing a memory base type `baseType`.
+  [[nodiscard]]
+  static ASMJIT_INLINE_CONSTEXPR OperandSignature fromMemBaseType(RegType baseType) noexcept {
+    return OperandSignature{uint32_t(baseType) << kMemBaseTypeShift};
+  }
+
+  //! Constructs operand signature describing a memory index type `indexType`.
+  [[nodiscard]]
+  static ASMJIT_INLINE_CONSTEXPR OperandSignature fromMemIndexType(RegType indexType) noexcept {
+    return OperandSignature{uint32_t(indexType) << kMemIndexTypeShift};
+  }
+
+  //! Constructs operand signature describing a `predicate`.
+  [[nodiscard]]
+  static ASMJIT_INLINE_CONSTEXPR OperandSignature fromPredicate(uint32_t predicate) noexcept {
+    return OperandSignature{predicate << kPredicateShift};
+  }
+
+  //! Constructs operand signature describing a `size`.
+  [[nodiscard]]
+  static ASMJIT_INLINE_CONSTEXPR OperandSignature fromSize(uint32_t size) noexcept {
+    return OperandSignature{size << kSizeShift};
+  }
 
   //! \}
 
@@ -400,6 +421,28 @@ struct OperandSignature {
   [[nodiscard]]
   ASMJIT_INLINE_CONSTEXPR OperandType opType() const noexcept { return (OperandType)getField<kOpTypeMask>(); }
 
+  //! Tests whether the operand type matches opType
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isOpType(OperandType opType) const noexcept { return getField<kOpTypeMask>() == uint32_t(opType); }
+
+  //! Tests whether the operand signature represents a register.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isReg() const noexcept { return isOpType(OperandType::kReg); }
+
+  //! Tests whether the operand signature represents a register of the given register type `regType`.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isReg(RegType regType) const noexcept {
+    constexpr uint32_t kMask = kOpTypeMask | kRegTypeMask;
+    return subset(kMask) == (fromOpType(OperandType::kReg) | fromRegType(regType));
+  }
+
+  //! Tests whether the operand signature represents a register of the given register type `regType`.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isReg(RegGroup regGroup) const noexcept {
+    constexpr uint32_t kMask = kOpTypeMask | kRegGroupMask;
+    return subset(kMask) == (fromOpType(OperandType::kReg) | fromRegGroup(regGroup));
+  }
+
   [[nodiscard]]
   ASMJIT_INLINE_CONSTEXPR RegType regType() const noexcept { return (RegType)getField<kRegTypeMask>(); }
 
@@ -429,72 +472,6 @@ struct OperandSignature {
   ASMJIT_INLINE_CONSTEXPR void setSize(uint32_t size) noexcept { setField<kSizeMask>(size); }
 
   //! \}
-
-  //! \name Static Constructors
-  //! \{
-
-  //! Constructs operand signature from the given `bits`.
-  [[nodiscard]]
-  static ASMJIT_INLINE_CONSTEXPR OperandSignature fromBits(uint32_t bits) noexcept {
-    return OperandSignature{bits};
-  }
-
-  //! Constructs operand signature from the given `value`, use `kFieldMask` to describe where the value is in the signature.
-  template<uint32_t kFieldMask, typename T>
-  [[nodiscard]]
-  static ASMJIT_INLINE_CONSTEXPR OperandSignature fromValue(const T& value) noexcept {
-    return OperandSignature{uint32_t(value) << Support::ConstCTZ<kFieldMask>::value};
-  }
-
-  //! Constructs operand signature describing the given operand type `opType`.
-  [[nodiscard]]
-  static ASMJIT_INLINE_CONSTEXPR OperandSignature fromOpType(OperandType opType) noexcept {
-    return OperandSignature{uint32_t(opType) << kOpTypeShift};
-  }
-
-  //! Constructs operand signature describing the given register type `regType`.
-  [[nodiscard]]
-  static ASMJIT_INLINE_CONSTEXPR OperandSignature fromRegType(RegType regType) noexcept {
-    return OperandSignature{uint32_t(regType) << kRegTypeShift};
-  }
-
-  //! Constructs operand signature describing the given register group `regGroup`.
-  [[nodiscard]]
-  static ASMJIT_INLINE_CONSTEXPR OperandSignature fromRegGroup(RegGroup regGroup) noexcept {
-    return OperandSignature{uint32_t(regGroup) << kRegGroupShift};
-  }
-
-  //! Constructs operand signature describing both register type `regType` and register group `regGroup`.
-  [[nodiscard]]
-  static ASMJIT_INLINE_CONSTEXPR OperandSignature fromRegTypeAndGroup(RegType regType, RegGroup regGroup) noexcept {
-    return fromRegType(regType) | fromRegGroup(regGroup);
-  }
-
-  //! Constructs operand signature describing a memory base type `baseType`.
-  [[nodiscard]]
-  static ASMJIT_INLINE_CONSTEXPR OperandSignature fromMemBaseType(RegType baseType) noexcept {
-    return OperandSignature{uint32_t(baseType) << kMemBaseTypeShift};
-  }
-
-  //! Constructs operand signature describing a memory index type `indexType`.
-  [[nodiscard]]
-  static ASMJIT_INLINE_CONSTEXPR OperandSignature fromMemIndexType(RegType indexType) noexcept {
-    return OperandSignature{uint32_t(indexType) << kMemIndexTypeShift};
-  }
-
-  //! Constructs operand signature describing a `predicate`.
-  [[nodiscard]]
-  static ASMJIT_INLINE_CONSTEXPR OperandSignature fromPredicate(uint32_t predicate) noexcept {
-    return OperandSignature{predicate << kPredicateShift};
-  }
-
-  //! Constructs operand signature describing a `size`.
-  [[nodiscard]]
-  static ASMJIT_INLINE_CONSTEXPR OperandSignature fromSize(uint32_t size) noexcept {
-    return OperandSignature{size << kSizeShift};
-  }
-
-  //! \}
 };
 
 //! Base class representing an operand in AsmJit (non-default constructed version).
@@ -521,24 +498,22 @@ struct Operand_ {
   //! \name Constants
   //! \{
 
-  // Indexes to `_data` array.
-  enum DataIndex : uint32_t {
-    kDataMemIndexId = 0,
-    kDataMemOffsetLo = 1,
+  //! Memory index offset in a `_data[2]` array.
+  static inline constexpr uint32_t kDataMemIndexId = 0;
+  //! Low 32-bit offset value a `_data[2]` array.
+  static inline constexpr uint32_t kDataMemOffsetLo = 1;
 
-    kDataImmValueLo = ASMJIT_ARCH_LE ? 0 : 1,
-    kDataImmValueHi = ASMJIT_ARCH_LE ? 1 : 0
-  };
+  //! Low 32-bit immediate value in a `_data[2]` array.
+  static inline constexpr uint32_t kDataImmValueLo = ASMJIT_ARCH_LE ? 0 : 1;
+  //! High 32-bit immediate value in a `_data[2]` array.
+  static inline constexpr uint32_t kDataImmValueHi = ASMJIT_ARCH_LE ? 1 : 0;
 
-  //! Constants useful for VirtId <-> Index translation.
-  enum VirtIdConstants : uint32_t {
-    //! Minimum valid packed-id.
-    kVirtIdMin = 256,
-    //! Maximum valid packed-id, excludes Globals::kInvalidId.
-    kVirtIdMax = Globals::kInvalidId - 1,
-    //! Count of valid packed-ids.
-    kVirtIdCount = uint32_t(kVirtIdMax - kVirtIdMin + 1)
-  };
+  //! Minimum valid packed-id.
+  static inline constexpr uint32_t kVirtIdMin = 256;
+  //! Maximum valid packed-id, excludes Globals::kInvalidId.
+  static inline constexpr uint32_t kVirtIdMax = Globals::kInvalidId - 1;
+  //! Count of valid packed-ids.
+  static inline constexpr uint32_t kVirtIdCount = uint32_t(kVirtIdMax - kVirtIdMin + 1);
 
   //! \}
 
@@ -577,7 +552,7 @@ struct Operand_ {
   //! \{
 
   //! \cond INTERNAL
-  //! Initializes a `BaseReg` operand from `signature` and register `id`.
+  //! Initializes a `Reg` operand from `signature` and register `id`.
   ASMJIT_INLINE_CONSTEXPR void _initReg(const Signature& signature, uint32_t id) noexcept {
     _signature = signature;
     _baseId = id;
@@ -635,7 +610,7 @@ struct Operand_ {
 
   //! Tests whether this operand is the same as `other`.
   [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool operator==(const Operand_& other) const noexcept { return  equals(other); }
+  ASMJIT_INLINE_CONSTEXPR bool operator==(const Operand_& other) const noexcept { return equals(other); }
 
   //! Tests whether this operand is not the same as `other`.
   [[nodiscard]]
@@ -667,24 +642,18 @@ struct Operand_ {
   //! different the operands are not equal.
   [[nodiscard]]
   ASMJIT_INLINE_CONSTEXPR bool equals(const Operand_& other) const noexcept {
-    return bool(unsigned(_signature == other._signature) &
-                unsigned(_baseId    == other._baseId   ) &
-                unsigned(_data[0]   == other._data[0]  ) &
-                unsigned(_data[1]   == other._data[1]  ));
+    return Support::bool_and(
+      _signature == other._signature,
+      _baseId == other._baseId,
+      _data[0] == other._data[0],
+      _data[1] == other._data[1]
+    );
   }
 
   //! \}
 
-  //! \name Accessors
+  //! \name Generic Accessors
   //! \{
-
-  //! Tests whether the operand's signature matches the signature of the `other` operand.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool hasSignature(const Operand_& other) const noexcept { return _signature == other._signature; }
-
-  //! Tests whether the operand's signature matches the given signature `sign`.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool hasSignature(const Signature& other) const noexcept { return _signature == other; }
 
   //! Returns operand signature as unsigned 32-bit integer.
   //!
@@ -692,6 +661,14 @@ struct Operand_ {
   //! much faster to check packed 4 bytes at once than having to check these bytes individually.
   [[nodiscard]]
   ASMJIT_INLINE_CONSTEXPR Signature signature() const noexcept { return _signature; }
+
+  //! Tests whether the operand's signature matches the signature of the `other` operand.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool hasSignature(const Operand_& other) const noexcept { return _signature == other._signature; }
+
+  //! Tests whether the operand's signature matches the given signature `sign`.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool hasSignature(Signature sign) const noexcept { return _signature == sign; }
 
   //! Sets the operand signature, see `signature()`.
   //!
@@ -705,125 +682,35 @@ struct Operand_ {
   [[nodiscard]]
   ASMJIT_INLINE_CONSTEXPR OperandType opType() const noexcept { return _signature.opType(); }
 
+  //! Tests whether the operand's type matches the given `type`.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isOpType(OperandType opType) const noexcept { return _signature.isOpType(opType); }
+
   //! Tests whether the operand is none (`OperandType::kNone`).
   [[nodiscard]]
   ASMJIT_INLINE_CONSTEXPR bool isNone() const noexcept { return _signature == Signature::fromBits(0); }
 
   //! Tests whether the operand is a register (`OperandType::kReg`).
   [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isReg() const noexcept { return opType() == OperandType::kReg; }
+  ASMJIT_INLINE_CONSTEXPR bool isReg() const noexcept { return isOpType(OperandType::kReg); }
 
   //! Tests whether the operand is a register-list.
   //!
   //! \note Register-list is currently only used by 32-bit ARM architecture.
   [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isRegList() const noexcept { return opType() == OperandType::kRegList; }
+  ASMJIT_INLINE_CONSTEXPR bool isRegList() const noexcept { return isOpType(OperandType::kRegList); }
 
   //! Tests whether the operand is a memory location (`OperandType::kMem`).
   [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isMem() const noexcept { return opType() == OperandType::kMem; }
+  ASMJIT_INLINE_CONSTEXPR bool isMem() const noexcept { return isOpType(OperandType::kMem); }
 
   //! Tests whether the operand is an immediate (`OperandType::kImm`).
   [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isImm() const noexcept { return opType() == OperandType::kImm; }
+  ASMJIT_INLINE_CONSTEXPR bool isImm() const noexcept { return isOpType(OperandType::kImm); }
 
   //! Tests whether the operand is a label (`OperandType::kLabel`).
   [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isLabel() const noexcept { return opType() == OperandType::kLabel; }
-
-  //! Tests whether the operand is a physical register.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isPhysReg() const noexcept { return isReg() && _baseId < 0xFFu; }
-
-  //! Tests whether the operand is a virtual register.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isVirtReg() const noexcept { return isReg() && _baseId > 0xFFu; }
-
-  //! Returns the operand id.
-  //!
-  //! The value returned should be interpreted accordingly to the operand type:
-  //!   * None  - Should be `0`.
-  //!   * Reg   - Physical or virtual register id.
-  //!   * Mem   - Multiple meanings - BASE address (register or label id), or high value of a 64-bit absolute address.
-  //!   * Imm   - Should be `0`.
-  //!   * Label - Label id if it was created by using `newLabel()` or `Globals::kInvalidId` if the label is invalid or
-  //!             not initialized.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR uint32_t id() const noexcept { return _baseId; }
-
-  //! Tests whether the operand is a register matching the given register `type`.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isReg(RegType type) const noexcept {
-    return _signature.subset(Signature::kOpTypeMask | Signature::kRegTypeMask) == (Signature::fromOpType(OperandType::kReg) | Signature::fromRegType(type));
-  }
-
-  //! Tests whether the operand is a register of the provided register group `regGroup`.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isReg(RegGroup regGroup) const noexcept {
-    return _signature.subset(Signature::kOpTypeMask | Signature::kRegGroupMask) == (Signature::fromOpType(OperandType::kReg) | Signature::fromRegGroup(regGroup));
-  }
-
-  //! Tests whether the operand is register and of register type `regType` and `regId`.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isReg(RegType regType, uint32_t regId) const noexcept { return isReg(regType) && _baseId == regId; }
-
-  //! Tests whether the operand is register and of register group `regGroup` and `regId`.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isReg(RegGroup regGroup, uint32_t regId) const noexcept { return isReg(regGroup) && _baseId == regId; }
-
-  //! Tests whether the register is a general purpose register (any size).
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isGp() const noexcept { return isReg(RegGroup::kGp); }
-
-  //! Tests whether the register is a 32-bit general purpose register.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isGp32() const noexcept { return isReg(RegType::kGp32); }
-
-  //! Tests whether the register is a 64-bit general purpose register.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isGp64() const noexcept { return isReg(RegType::kGp64); }
-
-  //! Tests whether the register is a vector register of any size.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isVec() const noexcept { return isReg(RegGroup::kVec); }
-
-  //! Tests whether the register is an 8-bit vector register or view (AArch64).
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isVec8() const noexcept { return isReg(RegType::kVec8); }
-
-  //! Tests whether the register is a 16-bit vector register or view (AArch64).
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isVec16() const noexcept { return isReg(RegType::kVec16); }
-
-  //! Tests whether the register is a 32-bit vector register or view (AArch32, AArch64).
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isVec32() const noexcept { return isReg(RegType::kVec32); }
-
-  //! Tests whether the register is a 64-bit vector register or view (AArch32, AArch64).
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isVec64() const noexcept { return isReg(RegType::kVec64); }
-
-  //! Tests whether the register is a 128-bit vector register or view (AArch32, AArch64, X86, X86_64).
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isVec128() const noexcept { return isReg(RegType::kVec128); }
-
-  //! Tests whether the register is a 256-bit vector register or view (X86, X86_64).
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isVec256() const noexcept { return isReg(RegType::kVec256); }
-
-  //! Tests whether the register is a 512-bit vector register or view (X86, X86_64).
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isVec512() const noexcept { return isReg(RegType::kVec512); }
-
-  //! Tests whether the register is a mask register of any size.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isMask() const noexcept { return isReg(RegGroup::kMask); }
-
-  //! Tests whether the operand is a register matching the given register `type`.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isRegList(RegType type) const noexcept {
-    return _signature.subset(Signature::kOpTypeMask | Signature::kRegTypeMask) == (Signature::fromOpType(OperandType::kRegList) | Signature::fromRegType(type));
-  }
+  ASMJIT_INLINE_CONSTEXPR bool isLabel() const noexcept { return isOpType(OperandType::kLabel); }
 
   //! Tests whether the operand is a register or memory.
   //!
@@ -845,9 +732,267 @@ struct Operand_ {
     return Support::isBetween<uint32_t>(uint32_t(opType()), uint32_t(OperandType::kReg), uint32_t(OperandType::kRegList));
   }
 
+  //! Returns the operand id.
+  //!
+  //! The value returned should be interpreted accordingly to the operand type:
+  //!   * None  - Should be `0`.
+  //!   * Reg   - Physical or virtual register id.
+  //!   * Mem   - Multiple meanings - BASE address (register or label id), or high value of a 64-bit absolute address.
+  //!   * Imm   - Should be `0`.
+  //!   * Label - Label id if it was created by using `newLabel()` or `Globals::kInvalidId` if the label is invalid or
+  //!             not initialized.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR uint32_t id() const noexcept { return _baseId; }
+
   //! \}
 
-  //! \name Accessors (X86 Specific)
+  //! \name Register Accessors
+  //! \{
+
+  //! Tests whether the operand is a physical register.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isPhysReg() const noexcept { return isReg() && _baseId < 0xFFu; }
+
+  //! Tests whether the operand is a virtual register.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVirtReg() const noexcept { return isReg() && _baseId > 0xFFu; }
+
+  //! Tests whether the operand is a register matching the given register `type`.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isReg(RegType regType) const noexcept { return _signature.isReg(regType); }
+
+  //! Tests whether the operand is register and of register type `regType` and `regId`.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isReg(RegType regType, uint32_t regId) const noexcept { return Support::bool_and(isReg(regType), _baseId == regId); }
+
+  //! Tests whether the operand is a register of the provided register group `regGroup`.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isReg(RegGroup regGroup) const noexcept { return _signature.isReg(regGroup); }
+
+  //! Tests whether the operand is register and of register group `regGroup` and `regId`.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isReg(RegGroup regGroup, uint32_t regId) const noexcept { return Support::bool_and(isReg(regGroup), _baseId == regId); }
+
+  //! Tests whether the operand is a general purpose register of any type.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isPc() const noexcept { return isReg(RegType::kPC); }
+
+  //! Tests whether the operand is a general purpose register of any type.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGp() const noexcept { return isReg(RegGroup::kGp); }
+
+  //! Tests whether the operand is a general purpose register of any type having the given id `regId`.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGp(uint32_t regId) const noexcept { return isReg(RegGroup::kGp, regId); }
+
+  //! Tests whether the register is an 8-bit low or high general purpose register (X86|X86_64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGp8() const noexcept { return Support::bool_or(isReg(RegType::kGp8Lo), isReg(RegType::kGp8Hi)); }
+
+  //! Tests whether the register is an 8-bit low or high general purpose register having the given id `regId` (X86|X86_64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGp8(uint32_t regId) const noexcept { return Support::bool_and(isGp8(), id() == regId); }
+
+  //! Tests whether the register is an 8-bit low general purpose register (X86|X86_64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGp8Lo() const noexcept { return isReg(RegType::kGp8Lo); }
+
+  //! Tests whether the register is an 8-bit low general purpose register having the given id `regId` (X86|X86_64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGp8Lo(uint32_t regId) const noexcept { return isReg(RegType::kGp8Lo, regId); }
+
+  //! Tests whether the register is an 8-bit high general purpose register (X86|X86_64 only - AH, BH, CH, DH).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGp8Hi() const noexcept { return isReg(RegType::kGp8Hi); }
+
+  //! Tests whether the register is an 8-bit high general purpose register having the given id `regId` (X86|X86_64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGp8Hi(uint32_t regId) const noexcept { return isReg(RegType::kGp8Hi, regId); }
+
+  //! Tests whether the register is a 16-bit general purpose register (X86|X86_64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGp16() const noexcept { return isReg(RegType::kGp16); }
+
+  //! Tests whether the register is a 16-bit general purpose register having the given id `regId` (X86|X86_64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGp16(uint32_t regId) const noexcept { return isReg(RegType::kGp16, regId); }
+
+  //! Tests whether the register is a 32-bit general purpose register.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGp32() const noexcept { return isReg(RegType::kGp32); }
+
+  //! Tests whether the register is a 32-bit general purpose register having the given id `regId`.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGp32(uint32_t regId) const noexcept { return isReg(RegType::kGp32, regId); }
+
+  //! Tests whether the register is a 64-bit general purpose register.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGp64() const noexcept { return isReg(RegType::kGp64); }
+
+  //! Tests whether the register is a 64-bit general purpose register having the given id `regId`.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGp64(uint32_t regId) const noexcept { return isReg(RegType::kGp64, regId); }
+
+  //! Tests whether the register is a vector register of any size.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVec() const noexcept { return isReg(RegGroup::kVec); }
+
+  //! Tests whether the register is a vector register of any size having the given id `regId`.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVec(uint32_t regId) const noexcept { return isReg(RegGroup::kVec, regId); }
+
+  //! Tests whether the register is an 8-bit vector register or view (AArch64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVec8() const noexcept { return isReg(RegType::kVec8); }
+
+  //! Tests whether the register is an 8-bit vector register or view having the given id `regId` (AArch64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVec8(uint32_t regId) const noexcept { return isReg(RegType::kVec8, regId); }
+
+  //! Tests whether the register is a 16-bit vector register or view (AArch64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVec16() const noexcept { return isReg(RegType::kVec16); }
+
+  //! Tests whether the register is a 16-bit vector register or view having the given id `regId` (AArch64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVec16(uint32_t regId) const noexcept { return isReg(RegType::kVec16, regId); }
+
+  //! Tests whether the register is a 32-bit vector register or view (AArch32, AArch64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVec32() const noexcept { return isReg(RegType::kVec32); }
+
+  //! Tests whether the register is a 32-bit vector register or view having the given id `regId` (AArch32/AArch64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVec32(uint32_t regId) const noexcept { return isReg(RegType::kVec32, regId); }
+
+  //! Tests whether the register is a 64-bit vector register or view (AArch32/AArch64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVec64() const noexcept { return isReg(RegType::kVec64); }
+
+  //! Tests whether the register is a 64-bit vector register or view having the given id `regId` (AArch32/AArch64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVec64(uint32_t regId) const noexcept { return isReg(RegType::kVec64, regId); }
+
+  //! Tests whether the register is a 128-bit vector register or view (X86|X86_64/AArch32/AArch64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVec128() const noexcept { return isReg(RegType::kVec128); }
+
+  //! Tests whether the register is a 128-bit vector register or view having the given id `regId` (X86|X86_64/AArch32/AArch64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVec128(uint32_t regId) const noexcept { return isReg(RegType::kVec128, regId); }
+
+  //! Tests whether the register is a 256-bit vector register or view (X86|X86_64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVec256() const noexcept { return isReg(RegType::kVec256); }
+
+  //! Tests whether the register is a 256-bit vector register or view having the given id `regId` (X86|X86_64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVec256(uint32_t regId) const noexcept { return isReg(RegType::kVec256, regId); }
+
+  //! Tests whether the register is a 512-bit vector register or view (X86|X86_64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVec512() const noexcept { return isReg(RegType::kVec512); }
+
+  //! Tests whether the register is a 512-bit vector register or view having the given id `regId` (X86|X86_64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVec512(uint32_t regId) const noexcept { return isReg(RegType::kVec512, regId); }
+
+  //! Tests whether the register is a mask register of any size.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isMaskReg() const noexcept { return isReg(RegType::kMask); }
+
+  //! Tests whether the register is a mask register of any size having the given id `regId` (X86|X86_64/AArch64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isMaskReg(uint32_t regId) const noexcept { return isReg(RegType::kMask, regId); }
+
+  //! Tests whether the register is a mask register (`K` register on X86|X86_64) - alias of \ref isMask().
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isKReg() const noexcept { return isReg(RegType::kMask); }
+
+  //! Tests whether the register is a mask register (`K` register on X86|X86_64) of any size having the given id
+  //! `regId` (X86|X86_64/AArch64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isKReg(uint32_t regId) const noexcept { return isReg(RegType::kMask, regId); }
+
+  //! Tests whether the register is a tile register.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isTileReg() const noexcept { return isReg(RegType::kTile); }
+
+  //! Tests whether the register is a tile register of the given id `regId`.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isTileReg(uint32_t regId) const noexcept { return isReg(RegType::kTile, regId); }
+
+  //! Tests whether the register is a tile register (`TMM` register on X86_64) - alias of \ref isTileReg().
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isTmmReg() const noexcept { return isReg(RegType::kTile); }
+
+  //! Tests whether the register is a tile register (`TMM` register on X86_64) of the given id `regId` - alias of
+  //! \ref isTileReg().
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isTmmReg(uint32_t regId) const noexcept { return isReg(RegType::kTile, regId); }
+
+  //! Tests whether the register is a segment register (X86|X86_64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isSegmentReg() const noexcept { return isReg(RegType::kSegment); }
+
+ //! Tests whether the register is a segment register having the given id `regId` (X86|X86_64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isSegmentReg(uint32_t regId) const noexcept { return isReg(RegType::kSegment, regId); }
+
+  //! Tests whether the register is a control register (X86|X86_64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isControlReg() const noexcept { return isReg(RegType::kControl); }
+
+  //! Tests whether the register is a control register having the given id `regId` (X86|X86_64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isControlReg(uint32_t regId) const noexcept { return isReg(RegType::kControl, regId); }
+
+  //! Tests whether the register is a debug register (X86|X86_64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isDebugReg() const noexcept { return isReg(RegType::kDebug); }
+
+  //! Tests whether the register is a debug register of the given id `regId` (X86|X86_64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isDebugReg(uint32_t regId) const noexcept { return isReg(RegType::kDebug, regId); }
+
+  //! Tests whether the register is an MMX register (X86|X64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isMmReg() const noexcept { return isReg(RegType::kX86_Mm); }
+
+  //! Tests whether the register is an MMX register of the given id `regId` (X86|X64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isMmReg(uint32_t regId) const noexcept { return isReg(RegType::kX86_Mm, regId); }
+
+  //! Tests whether the register is an FPU register (`ST` register on X86|X86_64) (X86|X64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isStReg() const noexcept { return isReg(RegType::kX86_St); }
+
+  //! Tests whether the register is an FPU register (`ST` register on X86|X86_64) of the given id `regId` (X86|X64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isStReg(uint32_t regId) const noexcept { return isReg(RegType::kX86_St, regId); }
+
+  //! Tests whether the register is a BND register (X86|X64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isBndReg() const noexcept { return isReg(RegType::kX86_Bnd); }
+
+  //! Tests whether the register is a BND register of the given id `regId` (X86|X64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isBndReg(uint32_t regId) const noexcept { return isReg(RegType::kX86_Bnd, regId); }
+
+  //! \}
+
+  //! \name Register-List Accessors
+  //! \{
+
+  //! Tests whether the operand is a register matching the given register `type`.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isRegList(RegType type) const noexcept {
+    return _signature.subset(Signature::kOpTypeMask | Signature::kRegTypeMask) == (Signature::fromOpType(OperandType::kRegList) | Signature::fromRegType(type));
+  }
+
+  //! \}
+
+  //! \name X86-Specific Accessors
   //! \{
 
   //! Returns a size of a register or an X86 memory operand.
@@ -994,28 +1139,136 @@ public:
   //! \}
 };
 
-//! \cond INTERNAL
-//! Default register traits.
-struct BaseRegTraits {
+//! Register traits.
+//!
+//! Register traits contain metadata about a particular register type. The metadata is used by AsmJit to setup
+//! register information on-the-fly and to populate tables that contain register information (this way it's possible
+//! to change register types and groups without having to reorder these tables).
+template<RegType kRegType>
+struct RegTraits {
   //! \ref TypeId representing this register type, could be \ref TypeId::kVoid if such type doesn't exist.
-  static inline constexpr uint32_t kTypeId = uint32_t(TypeId::kVoid);
+  static inline constexpr TypeId kTypeId = TypeId::kVoid;
   //! RegType is not valid by default.
   static inline constexpr uint32_t kValid = 0;
 
   //! Zero type by default (defaults to None).
-  static inline constexpr uint32_t kType = uint32_t(RegType::kNone);
+  static inline constexpr RegType kType = RegType::kNone;
   //! Zero group by default (defaults to GP).
-  static inline constexpr uint32_t kGroup = uint32_t(RegGroup::kGp);
+  static inline constexpr RegGroup kGroup = RegGroup::kGp;
   //! No size by default.
   static inline constexpr uint32_t kSize = 0u;
 
   //! Empty signature by default (not even having operand type set to register).
   static inline constexpr uint32_t kSignature = 0;
 };
+
+//! \cond
+
+//! Adds a template specialization for `REG_TYPE` into the local `RegTraits`.
+#define ASMJIT_DEFINE_REG_TRAITS(REG_TYPE, GROUP, SIZE, TYPE_ID) \
+template<>                                                       \
+struct RegTraits<REG_TYPE> {                                     \
+  static inline constexpr uint32_t kValid = 1;                   \
+  static inline constexpr RegType kType = REG_TYPE;              \
+  static inline constexpr RegGroup kGroup = GROUP;               \
+  static inline constexpr uint32_t kSize = SIZE;                 \
+  static inline constexpr TypeId kTypeId = TYPE_ID;              \
+                                                                 \
+  static inline constexpr uint32_t kSignature =                  \
+    (OperandSignature::fromOpType(OperandType::kReg) |           \
+     OperandSignature::fromRegType(kType)            |           \
+     OperandSignature::fromRegGroup(kGroup)          |           \
+     OperandSignature::fromSize(kSize)).bits();                  \
+                                                                 \
+}
+
+// <--------------------+------------------------+------------------------+----+------------------+     +---+---+---+---+
+//                      |       Reg-Type         |        Reg-Group       |Size|      TypeId      |     |X86|X64|A32|A64|
+// <--------------------+------------------------+------------------------+----+------------------+     +---+---+---+---+
+ASMJIT_DEFINE_REG_TRAITS(RegType::kPC            , RegGroup::kPC          , 8  , TypeId::kInt64   ); // | x | x |   | x |
+ASMJIT_DEFINE_REG_TRAITS(RegType::kGp8Lo         , RegGroup::kGp          , 1  , TypeId::kInt8    ); // | x | x |   |   |
+ASMJIT_DEFINE_REG_TRAITS(RegType::kGp8Hi         , RegGroup::kGp          , 1  , TypeId::kInt8    ); // | x | x |   |   |
+ASMJIT_DEFINE_REG_TRAITS(RegType::kGp16          , RegGroup::kGp          , 2  , TypeId::kInt16   ); // | x | x |   |   |
+ASMJIT_DEFINE_REG_TRAITS(RegType::kGp32          , RegGroup::kGp          , 4  , TypeId::kInt32   ); // | x | x | x | x |
+ASMJIT_DEFINE_REG_TRAITS(RegType::kGp64          , RegGroup::kGp          , 8  , TypeId::kInt64   ); // | x | x | x | x |
+ASMJIT_DEFINE_REG_TRAITS(RegType::kVec8          , RegGroup::kVec         , 1  , TypeId::kVoid    ); // |   |   | x | x |
+ASMJIT_DEFINE_REG_TRAITS(RegType::kVec16         , RegGroup::kVec         , 2  , TypeId::kVoid    ); // |   |   | x | x |
+ASMJIT_DEFINE_REG_TRAITS(RegType::kVec32         , RegGroup::kVec         , 4  , TypeId::kInt32x1 ); // |   |   | x | x |
+ASMJIT_DEFINE_REG_TRAITS(RegType::kVec64         , RegGroup::kVec         , 8  , TypeId::kInt32x2 ); // |   |   | x | x |
+ASMJIT_DEFINE_REG_TRAITS(RegType::kVec128        , RegGroup::kVec         , 16 , TypeId::kInt32x4 ); // | x | x | x | x |
+ASMJIT_DEFINE_REG_TRAITS(RegType::kVec256        , RegGroup::kVec         , 32 , TypeId::kInt32x8 ); // | x | x |   |   |
+ASMJIT_DEFINE_REG_TRAITS(RegType::kVec512        , RegGroup::kVec         , 64 , TypeId::kInt32x16); // | x | x |   |   |
+ASMJIT_DEFINE_REG_TRAITS(RegType::kVecNLen       , RegGroup::kVec         , 0  , TypeId::kVoid    ); // |   |   |   | x |
+ASMJIT_DEFINE_REG_TRAITS(RegType::kMask          , RegGroup::kMask        , 0  , TypeId::kVoid    ); // | x | x |   | x |
+ASMJIT_DEFINE_REG_TRAITS(RegType::kTile          , RegGroup::kTile        , 0  , TypeId::kVoid    ); // |   | x |   |   |
+ASMJIT_DEFINE_REG_TRAITS(RegType::kSegment       , RegGroup::kSegment     , 2  , TypeId::kVoid    ); // | x | x |   |   |
+ASMJIT_DEFINE_REG_TRAITS(RegType::kControl       , RegGroup::kControl     , 0  , TypeId::kVoid    ); // | x | x |   |   |
+ASMJIT_DEFINE_REG_TRAITS(RegType::kDebug         , RegGroup::kDebug       , 0  , TypeId::kVoid    ); // | x | x |   |   |
+ASMJIT_DEFINE_REG_TRAITS(RegType::kX86_Mm        , RegGroup::kX86_MM      , 8  , TypeId::kMmx64   ); // | x | x |   |   |
+ASMJIT_DEFINE_REG_TRAITS(RegType::kX86_St        , RegGroup::kX86_St      , 10 , TypeId::kFloat80 ); // | x | x |   |   |
+ASMJIT_DEFINE_REG_TRAITS(RegType::kX86_Bnd       , RegGroup::kX86_Bnd     , 16 , TypeId::kVoid    ); // | x | x |   |   |
+
+#undef ASMJIT_DEFINE_REG_TRAITS
+
 //! \endcond
 
-//! Physical or virtual register operand (base).
-class BaseReg : public Operand {
+namespace RegUtils {
+
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR OperandSignature signatureOf(RegType regType) noexcept {
+  constexpr uint32_t signatureTable[] = {
+    RegTraits<RegType( 0)>::kSignature, RegTraits<RegType( 1)>::kSignature, RegTraits<RegType( 2)>::kSignature, RegTraits<RegType( 3)>::kSignature,
+    RegTraits<RegType( 4)>::kSignature, RegTraits<RegType( 5)>::kSignature, RegTraits<RegType( 6)>::kSignature, RegTraits<RegType( 7)>::kSignature,
+    RegTraits<RegType( 8)>::kSignature, RegTraits<RegType( 9)>::kSignature, RegTraits<RegType(10)>::kSignature, RegTraits<RegType(11)>::kSignature,
+    RegTraits<RegType(12)>::kSignature, RegTraits<RegType(13)>::kSignature, RegTraits<RegType(14)>::kSignature, RegTraits<RegType(15)>::kSignature,
+    RegTraits<RegType(16)>::kSignature, RegTraits<RegType(17)>::kSignature, RegTraits<RegType(18)>::kSignature, RegTraits<RegType(19)>::kSignature,
+    RegTraits<RegType(20)>::kSignature, RegTraits<RegType(21)>::kSignature, RegTraits<RegType(22)>::kSignature, RegTraits<RegType(23)>::kSignature,
+    RegTraits<RegType(24)>::kSignature, RegTraits<RegType(25)>::kSignature, RegTraits<RegType(26)>::kSignature, RegTraits<RegType(27)>::kSignature,
+    RegTraits<RegType(28)>::kSignature, RegTraits<RegType(29)>::kSignature, RegTraits<RegType(30)>::kSignature, RegTraits<RegType(31)>::kSignature
+  };
+  return OperandSignature{signatureTable[size_t(regType)]};
+}
+
+[[nodiscard]]
+static ASMJIT_INLINE_NODEBUG OperandSignature signatureOfVecSize(uint32_t size) noexcept {
+  RegType regType = RegType(Support::ctz((size | 0x40u) & 0x0Fu) - 4u + uint32_t(RegType::kVec128));
+  return signatureOf(regType);
+}
+
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR RegGroup groupOf(RegType regType) noexcept {
+  constexpr RegGroup groupTable[] = {
+    RegTraits<RegType( 0)>::kGroup, RegTraits<RegType( 1)>::kGroup, RegTraits<RegType( 2)>::kGroup, RegTraits<RegType( 3)>::kGroup,
+    RegTraits<RegType( 4)>::kGroup, RegTraits<RegType( 5)>::kGroup, RegTraits<RegType( 6)>::kGroup, RegTraits<RegType( 7)>::kGroup,
+    RegTraits<RegType( 8)>::kGroup, RegTraits<RegType( 9)>::kGroup, RegTraits<RegType(10)>::kGroup, RegTraits<RegType(11)>::kGroup,
+    RegTraits<RegType(12)>::kGroup, RegTraits<RegType(13)>::kGroup, RegTraits<RegType(14)>::kGroup, RegTraits<RegType(15)>::kGroup,
+    RegTraits<RegType(16)>::kGroup, RegTraits<RegType(17)>::kGroup, RegTraits<RegType(18)>::kGroup, RegTraits<RegType(19)>::kGroup,
+    RegTraits<RegType(20)>::kGroup, RegTraits<RegType(21)>::kGroup, RegTraits<RegType(22)>::kGroup, RegTraits<RegType(23)>::kGroup,
+    RegTraits<RegType(24)>::kGroup, RegTraits<RegType(25)>::kGroup, RegTraits<RegType(26)>::kGroup, RegTraits<RegType(27)>::kGroup,
+    RegTraits<RegType(28)>::kGroup, RegTraits<RegType(29)>::kGroup, RegTraits<RegType(30)>::kGroup, RegTraits<RegType(31)>::kGroup
+  };
+  return groupTable[size_t(regType)];
+}
+
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR TypeId typeIdOf(RegType regType) noexcept {
+  constexpr TypeId typeIdTable[] = {
+    RegTraits<RegType( 0)>::kTypeId, RegTraits<RegType( 1)>::kTypeId, RegTraits<RegType( 2)>::kTypeId, RegTraits<RegType( 3)>::kTypeId,
+    RegTraits<RegType( 4)>::kTypeId, RegTraits<RegType( 5)>::kTypeId, RegTraits<RegType( 6)>::kTypeId, RegTraits<RegType( 7)>::kTypeId,
+    RegTraits<RegType( 8)>::kTypeId, RegTraits<RegType( 9)>::kTypeId, RegTraits<RegType(10)>::kTypeId, RegTraits<RegType(11)>::kTypeId,
+    RegTraits<RegType(12)>::kTypeId, RegTraits<RegType(13)>::kTypeId, RegTraits<RegType(14)>::kTypeId, RegTraits<RegType(15)>::kTypeId,
+    RegTraits<RegType(16)>::kTypeId, RegTraits<RegType(17)>::kTypeId, RegTraits<RegType(18)>::kTypeId, RegTraits<RegType(19)>::kTypeId,
+    RegTraits<RegType(20)>::kTypeId, RegTraits<RegType(21)>::kTypeId, RegTraits<RegType(22)>::kTypeId, RegTraits<RegType(23)>::kTypeId,
+    RegTraits<RegType(24)>::kTypeId, RegTraits<RegType(25)>::kTypeId, RegTraits<RegType(26)>::kTypeId, RegTraits<RegType(27)>::kTypeId,
+    RegTraits<RegType(28)>::kTypeId, RegTraits<RegType(29)>::kTypeId, RegTraits<RegType(30)>::kTypeId, RegTraits<RegType(31)>::kTypeId
+  };
+  return typeIdTable[size_t(regType)];
+}
+
+} // {RegUtils}
+
+//! Unified physical or virtual register operand.
+class Reg : public Operand {
 public:
   //! \name Constants
   //! \{
@@ -1032,50 +1285,58 @@ public:
   static inline constexpr uint32_t kTypeNone = uint32_t(RegType::kNone);
   static inline constexpr uint32_t kSignature = Signature::fromOpType(OperandType::kReg).bits();
 
+  template<RegType kRegType>
+  static ASMJIT_INLINE_CONSTEXPR Signature _signatureOf() noexcept { return Signature{RegTraits<kRegType>::kSignature}; }
+
+  static ASMJIT_INLINE_CONSTEXPR Signature signatureOf(RegType regType) noexcept { return RegUtils::signatureOf(regType); }
+
   //! \}
 
   //! \name Construction & Destruction
   //! \{
 
   //! Creates a dummy register operand.
-  ASMJIT_INLINE_CONSTEXPR BaseReg() noexcept
-    : Operand(Globals::Init, Signature::fromOpType(OperandType::kReg), kIdBad, 0, 0) {}
+  ASMJIT_INLINE_CONSTEXPR Reg() noexcept
+    : Operand(Globals::Init, Signature::fromOpType(OperandType::kReg), kIdBad, 0u, 0u) {}
 
   //! Creates a new register operand which is the same as `other` .
-  ASMJIT_INLINE_CONSTEXPR BaseReg(const BaseReg& other) noexcept
+  ASMJIT_INLINE_CONSTEXPR Reg(const Reg& other) noexcept
     : Operand(other) {}
 
   //! Creates a new register operand compatible with `other`, but with a different `id`.
-  ASMJIT_INLINE_CONSTEXPR BaseReg(const BaseReg& other, uint32_t id) noexcept
-    : Operand(Globals::Init, other._signature, id, 0, 0) {}
+  ASMJIT_INLINE_CONSTEXPR Reg(const Reg& other, uint32_t id) noexcept
+    : Operand(Globals::Init, other._signature, id, 0u, 0u) {}
 
   //! Creates a register initialized to the given `signature` and `id`.
-  ASMJIT_INLINE_CONSTEXPR BaseReg(const Signature& signature, uint32_t id) noexcept
-    : Operand(Globals::Init, signature, id, 0, 0) {}
+  ASMJIT_INLINE_CONSTEXPR Reg(const Signature& signature, uint32_t id) noexcept
+    : Operand(Globals::Init, signature, id, 0u, 0u) {}
 
-  ASMJIT_INLINE_NODEBUG explicit BaseReg(Globals::NoInit_) noexcept
+  ASMJIT_INLINE_NODEBUG explicit Reg(Globals::NoInit_) noexcept
     : Operand(Globals::NoInit) {}
+
+  //! Creates a new register from register type and id.
+  static ASMJIT_INLINE_CONSTEXPR Reg fromTypeAndId(RegType type, uint32_t id) noexcept { return Reg(signatureOf(type), id); }
 
   //! \}
 
   //! \name Overloaded Operators
   //! \{
 
-  ASMJIT_INLINE_CONSTEXPR BaseReg& operator=(const BaseReg& other) noexcept {
+  ASMJIT_INLINE_CONSTEXPR Reg& operator=(const Reg& other) noexcept {
     copyFrom(other);
     return *this;
   }
 
   //! \}
 
-  //! \name Accessors
+  //! \name Signature Accessors
   //! \{
 
   //! Returns base signature of the register associated with each register type.
   //!
   //! Base signature only contains the operand type, register type, register group, and register size. It doesn't
   //! contain element type, predicate, or other architecture-specific data. Base signature is a signature that is
-  //! provided by architecture-specific `RegTraits`, like \ref x86::RegTraits.
+  //! provided by \ref RegTraits.
   [[nodiscard]]
   ASMJIT_INLINE_CONSTEXPR OperandSignature baseSignature() const noexcept { return _signature & kBaseSignatureMask; }
 
@@ -1089,7 +1350,20 @@ public:
 
   //! Tests whether the operand's base signature matches the base signature of the `other` operand.
   [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool hasBaseSignature(const BaseReg& other) const noexcept { return baseSignature() == other.baseSignature(); }
+  ASMJIT_INLINE_CONSTEXPR bool hasBaseSignature(const Reg& other) const noexcept { return baseSignature() == other.baseSignature(); }
+
+  //! \}
+
+  //! \name Register Accessors
+  //! \{
+
+  //! Returns the type of the register.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR RegType regType() const noexcept { return _signature.regType(); }
+
+  //! Returns the group this register belongs to.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR RegGroup regGroup() const noexcept { return _signature.regGroup(); }
 
   //! Tests whether this register is the same as `other`.
   //!
@@ -1099,13 +1373,11 @@ public:
   //! or other metadata in the upper 8 bytes then \ref isSame() may return `true` in cases in which \ref equals()
   //! returns false.
   [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isSame(const BaseReg& other) const noexcept {
-    return (_signature == other._signature) & (_baseId == other._baseId);
-  }
+  ASMJIT_INLINE_CONSTEXPR bool isSame(const Reg& other) const noexcept { return (_signature == other._signature) & (_baseId == other._baseId); }
 
   //! Tests whether the register is valid (either virtual or physical).
   [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isValid() const noexcept { return bool(unsigned(_signature != 0) & unsigned(_baseId != kIdBad)); }
+  ASMJIT_INLINE_CONSTEXPR bool isValid() const noexcept { return Support::bool_and(_signature != 0u, _baseId != kIdBad); }
 
   //! Tests whether this is a physical register.
   [[nodiscard]]
@@ -1115,43 +1387,245 @@ public:
   [[nodiscard]]
   ASMJIT_INLINE_CONSTEXPR bool isVirtReg() const noexcept { return _baseId > kIdBad; }
 
-  //! Tests whether the register type matches `type` - same as `isReg(type)`, provided for convenience.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isType(RegType type) const noexcept { return _signature.subset(Signature::kRegTypeMask) == Signature::fromRegType(type); }
+  // NOTE: A careful reader may wonder why the member functions here are repeated and basically do the same as in
+  //       `Operand_`, however, they don't always do the same. In `Operand_` case each test function must check
+  //       whether the operand is actually a register, whereas here we don't have to. However, in some cases it's
+  //       actually beneficial to do that (if the check is using a constant expression on the input). Since C++
+  //       doesn't support mixins the implementation is basically duplicating some of the `Operand_` checks here.
+  using Operand_::isReg;
 
-  //! Tests whether the register group matches `group`.
+  //! Tests whether the register is of the given register type `regType`.
   [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isGroup(RegGroup group) const noexcept { return _signature.subset(Signature::kRegGroupMask) == Signature::fromRegGroup(group); }
+  ASMJIT_INLINE_CONSTEXPR bool isReg(RegType regType) const noexcept {
+#if defined(__GNUC__)
+    // At the moment operand type is 3 bits and register type is 5 bits, which form a value that is stored in
+    // the 8 least significant bits of the operand signature. Checking ALL of these 8 bits is much better than
+    // extracting register type at least on X86 and X86_64 targets.
+    if (__builtin_constant_p(regType)) {
+      return _signature.isReg(regType);
+    }
+#endif
 
-  //! Tests whether the register is a general purpose register (any size).
+    return _signature.subset(Signature::kRegTypeMask) == Signature::fromRegType(regType);
+  }
+
+  //! Tests whether the register is of the given register type `regType` having the given id `regId`.
   [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isGp() const noexcept { return isGroup(RegGroup::kGp); }
+  ASMJIT_INLINE_CONSTEXPR bool isReg(RegType regType, uint32_t regId) const noexcept { return Support::bool_and(isReg(regType), _baseId == regId); }
+
+  //! Tests whether the register is of the given register group `regGroup`.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isReg(RegGroup regGroup) const noexcept { return _signature.subset(Signature::kRegGroupMask) == Signature::fromRegGroup(regGroup); }
+
+  //! Tests whether the register is of the given register group `regGroup` having the given id `regId`.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isReg(RegGroup regGroup, uint32_t regId) const noexcept { return Support::bool_and(isReg(regGroup), _baseId == regId); }
+
+  //! Tests whether the operand is a general purpose register of any type.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isPc() const noexcept { return isReg(RegType::kPC); }
+
+  //! Tests whether the register is a general purpose register of any type.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGp() const noexcept { return isReg(RegGroup::kGp); }
+
+  //! Tests whether the register is a general purpose register of any type having the given id `regId`.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGp(uint32_t regId) const noexcept { return isReg(RegGroup::kGp, regId); }
+
+  //! Tests whether the register is an 8-bit low or high general purpose register (X86|X86_64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGp8() const noexcept { return Support::bool_or(isReg(RegType::kGp8Lo), isReg(RegType::kGp8Hi)); }
+
+  //! Tests whether the register is an 8-bit low or high general purpose register having the given id `regId` (X86|X86_64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGp8(uint32_t regId) const noexcept { return Support::bool_and(isGp8(), id() == regId); }
+
+  //! Tests whether the register is an 8-bit low general purpose register (X86|X86_64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGp8Lo() const noexcept { return isReg(RegType::kGp8Lo); }
+
+  //! Tests whether the register is an 8-bit low general purpose register having the given id `regId` (X86|X86_64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGp8Lo(uint32_t regId) const noexcept { return isReg(RegType::kGp8Lo, regId); }
+
+  //! Tests whether the register is an 8-bit high general purpose register (X86|X86_64 only - AH, BH, CH, DH).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGp8Hi() const noexcept { return isReg(RegType::kGp8Hi); }
+
+  //! Tests whether the register is an 8-bit high general purpose register having the given id `regId` (X86|X86_64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGp8Hi(uint32_t regId) const noexcept { return isReg(RegType::kGp8Hi, regId); }
+
+  //! Tests whether the register is a 16-bit general purpose register (X86|X86_64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGp16() const noexcept { return isReg(RegType::kGp16); }
+
+  //! Tests whether the register is a 16-bit general purpose register having the given id `regId` (X86|X86_64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGp16(uint32_t regId) const noexcept { return isReg(RegType::kGp16, regId); }
+
+  //! Tests whether the register is a 32-bit general purpose register.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGp32() const noexcept { return isReg(RegType::kGp32); }
+
+  //! Tests whether the register is a 32-bit general purpose register having the given id `regId`.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGp32(uint32_t regId) const noexcept { return isReg(RegType::kGp32, regId); }
+
+  //! Tests whether the register is a 64-bit general purpose register.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGp64() const noexcept { return isReg(RegType::kGp64); }
+
+  //! Tests whether the register is a 64-bit general purpose register having the given id `regId`.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGp64(uint32_t regId) const noexcept { return isReg(RegType::kGp64, regId); }
 
   //! Tests whether the register is a vector register of any size.
   [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isVec() const noexcept { return isGroup(RegGroup::kVec); }
+  ASMJIT_INLINE_CONSTEXPR bool isVec() const noexcept { return isReg(RegGroup::kVec); }
+
+  //! Tests whether the register is a vector register of any size having the given id `regId`.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVec(uint32_t regId) const noexcept { return isReg(RegGroup::kVec, regId); }
+
+  //! Tests whether the register is an 8-bit vector register or view (AArch64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVec8() const noexcept { return isReg(RegType::kVec8); }
+
+  //! Tests whether the register is an 8-bit vector register or view having the given id `regId` (AArch64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVec8(uint32_t regId) const noexcept { return isReg(RegType::kVec8, regId); }
+
+  //! Tests whether the register is a 16-bit vector register or view (AArch64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVec16() const noexcept { return isReg(RegType::kVec16); }
+
+  //! Tests whether the register is a 16-bit vector register or view having the given id `regId` (AArch64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVec16(uint32_t regId) const noexcept { return isReg(RegType::kVec16, regId); }
+
+  //! Tests whether the register is a 32-bit vector register or view (AArch32, AArch64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVec32() const noexcept { return isReg(RegType::kVec32); }
+
+  //! Tests whether the register is a 32-bit vector register or view having the given id `regId` (AArch32/AArch64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVec32(uint32_t regId) const noexcept { return isReg(RegType::kVec32, regId); }
+
+  //! Tests whether the register is a 64-bit vector register or view (AArch32/AArch64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVec64() const noexcept { return isReg(RegType::kVec64); }
+
+  //! Tests whether the register is a 64-bit vector register or view having the given id `regId` (AArch32/AArch64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVec64(uint32_t regId) const noexcept { return isReg(RegType::kVec64, regId); }
+
+  //! Tests whether the register is a 128-bit vector register or view (X86|X86_64/AArch32/AArch64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVec128() const noexcept { return isReg(RegType::kVec128); }
+
+  //! Tests whether the register is a 128-bit vector register or view having the given id `regId` (X86|X86_64/AArch32/AArch64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVec128(uint32_t regId) const noexcept { return isReg(RegType::kVec128, regId); }
+
+  //! Tests whether the register is a 256-bit vector register or view (X86|X86_64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVec256() const noexcept { return isReg(RegType::kVec256); }
+
+  //! Tests whether the register is a 256-bit vector register or view having the given id `regId` (X86|X86_64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVec256(uint32_t regId) const noexcept { return isReg(RegType::kVec256, regId); }
+
+  //! Tests whether the register is a 512-bit vector register or view (X86|X86_64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVec512() const noexcept { return isReg(RegType::kVec512); }
+
+  //! Tests whether the register is a 512-bit vector register or view having the given id `regId` (X86|X86_64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVec512(uint32_t regId) const noexcept { return isReg(RegType::kVec512, regId); }
 
   //! Tests whether the register is a mask register of any size.
   [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isMask() const noexcept { return isGroup(RegGroup::kMask); }
+  ASMJIT_INLINE_CONSTEXPR bool isMaskReg() const noexcept { return isReg(RegType::kMask); }
 
-  using Operand_::isReg;
-
-  //! Same as `isType()`, provided for convenience.
+  //! Tests whether the register is a mask register of any size having the given id `regId` (X86|X86_64/AArch64).
   [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isReg(RegType rType) const noexcept { return isType(rType); }
+  ASMJIT_INLINE_CONSTEXPR bool isMaskReg(uint32_t regId) const noexcept { return isReg(RegType::kMask, regId); }
 
-  //! Tests whether the register type matches `type` and register id matches `id`.
+  //! Tests whether the register is a mask register (`K` register on X86|X86_64) - alias of \ref isMask().
   [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isReg(RegType rType, uint32_t id) const noexcept { return isType(rType) && this->id() == id; }
+  ASMJIT_INLINE_CONSTEXPR bool isKReg() const noexcept { return isReg(RegType::kMask); }
 
-  //! Returns the register type.
+  //! Tests whether the register is a mask register (`K` register on X86|X86_64) of any size having the given id
+  //! `regId` (X86|X86_64/AArch64).
   [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR RegType type() const noexcept { return _signature.regType(); }
+  ASMJIT_INLINE_CONSTEXPR bool isKReg(uint32_t regId) const noexcept { return isReg(RegType::kMask, regId); }
 
-  //! Returns the register group.
+  //! Tests whether the register is a tile register.
   [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR RegGroup group() const noexcept { return _signature.regGroup(); }
+  ASMJIT_INLINE_CONSTEXPR bool isTileReg() const noexcept { return isReg(RegType::kTile); }
+
+  //! Tests whether the register is a tile register of the given id `regId`.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isTileReg(uint32_t regId) const noexcept { return isReg(RegType::kTile, regId); }
+
+  //! Tests whether the register is a tile register (`TMM` register on X86_64) - alias of \ref isTileReg().
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isTmmReg() const noexcept { return isReg(RegType::kTile); }
+
+  //! Tests whether the register is a tile register (`TMM` register on X86_64) of the given id `regId` - alias of
+  //! \ref isTileReg().
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isTmmReg(uint32_t regId) const noexcept { return isReg(RegType::kTile, regId); }
+
+  //! Tests whether the register is a segment register (X86|X86_64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isSegmentReg() const noexcept { return isReg(RegType::kSegment); }
+
+ //! Tests whether the register is a segment register having the given id `regId` (X86|X86_64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isSegmentReg(uint32_t regId) const noexcept { return isReg(RegType::kSegment, regId); }
+
+  //! Tests whether the register is a control register (X86|X86_64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isControlReg() const noexcept { return isReg(RegType::kControl); }
+
+  //! Tests whether the register is a control register having the given id `regId` (X86|X86_64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isControlReg(uint32_t regId) const noexcept { return isReg(RegType::kControl, regId); }
+
+  //! Tests whether the register is a debug register (X86|X86_64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isDebugReg() const noexcept { return isReg(RegType::kDebug); }
+
+  //! Tests whether the register is a debug register of the given id `regId` (X86|X86_64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isDebugReg(uint32_t regId) const noexcept { return isReg(RegType::kDebug, regId); }
+
+  //! Tests whether the register is an MMX register (X86|X64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isMmReg() const noexcept { return isReg(RegType::kX86_Mm); }
+
+  //! Tests whether the register is an MMX register of the given id `regId` (X86|X64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isMmReg(uint32_t regId) const noexcept { return isReg(RegType::kX86_Mm, regId); }
+
+  //! Tests whether the register is an FPU register (`ST` register on X86|X86_64) (X86|X64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isStReg() const noexcept { return isReg(RegType::kX86_St); }
+
+  //! Tests whether the register is an FPU register (`ST` register on X86|X86_64) of the given id `regId` (X86|X64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isStReg(uint32_t regId) const noexcept { return isReg(RegType::kX86_St, regId); }
+
+  //! Tests whether the register is a BND register (X86|X64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isBndReg() const noexcept { return isReg(RegType::kX86_Bnd); }
+
+  //! Tests whether the register is a BND register of the given id `regId` (X86|X64).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isBndReg(uint32_t regId) const noexcept { return isReg(RegType::kX86_Bnd, regId); }
 
   //! Tests whether the register specifies a size (i.e. the size is not zero).
   [[nodiscard]]
@@ -1184,7 +1658,7 @@ public:
 
   //! Clones the register operand.
   [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR BaseReg clone() const noexcept { return BaseReg(*this); }
+  ASMJIT_INLINE_CONSTEXPR Reg clone() const noexcept { return Reg(*this); }
 
   //! Casts this register to `RegT` by also changing its signature.
   //!
@@ -1199,6 +1673,12 @@ public:
   template<typename RegT>
   [[nodiscard]]
   ASMJIT_INLINE_CONSTEXPR RegT cloneAs(const RegT& other) const noexcept { return RegT(other.signature(), id()); }
+
+  template<RegType kRegType>
+  ASMJIT_INLINE_CONSTEXPR void setRegT(uint32_t id) noexcept {
+    setSignature(RegTraits<kRegType>::kSignature);
+    setId(id);
+  }
 
   //! Sets the register id to `id`.
   ASMJIT_INLINE_CONSTEXPR void setId(uint32_t id) noexcept { _baseId = id; }
@@ -1215,139 +1695,22 @@ public:
 
   //! \}
 
-  //! \name Static Functions
-  //! \{
-
-  //! Tests whether the `op` operand is a general purpose register.
-  [[nodiscard]]
-  static ASMJIT_INLINE_CONSTEXPR bool isGp(const Operand_& op) noexcept {
-    // Check operand type and register group. Not interested in register type and size.
-    return op.signature().subset(Signature::kOpTypeMask | Signature::kRegGroupMask) == (Signature::fromOpType(OperandType::kReg) | Signature::fromRegGroup(RegGroup::kGp));
-  }
-
-  //! Tests whether the `op` operand is a vector register.
-  [[nodiscard]]
-  static ASMJIT_INLINE_CONSTEXPR bool isVec(const Operand_& op) noexcept {
-    // Check operand type and register group. Not interested in register type and size.
-    return op.signature().subset(Signature::kOpTypeMask | Signature::kRegGroupMask) == (Signature::fromOpType(OperandType::kReg) | Signature::fromRegGroup(RegGroup::kVec));
-  }
-
-  //! Tests whether the `op` is a general purpose register of the given `id`.
-  [[nodiscard]]
-  static ASMJIT_INLINE_CONSTEXPR bool isGp(const Operand_& op, uint32_t id) noexcept { return bool(unsigned(isGp(op)) & unsigned(op.id() == id)); }
-
-  //! Tests whether the `op` is a vector register of the given `id`.
-  [[nodiscard]]
-  static ASMJIT_INLINE_CONSTEXPR bool isVec(const Operand_& op, uint32_t id) noexcept { return bool(unsigned(isVec(op)) & unsigned(op.id() == id)); }
-
-  //! \}
-};
-
-//! RegOnly is 8-byte version of `BaseReg` that allows to store either register or nothing.
-//!
-//! It's designed to decrease the space consumed by an extra "operand" in \ref BaseEmitter and \ref InstNode.
-struct RegOnly {
-  //! \name Types
-  //! \{
-
-  using Signature = OperandSignature;
-
-  //! \}
-
-  //! Operand signature - only \ref OperandType::kNone and \ref OperandType::kReg are supported.
-  Signature _signature;
-  //! Physical or virtual register id.
-  uint32_t _id;
-
-  //! \name Construction & Destruction
-  //! \{
-
-  //! Initializes the `RegOnly` instance to hold register `signature` and `id`.
-  ASMJIT_INLINE_CONSTEXPR void init(const OperandSignature& signature, uint32_t id) noexcept {
-    _signature = signature;
-    _id = id;
-  }
-
-  ASMJIT_INLINE_CONSTEXPR void init(const BaseReg& reg) noexcept { init(reg.signature(), reg.id()); }
-  ASMJIT_INLINE_CONSTEXPR void init(const RegOnly& reg) noexcept { init(reg.signature(), reg.id()); }
-
-  //! Resets the `RegOnly` members to zeros (none).
-  ASMJIT_INLINE_CONSTEXPR void reset() noexcept { init(Signature::fromBits(0), 0); }
-
-  //! \}
-
-  //! \name Accessors
-  //! \{
-
-  //! Tests whether this ExtraReg is none (same as calling `Operand_::isNone()`).
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isNone() const noexcept { return _signature == 0; }
-
-  //! Tests whether the register is valid (either virtual or physical).
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isReg() const noexcept { return _signature != 0; }
-
-  //! Tests whether this is a physical register.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isPhysReg() const noexcept { return _id < BaseReg::kIdBad; }
-
-  //! Tests whether this is a virtual register (used by `BaseCompiler`).
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool isVirtReg() const noexcept { return _id > BaseReg::kIdBad; }
-
-  //! Returns the register signature or 0 if no register is assigned.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR OperandSignature signature() const noexcept { return _signature; }
-
-  //! Returns the register id.
-  //!
-  //! \note Always check whether the register is assigned before using the returned identifier as
-  //! non-assigned `RegOnly` instance would return zero id, which is still a valid register id.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR uint32_t id() const noexcept { return _id; }
-
-  //! Sets the register id.
-  ASMJIT_INLINE_CONSTEXPR void setId(uint32_t id) noexcept { _id = id; }
-
-  //! Returns the register type.
+#if !defined(ASMJIT_NO_DEPRECATED)
+  [[deprecated("Use regType() instead")]]
   [[nodiscard]]
   ASMJIT_INLINE_CONSTEXPR RegType type() const noexcept { return _signature.regType(); }
 
-  //! Returns the register group.
+  [[deprecated("Use regGroup() instead")]]
   [[nodiscard]]
   ASMJIT_INLINE_CONSTEXPR RegGroup group() const noexcept { return _signature.regGroup(); }
-
-  //! \}
-
-  //! \name Utilities
-  //! \{
-
-  //! Converts this ExtraReg to a real `RegT` operand.
-  template<typename RegT>
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR RegT toReg() const noexcept { return RegT(_signature, _id); }
-
-  //! \}
+#endif // !ASMJIT_NO_DEPRECATED
 };
 
-//! \cond INTERNAL
-//! Adds a template specialization for `REG_TYPE` into the local `RegTraits`.
-#define ASMJIT_DEFINE_REG_TRAITS(REG_TYPE, GROUP, SIZE, TYPE_ID)                         \
-template<>                                                                               \
-struct RegTraits<REG_TYPE> {                                                             \
-  static inline constexpr uint32_t kValid = 1;                                           \
-  static inline constexpr RegType kType = REG_TYPE;                                      \
-  static inline constexpr RegGroup kGroup = GROUP;                                       \
-  static inline constexpr uint32_t kSize = SIZE;                                         \
-  static inline constexpr TypeId kTypeId = TYPE_ID;                                      \
-                                                                                         \
-  static inline constexpr uint32_t kSignature =                                          \
-    (OperandSignature::fromOpType(OperandType::kReg) |                                   \
-     OperandSignature::fromRegType(kType)            |                                   \
-     OperandSignature::fromRegGroup(kGroup)          |                                   \
-     OperandSignature::fromSize(kSize)).bits();                                          \
-                                                                                         \
-}
+#if !defined(ASMJIT_NO_DEPRECATED)
+using BaseReg [[deprecated("Use asmjit::Reg instead of asmjit::BaseReg")]] = Reg;
+#endif // !ASMJIT_NO_DEPRECATED
+
+//! \cond
 
 //! Adds constructors and member functions to a class that implements abstract register. Abstract register is register
 //! that doesn't have type or signature yet, it's a base class like `x86::Reg` or `arm::Reg`.
@@ -1362,7 +1725,7 @@ public:                                                                         
     : BASE(other) {}                                                                     \
                                                                                          \
   /*! Makes a copy of the `other` register having id set to `id` */                      \
-  ASMJIT_INLINE_CONSTEXPR REG(const BaseReg& other, uint32_t id) noexcept                \
+  ASMJIT_INLINE_CONSTEXPR REG(const Reg& other, uint32_t id) noexcept                    \
     : BASE(other, id) {}                                                                 \
                                                                                          \
   /*! Creates a register based on `signature` and `id`. */                               \
@@ -1401,7 +1764,174 @@ public:                                                                         
   /*! Creates a register operand having its id set to `id`. */                           \
   ASMJIT_INLINE_CONSTEXPR explicit REG(uint32_t id) noexcept                             \
     : BASE(Signature{kSignature}, id) {}
+
 //! \endcond
+
+//! Unified general purpose register (also acts as a base class for architecture specific GP registers).
+class UniGp : public Reg {
+public:
+  ASMJIT_DEFINE_ABSTRACT_REG(UniGp, Reg)
+
+  //! \name Static Constructors
+  //! \{
+
+  //! Creates a new 32-bit GP register having the given register id `regId`.
+  [[nodiscard]]
+  static ASMJIT_INLINE_CONSTEXPR UniGp make_r32(uint32_t regId) noexcept { return UniGp(_signatureOf<RegType::kGp32>(), regId); }
+
+  //! Creates a new 64-bit GP register having the given register id `regId`.
+  [[nodiscard]]
+  static ASMJIT_INLINE_CONSTEXPR UniGp make_r64(uint32_t regId) noexcept { return UniGp(_signatureOf<RegType::kGp64>(), regId); }
+
+  //! \}
+
+  //! \name Unified Accessors
+  //! \{
+
+  //! Clones and casts this register to a 32-bit GP register.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR UniGp r32() const noexcept { return UniGp(_signatureOf<RegType::kGp32>(), id()); }
+
+  //! Clones and casts this register to a 64-bit GP register.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR UniGp r64() const noexcept { return UniGp(_signatureOf<RegType::kGp64>(), id()); }
+
+  //! \}
+};
+
+//! Unified vector register (also acts as a base class for architecture specific vector registers).
+class UniVec : public Reg {
+public:
+  ASMJIT_DEFINE_ABSTRACT_REG(UniVec, Reg)
+
+  //! \name Static Constructors
+  //! \{
+
+  //! Creates a new 128-bit vector register having the given register id `regId`.
+  [[nodiscard]]
+  static ASMJIT_INLINE_CONSTEXPR UniVec make_v128(uint32_t regId) noexcept { return UniVec(_signatureOf<RegType::kVec128>(), regId); }
+
+  //! Creates a new 256-bit vector register having the given register id `regId`.
+  //!
+  //! \note 256-bit vector registers are only supported by X86|X86_64.
+  [[nodiscard]]
+  static ASMJIT_INLINE_CONSTEXPR UniVec make_v256(uint32_t regId) noexcept { return UniVec(_signatureOf<RegType::kVec256>(), regId); }
+
+  //! Creates a new 512-bit vector register having the given register id `regId`.
+  //!
+  //! \note 512-bit vector registers are only supported by X86|X86_64.
+  [[nodiscard]]
+  static ASMJIT_INLINE_CONSTEXPR UniVec make_v512(uint32_t regId) noexcept { return UniVec(_signatureOf<RegType::kVec512>(), regId); }
+
+  //! \}
+
+  //! \name Unified Accessors
+  //! \{
+
+  //! Clones and casts this register to a 128-bit vector register.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR UniVec v128() const noexcept { return UniVec(_signatureOf<RegType::kVec128>(), id()); }
+
+  //! Clones and casts this register to a 256-bit vector register.
+  //!
+  //! \note 256-bit vector registers are only supported by X86|X86_64.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR UniVec v256() const noexcept { return UniVec(_signatureOf<RegType::kVec256>(), id()); }
+
+  //! Clones and casts this register to a 512-bit vector register.
+  //!
+  //! \note 512-bit vector registers are only supported by X86|X86_64.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR UniVec v512() const noexcept { return UniVec(_signatureOf<RegType::kVec512>(), id()); }
+
+  //! \}
+};
+//! RegOnly is 8-byte version of `Reg` that allows to store either register or nothing.
+//!
+//! It's designed to decrease the space consumed by an extra "operand" in \ref BaseEmitter and \ref InstNode.
+struct RegOnly {
+  //! \name Types
+  //! \{
+
+  using Signature = OperandSignature;
+
+  //! \}
+
+  //! Operand signature - only \ref OperandType::kNone and \ref OperandType::kReg are supported.
+  Signature _signature;
+  //! Physical or virtual register id.
+  uint32_t _id;
+
+  //! \name Construction & Destruction
+  //! \{
+
+  //! Initializes the `RegOnly` instance to hold register `signature` and `id`.
+  ASMJIT_INLINE_CONSTEXPR void init(const OperandSignature& signature, uint32_t id) noexcept {
+    _signature = signature;
+    _id = id;
+  }
+
+  ASMJIT_INLINE_CONSTEXPR void init(const Reg& reg) noexcept { init(reg.signature(), reg.id()); }
+  ASMJIT_INLINE_CONSTEXPR void init(const RegOnly& reg) noexcept { init(reg.signature(), reg.id()); }
+
+  //! Resets the `RegOnly` members to zeros (none).
+  ASMJIT_INLINE_CONSTEXPR void reset() noexcept { init(Signature::fromBits(0), 0); }
+
+  //! \}
+
+  //! \name Accessors
+  //! \{
+
+  //! Tests whether this ExtraReg is none (same as calling `Operand_::isNone()`).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isNone() const noexcept { return _signature == 0; }
+
+  //! Tests whether the register is valid (either virtual or physical).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isReg() const noexcept { return _signature != 0; }
+
+  //! Tests whether this is a physical register.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isPhysReg() const noexcept { return _id < Reg::kIdBad; }
+
+  //! Tests whether this is a virtual register (used by `BaseCompiler`).
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVirtReg() const noexcept { return _id > Reg::kIdBad; }
+
+  //! Returns the register signature or 0 if no register is assigned.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR OperandSignature signature() const noexcept { return _signature; }
+
+  //! Returns the register id.
+  //!
+  //! \note Always check whether the register is assigned before using the returned identifier as
+  //! non-assigned `RegOnly` instance would return zero id, which is still a valid register id.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR uint32_t id() const noexcept { return _id; }
+
+  //! Sets the register id.
+  ASMJIT_INLINE_CONSTEXPR void setId(uint32_t id) noexcept { _id = id; }
+
+  //! Returns the register type.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR RegType type() const noexcept { return _signature.regType(); }
+
+  //! Returns the register group.
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR RegGroup group() const noexcept { return _signature.regGroup(); }
+
+  //! \}
+
+  //! \name Utilities
+  //! \{
+
+  //! Converts this ExtraReg to a real `RegT` operand.
+  template<typename RegT>
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR RegT toReg() const noexcept { return RegT(_signature, _id); }
+
+  //! \}
+};
 
 //! List of physical registers (base).
 //!
@@ -1474,11 +2004,11 @@ public:
 
   //! Returns the register type.
   [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR RegType type() const noexcept { return _signature.regType(); }
+  ASMJIT_INLINE_CONSTEXPR RegType regType() const noexcept { return _signature.regType(); }
 
   //! Returns the register group.
   [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR RegGroup group() const noexcept { return _signature.regGroup(); }
+  ASMJIT_INLINE_CONSTEXPR RegGroup regGroup() const noexcept { return _signature.regGroup(); }
 
   //! Returns the size of a single register in this register-list or 0 if unspecified.
   [[nodiscard]]
@@ -1664,9 +2194,9 @@ public:
   //!
   //! \note This is an architecture independent constructor that can be used to create an architecture
   //! independent memory operand to be used in portable code that can handle multiple architectures.
-  ASMJIT_INLINE_CONSTEXPR explicit BaseMem(const BaseReg& baseReg, int32_t offset = 0) noexcept
+  ASMJIT_INLINE_CONSTEXPR explicit BaseMem(const Reg& baseReg, int32_t offset = 0) noexcept
     : Operand(Globals::Init,
-              Signature::fromOpType(OperandType::kMem) | Signature::fromMemBaseType(baseReg.type()),
+              Signature::fromOpType(OperandType::kMem) | Signature::fromMemBaseType(baseReg.regType()),
               baseReg.id(),
               0,
               uint32_t(offset)) {}
@@ -1807,10 +2337,10 @@ public:
   ASMJIT_INLINE_CONSTEXPR void setIndexType(RegType regType) noexcept { _signature.setMemIndexType(regType); }
 
   //! Sets the base register to type and id of the given `base` operand.
-  ASMJIT_INLINE_CONSTEXPR void setBase(const BaseReg& base) noexcept { return _setBase(base.type(), base.id()); }
+  ASMJIT_INLINE_CONSTEXPR void setBase(const Reg& base) noexcept { return _setBase(base.regType(), base.id()); }
 
   //! Sets the index register to type and id of the given `index` operand.
-  ASMJIT_INLINE_CONSTEXPR void setIndex(const BaseReg& index) noexcept { return _setIndex(index.type(), index.id()); }
+  ASMJIT_INLINE_CONSTEXPR void setIndex(const Reg& index) noexcept { return _setIndex(index.regType(), index.id()); }
 
   //! \cond INTERNAL
   ASMJIT_INLINE_CONSTEXPR void _setBase(RegType type, uint32_t id) noexcept {

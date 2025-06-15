@@ -72,7 +72,7 @@
       <Item Name="imm.type" Condition="opType() == asmjit::OperandType::kImm">immType()</Item>
     </Expand>
   </Type>
- 
+
   <Type Name="asmjit::Operand_">
     <Intrinsic Name="opType" Expression="(asmjit::OperandType)(_signature._bits &amp; 0x7)" />
     <Intrinsic Name="opSize" Expression="(_signature._bits &gt;&gt; 24) &amp; 0xFF" />
@@ -143,14 +143,14 @@
     <Expand HideRawView="true">
       <Item Name="data">_data</Item>
       <Item Name="typeId">(asmjit::TypeId)(typeId())</Item>
-      <Item Name="regType" Condition="isReg()">(asmjit::BaseReg::RegType)regType()</Item>
+      <Item Name="regType" Condition="isReg()">(asmjit::RegType)regType()</Item>
       <Item Name="regId" Condition="isReg()">regId()</Item>
       <Item Name="stackOffset" Condition="isStack()">stackOffset()</Item>
     </Expand>
   </Type>
 
   <Type Name="asmjit::BaseNode">
-    <Intrinsic Name="nodeType" Expression="_any._nodeType" />
+    <Intrinsic Name="nodeType" Expression="_nodeType" />
 
     <Intrinsic Name="isInst" Expression="nodeType() == asmjit::NodeType::kInst"></Intrinsic>
     <Intrinsic Name="isSection" Expression="nodeType() == asmjit::NodeType::kSection"></Intrinsic>
@@ -190,8 +190,8 @@
       <Item Name="prev">_prev</Item>
       <Item Name="next">_next</Item>
 
-      <Item Name="nodeType">_any._nodeType</Item>
-      <Item Name="nodeFlags">_any._nodeFlags</Item>
+      <Item Name="nodeType">_nodeType</Item>
+      <Item Name="nodeFlags">_nodeFlags</Item>
 
       <Item Name="position">_position</Item>
       <Item Name="userData.u64">_userDataU64</Item>

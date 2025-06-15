@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_CORE_EMITTER_H_INCLUDED
@@ -186,7 +186,7 @@ enum class DiagnosticOptions : uint32_t {
   kRADebugUnreachable = 0x00000800u,
 
   //! Enable all debug options (Compiler/RA).
-  kRADebugAll = 0x0000FF00u,
+  kRADebugAll = 0x0000FF00u
 };
 ASMJIT_DEFINE_ENUM_FLAGS(DiagnosticOptions)
 
@@ -196,48 +196,8 @@ public:
   ASMJIT_BASE_CLASS(BaseEmitter)
   ASMJIT_NONCOPYABLE(BaseEmitter)
 
-  //! \name Members
+  //! \name Types
   //! \{
-
-  //! See \ref EmitterType.
-  EmitterType _emitterType = EmitterType::kNone;
-  //! See \ref EmitterFlags.
-  EmitterFlags _emitterFlags = EmitterFlags::kNone;
-  //! Instruction alignment.
-  uint8_t _instructionAlignment = 0u;
-  //! \cond
-  uint8_t _reservedBaseEmitter = 0u;
-  //! \endcond
-  //! Validation flags in case validation is used.
-  //!
-  //! \note Validation flags are specific to the emitter and they are setup at construction time and then never
-  //! changed.
-  ValidationFlags _validationFlags = ValidationFlags::kNone;
-  //! Validation options.
-  DiagnosticOptions _diagnosticOptions = DiagnosticOptions::kNone;
-
-  //! All supported architectures in a bit-mask, where LSB is the bit with a zero index.
-  uint64_t _archMask = 0;
-
-  //! Encoding options.
-  EncodingOptions _encodingOptions = EncodingOptions::kNone;
-
-  //! Forced instruction options, combined with \ref _instOptions by \ref emit().
-  InstOptions _forcedInstOptions = InstOptions::kReserved;
-  //! Internal private data used freely by any emitter.
-  uint32_t _privateData = 0;
-
-  //! CodeHolder the emitter is attached to.
-  CodeHolder* _code = nullptr;
-  //! Attached \ref Logger.
-  Logger* _logger = nullptr;
-  //! Attached \ref ErrorHandler.
-  ErrorHandler* _errorHandler = nullptr;
-
-  //! Describes the target environment, matches \ref CodeHolder::environment().
-  Environment _environment {};
-  //! Native GP register signature and signature related information.
-  OperandSignature _gpSignature {};
 
   //! Emitter state that can be used to specify options and inline comment of a next node or instruction.
   struct State {
@@ -246,14 +206,7 @@ public:
     const char* comment;
   };
 
-  //! Next instruction options (affects the next instruction).
-  InstOptions _instOptions = InstOptions::kNone;
-  //! Extra register (op-mask {k} on AVX-512) (affects the next instruction).
-  RegOnly _extraReg {};
-  //! Inline comment of the next instruction (affects the next instruction).
-  const char* _inlineComment = nullptr;
-
-  //! Function callbacks used by emitter implementation.
+  //! Functions used by backend-specific emitter implementation.
   //!
   //! These are typically shared between Assembler/Builder/Compiler of a single backend.
   struct Funcs {
@@ -282,15 +235,72 @@ public:
     ValidateFunc validate;
 
     //! Resets all functions to nullptr.
-    ASMJIT_INLINE_NODEBUG void reset() noexcept {
-      emitProlog = nullptr;
-      emitEpilog = nullptr;
-      emitArgsAssignment = nullptr;
-      validate = nullptr;
-    }
+    ASMJIT_INLINE_NODEBUG void reset() noexcept { *this = Funcs{}; }
   };
 
+  //! \}
+
+  //! \name Members
+  //! \{
+
+  //! See \ref EmitterType.
+  EmitterType _emitterType = EmitterType::kNone;
+
+  //! See \ref EmitterFlags.
+  EmitterFlags _emitterFlags = EmitterFlags::kNone;
+
+  //! Instruction alignment.
+  uint8_t _instructionAlignment = 0u;
+
+  //! Validation flags in case validation is used.
+  //!
+  //! \note Validation flags are specific to the emitter and they are setup at construction time and then never
+  //! changed.
+  ValidationFlags _validationFlags = ValidationFlags::kNone;
+
+  //! Validation options.
+  DiagnosticOptions _diagnosticOptions = DiagnosticOptions::kNone;
+
+  //! Encoding options.
+  EncodingOptions _encodingOptions = EncodingOptions::kNone;
+
+  //! Forced instruction options, combined with \ref _instOptions by \ref emit().
+  InstOptions _forcedInstOptions = InstOptions::kReserved;
+
+  //! All supported architectures in a bit-mask, where LSB is the bit with a zero index.
+  uint64_t _archMask = 0;
+
+  //! CodeHolder the emitter is attached to.
+  CodeHolder* _code = nullptr;
+
+  //! Attached \ref Logger.
+  Logger* _logger = nullptr;
+
+  //! Attached \ref ErrorHandler.
+  ErrorHandler* _errorHandler = nullptr;
+
+  //! Describes the target environment, matches \ref CodeHolder::environment().
+  Environment _environment {};
+
+  //! Native GP register signature (either a 32-bit or 64-bit GP register signature).
+  OperandSignature _gpSignature {};
+  //! Internal private data used freely by any emitter.
+  uint32_t _privateData = 0;
+
+  //! Next instruction options (affects the next instruction).
+  InstOptions _instOptions = InstOptions::kNone;
+  //! Extra register (op-mask {k} on AVX-512) (affects the next instruction).
+  RegOnly _extraReg {};
+  //! Inline comment of the next instruction (affects the next instruction).
+  const char* _inlineComment = nullptr;
+
+  //! Pointer to functions used by backend-specific emitter implementation.
   Funcs _funcs {};
+
+  //! Emitter attached before this emitter in \ref CodeHolder, otherwise nullptr if there is no emitter before.
+  BaseEmitter* _attachedPrev = nullptr;
+  //! Emitter attached after this emitter in \ref CodeHolder, otherwise nullptr if there is no emitter after.
+  BaseEmitter* _attachedNext = nullptr;
 
   //! \}
 
@@ -493,11 +503,23 @@ public:
   //! Resets the error handler.
   ASMJIT_INLINE_NODEBUG void resetErrorHandler() noexcept { setErrorHandler(nullptr); }
 
+  //! \cond INTERNAL
+  ASMJIT_API Error _reportError(Error err, const char* message = nullptr);
+  //! \endcond
+
   //! Handles the given error in the following way:
   //!   1. If the emitter has \ref ErrorHandler attached, it calls its \ref ErrorHandler::handleError() member function
   //!      first, and then returns the error. The `handleError()` function may throw.
   //!   2. if the emitter doesn't have \ref ErrorHandler, the error is simply returned.
-  ASMJIT_API Error reportError(Error err, const char* message = nullptr);
+  ASMJIT_INLINE Error reportError(Error err, const char* message = nullptr) {
+    Error e = _reportError(err, message);
+
+    // Static analysis is not working properly without these assumptions.
+    ASMJIT_ASSUME(e == err);
+    ASMJIT_ASSUME(e != kErrorOk);
+
+    return e;
+  }
 
   //! \}
 
@@ -590,7 +612,7 @@ public:
   ASMJIT_INLINE_NODEBUG const RegOnly& extraReg() const noexcept { return _extraReg; }
 
   //! Sets an extra operand that will be used by the next instruction (architecture specific).
-  ASMJIT_INLINE_NODEBUG void setExtraReg(const BaseReg& reg) noexcept { _extraReg.init(reg); }
+  ASMJIT_INLINE_NODEBUG void setExtraReg(const Reg& reg) noexcept { _extraReg.init(reg); }
 
   //! Sets an extra operand that will be used by the next instruction (architecture specific).
   ASMJIT_INLINE_NODEBUG void setExtraReg(const RegOnly& reg) noexcept { _extraReg.init(reg); }
@@ -856,10 +878,13 @@ public:
   //! \{
 
   //! Called after the emitter was attached to `CodeHolder`.
-  ASMJIT_API virtual Error onAttach(CodeHolder* ASMJIT_NONNULL(code)) noexcept;
+  ASMJIT_API virtual Error onAttach(CodeHolder& code) noexcept;
 
   //! Called after the emitter was detached from `CodeHolder`.
-  ASMJIT_API virtual Error onDetach(CodeHolder* ASMJIT_NONNULL(code)) noexcept;
+  ASMJIT_API virtual Error onDetach(CodeHolder& code) noexcept;
+
+  //! Called when CodeHolder is reinitialized when the emitter is attached.
+  ASMJIT_API virtual Error onReinit(CodeHolder& code) noexcept;
 
   //! Called when \ref CodeHolder has updated an important setting, which involves the following:
   //!

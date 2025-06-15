@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_CORE_ZONEVECTOR_H_INCLUDED
@@ -269,9 +269,7 @@ public:
 
   //! Prepends `item` to the vector.
   ASMJIT_INLINE Error prepend(ZoneAllocator* allocator, const T& item) noexcept {
-    if (ASMJIT_UNLIKELY(_size == _capacity)) {
-      ASMJIT_PROPAGATE(grow(allocator, 1));
-    }
+    ASMJIT_PROPAGATE(grow(allocator));
 
     memmove(static_cast<void*>(static_cast<T*>(_data) + 1),
             static_cast<const void*>(_data),
@@ -288,10 +286,7 @@ public:
   //! Inserts an `item` at the specified `index`.
   ASMJIT_INLINE Error insert(ZoneAllocator* allocator, size_t index, const T& item) noexcept {
     ASMJIT_ASSERT(index <= _size);
-
-    if (ASMJIT_UNLIKELY(_size == _capacity)) {
-      ASMJIT_PROPAGATE(grow(allocator, 1));
-    }
+    ASMJIT_PROPAGATE(grow(allocator));
 
     T* dst = static_cast<T*>(_data) + index;
     memmove(static_cast<void*>(dst + 1),
@@ -308,9 +303,7 @@ public:
 
   //! Appends `item` to the vector.
   ASMJIT_INLINE Error append(ZoneAllocator* allocator, const T& item) noexcept {
-    if (ASMJIT_UNLIKELY(_size == _capacity)) {
-      ASMJIT_PROPAGATE(grow(allocator, 1));
-    }
+    ASMJIT_PROPAGATE(grow(allocator));
 
     memcpy(static_cast<void*>(static_cast<T*>(_data) + _size),
            static_cast<const void*>(&item),
@@ -490,6 +483,17 @@ public:
     _release(allocator, sizeof(T));
   }
 
+  //! Called to grow the buffer to fit at least 1 element more.
+  [[nodiscard]]
+  inline Error grow(ZoneAllocator* allocator) noexcept {
+    if (ASMJIT_LIKELY(_size < _capacity)) {
+      return kErrorOk;
+    }
+    else {
+      return ZoneVectorBase::_grow(allocator, sizeof(T), 1u);
+    }
+  }
+
   //! Called to grow the buffer to fit at least `n` elements more.
   [[nodiscard]]
   inline Error grow(ZoneAllocator* allocator, uint32_t n) noexcept {
@@ -530,7 +534,11 @@ public:
     }
   }
 
-  inline Error willGrow(ZoneAllocator* allocator, uint32_t n = 1) noexcept {
+  inline Error willGrow(ZoneAllocator* allocator) noexcept {
+    return _capacity == _size ? grow(allocator, 1u) : Error(kErrorOk);
+  }
+
+  inline Error willGrow(ZoneAllocator* allocator, uint32_t n) noexcept {
     return _capacity - _size < n ? grow(allocator, n) : Error(kErrorOk);
   }
 
@@ -827,7 +835,7 @@ public:
       return;
     }
 
-    allocator->release(_data, _capacity / 8);
+    allocator->release(_data, _capacity / 8u);
     reset();
   }
 

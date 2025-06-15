@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
@@ -20,7 +20,7 @@ enum class StrongEnumForImmTests : uint32_t {
 UNIT(operand) {
   INFO("Checking operand sizes");
   EXPECT_EQ(sizeof(Operand), 16u);
-  EXPECT_EQ(sizeof(BaseReg), 16u);
+  EXPECT_EQ(sizeof(Reg), 16u);
   EXPECT_EQ(sizeof(BaseMem), 16u);
   EXPECT_EQ(sizeof(Imm), 16u);
   EXPECT_EQ(sizeof(Label), 16u);
@@ -43,19 +43,19 @@ UNIT(operand) {
   EXPECT_FALSE(label.isValid());
   EXPECT_EQ(label.id(), Globals::kInvalidId);
 
-  INFO("Checking basic functionality of BaseReg");
-  EXPECT_TRUE(BaseReg().isReg());
-  EXPECT_FALSE(BaseReg().isValid());
-  EXPECT_EQ(BaseReg()._data[0], 0u);
-  EXPECT_EQ(BaseReg()._data[1], 0u);
-  EXPECT_FALSE(dummy.as<BaseReg>().isValid());
+  INFO("Checking basic functionality of Reg");
+  EXPECT_TRUE(Reg().isReg());
+  EXPECT_FALSE(Reg().isValid());
+  EXPECT_EQ(Reg()._data[0], 0u);
+  EXPECT_EQ(Reg()._data[1], 0u);
+  EXPECT_FALSE(dummy.as<Reg>().isValid());
 
   // Create some register (not specific to any architecture).
   OperandSignature rSig = OperandSignature::fromOpType(OperandType::kReg) |
                           OperandSignature::fromRegType(RegType::kVec128) |
                           OperandSignature::fromRegGroup(RegGroup::kVec) |
                           OperandSignature::fromSize(8);
-  BaseReg r1(rSig, 5);
+  Reg r1(rSig, 5);
 
   EXPECT_TRUE(r1.isValid());
   EXPECT_TRUE(r1.isReg());
@@ -63,8 +63,8 @@ UNIT(operand) {
   EXPECT_TRUE(r1.isPhysReg());
   EXPECT_FALSE(r1.isVirtReg());
   EXPECT_EQ(r1.signature(), rSig);
-  EXPECT_EQ(r1.type(), RegType::kVec128);
-  EXPECT_EQ(r1.group(), RegGroup::kVec);
+  EXPECT_EQ(r1.regType(), RegType::kVec128);
+  EXPECT_EQ(r1.regGroup(), RegGroup::kVec);
   EXPECT_EQ(r1.size(), 8u);
   EXPECT_EQ(r1.id(), 5u);
   EXPECT_TRUE(r1.isReg(RegType::kVec128, 5)); // RegType and Id.
@@ -72,15 +72,15 @@ UNIT(operand) {
   EXPECT_EQ(r1._data[1], 0u);
 
   // The same type of register having different id.
-  BaseReg r2(r1, 6);
+  Reg r2(r1, 6);
   EXPECT_TRUE(r2.isValid());
   EXPECT_TRUE(r2.isReg());
   EXPECT_TRUE(r2.isReg(RegType::kVec128));
   EXPECT_TRUE(r2.isPhysReg());
   EXPECT_FALSE(r2.isVirtReg());
   EXPECT_EQ(r2.signature(), rSig);
-  EXPECT_EQ(r2.type(), r1.type());
-  EXPECT_EQ(r2.group(), r1.group());
+  EXPECT_EQ(r2.regType(), r1.regType());
+  EXPECT_EQ(r2.regGroup(), r1.regGroup());
   EXPECT_EQ(r2.size(), r1.size());
   EXPECT_EQ(r2.id(), 6u);
   EXPECT_TRUE(r2.isReg(RegType::kVec128, 6));

@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJITUTILS_H_INCLUDED
@@ -9,6 +9,16 @@
 #include <asmjit/core.h>
 
 namespace {
+
+[[maybe_unused]]
+static const char* asmjitBuildType() noexcept {
+#if defined(ASMJIT_BUILD_DEBUG)
+  static const char build_type[] = "Debug";
+#else
+  static const char build_type[] = "Release";
+#endif
+  return build_type;
+}
 
 [[maybe_unused]]
 static const char* asmjitArchAsString(asmjit::Arch arch) noexcept {
@@ -95,12 +105,6 @@ static void printCpuInfo() noexcept {
 static void printBuildOptions() {
   auto stringifyBuildDefinition = [](bool b) { return b ? "defined" : "(not defined)"; };
 
-#if defined(ASMJIT_BUILD_DEBUG)
-  const char build_type[] = "Debug";
-#else
-  const char build_type[] = "Release";
-#endif
-
 #if defined(ASMJIT_NO_X86)
   constexpr bool no_x86 = true;
 #else
@@ -180,12 +184,18 @@ static void printBuildOptions() {
 #endif
 
   printf("Build Options:\n");
-  printf("  Build Type             : %s\n", build_type);
+  printf("  BUILD_TYPE             : %s\n", asmjitBuildType());
+  printf("  ASMJIT_NO_DEPRECATED   : %s\n", stringifyBuildDefinition(no_deprecated));
+  printf("  ASMJIT_NO_ABI_NAMESPACE: %s\n", stringifyBuildDefinition(no_abi_namespace));
+  printf("\n");
+
+  printf("Build Backends:\n");
   printf("  ASMJIT_NO_X86          : %s\n", stringifyBuildDefinition(no_x86));
   printf("  ASMJIT_NO_AARCH64      : %s\n", stringifyBuildDefinition(no_aarch64));
   printf("  ASMJIT_NO_FOREIGN      : %s\n", stringifyBuildDefinition(no_foreign));
-  printf("  ASMJIT_NO_DEPRECATED   : %s\n", stringifyBuildDefinition(no_deprecated));
-  printf("  ASMJIT_NO_ABI_NAMESPACE: %s\n", stringifyBuildDefinition(no_abi_namespace));
+  printf("\n");
+
+  printf("Build Features:\n");
   printf("  ASMJIT_NO_SHM_OPEN     : %s\n", stringifyBuildDefinition(no_shm_open));
   printf("  ASMJIT_NO_JIT          : %s\n", stringifyBuildDefinition(no_jit));
   printf("  ASMJIT_NO_TEXT         : %s\n", stringifyBuildDefinition(no_text));

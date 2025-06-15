@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_CORE_RASTACK_P_H_INCLUDED
@@ -27,8 +27,8 @@ struct RAStackSlot {
     kFlagRegHome = 0x0001u,
     //! Stack slot position matches argument passed via stack.
     kFlagStackArg = 0x0002u
-  };
 
+  };
   enum ArgIndex : uint32_t {
     kNoArgIndex = 0xFF
   };
@@ -121,8 +121,11 @@ public:
   //! \name Members
   //! \{
 
-  //! Allocator used to allocate internal data.
+  //! Zone used to allocate internal data.
+  Zone* _zone {};
+  //! Container allocator used to allocate internal data.
   ZoneAllocator* _allocator {};
+
   //! Count of bytes used by all slots.
   uint32_t _bytesUsed {};
   //! Calculated stack size (can be a bit greater than `_bytesUsed`).
@@ -139,7 +142,8 @@ public:
 
   ASMJIT_INLINE_NODEBUG RAStackAllocator() noexcept {}
 
-  ASMJIT_INLINE_NODEBUG void reset(ZoneAllocator* allocator) noexcept {
+  ASMJIT_INLINE_NODEBUG void reset(Zone* zone, ZoneAllocator* allocator) noexcept {
+    _zone = zone;
     _allocator = allocator;
     _bytesUsed = 0;
     _stackSize = 0;
@@ -151,6 +155,9 @@ public:
 
   //! \name Accessors
   //! \{
+
+  [[nodiscard]]
+  ASMJIT_INLINE_NODEBUG Zone* zone() const noexcept { return _zone; }
 
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG ZoneAllocator* allocator() const noexcept { return _allocator; }

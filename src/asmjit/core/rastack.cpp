@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
@@ -19,7 +19,7 @@ RAStackSlot* RAStackAllocator::newSlot(uint32_t baseRegId, uint32_t size, uint32
     return nullptr;
   }
 
-  RAStackSlot* slot = allocator()->allocT<RAStackSlot>();
+  RAStackSlot* slot = zone()->alloc<RAStackSlot>();
   if (ASMJIT_UNLIKELY(!slot)) {
     return nullptr;
   }
@@ -27,9 +27,9 @@ RAStackSlot* RAStackAllocator::newSlot(uint32_t baseRegId, uint32_t size, uint32
   slot->_baseRegId = uint8_t(baseRegId);
   slot->_alignment = uint8_t(Support::max<uint32_t>(alignment, 1));
   slot->_flags = uint16_t(flags);
-  slot->_useCount = 0;
   slot->_size = size;
 
+  slot->_useCount = 0;
   slot->_weight = 0;
   slot->_offset = 0;
 

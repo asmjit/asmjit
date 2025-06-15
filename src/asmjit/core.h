@@ -1,7 +1,26 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
+// Official GitHub Repository: https://github.com/asmjit/asmjit
+//
+// Copyright (c) 2008-2025 The AsmJit Authors
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//    claim that you wrote the original software. If you use this software
+//    in a product, an acknowledgment in the product documentation would be
+//    appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//    misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
+
 
 #ifndef ASMJIT_CORE_H_INCLUDED
 #define ASMJIT_CORE_H_INCLUDED
@@ -265,15 +284,82 @@ namespace asmjit {
 //!
 //! Useful tips before you start:
 //!
-//!   - Visit our [Public Gitter Chat](https://app.gitter.im/#/room/#asmjit:gitter.im) if you need a quick help.
+//!   - Visit our [Public Chat](https://app.gitter.im/#/room/#asmjit:gitter.im) if you need a quick help.
 //!
 //!   - Build AsmJit with `ASMJIT_NO_DEPRECATED` macro defined to make sure that you are not using deprecated
 //!     functionality at all. Deprecated functions are decorated with `[[deprecated]]` attribute, but sometimes
 //!     it's not possible to decorate everything like classes, which are used by deprecated functions as well,
 //!     because some compilers would warn about that. If your project compiles fine with `ASMJIT_NO_DEPRECATED`
-//!     it's not using anything, which was deprecated.
+//!     it's not using anything, which will be definitely removed in the future.
 //!
 //! \section api_changes API Changes
+//!
+//! ### Changes committed at 2025-06-15
+//!
+//! Core changes:
+//!
+//!   - No more architecture specific \ref RegTraits - removed `BaseRegTraits` and kept just \ref RegTraits:
+//!
+//!     - `BaseRegTraits` -> `RegTraits`
+//!     - `arm::RegTraits` -> `RegTraits`
+//!     - `x86::RegTraits` -> `RegTraits`
+//!
+//!   - Removed register signature and helper functions from ArchTraits. This functionality is now available
+//!     via asmjit::RegTraits and asmjit::RegUtils and doesn't require a valid architecture traits instance.
+//!
+//!   - No more architecture specific Gp/Vec/Mask register types in \ref RegType and \ref RegGroup:
+//!
+//!     - `RegGroup::kX86_Rip`  -> `RegGroup::kPC`
+//!     - `RegGroup::kX86_KReg` -> `RegGroup::kMask`
+//!     - `RegType::kX86_GpbLo` -> `RegType::kGp8Lo`
+//!     - `RegType::kX86_GpbLo` -> `RegType::kGp8Lo`
+//!     - `RegType::kX86_GpbHi` -> `RegType::kGp8Hi`
+//!     - `RegType::kX86_Gpw`   -> `RegType::kGp16`
+//!     - `RegType::kX86_Gpd`   -> `RegType::kGp32`
+//!     - `RegType::kX86_Gpq`   -> `RegType::kGp64`
+//!     - `RegType::kX86_Xmm`   -> `RegType::kVec128`
+//!     - `RegType::kX86_Ymm`   -> `RegType::kVec256`
+//!     - `RegType::kX86_Zmm`   -> `RegType::kVec512`
+//!     - `RegType::kX86_KReg`  -> `RegType::kMask`
+//!     - `RegType::kARM_PC`    -> `RegType::kPC`
+//!     - `RegType::kARM_GpW`   -> `RegType::kGp32`
+//!     - `RegType::kARM_GpX`   -> `RegType::kGp64`
+//!     - `RegType::kARM_VecB`  -> `RegType::kVec8`
+//!     - `RegType::kARM_VecH`  -> `RegType::kVec16`
+//!     - `RegType::kARM_VecS`  -> `RegType::kVec32`
+//!     - `RegType::kARM_VecD`  -> `RegType::kVec64`
+//!     - `RegType::kARM_VecQ`  -> `RegType::kVec128`
+//!     - `RegType::kARM_VecV`  -> `RegType::kVec128`
+//!
+//!   - Renamed `asmjit::BaseReg` to asmjit::Reg, added `asmjit::UniGp` and `asmjit::UniVec` which are now base
+//!     classes for platform specific `[x86|a64]::Gp` and `[x86|a64]::Vec`
+//!
+//!   - Renamed some member functions in Operand and Reg:
+//!
+//!     - `isType(regId)` -> `isReg(regId)`
+//!     - `isGroup(regGroup)` -> `isReg(regGroup)`
+//!     - `regOp.type()` -> `regOp.regType()`
+//!     - `regOp.group()` -> `regOp.regGroup()`
+//!
+//!   - Removed some static functions from \ref Operand, \reg Reg, etc... in favor of member functions. Most
+//!     of the operand functionality is now provided by \ref Operand_:
+//!
+//!     - `Operand::isGp(op)` -> op.isGp();
+//!     - `x86::Reg::isGp(op, id)` -> op.isGp(id);
+//!
+//!   - Removed sub-registers `x86::Gpb`, `x86::GpbLo`, `x86::GpbHi`, `x86::Gpw`, `x86::Gpd`, `x86::Gpq`, `x86::Xmm`,
+//!     `x86::Ymm`, `x86::Zmm` - use just `x86::Gp` and `x86::Vec`, which represent all removed X86 sub-registers.
+//!
+//!   - Removed sub-registers `a64::GpW` and `a64::GpX`, `a64::VecB`, `a64::VecH`, `a64::VecS`, `a64::VecD`,
+//!     `a64::VecV`, which represent all removed AArch64 sub-registers.
+//!
+//!   - Renamed some id getters - `Section::id()` -> `Section::sectionId()`, etc...
+//!
+//! Builder changes:
+//!
+//!   - Removed BaseBuilder::deletePass() - this function was most likely never used by user code and it was also
+//!     never used by AsmJit. Passes should be only added and not removed, which simplifies some planned future
+//!     changes.
 //!
 //! ### Changes committed at 2025-05-24
 //!
@@ -534,12 +620,13 @@ namespace asmjit {
 //!
 //!   - \ref Section - stores information about a code or data section.
 //!   - \ref CodeBuffer - stores actual code or data, part of \ref Section.
-//!   - \ref LabelEntry - stores information about a label - its name, offset, section where it belongs to, and
-//!     other bits.
-//!   - \ref LabelLink - stores information about yet unbound label, which was  already used by the assembler.
+//!   - \ref LabelEntry - stores information about a \ref Label - its name, offset, section where it belongs to,
+//!     and other bits.
+//!   - \ref Fixup - stores information about positions in code that needs to be fixed up later, for example
+//!     when referencing a \ref Label, which was not bound to a position in code yet.
 //!   - \ref RelocEntry - stores information about a relocation.
-//!   - \ref AddressTableEntry - stores information about an address, which was used in a jump or call. Such
-//!     address may need relocation.
+//!   - \ref AddressTableEntry - stores information about an absolute address, which was used in a jump or call.
+//!     Code referencing an absolute address may need relocation or a record in address table.
 //!
 //! To generate code you would need to instantiate at least the following classes:
 //!
@@ -692,21 +779,21 @@ namespace asmjit {
 //! required if you call external functions from the generated code that cannot be encoded by using a 32-bit
 //! displacement (64-bit displacements are not provided by aby supported architecture).
 //!
-//! There is also a concept called \ref LabelLink - label link is a lightweight data structure that doesn't have any
-//! identifier and is stored in \ref LabelEntry as a single-linked list. Label link represents either unbound yet used
-//! label and cross-sections links (only relevant to code that uses multiple sections). Since crossing sections is
-//! something that cannot be resolved immediately these links persist until offsets of these sections are assigned and
-//! until \ref CodeHolder::resolveUnresolvedLinks() is called. It's an error if you end up with code that has
-//! unresolved label links after flattening. You can verify it by calling \ref CodeHolder::hasUnresolvedLinks(), which
-//! inspects the value returned by \ref CodeHolder::unresolvedLinkCount().
+//! There is also a concept called \ref Fixup - it's a lightweight data structure that doesn't have any identifier and
+//! is stored in \ref LabelEntry and \ref CodeHolder as a single-linked list. Fixup represents either a reference to an
+//! unbound label and cross-sections references (only relevant to code that uses multiple sections). Since crossing
+//! sections is something that cannot be resolved immediately these fixups persist until offsets of these sections are
+//! assigned and until \ref CodeHolder::resolveCrossSectionFixups() is called. It's an error if you end up with code that
+//! still has fixups after flattening. You can verify it by calling \ref CodeHolder::hasUnresolvedFixups(), which inspects
+//! the value returned by \ref CodeHolder::unresolvedFixupCount().
 //!
 //! AsmJit can flatten code that uses multiple sections by assigning each section an incrementing offset that respects
 //! its alignment. Use \ref CodeHolder::flatten() to do that. After the sections are flattened their offsets and
 //! virtual sizes are adjusted to respect each section's buffer size and alignment. The \ref
-//! CodeHolder::resolveUnresolvedLinks() function must be called before relocating the code held by \ref CodeHolder.
+//! CodeHolder::resolveCrossSectionFixups() function must be called before relocating the code held by \ref CodeHolder.
 //! You can also flatten your code manually by iterating over all sections and calculating their offsets (relative to
 //! base) by your own algorithm. In that case \ref CodeHolder::flatten() should not be called, however,
-//! \ref CodeHolder::resolveUnresolvedLinks() should be.
+//! \ref CodeHolder::resolveCrossSectionFixups() should be.
 //!
 //! The example below shows how to use a built-in virtual memory allocator \ref JitAllocator instead of using \ref
 //! JitRuntime (just in case you want to use your own memory management) and how to relocate the generated code
@@ -775,7 +862,7 @@ namespace asmjit {
 //!   // such relocations. You can use `CodeHolder::hasAddressTable()` to verify
 //!   // whether the address table section does exist.
 //!   code.flatten();
-//!   code.resolveUnresolvedLinks();
+//!   code.resolveCrossSectionFixups();
 //!
 //!   // After the code was generated it can be relocated manually to any memory
 //!   // location, however, we need to know it's size before we perform memory
@@ -870,9 +957,9 @@ namespace asmjit {
 //!
 //! \section labels Label Offsets and Links
 //!
-//! When a label that is not yet bound is used by the Assembler, it creates a \ref LabelLink, which is then added to
-//! a \ref LabelEntry. These links are also created if a label is used in a different section than in which it was
-//! bound. Let's examine some functions that can be used to check whether there are any unresolved links.
+//! When a label that is not yet bound is used by the Assembler, it creates a \ref Fixup, which is then referenced
+//! by \ref LabelEntry. Fixups are also created if a label is referenced in a different section than in which it was
+//! bound. Let's examine some functions that can be used to check whether there are any unresolved fixups.
 //!
 //! ```
 //! #include <asmjit/core.h>
@@ -886,11 +973,11 @@ namespace asmjit {
 //!   printf("Label %u is %s\n", label.id(), isBound ? "bound" : "not bound");
 //!
 //!   // Returns true if the code contains either referenced, but unbound
-//!   // labels, or cross-section label links that are not resolved yet.
-//!   bool hasUnresolved = code.hasUnresolvedLinks();  // Boolean answer.
-//!   size_t nUnresolved = code.unresolvedLinkCount(); // Count of unresolved links.
+//!   // labels, or cross-section fixups that are not resolved yet.
+//!   bool hasUnresolved = code.hasUnresolvedFixups();  // Boolean answer.
+//!   size_t nUnresolved = code.unresolvedFixupCount(); // Count of unresolved fixups.
 //!
-//!   printf("Number of unresolved links: %zu\n", nUnresolved);
+//!   printf("Number of unresolved fixups: %zu\n", nUnresolved);
 //! }
 //! ```
 //!
@@ -963,17 +1050,16 @@ namespace asmjit {
 //!   a.section(text);           // Switches to the end of .text section.
 //!   a.add(x86::ebx, x86::eax); // Emits in .text section.
 //!
-//!   // References a label in .text section, which was bound in .data section.
-//!   // This would create a LabelLink even when the L_Data is already bound,
-//!   // because the reference crosses sections. See below...
+//!   // References a label in .text section, which was bound in .data section. This would create a
+//!   // fixup even when the L_Data is already bound, because the reference crosses sections. See below...
 //!   a.lea(x86::rsi, x86::ptr(L_Data));
 //! }
 //! ```
 //!
-//! The last line in the example above shows that a LabelLink would be created even for bound labels that cross
-//! sections. In this case a referenced label was bound in another section, which means that the link couldn't be
-//! resolved at that moment. If your code uses sections, but you wish AsmJit to flatten these sections (you don't
-//! plan to flatten them manually) then there is an API for that.
+//! The last line in the example above shows that a \ref Fixup would be created even for bound labels that cross
+//! sections. In this case a referenced label was bound in another section, which means that the reference couldn't
+//! be resolved at that moment. If your code uses sections, but you wish AsmJit to flatten these sections (you don't
+//! plan to flatten them manually) then there is a ready API for that.
 //!
 //! ```
 //! #include <asmjit/x86.h>
@@ -998,18 +1084,18 @@ namespace asmjit {
 //!   // guaranteed that the offset cannot be greater than `2^32 - 1`.
 //!   printf("Data section offset %zu", size_t(data->offset()));
 //!
-//!   // The flattening doesn't resolve unresolved label links, this
+//!   // The flattening doesn't resolve unresolved fixups, this
 //!   // has to be done manually as flattening can be done separately.
-//!   err = code.resolveUnresolvedLinks();
+//!   err = code.resolveCrossSectionFixups();
 //!   if (err) {
 //!     // This is the kind of error that should always be handled...
-//!     printf("Failed to resolve label links: %s\n", DebugUtils::errorAsString(err));
+//!     printf("Failed to resolve fixups: %s\n", DebugUtils::errorAsString(err));
 //!     exit(1);
 //!   }
 //!
-//!   if (code.hasUnresolvedLinks()) {
+//!   if (code.hasUnresolvedFixups()) {
 //!     // This would mean either unbound label or some other issue.
-//!     printf("The code has %zu unbound labels\n", code.unresolvedLinkCount());
+//!     printf("The code has %zu unbound labels\n", code.unresolvedFixupCount());
 //!     exit(1);
 //!   }
 //! }
@@ -1108,7 +1194,7 @@ namespace asmjit {
 //!   // Constructs [src + idx] memory address - referencing [rax + r10].
 //!   x86::Mem m = x86::ptr(src, idx);
 //!
-//!   // Examine `m`: Returns `RegType::kX86_Gpq`.
+//!   // Examine `m`: Returns `RegType::kGp64`.
 //!   m.indexType();
 //!   // Examine `m`: Returns 10 (`r10`).
 //!   m.indexId();
@@ -1882,9 +1968,6 @@ namespace asmjit {
 //! using namespace asmjit;
 //!
 //! void example(CodeHolder& code) {
-//!   // Contains all emitters attached to CodeHolder.
-//!   const ZoneVector<BaseEmitter*>& emitters = code.emitters();
-//!
 //!   // Contains all section entries managed by CodeHolder.
 //!   const ZoneVector<Section*>& sections = code.sections();
 //!
@@ -2005,7 +2088,6 @@ namespace asmjit {
 //! \defgroup asmjit_a64 AArch64 Backend
 //! \brief AArch64 backend.
 
-
 //! \cond INTERNAL
 //! \defgroup asmjit_ra RA
 //! \brief Register allocator internals.
@@ -2017,6 +2099,7 @@ namespace asmjit {
 #include "core/archtraits.h"
 #include "core/assembler.h"
 #include "core/builder.h"
+#include "core/codebuffer.h"
 #include "core/codeholder.h"
 #include "core/compiler.h"
 #include "core/constpool.h"
@@ -2024,6 +2107,7 @@ namespace asmjit {
 #include "core/emitter.h"
 #include "core/environment.h"
 #include "core/errorhandler.h"
+#include "core/fixup.h"
 #include "core/formatter.h"
 #include "core/func.h"
 #include "core/globals.h"

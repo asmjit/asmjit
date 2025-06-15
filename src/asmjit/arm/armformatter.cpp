@@ -1,11 +1,12 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
 #ifndef ASMJIT_NO_LOGGING
 
+#include "../core/formatter_p.h"
 #include "../core/misc_p.h"
 #include "../core/support.h"
 #include "../arm/armformatter_p.h"
@@ -48,6 +49,7 @@ Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept 
     "CHK\0"
     "CLRBHB\0"
     "CMOW\0"
+    "CMPBR\0"
     "CONSTPACFIELD\0"
     "CPA\0"
     "CPA2\0"
@@ -69,6 +71,10 @@ Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept 
     "ECV\0"
     "EDHSR\0"
     "EDSP\0"
+    "F8E4M3\0"
+    "F8E5M2\0"
+    "F8F16MM\0"
+    "F8F32MM\0"
     "FAMINMAX\0"
     "FCMA\0"
     "FGT\0"
@@ -85,6 +91,7 @@ Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept 
     "FP8DOT4\0"
     "FP8FMA\0"
     "FPMR\0"
+    "FPRCVT\0"
     "FRINTTS\0"
     "GCS\0"
     "HACDBS\0"
@@ -107,9 +114,12 @@ Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept 
     "LS64\0"
     "LS64_ACCDATA\0"
     "LS64_V\0"
+    "LS64WB\0"
     "LSE\0"
     "LSE128\0"
     "LSE2\0"
+    "LSFE\0"
+    "LSUI\0"
     "LUT\0"
     "LVA\0"
     "LVA3\0"
@@ -131,6 +141,7 @@ Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept 
     "NMI\0"
     "NV\0"
     "NV2\0"
+    "OCCMO\0"
     "PAN\0"
     "PAN2\0"
     "PAN3\0"
@@ -166,6 +177,8 @@ Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept 
     "SME\0"
     "SME2\0"
     "SME2_1\0"
+    "SME2_2\0"
+    "SME_AES\0"
     "SME_B16B16\0"
     "SME_B16F32\0"
     "SME_BI32I32\0"
@@ -180,6 +193,8 @@ Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept 
     "SME_I16I64\0"
     "SME_I8I32\0"
     "SME_LUTv2\0"
+    "SME_MOP4\0"
+    "SME_TMOP\0"
     "SPE\0"
     "SPE1_1\0"
     "SPE1_2\0"
@@ -196,17 +211,25 @@ Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept 
     "SPMU\0"
     "SSBS\0"
     "SSBS2\0"
+    "SSVE_AES\0"
+    "SSVE_BITPERM\0"
+    "SSVE_FEXPA\0"
     "SSVE_FP8DOT2\0"
     "SSVE_FP8DOT4\0"
     "SSVE_FP8FMA\0"
     "SVE\0"
     "SVE2\0"
     "SVE2_1\0"
+    "SVE2_2\0"
     "SVE_AES\0"
+    "SVE_AES2\0"
     "SVE_B16B16\0"
     "SVE_BF16\0"
+    "SVE_BFSCALE\0"
     "SVE_BITPERM\0"
     "SVE_EBF16\0"
+    "SVE_ELTPERM\0"
+    "SVE_F16MM\0"
     "SVE_F32MM\0"
     "SVE_F64MM\0"
     "SVE_I8MM\0"
@@ -232,19 +255,21 @@ Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept 
 
   static const uint16_t sFeatureIndex[] = {
     0, 5, 11, 17, 24, 30, 38, 43, 49, 53, 57, 61, 66, 73, 79, 85, 90, 95, 99,
-    103, 109, 113, 120, 125, 139, 143, 148, 154, 160, 165, 170, 177, 182, 187,
-    191, 195, 203, 207, 212, 217, 223, 229, 233, 239, 244, 253, 258, 262, 267,
-    271, 277, 284, 289, 292, 297, 306, 310, 318, 326, 333, 338, 346, 350, 357,
-    364, 369, 375, 379, 383, 388, 394, 399, 405, 411, 415, 421, 425, 431, 438,
-    445, 450, 463, 470, 474, 481, 486, 490, 494, 499, 503, 508, 513, 517, 522,
-    527, 532, 547, 557, 576, 596, 608, 623, 638, 644, 648, 651, 655, 659, 664,
-    669, 675, 680, 684, 690, 698, 702, 709, 714, 721, 725, 729, 733, 742, 748,
-    754, 760, 766, 772, 778, 781, 788, 794, 799, 804, 811, 816, 823, 827, 831,
-    835, 840, 847, 858, 869, 881, 892, 903, 914, 925, 935, 945, 954, 965, 976,
-    986, 996, 1000, 1007, 1014, 1021, 1028, 1039, 1047, 1055, 1063, 1071, 1079,
-    1087, 1096, 1101, 1106, 1112, 1125, 1138, 1150, 1154, 1159, 1166, 1174, 1185,
-    1194, 1206, 1216, 1226, 1236, 1245, 1258, 1267, 1275, 1287, 1297, 1301, 1308,
-    1318, 1324, 1328, 1332, 1336, 1344, 1348, 1355, 1360, 1364, 1367
+    103, 109, 113, 120, 125, 131, 145, 149, 154, 160, 166, 171, 176, 183, 188,
+    193, 197, 201, 209, 213, 218, 223, 229, 235, 239, 245, 250, 257, 264, 272,
+    280, 289, 294, 298, 303, 307, 313, 320, 325, 328, 333, 342, 346, 354, 362,
+    369, 374, 381, 389, 393, 400, 407, 412, 418, 422, 426, 431, 437, 442, 448,
+    454, 458, 464, 468, 474, 481, 488, 493, 506, 513, 520, 524, 531, 536, 541,
+    546, 550, 554, 559, 563, 568, 573, 577, 582, 587, 592, 607, 617, 636, 656,
+    668, 683, 698, 704, 708, 711, 715, 721, 725, 730, 735, 741, 746, 750, 756,
+    764, 768, 775, 780, 787, 791, 795, 799, 808, 814, 820, 826, 832, 838, 844,
+    847, 854, 860, 865, 870, 877, 882, 889, 893, 897, 901, 906, 913, 920, 928,
+    939, 950, 962, 973, 984, 995, 1006, 1016, 1026, 1035, 1046, 1057, 1067, 1077,
+    1086, 1095, 1099, 1106, 1113, 1120, 1127, 1138, 1146, 1154, 1162, 1170, 1178,
+    1186, 1195, 1200, 1205, 1211, 1220, 1233, 1244, 1257, 1270, 1282, 1286, 1291,
+    1298, 1305, 1313, 1322, 1333, 1342, 1354, 1366, 1376, 1388, 1398, 1408, 1418,
+    1427, 1440, 1449, 1457, 1469, 1479, 1483, 1490, 1500, 1506, 1510, 1514, 1518,
+    1526, 1530, 1537, 1542, 1546, 1549
   };
   // @EnumStringEnd@
 
@@ -333,14 +358,7 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatRegister(
         VirtReg* vReg = cc->virtRegById(rId);
         ASMJIT_ASSERT(vReg != nullptr);
 
-        const char* name = vReg->name();
-        if (name && name[0] != '\0') {
-          ASMJIT_PROPAGATE(sb.append(name));
-        }
-        else {
-          ASMJIT_PROPAGATE(sb.appendFormat("%%%u", unsigned(Operand::virtIdToIndex(rId))));
-        }
-
+        ASMJIT_PROPAGATE(Formatter::formatVirtRegName(sb, vReg));
         virtRegFormatted = true;
       }
     }
@@ -352,18 +370,18 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatRegister(
   if (!virtRegFormatted) {
     char letter = '\0';
     switch (regType) {
-      case RegType::kARM_VecB:
-      case RegType::kARM_VecH:
-      case RegType::kARM_VecS:
-      case RegType::kARM_VecD:
-      case RegType::kARM_VecV:
-        letter = bhsdq[uint32_t(regType) - uint32_t(RegType::kARM_VecB)];
+      case RegType::kVec8:
+      case RegType::kVec16:
+      case RegType::kVec32:
+      case RegType::kVec64:
+      case RegType::kVec128:
+        letter = bhsdq[uint32_t(regType) - uint32_t(RegType::kVec8)];
         if (elementType) {
           letter = 'v';
         }
         break;
 
-      case RegType::kARM_GpW:
+      case RegType::kGp32:
         if (Environment::is64Bit(arch)) {
           letter = 'w';
 
@@ -380,7 +398,7 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatRegister(
         }
         break;
 
-      case RegType::kARM_GpX:
+      case RegType::kGp64:
         if (Environment::is64Bit(arch)) {
           if (rId == a64::Gp::kIdZr) {
             return sb.append("xzr", 3);
@@ -413,7 +431,7 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatRegister(
     FormatElementData elementData = formatElementDataTable[elementType];
     uint32_t elementCount = elementData.elementCount;
 
-    if (regType == RegType::kARM_VecD) {
+    if (regType == RegType::kVec64) {
       elementCount /= 2u;
     }
 
@@ -481,20 +499,20 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatOperand(
   const Operand_& op) noexcept {
 
   if (op.isReg()) {
-    const BaseReg& reg = op.as<BaseReg>();
+    const Reg& reg = op.as<Reg>();
 
-    uint32_t elementType = op._signature.getField<BaseVec::kSignatureRegElementTypeMask>();
-    uint32_t elementIndex = op.as<BaseVec>().elementIndex();
+    uint32_t elementType = op._signature.getField<a64::Vec::kSignatureRegElementTypeMask>();
+    uint32_t elementIndex = op.as<a64::Vec>().elementIndex();
 
-    if (!op.as<BaseVec>().hasElementIndex()) {
+    if (!op.as<a64::Vec>().hasElementIndex()) {
       elementIndex = 0xFFFFFFFFu;
     }
 
-    return formatRegister(sb, flags, emitter, arch, reg.type(), reg.id(), elementType, elementIndex);
+    return formatRegister(sb, flags, emitter, arch, reg.regType(), reg.id(), elementType, elementIndex);
   }
 
   if (op.isMem()) {
-    const Mem& m = op.as<Mem>();
+    const a64::Mem& m = op.as<a64::Mem>();
     ASMJIT_PROPAGATE(sb.append('['));
 
     if (m.hasBase()) {
@@ -591,7 +609,7 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatOperand(
 
   if (op.isRegList()) {
     const BaseRegList& regList = op.as<BaseRegList>();
-    return formatRegisterList(sb, flags, emitter, arch, regList.type(), regList.list());
+    return formatRegisterList(sb, flags, emitter, arch, regList.regType(), regList.list());
   }
 
   return sb.append("<None>");

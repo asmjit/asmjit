@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_ARM_A64INSTDB_H_P_INCLUDED
@@ -82,23 +82,22 @@ enum GpType : uint8_t {
 // ===================
 
 enum kOpSignature : uint32_t {
-  kOp_GpW = GpW::kSignature,
-  kOp_GpX = GpX::kSignature,
+  kOp_GpW = RegTraits<RegType::kGp32>::kSignature,
+  kOp_GpX = RegTraits<RegType::kGp64>::kSignature,
+  kOp_B = RegTraits<RegType::kVec8>::kSignature,
+  kOp_H = RegTraits<RegType::kVec16>::kSignature,
+  kOp_S = RegTraits<RegType::kVec32>::kSignature,
+  kOp_D = RegTraits<RegType::kVec64>::kSignature,
+  kOp_Q = RegTraits<RegType::kVec128>::kSignature,
 
-  kOp_B = VecB::kSignature,
-  kOp_H = VecH::kSignature,
-  kOp_S = VecS::kSignature,
-  kOp_D = VecD::kSignature,
-  kOp_Q = VecV::kSignature,
+  kOp_V8B = kOp_D | Vec::kSignatureElementB,
+  kOp_V4H = kOp_D | Vec::kSignatureElementH,
+  kOp_V2S = kOp_D | Vec::kSignatureElementS,
 
-  kOp_V8B = VecD::kSignature | Vec::kSignatureElementB,
-  kOp_V4H = VecD::kSignature | Vec::kSignatureElementH,
-  kOp_V2S = VecD::kSignature | Vec::kSignatureElementS,
-
-  kOp_V16B = VecV::kSignature | Vec::kSignatureElementB,
-  kOp_V8H = VecV::kSignature | Vec::kSignatureElementH,
-  kOp_V4S = VecV::kSignature | Vec::kSignatureElementS,
-  kOp_V2D = VecV::kSignature | Vec::kSignatureElementD
+  kOp_V16B = kOp_Q | Vec::kSignatureElementB,
+  kOp_V8H = kOp_Q | Vec::kSignatureElementH,
+  kOp_V4S = kOp_Q | Vec::kSignatureElementS,
+  kOp_V2D = kOp_Q | Vec::kSignatureElementD
 };
 
 // a64::InstDB - HFConv
@@ -186,6 +185,7 @@ enum EncodingId : uint32_t {
   kEncodingBaseLdpStp,
   kEncodingBaseLdxp,
   kEncodingBaseLogical,
+  kEncodingBaseMinMax,
   kEncodingBaseMov,
   kEncodingBaseMovKNZ,
   kEncodingBaseMrs,
@@ -193,6 +193,7 @@ enum EncodingId : uint32_t {
   kEncodingBaseMvnNeg,
   kEncodingBaseOp,
   kEncodingBaseOpImm,
+  kEncodingBaseOpX16,
   kEncodingBasePrfm,
   kEncodingBaseR,
   kEncodingBaseRM_NoImm,
@@ -270,6 +271,10 @@ struct BaseOp {
   uint32_t opcode;
 };
 
+struct BaseOpX16 {
+  uint32_t opcode;
+};
+
 struct BaseOpImm {
   uint32_t opcode;
   uint16_t immBits;
@@ -340,6 +345,11 @@ struct BaseAtDcIcTlbi {
 
 struct BaseAdcSbc {
   uint32_t opcode;
+};
+
+struct BaseMinMax {
+  uint32_t regOp;
+  uint32_t immOp;
 };
 
 struct BaseAddSub {
@@ -779,7 +789,7 @@ extern const BaseBfm baseBfm[3];
 extern const BaseBfx baseBfx[3];
 extern const BaseBranchCmp baseBranchCmp[2];
 extern const BaseBranchReg baseBranchReg[3];
-extern const BaseBranchRel baseBranchRel[2];
+extern const BaseBranchRel baseBranchRel[3];
 extern const BaseBranchTst baseBranchTst[2];
 extern const BaseCCmp baseCCmp[2];
 extern const BaseCInc baseCInc[3];
@@ -792,16 +802,18 @@ extern const BaseLdSt baseLdSt[9];
 extern const BaseLdpStp baseLdpStp[6];
 extern const BaseLdxp baseLdxp[2];
 extern const BaseLogical baseLogical[8];
+extern const BaseMinMax baseMinMax[4];
 extern const BaseMovKNZ baseMovKNZ[3];
 extern const BaseMvnNeg baseMvnNeg[3];
-extern const BaseOp baseOp[23];
-extern const BaseOpImm baseOpImm[14];
+extern const BaseOp baseOp[24];
+extern const BaseOpImm baseOpImm[15];
+extern const BaseOpX16 baseOpX16[1];
 extern const BasePrfm basePrfm[1];
 extern const BaseR baseR[10];
 extern const BaseRM_NoImm baseRM_NoImm[21];
 extern const BaseRM_SImm10 baseRM_SImm10[2];
 extern const BaseRM_SImm9 baseRM_SImm9[23];
-extern const BaseRR baseRR[15];
+extern const BaseRR baseRR[18];
 extern const BaseRRII baseRRII[2];
 extern const BaseRRR baseRRR[26];
 extern const BaseRRRR baseRRRR[6];

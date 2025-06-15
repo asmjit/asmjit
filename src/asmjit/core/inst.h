@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_CORE_INST_H_INCLUDED
@@ -256,7 +256,7 @@ public:
       _options(options),
       _extraReg(extraReg) {}
 
-  ASMJIT_INLINE_NODEBUG BaseInst(InstId instId, InstOptions options, const BaseReg& extraReg) noexcept
+  ASMJIT_INLINE_NODEBUG BaseInst(InstId instId, InstOptions options, const Reg& extraReg) noexcept
     : _id(instId),
       _options(options),
       _extraReg { extraReg.signature(), extraReg.id() } {}
@@ -334,7 +334,7 @@ public:
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const RegOnly& extraReg() const noexcept { return _extraReg; }
 
-  ASMJIT_INLINE_NODEBUG void setExtraReg(const BaseReg& reg) noexcept { _extraReg.init(reg); }
+  ASMJIT_INLINE_NODEBUG void setExtraReg(const Reg& reg) noexcept { _extraReg.init(reg); }
 
   ASMJIT_INLINE_NODEBUG void setExtraReg(const RegOnly& reg) noexcept { _extraReg.init(reg); }
 
@@ -414,34 +414,34 @@ enum class CpuRWFlags : uint32_t {
   // X86 Specific RW Flags
   // ----------------------------------
 
-  //! Carry flag (X86, X86_64).
+  //! Carry flag (X86|X86_64).
   kX86_CF = kCF,
-  //! Overflow flag (X86, X86_64).
+  //! Overflow flag (X86|X86_64).
   kX86_OF = kOF,
-  //! Sign flag (X86, X86_64).
+  //! Sign flag (X86|X86_64).
   kX86_SF = kSF,
-  //! Zero flag (X86, X86_64).
+  //! Zero flag (X86|X86_64).
   kX86_ZF = kZF,
 
-  //! Adjust flag (X86, X86_64).
+  //! Adjust flag (X86|X86_64).
   kX86_AF = 0x00000100u,
-  //! Parity flag (X86, X86_64).
+  //! Parity flag (X86|X86_64).
   kX86_PF = 0x00000200u,
-  //! Direction flag (X86, X86_64).
+  //! Direction flag (X86|X86_64).
   kX86_DF = 0x00000400u,
-  //! Interrupt enable flag (X86, X86_64).
+  //! Interrupt enable flag (X86|X86_64).
   kX86_IF = 0x00000800u,
 
-  //! Alignment check flag (X86, X86_64).
+  //! Alignment check flag (X86|X86_64).
   kX86_AC = 0x00001000u,
 
-  //! FPU C0 status flag (X86, X86_64).
+  //! FPU C0 status flag (X86|X86_64).
   kX86_C0 = 0x00010000u,
-  //! FPU C1 status flag (X86, X86_64).
+  //! FPU C1 status flag (X86|X86_64).
   kX86_C1 = 0x00020000u,
-  //! FPU C2 status flag (X86, X86_64).
+  //! FPU C2 status flag (X86|X86_64).
   kX86_C2 = 0x00040000u,
-  //! FPU C3 status flag (X86, X86_64).
+  //! FPU C3 status flag (X86|X86_64).
   kX86_C3 = 0x00080000u,
 
   // ARM Specific RW Flags
@@ -477,7 +477,7 @@ enum class OpRWFlags : uint32_t {
   //!
   //! This flag is used by all architectures to describe instructions that use consecutive registers, where only the
   //! first one is encoded in the instruction, and the others are just a sequence that starts with the first one. On
-  //! X86/X86_64 architecture this is used by instructions such as VP2INTERSECTD and VP2INTERSECTQ. On ARM/AArch64
+  //! X86|X86_64 architecture this is used by instructions such as VP2INTERSECTD and VP2INTERSECTQ. On ARM/AArch64
   //! this is used by vector load and store instructions that can load or store multiple registers at once.
   kConsecutive = 0x00000008u,
 
@@ -559,7 +559,7 @@ struct OpRWInfo {
 
   //! Resets this operand info (resets all members) and set common information
   //! to the given `opFlags`, `regSize`, and possibly `physId`.
-  inline void reset(OpRWFlags opFlags, uint32_t regSize, uint32_t physId = BaseReg::kIdBad) noexcept {
+  inline void reset(OpRWFlags opFlags, uint32_t regSize, uint32_t physId = Reg::kIdBad) noexcept {
     _opFlags = opFlags;
     _physId = uint8_t(physId);
     _rmSize = Support::test(opFlags, OpRWFlags::kRegMem) ? uint8_t(regSize) : uint8_t(0);
@@ -708,13 +708,13 @@ struct OpRWInfo {
 
   //! Returns a physical id of the register that is fixed for this operand.
   //!
-  //! Returns \ref BaseReg::kIdBad if any register can be used.
+  //! Returns \ref Reg::kIdBad if any register can be used.
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t physId() const noexcept { return _physId; }
 
   //! Tests whether \ref physId() would return a valid physical register id.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool hasPhysId() const noexcept { return _physId != BaseReg::kIdBad; }
+  ASMJIT_INLINE_NODEBUG bool hasPhysId() const noexcept { return _physId != Reg::kIdBad; }
 
   //! Sets physical register id, which would be fixed for this operand.
   ASMJIT_INLINE_NODEBUG void setPhysId(uint32_t physId) noexcept { _physId = uint8_t(physId); }
@@ -878,7 +878,7 @@ struct InstRWInfo {
 };
 
 //! Validation flags that can be used with \ref InstAPI::validate().
-enum class ValidationFlags : uint32_t {
+enum class ValidationFlags : uint8_t {
   //! No flags.
   kNone = 0,
   //! Allow virtual registers in the instruction.

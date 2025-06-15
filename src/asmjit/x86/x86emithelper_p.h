@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_X86_X86EMITHELPER_P_H_INCLUDED
@@ -11,6 +11,7 @@
 #include "../core/emithelper_p.h"
 #include "../core/func.h"
 #include "../x86/x86emitter.h"
+#include "../x86/x86instapi_p.h"
 #include "../x86/x86operand.h"
 
 ASMJIT_BEGIN_SUB_NAMESPACE(x86)
@@ -21,8 +22,8 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
 [[nodiscard]]
 static ASMJIT_INLINE_NODEBUG RegType vecTypeIdToRegType(TypeId typeId) noexcept {
-  return uint32_t(typeId) <= uint32_t(TypeId::_kVec128End) ? RegType::kX86_Xmm :
-         uint32_t(typeId) <= uint32_t(TypeId::_kVec256End) ? RegType::kX86_Ymm : RegType::kX86_Zmm;
+  return uint32_t(typeId) <= uint32_t(TypeId::_kVec128End) ? RegType::kVec128 :
+         uint32_t(typeId) <= uint32_t(TypeId::_kVec256End) ? RegType::kVec256 : RegType::kVec512;
 }
 
 class EmitHelper : public BaseEmitHelper {
@@ -42,18 +43,26 @@ public:
     const Operand_& src_, TypeId typeId, const char* comment = nullptr) override;
 
   Error emitArgMove(
-    const BaseReg& dst_, TypeId dstTypeId,
+    const Reg& dst_, TypeId dstTypeId,
     const Operand_& src_, TypeId srcTypeId, const char* comment = nullptr) override;
 
   Error emitRegSwap(
-    const BaseReg& a,
-    const BaseReg& b, const char* comment = nullptr) override;
+    const Reg& a,
+    const Reg& b, const char* comment = nullptr) override;
 
   Error emitProlog(const FuncFrame& frame);
   Error emitEpilog(const FuncFrame& frame);
 };
 
-void assignEmitterFuncs(BaseEmitter* emitter);
+void initEmitterFuncs(BaseEmitter* emitter) noexcept;
+
+static ASMJIT_INLINE void updateEmitterFuncs(BaseEmitter* emitter) noexcept {
+#ifndef ASMJIT_NO_VALIDATION
+  emitter->_funcs.validate = emitter->is32Bit() ? InstInternal::validateX86 : InstInternal::validateX64;
+#else
+  DebugUtils::unused(emitter);
+#endif
+}
 
 //! \}
 //! \endcond

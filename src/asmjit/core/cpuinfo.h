@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_CORE_CPUINFO_H_INCLUDED
@@ -560,6 +560,7 @@ public:
       kCHK,                      //!< CPU has CHK                 (check feature status - CHKFEAT instruction) {A64}.
       kCLRBHB,                   //!< CPU has CLRBHB              (clear BHB instruction).
       kCMOW,                     //!< CPU has CMOW                (control for cache maintenance permission) {A64}.
+      kCMPBR,                    //!< CPU has CMPBR               (Compare and branch instructions) {A64}.
       kCONSTPACFIELD,            //!< CPU has CONSTPACFIELD       (PAC algorithm enhancement) {A64}.
       kCPA,                      //!< CPU has CPA                 (instruction-only Checked Pointer Arithmetic) {A64}.
       kCPA2,                     //!< CPU has CPA2                (checked Pointer Arithmetic) {A64}.
@@ -581,6 +582,10 @@ public:
       kECV,                      //!< CPU has ECV                 (enhanced counter virtualization).
       kEDHSR,                    //!< CPU has EDHSR               (support for EDHSR) {A64}.
       kEDSP,                     //!< CPU has EDSP                (ARM/THUMB only).
+      kF8E4M3,                   //!< CPU has F8E4M3              {A64}.
+      kF8E5M2,                   //!< CPU has F8E5M2              {A64}.
+      kF8F16MM,                  //!< CPU has F8F16MM             (8-bit floating-point matrix multiply-accumulate to half-precision) {A64}
+      kF8F32MM,                  //!< CPU has F8F32MM             (8-bit floating-point matrix multiply-accumulate to single-precision) {A64}
       kFAMINMAX,                 //!< CPU has FAMINMAX            (floating-point maximum and minimum absolute value instructions) {A64}.
       kFCMA,                     //!< CPU has FCMA                (FCADD/FCMLA).
       kFGT,                      //!< CPU has FGT                 (fine-grained traps).
@@ -597,6 +602,7 @@ public:
       kFP8DOT4,                  //!< CPU has FP8DOT4             (FP8 4-way dot product to single-precision instructions) {A64}.
       kFP8FMA,                   //!< CPU has FP8FMA              (FP8 multiply-accumulate to half-precision and single-precision instructions) {A64}.
       kFPMR,                     //!< CPU has FPMR                (floating-point Mode Register) {A64}.
+      kFPRCVT,                   //!< CPU has FPRCVT              (floating-point to/from integer in scalar FP register) {A64}.
       kFRINTTS,                  //!< CPU has FRINTTS             (FRINT[32|64][X|Z] instructions) {A64}.
       kGCS,                      //!< CPU has GCS                 (guarded control stack extension) {A64}.
       kHACDBS,                   //!< CPU has HACDBS              (hardware accelerator for cleaning Dirty state) {A64}.
@@ -619,9 +625,12 @@ public:
       kLS64,                     //!< CPU has LS64                (64 byte loads/stores without return) {A64}.
       kLS64_ACCDATA,             //!< CPU has LS64_ACCDATA        (64-byte EL0 stores with return) {A64}.
       kLS64_V,                   //!< CPU has LS64_V              (64-byte stores with return) {A64}.
+      kLS64WB,                   //!< CPU has LS64WB              (LS64 for Write-back cacheable memory) {A64}
       kLSE,                      //!< CPU has LSE                 (large system extensions) {A64}.
       kLSE128,                   //!< CPU has LSE128              (128-bit atomics) {A64}.
       kLSE2,                     //!< CPU has LSE2                (large system extensions v2) {A64}.
+      kLSFE,                     //!< CPU has LSFE                (large system float extension) {A64}.
+      kLSUI,                     //!< CPU has LSUI                (unprivileged load store) {A64}.
       kLUT,                      //!< CPU has LUT                 (lookup table instructions with 2-bit and 4-bit indices) {A64}.
       kLVA,                      //!< CPU has LVA                 (large VA support) {A64}.
       kLVA3,                     //!< CPU has LVA3                (56-bit VA) {A64}.
@@ -643,6 +652,7 @@ public:
       kNMI,                      //!< CPU has NMI                 (non-maskable Interrupt) {A64}.
       kNV,                       //!< CPU has NV                  (nested virtualization enchancement) {A64}.
       kNV2,                      //!< CPU has NV2                 (enhanced support for nested virtualization) {A64}.
+      kOCCMO,                    //!< CPU has OCCMO               (outer cacheable cache maintenance operation) {A64}.
       kPAN,                      //!< CPU has PAN                 (privileged access-never extension) {A64}.
       kPAN2,                     //!< CPU has PAN2                (PAN s1e1R and s1e1W variants) {A64}.
       kPAN3,                     //!< CPU has PAN3                (support for SCTLR_ELx.EPAN) {A64}.
@@ -678,6 +688,8 @@ public:
       kSME,                      //!< CPU has SME                 (SME v1 - scalable matrix extension) {A64}.
       kSME2,                     //!< CPU has SME2                (SME v2) {A64}.
       kSME2_1,                   //!< CPU has SME2p1              (SME v2.1) {A64}.
+      kSME2_2,                   //!< CPU has SME2p1              (SME v2.2) {A64}.
+      kSME_AES,                  //!< CPU has SME_AES             {A64}.
       kSME_B16B16,               //!< CPU has SME_B16B16          (SME non-widening BFloat16 to BFloat16 arithmetic) {A64}.
       kSME_B16F32,               //!< CPU has SME_B16F32          (BFMOPA and BFMOPS instructions that accumulate BFloat16 outer products into single-precision tiles) {A64}.
       kSME_BI32I32,              //!< CPU has SME_BI32I32         (BMOPA and BMOPS instructions that accumulate 1-bit binary outer products into 32-bit integer tiles) {A64}.
@@ -692,6 +704,8 @@ public:
       kSME_I16I64,               //!< CPU has SME_I16I64          {A64}.
       kSME_I8I32,                //!< CPU has SME_I8I32           {A64}.
       kSME_LUTv2,                //!< CPU has SME_LUTv2           (lookup table instructions with 4-bit indices and 8-bit elements) {A64}.
+      kSME_MOP4,                 //!< CPU has SME_MOP4            (quarter-tile outer product instructions) {A64}.
+      kSME_TMOP,                 //!< CPU has SME_TMOP            {A64}.
       kSPE,                      //!< CPU has SPE                 (statistical profiling extension) {A64}.
       kSPE1_1,                   //!< CPU has SPEv1p1             (statistical profiling extensions version 1.1) {A64}.
       kSPE1_2,                   //!< CPU has SPEv1p2             (statistical profiling extensions version 1.2) {A64}.
@@ -708,17 +722,25 @@ public:
       kSPMU,                     //!< CPU has SPMU                (system performance monitors extension) {A64}.
       kSSBS,                     //!< CPU has SSBS                (speculative store bypass safe instruction).
       kSSBS2,                    //!< CPU has SSBS2               (MRS and MSR instructions for SSBS).
+      kSSVE_AES,                 //!< CPU has SSVE_AES            {A64}.
+      kSSVE_BITPERM,             //!< CPU has SSVE_BITPERM        {A64}.
+      kSSVE_FEXPA,               //!< CPU has SSVE_FEXPA          {A64}.
       kSSVE_FP8DOT2,             //!< CPU has SSVE_FP8DOT2        (SVE2 FP8 2-way dot product to half-precision instructions in Streaming SVE mode) {A64}.
       kSSVE_FP8DOT4,             //!< CPU has SSVE_FP8DOT4        (SVE2 FP8 4-way dot product to single-precision instructions in Streaming SVE mode) {A64}.
       kSSVE_FP8FMA,              //!< CPU has SSVE_FP8FMA         (SVE2 FP8 multiply-accumulate to half-precision and single-precision instructions in Streaming SVE mode) {A64}.
       kSVE,                      //!< CPU has SVE                 (SVE v1 - scalable vector extension) {A64}.
       kSVE2,                     //!< CPU has SVE2                (SVE v2) {A64}.
       kSVE2_1,                   //!< CPU has SVE2p1              (SVE v2.1) {A64}.
+      kSVE2_2,                   //!< CPU has SVE2p2              (SVE v2.2) {A64}.
       kSVE_AES,                  //!< CPU has SVE_AES             (SVE AES instructions) {A64}.
+      kSVE_AES2,                 //!< CPU has SVE_AES2            {A64}.
       kSVE_B16B16,               //!< CPU has SVE_B16B16          (SVE non-widening BFloat16 to BFloat16 arithmetic) {A64}.
       kSVE_BF16,                 //!< CPU has SVE_BF16            (SVE BF16 instructions) {A64}.
+      kSVE_BFSCALE,              //!< CPU has SVE_BFSCALE         {A64}.
       kSVE_BITPERM,              //!< CPU has SVE_BITPERM         (SVE bit permute) {A64}.
       kSVE_EBF16,                //!< CPU has SVE_EBF16           (SVE extended BFloat16 mode) {A64}.
+      kSVE_ELTPERM,              //!< CPU has SVE_ELTPERM         {A64}.
+      kSVE_F16MM,                //!< CPU has SVE_F16MM           (SVE half-precision floating-point matrix multiply instruction) {A64}.
       kSVE_F32MM,                //!< CPU has SVE_F32MM           (SVE single-precision floating-point matrix multiply instruction) {A64}.
       kSVE_F64MM,                //!< CPU has SVE_F64MM           (SVE double-precision floating-point matrix multiply instruction) {A64}.
       kSVE_I8MM,                 //!< CPU has SVE_I8MM            (SVE int8 matrix multiplication) {A64}.
@@ -773,6 +795,7 @@ public:
     ASMJIT_ARM_FEATURE(CHK)
     ASMJIT_ARM_FEATURE(CLRBHB)
     ASMJIT_ARM_FEATURE(CMOW)
+    ASMJIT_ARM_FEATURE(CMPBR)
     ASMJIT_ARM_FEATURE(CONSTPACFIELD)
     ASMJIT_ARM_FEATURE(CPA)
     ASMJIT_ARM_FEATURE(CPA2)
@@ -794,6 +817,10 @@ public:
     ASMJIT_ARM_FEATURE(ECV)
     ASMJIT_ARM_FEATURE(EDHSR)
     ASMJIT_ARM_FEATURE(EDSP)
+    ASMJIT_ARM_FEATURE(F8E4M3)
+    ASMJIT_ARM_FEATURE(F8E5M2)
+    ASMJIT_ARM_FEATURE(F8F16MM)
+    ASMJIT_ARM_FEATURE(F8F32MM)
     ASMJIT_ARM_FEATURE(FAMINMAX)
     ASMJIT_ARM_FEATURE(FCMA)
     ASMJIT_ARM_FEATURE(FGT)
@@ -810,6 +837,7 @@ public:
     ASMJIT_ARM_FEATURE(FP8DOT4)
     ASMJIT_ARM_FEATURE(FP8FMA)
     ASMJIT_ARM_FEATURE(FPMR)
+    ASMJIT_ARM_FEATURE(FPRCVT)
     ASMJIT_ARM_FEATURE(FRINTTS)
     ASMJIT_ARM_FEATURE(GCS)
     ASMJIT_ARM_FEATURE(HACDBS)
@@ -832,9 +860,12 @@ public:
     ASMJIT_ARM_FEATURE(LS64)
     ASMJIT_ARM_FEATURE(LS64_ACCDATA)
     ASMJIT_ARM_FEATURE(LS64_V)
+    ASMJIT_ARM_FEATURE(LS64WB)
     ASMJIT_ARM_FEATURE(LSE)
     ASMJIT_ARM_FEATURE(LSE128)
     ASMJIT_ARM_FEATURE(LSE2)
+    ASMJIT_ARM_FEATURE(LSFE)
+    ASMJIT_ARM_FEATURE(LSUI)
     ASMJIT_ARM_FEATURE(LUT)
     ASMJIT_ARM_FEATURE(LVA)
     ASMJIT_ARM_FEATURE(LVA3)
@@ -856,6 +887,7 @@ public:
     ASMJIT_ARM_FEATURE(NMI)
     ASMJIT_ARM_FEATURE(NV)
     ASMJIT_ARM_FEATURE(NV2)
+    ASMJIT_ARM_FEATURE(OCCMO)
     ASMJIT_ARM_FEATURE(PAN)
     ASMJIT_ARM_FEATURE(PAN2)
     ASMJIT_ARM_FEATURE(PAN3)
@@ -891,6 +923,8 @@ public:
     ASMJIT_ARM_FEATURE(SME)
     ASMJIT_ARM_FEATURE(SME2)
     ASMJIT_ARM_FEATURE(SME2_1)
+    ASMJIT_ARM_FEATURE(SME2_2)
+    ASMJIT_ARM_FEATURE(SME_AES)
     ASMJIT_ARM_FEATURE(SME_B16B16)
     ASMJIT_ARM_FEATURE(SME_B16F32)
     ASMJIT_ARM_FEATURE(SME_BI32I32)
@@ -905,6 +939,8 @@ public:
     ASMJIT_ARM_FEATURE(SME_I16I64)
     ASMJIT_ARM_FEATURE(SME_I8I32)
     ASMJIT_ARM_FEATURE(SME_LUTv2)
+    ASMJIT_ARM_FEATURE(SME_MOP4)
+    ASMJIT_ARM_FEATURE(SME_TMOP)
     ASMJIT_ARM_FEATURE(SPE)
     ASMJIT_ARM_FEATURE(SPE1_1)
     ASMJIT_ARM_FEATURE(SPE1_2)
@@ -921,17 +957,25 @@ public:
     ASMJIT_ARM_FEATURE(SPMU)
     ASMJIT_ARM_FEATURE(SSBS)
     ASMJIT_ARM_FEATURE(SSBS2)
+    ASMJIT_ARM_FEATURE(SSVE_AES)
+    ASMJIT_ARM_FEATURE(SSVE_BITPERM)
+    ASMJIT_ARM_FEATURE(SSVE_FEXPA)
     ASMJIT_ARM_FEATURE(SSVE_FP8DOT2)
     ASMJIT_ARM_FEATURE(SSVE_FP8DOT4)
     ASMJIT_ARM_FEATURE(SSVE_FP8FMA)
     ASMJIT_ARM_FEATURE(SVE)
     ASMJIT_ARM_FEATURE(SVE2)
     ASMJIT_ARM_FEATURE(SVE2_1)
+    ASMJIT_ARM_FEATURE(SVE2_2)
     ASMJIT_ARM_FEATURE(SVE_AES)
+    ASMJIT_ARM_FEATURE(SVE_AES2)
     ASMJIT_ARM_FEATURE(SVE_B16B16)
     ASMJIT_ARM_FEATURE(SVE_BF16)
+    ASMJIT_ARM_FEATURE(SVE_BFSCALE)
     ASMJIT_ARM_FEATURE(SVE_BITPERM)
     ASMJIT_ARM_FEATURE(SVE_EBF16)
+    ASMJIT_ARM_FEATURE(SVE_ELTPERM)
+    ASMJIT_ARM_FEATURE(SVE_F16MM)
     ASMJIT_ARM_FEATURE(SVE_F32MM)
     ASMJIT_ARM_FEATURE(SVE_F64MM)
     ASMJIT_ARM_FEATURE(SVE_I8MM)

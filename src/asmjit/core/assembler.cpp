@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
@@ -42,13 +42,15 @@ Error BaseAssembler::setOffset(size_t offset) {
 // BaseAssembler - Section Management
 // ==================================
 
-static void BaseAssembler_initSection(BaseAssembler* self, Section* section) noexcept {
+static ASMJIT_INLINE Error BaseAssembler_initSection(BaseAssembler* self, Section* section) noexcept {
   uint8_t* p = section->_buffer._data;
 
   self->_section = section;
   self->_bufferData = p;
   self->_bufferPtr  = p + section->_buffer._size;
   self->_bufferEnd  = p + section->_buffer._capacity;
+
+  return kErrorOk;
 }
 
 Error BaseAssembler::section(Section* section) {
@@ -56,51 +58,50 @@ Error BaseAssembler::section(Section* section) {
     return reportError(DebugUtils::errored(kErrorNotInitialized));
   }
 
-  if (!_code->isSectionValid(section->id()) || _code->_sections[section->id()] != section) {
+  if (!_code->isSectionValid(section->sectionId()) || _code->_sections[section->sectionId()] != section) {
     return reportError(DebugUtils::errored(kErrorInvalidSection));
   }
 
 #ifndef ASMJIT_NO_LOGGING
   if (_logger) {
-    _logger->logf(".section %s {#%u}\n", section->name(), section->id());
+    _logger->logf(".section %s {#%u}\n", section->name(), section->sectionId());
   }
 #endif
 
-  BaseAssembler_initSection(this, section);
-  return kErrorOk;
+  return BaseAssembler_initSection(this, section);
 }
 
 // BaseAssembler - Label Management
 // ================================
 
 Label BaseAssembler::newLabel() {
-  uint32_t labelId = Globals::kInvalidId;
+  Label label;
+
   if (ASMJIT_LIKELY(_code)) {
-    LabelEntry* le;
-    Error err = _code->newLabelEntry(&le);
+    Error err = _code->newLabelId(&label._baseId);
     if (ASMJIT_UNLIKELY(err)) {
       reportError(err);
     }
-    else {
-      labelId = le->id();
-    }
   }
-  return Label(labelId);
+
+  return label;
 }
 
 Label BaseAssembler::newNamedLabel(const char* name, size_t nameSize, LabelType type, uint32_t parentId) {
-  uint32_t labelId = Globals::kInvalidId;
+  Label label;
+
   if (ASMJIT_LIKELY(_code)) {
-    LabelEntry* le;
-    Error err = _code->newNamedLabelEntry(&le, name, nameSize, type, parentId);
+    uint32_t labelId;
+    Error err = _code->newNamedLabelId(&labelId, name, nameSize, type, parentId);
     if (ASMJIT_UNLIKELY(err)) {
       reportError(err);
     }
     else {
-      labelId = le->id();
+      label.setId(labelId);
     }
   }
-  return Label(labelId);
+
+  return label;
 }
 
 Error BaseAssembler::bind(const Label& label) {
@@ -108,7 +109,7 @@ Error BaseAssembler::bind(const Label& label) {
     return reportError(DebugUtils::errored(kErrorNotInitialized));
   }
 
-  Error err = _code->bindLabel(label, _section->id(), offset());
+  Error err = _code->bindLabel(label, _section->sectionId(), offset());
 
 #ifndef ASMJIT_NO_LOGGING
   if (_logger) {
@@ -258,19 +259,18 @@ Error BaseAssembler::embedLabel(const Label& label, size_t dataSize) {
     return reportError(DebugUtils::errored(kErrorNotInitialized));
   }
 
-  ASMJIT_ASSERT(_code != nullptr);
-  RelocEntry* re;
-  LabelEntry* le = _code->labelEntry(label);
-
-  if (ASMJIT_UNLIKELY(!le)) {
+  if (ASMJIT_UNLIKELY(isLabelValid(label))) {
     return reportError(DebugUtils::errored(kErrorInvalidLabel));
   }
+
+  RelocEntry* re;
+  LabelEntry& le = _code->labelEntry(label);
 
   if (dataSize == 0) {
     dataSize = registerSize();
   }
 
-  if (ASMJIT_UNLIKELY(!Support::isPowerOf2(dataSize) || dataSize > 8)) {
+  if (ASMJIT_UNLIKELY(!Support::isPowerOf2UpTo(dataSize, 8u))) {
     return reportError(DebugUtils::errored(kErrorInvalidOperandSize));
   }
 
@@ -294,24 +294,24 @@ Error BaseAssembler::embedLabel(const Label& label, size_t dataSize) {
     return reportError(err);
   }
 
-  re->_sourceSectionId = _section->id();
+  re->_sourceSectionId = _section->sectionId();
   re->_sourceOffset = offset();
   re->_format.resetToSimpleValue(OffsetType::kUnsignedOffset, dataSize);
 
-  if (le->isBound()) {
-    re->_targetSectionId = le->section()->id();
-    re->_payload = le->offset();
+  if (le.isBound()) {
+    re->_targetSectionId = le.sectionId();
+    re->_payload = le.offset();
   }
   else {
     OffsetFormat of;
     of.resetToSimpleValue(OffsetType::kUnsignedOffset, dataSize);
 
-    LabelLink* link = _code->newLabelLink(le, _section->id(), offset(), 0, of);
-    if (ASMJIT_UNLIKELY(!link)) {
+    Fixup* fixup = _code->newFixup(&le, _section->sectionId(), offset(), 0, of);
+    if (ASMJIT_UNLIKELY(!fixup)) {
       return reportError(DebugUtils::errored(kErrorOutOfMemory));
     }
 
-    link->relocId = re->id();
+    fixup->labelOrRelocId = re->id();
   }
 
   // Emit dummy DWORD/QWORD depending on the data size.
@@ -326,18 +326,18 @@ Error BaseAssembler::embedLabelDelta(const Label& label, const Label& base, size
     return reportError(DebugUtils::errored(kErrorNotInitialized));
   }
 
-  LabelEntry* labelEntry = _code->labelEntry(label);
-  LabelEntry* baseEntry = _code->labelEntry(base);
-
-  if (ASMJIT_UNLIKELY(!labelEntry || !baseEntry)) {
+  if (ASMJIT_UNLIKELY(!Support::bool_and(_code->isLabelValid(label), _code->isLabelValid(base)))) {
     return reportError(DebugUtils::errored(kErrorInvalidLabel));
   }
+
+  LabelEntry& labelEntry = _code->labelEntry(label);
+  LabelEntry& baseEntry = _code->labelEntry(base);
 
   if (dataSize == 0) {
     dataSize = registerSize();
   }
 
-  if (ASMJIT_UNLIKELY(!Support::isPowerOf2(dataSize) || dataSize > 8)) {
+  if (ASMJIT_UNLIKELY(!Support::isPowerOf2UpTo(dataSize, 8u))) {
     return reportError(DebugUtils::errored(kErrorInvalidOperandSize));
   }
 
@@ -359,8 +359,8 @@ Error BaseAssembler::embedLabelDelta(const Label& label, const Label& base, size
 #endif
 
   // If both labels are bound within the same section it means the delta can be calculated now.
-  if (labelEntry->isBound() && baseEntry->isBound() && labelEntry->section() == baseEntry->section()) {
-    uint64_t delta = labelEntry->offset() - baseEntry->offset();
+  if (labelEntry.isBound() && baseEntry.isBound() && labelEntry.sectionId() == baseEntry.sectionId()) {
+    uint64_t delta = labelEntry.offset() - baseEntry.offset();
     writer.emitValueLE(delta, dataSize);
   }
   else {
@@ -377,11 +377,11 @@ Error BaseAssembler::embedLabelDelta(const Label& label, const Label& base, size
 
     exp->reset();
     exp->opType = ExpressionOpType::kSub;
-    exp->setValueAsLabel(0, labelEntry);
-    exp->setValueAsLabel(1, baseEntry);
+    exp->setValueAsLabelId(0, label.id());
+    exp->setValueAsLabelId(1, base.id());
 
     re->_format.resetToSimpleValue(OffsetType::kSignedOffset, dataSize);
-    re->_sourceSectionId = _section->id();
+    re->_sourceSectionId = _section->sectionId();
     re->_sourceOffset = offset();
     re->_payload = (uint64_t)(uintptr_t)exp;
 
@@ -419,21 +419,26 @@ Error BaseAssembler::comment(const char* data, size_t size) {
 // BaseAssembler - Events
 // ======================
 
-Error BaseAssembler::onAttach(CodeHolder* code) noexcept {
+Error BaseAssembler::onAttach(CodeHolder& code) noexcept {
   ASMJIT_PROPAGATE(Base::onAttach(code));
 
   // Attach to the end of the .text section.
-  BaseAssembler_initSection(this, code->_sections[0]);
-
-  return kErrorOk;
+  return BaseAssembler_initSection(this, code._sections[0]);
 }
 
-Error BaseAssembler::onDetach(CodeHolder* code) noexcept {
+Error BaseAssembler::onDetach(CodeHolder& code) noexcept {
   _section    = nullptr;
   _bufferData = nullptr;
   _bufferEnd  = nullptr;
   _bufferPtr  = nullptr;
   return Base::onDetach(code);
+}
+
+Error BaseAssembler::onReinit(CodeHolder& code) noexcept {
+  // BaseEmitter::onReinit() never fails.
+  (void)Base::onReinit(code);
+
+  return BaseAssembler_initSection(this, code._sections[0]);
 }
 
 ASMJIT_END_NAMESPACE

@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_CORE_RADEFS_P_H_INCLUDED
@@ -758,7 +758,7 @@ public:
 struct LiveRegData {
   uint32_t id;
 
-  ASMJIT_INLINE_NODEBUG explicit LiveRegData(uint32_t id = BaseReg::kIdBad) noexcept : id(id) {}
+  ASMJIT_INLINE_NODEBUG explicit LiveRegData(uint32_t id = Reg::kIdBad) noexcept : id(id) {}
   ASMJIT_INLINE_NODEBUG LiveRegData(const LiveRegData& other) noexcept = default;
 
   ASMJIT_INLINE_NODEBUG void init(const LiveRegData& other) noexcept { id = other.id; }
@@ -1085,11 +1085,11 @@ struct RATiedReg {
 
   //! Tests whether the register must be allocated to a fixed physical register before it's used.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool hasUseId() const noexcept { return _useId != BaseReg::kIdBad; }
+  ASMJIT_INLINE_NODEBUG bool hasUseId() const noexcept { return _useId != Reg::kIdBad; }
 
   //! Tests whether the register must be allocated to a fixed physical register before it's written.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool hasOutId() const noexcept { return _outId != BaseReg::kIdBad; }
+  ASMJIT_INLINE_NODEBUG bool hasOutId() const noexcept { return _outId != Reg::kIdBad; }
 
   //! Returns a physical register id used for 'use' operation.
   [[nodiscard]]
@@ -1227,9 +1227,9 @@ public:
   //! Argument value index in the pack (0 by default).
   uint8_t _argValueIndex = 0;
   //! Global home register ID (if any, assigned by RA).
-  uint8_t _homeRegId = BaseReg::kIdBad;
+  uint8_t _homeRegId = Reg::kIdBad;
   //! Global hint register ID (provided by RA or user).
-  uint8_t _hintRegId = BaseReg::kIdBad;
+  uint8_t _hintRegId = Reg::kIdBad;
 
   //! Live spans of the `VirtReg`.
   LiveRegSpans _liveSpans {};
@@ -1392,7 +1392,7 @@ public:
   }
 
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool hasHomeRegId() const noexcept { return _homeRegId != BaseReg::kIdBad; }
+  ASMJIT_INLINE_NODEBUG bool hasHomeRegId() const noexcept { return _homeRegId != Reg::kIdBad; }
 
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t homeRegId() const noexcept { return _homeRegId; }
@@ -1400,7 +1400,7 @@ public:
   ASMJIT_INLINE_NODEBUG void setHomeRegId(uint32_t physId) noexcept { _homeRegId = uint8_t(physId); }
 
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool hasHintRegId() const noexcept { return _hintRegId != BaseReg::kIdBad; }
+  ASMJIT_INLINE_NODEBUG bool hasHintRegId() const noexcept { return _hintRegId != Reg::kIdBad; }
 
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t hintRegId() const noexcept { return _hintRegId; }
@@ -1414,7 +1414,7 @@ public:
   ASMJIT_INLINE_NODEBUG bool hasUseIdMask() const noexcept { return _useIdMask != 0u; }
 
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool hasMultipleUseIds() const noexcept { return _useIdMask != 0u && !Support::isPowerOf2(_useIdMask); }
+  ASMJIT_INLINE_NODEBUG bool hasMultipleUseIds() const noexcept { return Support::hasAtLeast2BitsSet(_useIdMask); }
 
   ASMJIT_INLINE_NODEBUG void addUseIdMask(RegMask mask) noexcept { _useIdMask |= mask; }
 

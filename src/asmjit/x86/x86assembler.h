@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_X86_X86ASSEMBLER_H_INCLUDED
@@ -363,8 +363,8 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //!   x86::Gp src_a = a.zcx();
 //!   x86::Gp src_b = a.zdx();
 //!
-//!   x86::Xmm vec0 = x86::xmm0;
-//!   x86::Xmm vec1 = x86::xmm1;
+//!   x86::Vec vec0 = x86::xmm0;
+//!   x86::Vec vec1 = x86::xmm1;
 //!
 //!   // Create/initialize FuncDetail and FuncFrame.
 //!   FuncDetail func;
@@ -377,7 +377,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //!   // Make XMM0 and XMM1 dirty - RegGroup::kVec describes XMM|YMM|ZMM registers.
 //!   frame.setDirtyRegs(RegGroup::kVec, Support::bitMask(0, 1));
 //!
-//!   // Alternatively, if you don't want to use register masks you can pass BaseReg
+//!   // Alternatively, if you don't want to use register masks you can pass Reg
 //!   // to addDirtyRegs(). The following code would add both xmm0 and xmm1.
 //!   frame.addDirtyRegs(x86::xmm0, x86::xmm1);
 //!
@@ -682,8 +682,8 @@ public:
   //! \name Events
   //! \{
 
-  ASMJIT_API Error onAttach(CodeHolder* code) noexcept override;
-  ASMJIT_API Error onDetach(CodeHolder* code) noexcept override;
+  ASMJIT_API Error onAttach(CodeHolder& code) noexcept override;
+  ASMJIT_API Error onDetach(CodeHolder& code) noexcept override;
 
   //! \}
 };

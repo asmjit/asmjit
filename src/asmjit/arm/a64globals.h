@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_ARM_A64GLOBALS_H_INCLUDED
@@ -26,6 +26,7 @@ namespace Inst {
   enum Id : uint32_t {
     // ${InstId:Begin}
     kIdNone = 0,                         //!< Instruction ''.
+    kIdAbs,                              //!< Instruction 'abs'.
     kIdAdc,                              //!< Instruction 'adc'.
     kIdAdcs,                             //!< Instruction 'adcs'.
     kIdAdd,                              //!< Instruction 'add'.
@@ -54,6 +55,7 @@ namespace Inst {
     kIdAutizb,                           //!< Instruction 'autizb'.
     kIdAxflag,                           //!< Instruction 'axflag'.
     kIdB,                                //!< Instruction 'b'.
+    kIdBc,                               //!< Instruction 'bc'.
     kIdBfc,                              //!< Instruction 'bfc'.
     kIdBfi,                              //!< Instruction 'bfi'.
     kIdBfm,                              //!< Instruction 'bfm'.
@@ -64,6 +66,7 @@ namespace Inst {
     kIdBlr,                              //!< Instruction 'blr'.
     kIdBr,                               //!< Instruction 'br'.
     kIdBrk,                              //!< Instruction 'brk'.
+    kIdBti,                              //!< Instruction 'bti'.
     kIdCas,                              //!< Instruction 'cas'.
     kIdCasa,                             //!< Instruction 'casa'.
     kIdCasab,                            //!< Instruction 'casab'.
@@ -85,8 +88,10 @@ namespace Inst {
     kIdCcmn,                             //!< Instruction 'ccmn'.
     kIdCcmp,                             //!< Instruction 'ccmp'.
     kIdCfinv,                            //!< Instruction 'cfinv'.
+    kIdChkfeat,                          //!< Instruction 'chkfeat'.
     kIdCinc,                             //!< Instruction 'cinc'.
     kIdCinv,                             //!< Instruction 'cinv'.
+    kIdClrbhb,                           //!< Instruction 'clrbhb'.
     kIdClrex,                            //!< Instruction 'clrex'.
     kIdCls,                              //!< Instruction 'cls'.
     kIdClz,                              //!< Instruction 'clz'.
@@ -94,6 +99,7 @@ namespace Inst {
     kIdCmp,                              //!< Instruction 'cmp'.
     kIdCmpp,                             //!< Instruction 'cmpp'.
     kIdCneg,                             //!< Instruction 'cneg'.
+    kIdCnt,                              //!< Instruction 'cnt'.
     kIdCrc32b,                           //!< Instruction 'crc32b'.
     kIdCrc32cb,                          //!< Instruction 'crc32cb'.
     kIdCrc32ch,                          //!< Instruction 'crc32ch'.
@@ -109,6 +115,7 @@ namespace Inst {
     kIdCsinc,                            //!< Instruction 'csinc'.
     kIdCsinv,                            //!< Instruction 'csinv'.
     kIdCsneg,                            //!< Instruction 'csneg'.
+    kIdCtz,                              //!< Instruction 'ctz'.
     kIdDc,                               //!< Instruction 'dc'.
     kIdDcps1,                            //!< Instruction 'dcps1'.
     kIdDcps2,                            //!< Instruction 'dcps2'.
@@ -311,7 +318,9 @@ namespace Inst {
     kIdSev,                              //!< Instruction 'sev'.
     kIdSevl,                             //!< Instruction 'sevl'.
     kIdSmaddl,                           //!< Instruction 'smaddl'.
+    kIdSmax,                             //!< Instruction 'smax'.
     kIdSmc,                              //!< Instruction 'smc'.
+    kIdSmin,                             //!< Instruction 'smin'.
     kIdSmnegl,                           //!< Instruction 'smnegl'.
     kIdSmsubl,                           //!< Instruction 'smsubl'.
     kIdSmulh,                            //!< Instruction 'smulh'.
@@ -429,6 +438,8 @@ namespace Inst {
     kIdUdf,                              //!< Instruction 'udf'.
     kIdUdiv,                             //!< Instruction 'udiv'.
     kIdUmaddl,                           //!< Instruction 'umaddl'.
+    kIdUmax,                             //!< Instruction 'umax'.
+    kIdUmin,                             //!< Instruction 'umin'.
     kIdUmnegl,                           //!< Instruction 'umnegl'.
     kIdUmull,                            //!< Instruction 'umull'.
     kIdUmulh,                            //!< Instruction 'umulh'.
@@ -821,6 +832,17 @@ namespace AT {
     kS12E0W = encode(0b100, 0b0111, 0b1000, 0b111),
     kS1E1RP = encode(0b000, 0b0111, 0b1001, 0b000),
     kS1E1WP = encode(0b000, 0b0111, 0b1001, 0b001)
+  };
+}
+
+//! Branch target identification targets (BTI).
+namespace BTI {
+  //! Branch target identification targets
+  enum Value : uint32_t {
+    kNone = 0u,
+    kC = 1u,
+    kJ = 2u,
+    kJC = 3u
   };
 }
 

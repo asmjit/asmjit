@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include <asmjit/core.h>
@@ -575,8 +575,8 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    x86::Xmm a = cc.newXmmSs("a");
-    x86::Xmm b = cc.newXmmSs("b");
+    x86::Vec a = cc.newXmmSs("a");
+    x86::Vec b = cc.newXmmSs("b");
     x86::Gp op = cc.newUInt32("op");
     x86::Gp target = cc.newIntPtr("target");
     x86::Gp offset = cc.newIntPtr("offset");
@@ -1191,7 +1191,7 @@ public:
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<void, float, float, float, float, float, float, float, void*>());
 
     x86::Gp p = cc.newIntPtr("p");
-    x86::Xmm xv[7];
+    x86::Vec xv[7];
 
     for (uint32_t i = 0; i < 7; i++) {
       xv[i] = cc.newXmmSs("xv%u", i);
@@ -1242,7 +1242,7 @@ public:
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<void, double, double, double, double, double, double, double, void*>());
 
     x86::Gp p = cc.newIntPtr("p");
-    x86::Xmm xv[7];
+    x86::Vec xv[7];
 
     for (uint32_t i = 0; i < 7; i++) {
       xv[i] = cc.newXmmSd("xv%u", i);
@@ -1296,10 +1296,10 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    x86::Xmm a = cc.newXmm("aXmm");
-    x86::Xmm b = cc.newXmm("bXmm");
+    x86::Vec a = cc.newXmm("aXmm");
+    x86::Vec b = cc.newXmm("bXmm");
 
-    FuncNode* funcNode = cc.addFunc(FuncSignature::build<x86::Xmm, x86::Xmm, x86::Xmm>());
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<Type::Vec128, Type::Vec128, Type::Vec128>());
     funcNode->setArg(0, a);
     funcNode->setArg(1, b);
 
@@ -1345,7 +1345,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    x86::Xmm x = cc.newXmmSs("x");
+    x86::Vec x = cc.newXmmSs("x");
 
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<float, float>());
     funcNode->setArg(0, x);
@@ -1380,8 +1380,8 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    x86::Xmm x = cc.newXmmSs("x");
-    x86::Xmm y = cc.newXmmSs("y");
+    x86::Vec x = cc.newXmmSs("x");
+    x86::Vec y = cc.newXmmSs("y");
 
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<float, float, float>());
     funcNode->setArg(0, x);
@@ -1419,7 +1419,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    x86::Xmm x = cc.newXmmSd("x");
+    x86::Vec x = cc.newXmmSd("x");
 
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<double, double>());
     funcNode->setArg(0, x);
@@ -1454,8 +1454,8 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    x86::Xmm x = cc.newXmmSd("x");
-    x86::Xmm y = cc.newXmmSd("y");
+    x86::Vec x = cc.newXmmSd("x");
+    x86::Vec y = cc.newXmmSd("y");
 
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<double, double, double>());
     funcNode->setArg(0, x);
@@ -2495,7 +2495,7 @@ public:
     using Func = void (*)(void*);
     Func func = ptr_as_func<Func>(_func);
 
-    uint32_t out[16];
+    uint32_t out[16] {};
     func(out);
 
     result.assign("{");
@@ -2825,8 +2825,8 @@ public:
     x86::Gp bPtr = cc.newIntPtr("bPtr");
     x86::Gp pFn = cc.newIntPtr("pFn");
 
-    x86::Xmm aXmm = cc.newXmm("aXmm");
-    x86::Xmm bXmm = cc.newXmm("bXmm");
+    x86::Vec aXmm = cc.newXmm("aXmm");
+    x86::Vec bXmm = cc.newXmm("bXmm");
 
     funcNode->setArg(0, resultPtr);
     funcNode->setArg(1, aPtr);
@@ -2847,7 +2847,7 @@ public:
     cc.movdqu(bXmm, x86::ptr(bPtr));
 
     InvokeNode* invokeNode;
-    cc.invoke(&invokeNode, pFn, FuncSignature::build<x86::Xmm, x86::Xmm, x86::Xmm>(ccId));
+    cc.invoke(&invokeNode, pFn, FuncSignature::build<Type::Vec128, Type::Vec128, Type::Vec128>(ccId));
 
     invokeNode->setArg(0, aXmm);
     invokeNode->setArg(1, bXmm);
@@ -2901,7 +2901,7 @@ public:
 
   virtual void compile(x86::Compiler& cc) {
     FuncSignature f1Sig = FuncSignature::build<void, const void*, const void*, const void*, const void*, void*>();
-    FuncSignature f2Sig = FuncSignature::build<x86::Xmm, x86::Xmm, x86::Xmm>(CallConvId::kLightCall2);
+    FuncSignature f2Sig = FuncSignature::build<Type::Vec128, Type::Vec128, Type::Vec128>(CallConvId::kLightCall2);
 
     FuncNode* f1Node = cc.newFunc(f1Sig);
     FuncNode* f2Node = cc.newFunc(f2Sig);
@@ -2913,10 +2913,10 @@ public:
       x86::Gp dPtr = cc.newIntPtr("dPtr");
       x86::Gp pOut = cc.newIntPtr("pOut");
 
-      x86::Xmm aXmm = cc.newXmm("aXmm");
-      x86::Xmm bXmm = cc.newXmm("bXmm");
-      x86::Xmm cXmm = cc.newXmm("cXmm");
-      x86::Xmm dXmm = cc.newXmm("dXmm");
+      x86::Vec aXmm = cc.newXmm("aXmm");
+      x86::Vec bXmm = cc.newXmm("bXmm");
+      x86::Vec cXmm = cc.newXmm("cXmm");
+      x86::Vec dXmm = cc.newXmm("dXmm");
 
       cc.addFunc(f1Node);
       f1Node->setArg(0, aPtr);
@@ -2930,8 +2930,8 @@ public:
       cc.movups(cXmm, x86::ptr(cPtr));
       cc.movups(dXmm, x86::ptr(dPtr));
 
-      x86::Xmm xXmm = cc.newXmm("xXmm");
-      x86::Xmm yXmm = cc.newXmm("yXmm");
+      x86::Vec xXmm = cc.newXmm("xXmm");
+      x86::Vec yXmm = cc.newXmm("yXmm");
 
       InvokeNode* invokeNode;
 
@@ -2952,8 +2952,8 @@ public:
     }
 
     {
-      x86::Xmm aXmm = cc.newXmm("aXmm");
-      x86::Xmm bXmm = cc.newXmm("bXmm");
+      x86::Vec aXmm = cc.newXmm("aXmm");
+      x86::Vec bXmm = cc.newXmm("bXmm");
 
       cc.addFunc(f2Node);
       f2Node->setArg(0, aXmm);
@@ -3322,9 +3322,9 @@ public:
   virtual void compile(x86::Compiler& cc) {
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<float, float, float>());
 
-    x86::Xmm a = cc.newXmmSs("a");
-    x86::Xmm b = cc.newXmmSs("b");
-    x86::Xmm ret = cc.newXmmSs("ret");
+    x86::Vec a = cc.newXmmSs("a");
+    x86::Vec b = cc.newXmmSs("b");
+    x86::Vec ret = cc.newXmmSs("ret");
 
     funcNode->setArg(0, a);
     funcNode->setArg(1, b);
@@ -3372,9 +3372,9 @@ public:
   virtual void compile(x86::Compiler& cc) {
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<double, double, double>());
 
-    x86::Xmm a = cc.newXmmSd("a");
-    x86::Xmm b = cc.newXmmSd("b");
-    x86::Xmm ret = cc.newXmmSd("ret");
+    x86::Vec a = cc.newXmmSd("a");
+    x86::Vec b = cc.newXmmSd("b");
+    x86::Vec ret = cc.newXmmSd("ret");
 
     funcNode->setArg(0, a);
     funcNode->setArg(1, b);
@@ -3692,10 +3692,10 @@ public:
   virtual void compile(x86::Compiler& cc) {
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<double, double, double, double, double>());
 
-    x86::Xmm a0 = cc.newXmmSd("a0");
-    x86::Xmm a1 = cc.newXmmSd("a1");
-    x86::Xmm a2 = cc.newXmmSd("a2");
-    x86::Xmm a3 = cc.newXmmSd("a3");
+    x86::Vec a0 = cc.newXmmSd("a0");
+    x86::Vec a1 = cc.newXmmSd("a1");
+    x86::Vec a2 = cc.newXmmSd("a2");
+    x86::Vec a3 = cc.newXmmSd("a3");
 
     funcNode->setArg(0, a0);
     funcNode->setArg(1, a1);
@@ -3872,8 +3872,8 @@ public:
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<double, const double*>());
 
     x86::Gp p = cc.newIntPtr("p");
-    x86::Xmm arg = cc.newXmmSd("arg");
-    x86::Xmm ret = cc.newXmmSd("ret");
+    x86::Vec arg = cc.newXmmSd("arg");
+    x86::Vec ret = cc.newXmmSd("ret");
 
     funcNode->setArg(0, p);
     cc.movsd(arg, x86::ptr(p));
@@ -3922,8 +3922,8 @@ public:
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<double, const double*>());
 
     x86::Gp p = cc.newIntPtr("p");
-    x86::Xmm arg = cc.newXmmSd("arg");
-    x86::Xmm ret = cc.newXmmSd("ret");
+    x86::Vec arg = cc.newXmmSd("arg");
+    x86::Vec ret = cc.newXmmSd("ret");
 
     funcNode->setArg(0, p);
     cc.movsd(arg, x86::ptr(p));
@@ -3984,7 +3984,7 @@ public:
     invokeSignature.setRet(TypeId::kFloat64);
 
     cc.invoke(&invokeNode, imm((void*)calledFunc), invokeSignature);
-    x86::Xmm ret = cc.newXmmSd("ret");
+    x86::Vec ret = cc.newXmmSd("ret");
     invokeNode->setRet(0, ret);
     cc.ret(ret);
 
@@ -4157,7 +4157,7 @@ public:
       x86::Gp aPtr = cc.newIntPtr("aPtr");
       x86::Gp bPtr = cc.newIntPtr("bPtr");
       x86::Gp tPtr = cc.newIntPtr("tPtr");
-      x86::Ymm acc[8];
+      x86::Vec acc[8];
       x86::Mem stack = cc.newStack(32, 1, "stack");
 
       mainFunc->setArg(0, dPtr);
@@ -4197,7 +4197,7 @@ public:
       helperFunc->setArg(1, aPtr);
 
       x86::Gp tmp = cc.newIntPtr("tmp");
-      x86::Ymm acc = cc.newYmm("acc");
+      x86::Vec acc = cc.newYmm("acc");
 
       cc.mov(tmp, 1);
       cc.vmovd(acc.xmm(), tmp);
@@ -4262,7 +4262,7 @@ public:
 
     x86::Gp x = cc.newInt32("x");
     x86::Gp t = cc.newInt32("t");
-    x86::Xmm v[kVecCount];
+    x86::Vec v[kVecCount];
 
     func->setArg(0, x);
 

@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
@@ -1153,7 +1153,7 @@ Error releaseDualMapping(DualMapping* dm, size_t size) noexcept {
 
 void flushInstructionCache(void* p, size_t size) noexcept {
 #if ASMJIT_ARCH_X86 || defined(__EMSCRIPTEN__)
-  // X86/X86_64 architecture doesn't require to do anything to flush instruction cache.
+  // X86|X86_64 architecture doesn't require to do anything to flush instruction cache.
   DebugUtils::unused(p, size);
 #elif defined(__APPLE__)
   sys_icache_invalidate(p, size);

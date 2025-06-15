@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
@@ -24,14 +24,14 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
 static constexpr OperandSignature regSizeToGpSignature[8 + 1] = {
   OperandSignature{0},
-  OperandSignature{RegTraits<RegType::kX86_GpbLo>::kSignature},
-  OperandSignature{RegTraits<RegType::kX86_Gpw>::kSignature},
+  OperandSignature{RegTraits<RegType::kGp8Lo>::kSignature},
+  OperandSignature{RegTraits<RegType::kGp16>::kSignature},
   OperandSignature{0},
-  OperandSignature{RegTraits<RegType::kX86_Gpd>::kSignature},
+  OperandSignature{RegTraits<RegType::kGp32>::kSignature},
   OperandSignature{0},
   OperandSignature{0},
   OperandSignature{0},
-  OperandSignature{RegTraits<RegType::kX86_Gpq>::kSignature}
+  OperandSignature{RegTraits<RegType::kGp64>::kSignature}
 };
 
 [[nodiscard]]
@@ -96,14 +96,14 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitRegMove(
       // Special case - 'movzx' load.
       if (memFlags & kSrcMem) {
         instId = Inst::kIdMovzx;
-        dst.setSignature(Reg::signatureOfT<RegType::kX86_Gpd>());
+        dst.setSignature(Reg::_signatureOf<RegType::kGp32>());
         break;
       }
 
       if (!memFlags) {
         // Change both destination and source registers to GPD (safer, no dependencies).
-        dst.setSignature(Reg::signatureOfT<RegType::kX86_Gpd>());
-        src.setSignature(Reg::signatureOfT<RegType::kX86_Gpd>());
+        dst.setSignature(Reg::_signatureOf<RegType::kGp32>());
+        src.setSignature(Reg::_signatureOf<RegType::kGp32>());
       }
       [[fallthrough]];
 
@@ -187,13 +187,12 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitRegMove(
 // ===============================
 
 ASMJIT_FAVOR_SIZE Error EmitHelper::emitArgMove(
-  const BaseReg& dst_, TypeId dstTypeId,
+  const Reg& dst_, TypeId dstTypeId,
   const Operand_& src_, TypeId srcTypeId, const char* comment) {
 
   // Deduce optional `dstTypeId`, which may be `TypeId::kVoid` in some cases.
   if (dstTypeId == TypeId::kVoid) {
-    const ArchTraits& archTraits = ArchTraits::byArch(_emitter->arch());
-    dstTypeId = archTraits.regTypeToTypeId(dst_.type());
+    dstTypeId = RegUtils::typeIdOf(dst_.regType());
   }
 
   // Invalid or abstract TypeIds are not allowed.
@@ -263,14 +262,14 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitArgMove(
 
         // 32-bit move.
         instId = Inst::kIdMovd;
-        dst.setSignature(Reg::signatureOfT<RegType::kX86_Gpd>());
+        dst.setSignature(Reg::_signatureOf<RegType::kGp32>());
         break;
       }
 
       if (TypeUtils::isMask(srcTypeId)) {
         instId = kmovInstFromSize(srcSize);
-        dst.setSignature(srcSize <= 4 ? Reg::signatureOfT<RegType::kX86_Gpd>()
-                                      : Reg::signatureOfT<RegType::kX86_Gpq>());
+        dst.setSignature(srcSize <= 4 ? Reg::_signatureOf<RegType::kGp32>()
+                                      : Reg::_signatureOf<RegType::kGp64>());
         break;
       }
 
@@ -283,7 +282,7 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitArgMove(
 
         // 32-bit move.
         instId = _avxEnabled ? Inst::kIdVmovd : Inst::kIdMovd;
-        dst.setSignature(Reg::signatureOfT<RegType::kX86_Gpd>());
+        dst.setSignature(Reg::_signatureOf<RegType::kGp32>());
         break;
       }
     }
@@ -301,7 +300,7 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitArgMove(
         // 32-bit move.
         instId = Inst::kIdMovd;
         if (src.isReg()) {
-          src.setSignature(Reg::signatureOfT<RegType::kX86_Gpd>());
+          src.setSignature(Reg::_signatureOf<RegType::kGp32>());
         }
         break;
       }
@@ -322,8 +321,8 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitArgMove(
 
       if (TypeUtils::isInt(srcTypeId) || TypeUtils::isMask(srcTypeId) || src.isMem()) {
         instId = kmovInstFromSize(srcSize);
-        if (Reg::isGp(src) && srcSize <= 4) {
-          src.setSignature(Reg::signatureOfT<RegType::kX86_Gpd>());
+        if (src.isGp() && srcSize <= 4) {
+          src.setSignature(Reg::_signatureOf<RegType::kGp32>());
         }
         break;
       }
@@ -331,10 +330,10 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitArgMove(
 
     if (TypeUtils::isVec(dstTypeId)) {
       // By default set destination to XMM, will be set to YMM|ZMM if needed.
-      dst.setSignature(Reg::signatureOfT<RegType::kX86_Xmm>());
+      dst.setSignature(Reg::_signatureOf<RegType::kVec128>());
 
       // This will hurt if AVX is enabled.
-      if (Reg::isMm(src)) {
+      if (src.isMmReg()) {
         // 64-bit move.
         instId = Inst::kIdMovq2dq;
         break;
@@ -356,10 +355,10 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitArgMove(
         }
 
         if (dstSize == 32) {
-          dst.setSignature(Reg::signatureOfT<RegType::kX86_Ymm>());
+          dst.setSignature(Reg::_signatureOf<RegType::kVec256>());
         }
         if (src.isReg()) {
-          src.setSignature(Reg::signatureOfVecBySize(srcSize));
+          src.setSignature(RegUtils::signatureOfVecSize(srcSize));
         }
         break;
       }
@@ -375,20 +374,20 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitArgMove(
           instId = _avxEnabled ? Inst::kIdVcvtpd2ps : Inst::kIdCvtpd2ps;
         }
 
-        dst.setSignature(Reg::signatureOfVecBySize(dstSize));
+        dst.setSignature(RegUtils::signatureOfVecSize(dstSize));
         if (src.isReg() && srcSize >= 32) {
-          src.setSignature(Reg::signatureOfT<RegType::kX86_Ymm>());
+          src.setSignature(Reg::_signatureOf<RegType::kVec256>());
         }
         break;
       }
 
       srcSize = Support::min(srcSize, dstSize);
-      if (Reg::isGp(src) || src.isMem()) {
+      if (src.isGp() || src.isMem()) {
         // 32-bit move.
         if (srcSize <= 4) {
           instId = _avxEnabled ? Inst::kIdVmovd : Inst::kIdMovd;
           if (src.isReg()) {
-            src.setSignature(Reg::signatureOfT<RegType::kX86_Gpd>());
+            src.setSignature(Reg::_signatureOf<RegType::kGp32>());
           }
           break;
         }
@@ -400,14 +399,14 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitArgMove(
         }
       }
 
-      if (Reg::isVec(src) || src.isMem()) {
+      if (src.isVec() || src.isMem()) {
         instId = _avxEnabled ? Inst::kIdVmovaps : Inst::kIdMovaps;
 
         if (src.isMem() && srcSize < _emitter->environment().stackAlignment()) {
           instId = _avxEnabled ? Inst::kIdVmovups : Inst::kIdMovups;
         }
 
-        OperandSignature signature = Reg::signatureOfVecBySize(srcSize);
+        OperandSignature signature = RegUtils::signatureOfVecSize(srcSize);
         dst.setSignature(signature);
         if (src.isReg()) {
           src.setSignature(signature);
@@ -427,8 +426,8 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitArgMove(
 }
 
 Error EmitHelper::emitRegSwap(
-  const BaseReg& a,
-  const BaseReg& b, const char* comment) {
+  const Reg& a,
+  const Reg& b, const char* comment) {
 
   if (a.isGp() && b.isGp()) {
     _emitter->setInlineComment(comment);
@@ -450,7 +449,7 @@ static inline Error X86Internal_setupSaveRestoreInfo(RegGroup group, const FuncF
       xSize = xReg.size();
       return kErrorOk;
 
-    case RegGroup::kX86_K:
+    case RegGroup::kMask:
       xReg = k(0);
       xInst = Inst::kIdKmovq;
       xSize = xReg.size();
@@ -502,7 +501,7 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitProlog(const FuncFrame& frame) {
 
   // Emit: 'mov saReg, zsp'.
   uint32_t saRegId = frame.saRegId();
-  if (saRegId != BaseReg::kIdBad && saRegId != Gp::kIdSp) {
+  if (saRegId != Reg::kIdBad && saRegId != Gp::kIdSp) {
     saReg.setId(saRegId);
     if (frame.hasPreservedFP()) {
       if (saRegId != Gp::kIdBp) {
@@ -668,17 +667,13 @@ static Error ASMJIT_CDECL Emitter_emitArgsAssignment(BaseEmitter* emitter, const
   return emitHelper.emitArgsAssignment(frame, args);
 }
 
-void assignEmitterFuncs(BaseEmitter* emitter) {
+void initEmitterFuncs(BaseEmitter* emitter) noexcept {
   emitter->_funcs.emitProlog = Emitter_emitProlog;
   emitter->_funcs.emitEpilog = Emitter_emitEpilog;
   emitter->_funcs.emitArgsAssignment = Emitter_emitArgsAssignment;
 
 #ifndef ASMJIT_NO_LOGGING
   emitter->_funcs.formatInstruction = FormatterInternal::formatInstruction;
-#endif
-
-#ifndef ASMJIT_NO_VALIDATION
-  emitter->_funcs.validate = emitter->is32Bit() ? InstInternal::validateX86 : InstInternal::validateX64;
 #endif
 }
 

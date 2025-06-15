@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_CORE_CONSTPOOL_H_INCLUDED
@@ -74,9 +74,10 @@ public:
         _offset(uint32_t(offset)) {}
 
     [[nodiscard]]
-    ASMJIT_INLINE_NODEBUG void* data() const noexcept {
-      return static_cast<void*>(const_cast<ConstPool::Node*>(this) + 1);
-    }
+    ASMJIT_INLINE_NODEBUG void* data() noexcept { return Support::offsetPtr<void>(this, sizeof(*this)); }
+
+    [[nodiscard]]
+    ASMJIT_INLINE_NODEBUG const void* data() const noexcept { return Support::offsetPtr<void>(this, sizeof(*this)); }
   };
 
   //! Data comparer used internally.
@@ -175,8 +176,12 @@ public:
 
     [[nodiscard]]
     static inline Node* _newNode(Zone* zone, const void* data, size_t size, size_t offset, bool shared) noexcept {
-      Node* node = zone->allocT<Node>(Support::alignUp(sizeof(Node) + size, alignof(Node)));
-      if (ASMJIT_UNLIKELY(!node)) return nullptr;
+      size_t nodeSize = Support::alignUp(sizeof(Node) + size, Globals::kZoneAlignment);
+      Node* node = zone->alloc<Node>(nodeSize);
+
+      if (ASMJIT_UNLIKELY(!node)) {
+        return nullptr;
+      }
 
       node = new(Support::PlacementNew{node}) Node(offset, shared);
       memcpy(node->data(), data, size);

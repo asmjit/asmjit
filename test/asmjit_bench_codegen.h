@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_TEST_PERF_H_INCLUDED
@@ -46,19 +46,19 @@ static uint32_t calculateInstructionCount(asmjit::CodeHolder& code, asmjit::Arch
 }
 #endif
 
-static inline double calculateMBPS(double duration, uint64_t outputSize) noexcept {
-  if (duration == 0)
+static inline double calculateMBPS(double duration_us, uint64_t outputSize) noexcept {
+  if (duration_us == 0)
     return 0.0;
 
   double bytesTotal = double(outputSize);
-  return (bytesTotal * 1000) / (duration * 1024 * 1024);
+  return (bytesTotal * 1000000) / (duration_us * 1024 * 1024);
 }
 
 static inline double calculateMIPS(double duration, uint64_t instCount) noexcept {
   if (duration == 0)
     return 0.0;
 
-  return double(instCount) * 1000.0 / (duration * 1e6);
+  return double(instCount) * 1000000.0 / (duration * 1e6);
 }
 
 template<typename EmitterT, typename FuncT>
@@ -78,23 +78,24 @@ static void bench(asmjit::CodeHolder& code, asmjit::Arch arch, uint32_t numItera
   PerformanceTimer timer;
   double duration = std::numeric_limits<double>::infinity();
 
+  code.init(env);
+  code.setErrorHandler(&eh);
+  code.attach(&emitter);
+
   for (uint32_t r = 0; r < numIterations; r++) {
     codeSize = 0;
-    code.init(env);
-    code.setErrorHandler(&eh);
-    code.attach(&emitter);
 
     timer.start();
     func(emitter);
-    timer.stop();
-
     codeSize += code.codeSize();
 
-    code.reset();
-    duration = asmjit::Support::min(duration, timer.duration());
+    code.reinit();
+    timer.stop();
+
+    duration = asmjit::Support::min(duration, timer.duration() * 1000);
   }
 
-  printf("  [%s] %-9s %-16s | CodeSize:%5llu [B] | Time:%8.4f [ms]", archName, emitterName, testName, (unsigned long long)codeSize, duration);
+  printf("  [%-7s] %-9s %-16s | CodeSize:%5llu [B] | Time:%7.3f [us]", archName, emitterName, testName, (unsigned long long)codeSize, duration);
   if (codeSize) {
     printf(" | Speed:%7.1f [MiB/s]", calculateMBPS(duration, codeSize));
   }

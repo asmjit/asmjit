@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
@@ -20,34 +20,27 @@ ASMJIT_BEGIN_NAMESPACE
 
 static const constexpr ArchTraits noArchTraits = {
   // SP/FP/LR/PC.
-  0xFF, 0xFF, 0xFF, 0xFF,
+  0xFFu, 0xFFu, 0xFFu, 0xFFu,
 
   // Reserved,
-  { 0, 0, 0 },
+  { 0u, 0u, 0u },
 
   // HW stack alignment.
-  0,
+  0u,
 
   // Min/Max stack offset.
   0, 0,
 
-  // ISA features [Gp, Vec, Other0, Other1].
+  // Supported register types.
+  0u,
+
+  // ISA features [Gp, Vec, Mask, Extra].
   {{
     InstHints::kNoHints,
     InstHints::kNoHints,
     InstHints::kNoHints,
     InstHints::kNoHints
   }},
-
-  // RegTypeToSignature.
-  #define V(index) OperandSignature{0}
-  {{ ASMJIT_LOOKUP_TABLE_32(V, 0) }},
-  #undef V
-
-  // RegTypeToTypeId.
-  #define V(index) TypeId::kVoid
-  {{ ASMJIT_LOOKUP_TABLE_32(V, 0) }},
-  #undef V
 
   // TypeIdToRegType.
   #define V(index) RegType::kNone
@@ -107,7 +100,7 @@ ASMJIT_FAVOR_SIZE Error ArchUtils::typeIdToRegSignature(Arch arch, TypeId typeId
   // TODO: Remove this, should never be used like this.
   // Passed RegType instead of TypeId?
   if (uint32_t(typeId) <= uint32_t(RegType::kMaxValue)) {
-    typeId = archTraits.regTypeToTypeId(RegType(uint32_t(typeId)));
+    typeId = RegUtils::typeIdOf(RegType(uint32_t(typeId)));
   }
 
   if (ASMJIT_UNLIKELY(!TypeUtils::isValid(typeId))) {
@@ -149,16 +142,16 @@ ASMJIT_FAVOR_SIZE Error ArchUtils::typeIdToRegSignature(Arch arch, TypeId typeId
     }
   }
   else {
-    if (size <= 8 && archTraits._regSignature[RegType::kVec64].isValid()) {
+    if (size <= 8 && archTraits.hasRegType(RegType::kVec64)) {
       regType = RegType::kVec64;
     }
-    else if (size <= 16 && archTraits._regSignature[RegType::kVec128].isValid()) {
+    else if (size <= 16 && archTraits.hasRegType(RegType::kVec128)) {
       regType = RegType::kVec128;
     }
-    else if (size == 32 && archTraits._regSignature[RegType::kVec256].isValid()) {
+    else if (size == 32 && archTraits.hasRegType(RegType::kVec256)) {
       regType = RegType::kVec256;
     }
-    else if (archTraits._regSignature[RegType::kVec512].isValid()) {
+    else if (archTraits.hasRegType(RegType::kVec512)) {
       regType = RegType::kVec512;
     }
     else {
@@ -167,7 +160,7 @@ ASMJIT_FAVOR_SIZE Error ArchUtils::typeIdToRegSignature(Arch arch, TypeId typeId
   }
 
   *typeIdOut = typeId;
-  *regSignatureOut = archTraits.regTypeToSignature(regType);
+  *regSignatureOut = RegUtils::signatureOf(regType);
   return kErrorOk;
 }
 

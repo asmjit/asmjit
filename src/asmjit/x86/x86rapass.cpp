@@ -1,12 +1,13 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
 #if !defined(ASMJIT_NO_X86) && !defined(ASMJIT_NO_COMPILER)
 
 #include "../core/cpuinfo.h"
+#include "../core/formatter_p.h"
 #include "../core/support.h"
 #include "../core/type.h"
 #include "../x86/x86assembler.h"
@@ -113,16 +114,16 @@ public:
   Error onInvoke(InvokeNode* invokeNode, RAInstBuilder& ib) noexcept;
 
   [[nodiscard]]
-  Error moveVecToPtr(InvokeNode* invokeNode, const FuncValue& arg, const Vec& src, BaseReg* out) noexcept;
+  Error moveVecToPtr(InvokeNode* invokeNode, const FuncValue& arg, const Vec& src, Reg* out) noexcept;
 
   [[nodiscard]]
-  Error moveImmToRegArg(InvokeNode* invokeNode, const FuncValue& arg, const Imm& imm_, BaseReg* out) noexcept;
+  Error moveImmToRegArg(InvokeNode* invokeNode, const FuncValue& arg, const Imm& imm_, Reg* out) noexcept;
 
   [[nodiscard]]
   Error moveImmToStackArg(InvokeNode* invokeNode, const FuncValue& arg, const Imm& imm_) noexcept;
 
   [[nodiscard]]
-  Error moveRegToStackArg(InvokeNode* invokeNode, const FuncValue& arg, const BaseReg& reg) noexcept;
+  Error moveRegToStackArg(InvokeNode* invokeNode, const FuncValue& arg, const Reg& reg) noexcept;
 
   [[nodiscard]]
   Error onBeforeRet(FuncRetNode* funcRet) noexcept;
@@ -169,7 +170,7 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& i
         if (instInfo.isVex() && !instInfo.isEvexCompatible()) {
           if (instInfo.isEvexKRegOnly()) {
             // EVEX encodable only if the first operand is K register (compare instructions).
-            if (!Reg::isKReg(opArray[0])) {
+            if (!opArray[0].isMaskReg()) {
               instructionAllowedRegs = 0xFFFFu;
             }
           }
@@ -213,7 +214,7 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& i
           // X86-specific constraints related to LO|HI general purpose registers. This is only required when the
           // register is part of the encoding. If the register is fixed we won't restrict anything as it doesn't
           // restrict encoding of other registers.
-          if (reg.isGpb() && !opRwInfo.hasOpFlag(OpRWFlags::kRegPhysId)) {
+          if (reg.isGp8() && !opRwInfo.hasOpFlag(OpRWFlags::kRegPhysId)) {
             flags |= RATiedFlags::kX86_Gpb;
             if (!_is64Bit) {
               // Restrict to first four - AL|AH|BL|BH|CL|CH|DL|DH. In 32-bit mode it's not possible to access
@@ -225,7 +226,7 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& i
               // We need to patch all registers to not use ID higher than 7 and all GPB-LO registers to not use
               // index higher than 3. Instead of doing the patching here we just set a flag and will do it later,
               // to not complicate this loop.
-              if (reg.isGpbHi()) {
+              if (reg.isGp8Hi()) {
                 hasGpbHiConstraint = true;
                 allowedRegs = 0x0Fu;
               }
@@ -258,8 +259,8 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& i
             RegMask useRegs = _pass->_availableRegs[group] & allowedRegs;
             RegMask outRegs = useRegs;
 
-            uint32_t useId = BaseReg::kIdBad;
-            uint32_t outId = BaseReg::kIdBad;
+            uint32_t useId = Reg::kIdBad;
+            uint32_t outId = Reg::kIdBad;
 
             uint32_t useRewriteMask = 0;
             uint32_t outRewriteMask = 0;
@@ -290,7 +291,7 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& i
             }
 
             if (Support::test(flags, RATiedFlags::kUse)) {
-              useRewriteMask = Support::bitMask(inst->getRewriteIndex(&reg._baseId));
+              useRewriteMask = Support::bitMask(inst->_getRewriteIndex(&reg._baseId));
               if (opRwInfo.hasOpFlag(OpRWFlags::kRegPhysId)) {
                 useId = opRwInfo.physId();
                 flags |= RATiedFlags::kUseFixed;
@@ -308,7 +309,7 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& i
               }
             }
             else {
-              outRewriteMask = Support::bitMask(inst->getRewriteIndex(&reg._baseId));
+              outRewriteMask = Support::bitMask(inst->_getRewriteIndex(&reg._baseId));
               if (opRwInfo.hasOpFlag(OpRWFlags::kRegPhysId)) {
                 outId = opRwInfo.physId();
                 flags |= RATiedFlags::kOutFixed;
@@ -359,21 +360,21 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& i
               RegGroup group = workReg->group();
               RegMask inOutRegs = _pass->_availableRegs[group];
 
-              uint32_t useId = BaseReg::kIdBad;
-              uint32_t outId = BaseReg::kIdBad;
+              uint32_t useId = Reg::kIdBad;
+              uint32_t outId = Reg::kIdBad;
 
               uint32_t useRewriteMask = 0;
               uint32_t outRewriteMask = 0;
 
               if (Support::test(flags, RATiedFlags::kUse)) {
-                useRewriteMask = Support::bitMask(inst->getRewriteIndex(&mem._baseId));
+                useRewriteMask = Support::bitMask(inst->_getRewriteIndex(&mem._baseId));
                 if (opRwInfo.hasOpFlag(OpRWFlags::kMemPhysId)) {
                   useId = opRwInfo.physId();
                   flags |= RATiedFlags::kUseFixed;
                 }
               }
               else {
-                outRewriteMask = Support::bitMask(inst->getRewriteIndex(&mem._baseId));
+                outRewriteMask = Support::bitMask(inst->_getRewriteIndex(&mem._baseId));
                 if (opRwInfo.hasOpFlag(OpRWFlags::kMemPhysId)) {
                   outId = opRwInfo.physId();
                   flags |= RATiedFlags::kOutFixed;
@@ -395,17 +396,17 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& i
               RegMask inOutRegs = _pass->_availableRegs[group] & instructionAllowedRegs;
 
               // Index registers have never fixed id on X86/x64.
-              const uint32_t useId = BaseReg::kIdBad;
-              const uint32_t outId = BaseReg::kIdBad;
+              const uint32_t useId = Reg::kIdBad;
+              const uint32_t outId = Reg::kIdBad;
 
               uint32_t useRewriteMask = 0;
               uint32_t outRewriteMask = 0;
 
               if (Support::test(flags, RATiedFlags::kUse)) {
-                useRewriteMask = Support::bitMask(inst->getRewriteIndex(&mem._data[Operand::kDataMemIndexId]));
+                useRewriteMask = Support::bitMask(inst->_getRewriteIndex(&mem._data[Operand::kDataMemIndexId]));
               }
               else {
-                outRewriteMask = Support::bitMask(inst->getRewriteIndex(&mem._data[Operand::kDataMemIndexId]));
+                outRewriteMask = Support::bitMask(inst->_getRewriteIndex(&mem._data[Operand::kDataMemIndexId]));
               }
 
               ASMJIT_PROPAGATE(ib.add(workReg, RATiedFlags::kUse | RATiedFlags::kRead, inOutRegs, useId, useRewriteMask, inOutRegs, outId, outRewriteMask));
@@ -424,11 +425,11 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& i
 
         RegGroup group = workReg->group();
         RegMask inOutRegs = _pass->_availableRegs[group];
-        uint32_t rewriteMask = Support::bitMask(inst->getRewriteIndex(&inst->extraReg()._id));
+        uint32_t rewriteMask = Support::bitMask(inst->_getRewriteIndex(&inst->extraReg()._id));
 
-        if (group == RegGroup::kX86_K) {
+        if (group == RegGroup::kMask) {
           // AVX-512 mask selector {k} register - read-only, allocable to any register except {k0}.
-          ASMJIT_PROPAGATE(ib.add(workReg, RATiedFlags::kUse | RATiedFlags::kRead, inOutRegs, BaseReg::kIdBad, rewriteMask, inOutRegs, BaseReg::kIdBad, 0));
+          ASMJIT_PROPAGATE(ib.add(workReg, RATiedFlags::kUse | RATiedFlags::kRead, inOutRegs, Reg::kIdBad, rewriteMask, inOutRegs, Reg::kIdBad, 0));
           singleRegOps = 0;
         }
         else {
@@ -438,7 +439,7 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& i
       }
       else {
         RegGroup group = inst->extraReg().group();
-        if (group == RegGroup::kX86_K && inst->extraReg().id() != 0) {
+        if (group == RegGroup::kMask && inst->extraReg().id() != 0) {
           singleRegOps = 0;
         }
       }
@@ -481,7 +482,7 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& i
       }
       else if (opCount == 2 && inst->op(1).isImm()) {
         // Handle some tricks used by X86 asm.
-        const BaseReg& reg = inst->op(0).as<BaseReg>();
+        const Reg& reg = inst->op(0).as<Reg>();
         const Imm& imm = inst->op(1).as<Imm>();
 
         const RAWorkReg* workReg = _pass->workRegById(ib[0]->workId());
@@ -581,18 +582,18 @@ Error RACFGBuilder::onBeforeInvoke(InvokeNode* invokeNode) noexcept {
 
         if (arg.isReg()) {
           RegGroup regGroup = workReg->group();
-          RegGroup argGroup = Reg::groupOf(arg.regType());
+          RegGroup argGroup = RegUtils::groupOf(arg.regType());
 
           if (arg.isIndirect()) {
             if (reg.isGp()) {
-              if (reg.type() != nativeRegType) {
+              if (reg.regType() != nativeRegType) {
                 return DebugUtils::errored(kErrorInvalidAssignment);
               }
               // It's considered allocated if this is an indirect argument and the user used GP.
               continue;
             }
 
-            BaseReg indirectReg;
+            Reg indirectReg;
             ASMJIT_PROPAGATE(moveVecToPtr(invokeNode, arg, reg.as<Vec>(), &indirectReg));
             invokeNode->_args[argIndex][valueIndex] = indirectReg;
           }
@@ -606,7 +607,7 @@ Error RACFGBuilder::onBeforeInvoke(InvokeNode* invokeNode) noexcept {
         else {
           if (arg.isIndirect()) {
             if (reg.isGp()) {
-              if (reg.type() != nativeRegType) {
+              if (reg.regType() != nativeRegType) {
                 return DebugUtils::errored(kErrorInvalidAssignment);
               }
 
@@ -614,7 +615,7 @@ Error RACFGBuilder::onBeforeInvoke(InvokeNode* invokeNode) noexcept {
               continue;
             }
 
-            BaseReg indirectReg;
+            Reg indirectReg;
             ASMJIT_PROPAGATE(moveVecToPtr(invokeNode, arg, reg.as<Vec>(), &indirectReg));
             ASMJIT_PROPAGATE(moveRegToStackArg(invokeNode, arg, indirectReg));
           }
@@ -625,7 +626,7 @@ Error RACFGBuilder::onBeforeInvoke(InvokeNode* invokeNode) noexcept {
       }
       else if (op.isImm()) {
         if (arg.isReg()) {
-          BaseReg reg;
+          Reg reg;
           ASMJIT_PROPAGATE(moveImmToRegArg(invokeNode, arg, op.as<Imm>(), &reg));
           invokeNode->_args[argIndex][valueIndex] = reg;
         }
@@ -673,14 +674,14 @@ Error RACFGBuilder::onBeforeInvoke(InvokeNode* invokeNode) noexcept {
                 ASMJIT_PROPAGATE(_pass->useTemporaryMem(mem, 4, 4));
                 mem.setSize(4);
                 ASMJIT_PROPAGATE(cc()->fstp(mem));
-                ASMJIT_PROPAGATE(cc()->emit(choose(Inst::kIdMovss, Inst::kIdVmovss), dst.as<Xmm>(), mem));
+                ASMJIT_PROPAGATE(cc()->emit(choose(Inst::kIdMovss, Inst::kIdVmovss), dst.as<Vec>(), mem));
                 break;
 
               case TypeId::kFloat64:
                 ASMJIT_PROPAGATE(_pass->useTemporaryMem(mem, 8, 4));
                 mem.setSize(8);
                 ASMJIT_PROPAGATE(cc()->fstp(mem));
-                ASMJIT_PROPAGATE(cc()->emit(choose(Inst::kIdMovsd, Inst::kIdVmovsd), dst.as<Xmm>(), mem));
+                ASMJIT_PROPAGATE(cc()->emit(choose(Inst::kIdMovsd, Inst::kIdVmovsd), dst.as<Vec>(), mem));
                 break;
 
               default:
@@ -689,7 +690,7 @@ Error RACFGBuilder::onBeforeInvoke(InvokeNode* invokeNode) noexcept {
           }
           else {
             RegGroup regGroup = workReg->group();
-            RegGroup retGroup = Reg::groupOf(ret.regType());
+            RegGroup retGroup = RegUtils::groupOf(ret.regType());
 
             if (regGroup != retGroup) {
               // TODO: Conversion is not supported.
@@ -741,7 +742,7 @@ Error RACFGBuilder::onInvoke(InvokeNode* invokeNode, RAInstBuilder& ib) noexcept
         }
         else if (arg.isReg()) {
           RegGroup regGroup = workReg->group();
-          RegGroup argGroup = Reg::groupOf(arg.regType());
+          RegGroup argGroup = RegUtils::groupOf(arg.regType());
 
           if (regGroup == argGroup) {
             ASMJIT_PROPAGATE(ib.addCallArg(workReg, arg.regId()));
@@ -770,7 +771,7 @@ Error RACFGBuilder::onInvoke(InvokeNode* invokeNode, RAInstBuilder& ib) noexcept
 
       if (ret.isReg()) {
         RegGroup regGroup = workReg->group();
-        RegGroup retGroup = Reg::groupOf(ret.regType());
+        RegGroup retGroup = RegUtils::groupOf(ret.regType());
 
         if (regGroup == retGroup) {
           ASMJIT_PROPAGATE(ib.addCallRet(workReg, ret.regId()));
@@ -794,11 +795,14 @@ Error RACFGBuilder::onInvoke(InvokeNode* invokeNode, RAInstBuilder& ib) noexcept
 // ================================
 
 static inline OperandSignature x86VecRegSignatureBySize(uint32_t size) noexcept {
-  return OperandSignature{size >= 64 ? uint32_t(Zmm::kSignature) :
-                          size >= 32 ? uint32_t(Ymm::kSignature) : uint32_t(Xmm::kSignature)};
+  return OperandSignature{
+    size >= 64 ? RegTraits<RegType::kVec512>::kSignature :
+    size >= 32 ? RegTraits<RegType::kVec256>::kSignature :
+                 RegTraits<RegType::kVec128>::kSignature
+  };
 }
 
-Error RACFGBuilder::moveVecToPtr(InvokeNode* invokeNode, const FuncValue& arg, const Vec& src, BaseReg* out) noexcept {
+Error RACFGBuilder::moveVecToPtr(InvokeNode* invokeNode, const FuncValue& arg, const Vec& src, Reg* out) noexcept {
   DebugUtils::unused(invokeNode);
   ASMJIT_ASSERT(arg.isReg());
 
@@ -823,7 +827,7 @@ Error RACFGBuilder::moveVecToPtr(InvokeNode* invokeNode, const FuncValue& arg, c
     vMovInstId = Inst::kIdVmovaps;
   }
 
-  ASMJIT_PROPAGATE(cc()->_newReg(out, ArchTraits::byArch(cc()->arch()).regTypeToTypeId(cc()->_gpSignature.regType()), nullptr));
+  ASMJIT_PROPAGATE(cc()->_newReg(out, RegUtils::typeIdOf(cc()->_gpSignature.regType()), nullptr));
 
   VirtReg* vReg = cc()->virtRegById(out->id());
   vReg->setWeight(BaseRAPass::kCallArgWeight);
@@ -842,7 +846,7 @@ Error RACFGBuilder::moveVecToPtr(InvokeNode* invokeNode, const FuncValue& arg, c
 // x86::RACFGBuilder - MoveImmToRegArg
 // ===================================
 
-Error RACFGBuilder::moveImmToRegArg(InvokeNode* invokeNode, const FuncValue& arg, const Imm& imm_, BaseReg* out) noexcept {
+Error RACFGBuilder::moveImmToRegArg(InvokeNode* invokeNode, const FuncValue& arg, const Imm& imm_, Reg* out) noexcept {
   DebugUtils::unused(invokeNode);
   ASMJIT_ASSERT(arg.isReg());
 
@@ -944,7 +948,7 @@ MovU32:
 // x86::RACFGBuilder - MoveRegToStackArg
 // =====================================
 
-Error RACFGBuilder::moveRegToStackArg(InvokeNode* invokeNode, const FuncValue& arg, const BaseReg& reg) noexcept {
+Error RACFGBuilder::moveRegToStackArg(InvokeNode* invokeNode, const FuncValue& arg, const Reg& reg) noexcept {
   DebugUtils::unused(invokeNode);
   ASMJIT_ASSERT(arg.isStack());
 
@@ -963,7 +967,7 @@ Error RACFGBuilder::moveRegToStackArg(InvokeNode* invokeNode, const FuncValue& a
     case TypeId::kUInt64:
       // Extend BYTE->QWORD (GP).
       if (TypeUtils::isGp8(srcTypeId)) {
-        r1.setRegT<RegType::kX86_GpbLo>(reg.id());
+        r1.setRegT<RegType::kGp8Lo>(reg.id());
 
         instId = (dstTypeId == TypeId::kInt64 && srcTypeId == TypeId::kInt8) ? Inst::kIdMovsx : Inst::kIdMovzx;
         goto ExtendMovGpXQ;
@@ -971,7 +975,7 @@ Error RACFGBuilder::moveRegToStackArg(InvokeNode* invokeNode, const FuncValue& a
 
       // Extend WORD->QWORD (GP).
       if (TypeUtils::isGp16(srcTypeId)) {
-        r1.setRegT<RegType::kX86_Gpw>(reg.id());
+        r1.setRegT<RegType::kGp16>(reg.id());
 
         instId = (dstTypeId == TypeId::kInt64 && srcTypeId == TypeId::kInt16) ? Inst::kIdMovsx : Inst::kIdMovzx;
         goto ExtendMovGpXQ;
@@ -979,7 +983,7 @@ Error RACFGBuilder::moveRegToStackArg(InvokeNode* invokeNode, const FuncValue& a
 
       // Extend DWORD->QWORD (GP).
       if (TypeUtils::isGp32(srcTypeId)) {
-        r1.setRegT<RegType::kX86_Gpd>(reg.id());
+        r1.setRegT<RegType::kGp32>(reg.id());
 
         instId = Inst::kIdMovsxd;
         if (dstTypeId == TypeId::kInt64 && srcTypeId == TypeId::kInt32) {
@@ -1005,7 +1009,7 @@ Error RACFGBuilder::moveRegToStackArg(InvokeNode* invokeNode, const FuncValue& a
         bool isDstSigned = dstTypeId == TypeId::kInt16 || dstTypeId == TypeId::kInt32;
         bool isSrcSigned = srcTypeId == TypeId::kInt8  || srcTypeId == TypeId::kInt16;
 
-        r1.setRegT<RegType::kX86_Gpw>(reg.id());
+        r1.setRegT<RegType::kGp16>(reg.id());
         instId = isDstSigned && isSrcSigned ? Inst::kIdMovsx : Inst::kIdMovzx;
         goto ExtendMovGpD;
       }
@@ -1015,7 +1019,7 @@ Error RACFGBuilder::moveRegToStackArg(InvokeNode* invokeNode, const FuncValue& a
         bool isDstSigned = dstTypeId == TypeId::kInt16 || dstTypeId == TypeId::kInt32;
         bool isSrcSigned = srcTypeId == TypeId::kInt8  || srcTypeId == TypeId::kInt16;
 
-        r1.setRegT<RegType::kX86_GpbLo>(reg.id());
+        r1.setRegT<RegType::kGp8Lo>(reg.id());
         instId = isDstSigned && isSrcSigned ? Inst::kIdMovsx : Inst::kIdMovzx;
         goto ExtendMovGpD;
       }
@@ -1032,7 +1036,7 @@ Error RACFGBuilder::moveRegToStackArg(InvokeNode* invokeNode, const FuncValue& a
     case TypeId::kMmx64:
       // Extend BYTE->QWORD (GP).
       if (TypeUtils::isGp8(srcTypeId)) {
-        r1.setRegT<RegType::kX86_GpbLo>(reg.id());
+        r1.setRegT<RegType::kGp8Lo>(reg.id());
 
         instId = Inst::kIdMovzx;
         goto ExtendMovGpXQ;
@@ -1040,7 +1044,7 @@ Error RACFGBuilder::moveRegToStackArg(InvokeNode* invokeNode, const FuncValue& a
 
       // Extend WORD->QWORD (GP).
       if (TypeUtils::isGp16(srcTypeId)) {
-        r1.setRegT<RegType::kX86_Gpw>(reg.id());
+        r1.setRegT<RegType::kGp16>(reg.id());
 
         instId = Inst::kIdMovzx;
         goto ExtendMovGpXQ;
@@ -1068,13 +1072,13 @@ Error RACFGBuilder::moveRegToStackArg(InvokeNode* invokeNode, const FuncValue& a
         uint32_t vMovInstId = choose(Inst::kIdMovaps, Inst::kIdVmovaps);
 
         if (TypeUtils::isVec128(dstTypeId)) {
-          r0.setRegT<RegType::kX86_Xmm>(reg.id());
+          r0.setRegT<RegType::kVec128>(reg.id());
         }
         else if (TypeUtils::isVec256(dstTypeId)) {
-          r0.setRegT<RegType::kX86_Ymm>(reg.id());
+          r0.setRegT<RegType::kVec256>(reg.id());
         }
         else if (TypeUtils::isVec512(dstTypeId)) {
-          r0.setRegT<RegType::kX86_Zmm>(reg.id());
+          r0.setRegT<RegType::kVec512>(reg.id());
         }
         else {
           break;
@@ -1089,7 +1093,7 @@ Error RACFGBuilder::moveRegToStackArg(InvokeNode* invokeNode, const FuncValue& a
   // Extend+Move Gp.
 ExtendMovGpD:
   stackPtr.setSize(4);
-  r0.setRegT<RegType::kX86_Gpd>(reg.id());
+  r0.setRegT<RegType::kGp32>(reg.id());
 
   ASMJIT_PROPAGATE(cc()->emit(instId, r0, r1));
   ASMJIT_PROPAGATE(cc()->emit(Inst::kIdMov, stackPtr, r0));
@@ -1098,14 +1102,14 @@ ExtendMovGpD:
 ExtendMovGpXQ:
   if (registerSize == 8) {
     stackPtr.setSize(8);
-    r0.setRegT<RegType::kX86_Gpq>(reg.id());
+    r0.setRegT<RegType::kGp64>(reg.id());
 
     ASMJIT_PROPAGATE(cc()->emit(instId, r0, r1));
     ASMJIT_PROPAGATE(cc()->emit(Inst::kIdMov, stackPtr, r0));
   }
   else {
     stackPtr.setSize(4);
-    r0.setRegT<RegType::kX86_Gpd>(reg.id());
+    r0.setRegT<RegType::kGp32>(reg.id());
 
     ASMJIT_PROPAGATE(cc()->emit(instId, r0, r1));
 
@@ -1118,17 +1122,17 @@ ExtendMovGpDQ:
 
 ZeroExtendGpDQ:
   stackPtr.setSize(4);
-  r0.setRegT<RegType::kX86_Gpd>(reg.id());
+  r0.setRegT<RegType::kGp32>(reg.id());
   goto ExtendMovGpDQ;
 
 MovGpD:
   stackPtr.setSize(4);
-  r0.setRegT<RegType::kX86_Gpd>(reg.id());
+  r0.setRegT<RegType::kGp32>(reg.id());
   return cc()->emit(Inst::kIdMov, stackPtr, r0);
 
 MovGpQ:
   stackPtr.setSize(8);
-  r0.setRegT<RegType::kX86_Gpq>(reg.id());
+  r0.setRegT<RegType::kGp64>(reg.id());
   return cc()->emit(Inst::kIdMov, stackPtr, r0);
 
 MovMmD:
@@ -1143,12 +1147,12 @@ MovMmQ:
 
 MovXmmD:
   stackPtr.setSize(4);
-  r0.setRegT<RegType::kX86_Xmm>(reg.id());
+  r0.setRegT<RegType::kVec128>(reg.id());
   return cc()->emit(choose(Inst::kIdMovss, Inst::kIdVmovss), stackPtr, r0);
 
 MovXmmQ:
   stackPtr.setSize(8);
-  r0.setRegT<RegType::kX86_Xmm>(reg.id());
+  r0.setRegT<RegType::kVec128>(reg.id());
   return cc()->emit(choose(Inst::kIdMovlps, Inst::kIdVmovlps), stackPtr, r0);
 }
 
@@ -1194,14 +1198,14 @@ Error RACFGBuilder::onBeforeRet(FuncRetNode* funcRet) noexcept {
           case TypeId::kFloat32:
             ASMJIT_PROPAGATE(_pass->useTemporaryMem(mem, 4, 4));
             mem.setSize(4);
-            ASMJIT_PROPAGATE(cc()->emit(choose(Inst::kIdMovss, Inst::kIdVmovss), mem, src.as<Xmm>()));
+            ASMJIT_PROPAGATE(cc()->emit(choose(Inst::kIdMovss, Inst::kIdVmovss), mem, src.as<Vec>()));
             ASMJIT_PROPAGATE(cc()->fld(mem));
             break;
 
           case TypeId::kFloat64:
             ASMJIT_PROPAGATE(_pass->useTemporaryMem(mem, 8, 4));
             mem.setSize(8);
-            ASMJIT_PROPAGATE(cc()->emit(choose(Inst::kIdMovsd, Inst::kIdVmovsd), mem, src.as<Xmm>()));
+            ASMJIT_PROPAGATE(cc()->emit(choose(Inst::kIdMovsd, Inst::kIdVmovsd), mem, src.as<Vec>()));
             ASMJIT_PROPAGATE(cc()->fld(mem));
             break;
 
@@ -1247,7 +1251,7 @@ Error RACFGBuilder::onRet(FuncRetNode* funcRet, RAInstBuilder& ib) noexcept {
 
         RegGroup group = workReg->group();
         RegMask inOutRegs = _pass->_availableRegs[group];
-        ASMJIT_PROPAGATE(ib.add(workReg, RATiedFlags::kUse | RATiedFlags::kRead, inOutRegs, ret.regId(), 0, inOutRegs, BaseReg::kIdBad, 0));
+        ASMJIT_PROPAGATE(ib.add(workReg, RATiedFlags::kUse | RATiedFlags::kRead, inOutRegs, ret.regId(), 0, inOutRegs, Reg::kIdBad, 0));
       }
     }
     else {
@@ -1287,13 +1291,13 @@ void X86RAPass::onInit() noexcept {
   _archTraits = &ArchTraits::byArch(arch);
   _physRegCount.set(RegGroup::kGp, baseRegCount);
   _physRegCount.set(RegGroup::kVec, simdRegCount);
-  _physRegCount.set(RegGroup::kX86_K, 8);
+  _physRegCount.set(RegGroup::kMask, 8);
   _physRegCount.set(RegGroup::kX86_MM, 8);
   _buildPhysIndex();
 
   _availableRegs[RegGroup::kGp] = Support::lsbMask<RegMask>(_physRegCount.get(RegGroup::kGp));
   _availableRegs[RegGroup::kVec] = Support::lsbMask<RegMask>(_physRegCount.get(RegGroup::kVec));
-  _availableRegs[RegGroup::kX86_K] = Support::lsbMask<RegMask>(_physRegCount.get(RegGroup::kX86_K)) ^ 1u;
+  _availableRegs[RegGroup::kMask] = Support::lsbMask<RegMask>(_physRegCount.get(RegGroup::kMask)) ^ 1u;
   _availableRegs[RegGroup::kX86_MM] = Support::lsbMask<RegMask>(_physRegCount.get(RegGroup::kX86_MM));
 
   _scratchRegIndexes[0] = uint8_t(Gp::kIdCx);
@@ -1387,14 +1391,14 @@ ASMJIT_FAVOR_SPEED Error X86RAPass::_rewrite(BaseNode* first, BaseNode* stop) no
           uint32_t useId = tiedReg->useId();
           while (useIt.hasNext()) {
             maxRegId = Support::max(maxRegId, useId);
-            inst->rewriteIdAtIndex(useIt.next(), useId);
+            inst->_rewriteIdAtIndex(useIt.next(), useId);
           }
 
           Support::BitWordIterator<uint32_t> outIt(tiedReg->outRewriteMask());
           uint32_t outId = tiedReg->outId();
           while (outIt.hasNext()) {
             maxRegId = Support::max(maxRegId, outId);
-            inst->rewriteIdAtIndex(outIt.next(), outId);
+            inst->_rewriteIdAtIndex(outIt.next(), outId);
           }
         }
 
@@ -1501,7 +1505,7 @@ ASMJIT_FAVOR_SPEED Error X86RAPass::_rewrite(BaseNode* first, BaseNode* stop) no
             RAStackSlot* slot = workReg->stackSlot();
             int32_t offset = slot->offset();
 
-            mem._setBase(_sp.type(), slot->baseRegId());
+            mem._setBase(_sp.regType(), slot->baseRegId());
             mem.clearRegHome();
             mem.addOffsetLo32(offset);
           }
@@ -1521,14 +1525,15 @@ Next:
 
 Error X86RAPass::emitMove(uint32_t workId, uint32_t dstPhysId, uint32_t srcPhysId) noexcept {
   RAWorkReg* wReg = workRegById(workId);
-  BaseReg dst(wReg->signature(), dstPhysId);
-  BaseReg src(wReg->signature(), srcPhysId);
+  Reg dst(wReg->signature(), dstPhysId);
+  Reg src(wReg->signature(), srcPhysId);
 
   const char* comment = nullptr;
 
 #ifndef ASMJIT_NO_LOGGING
   if (hasDiagnosticOption(DiagnosticOptions::kRAAnnotate)) {
-    _tmpString.assignFormat("<MOVE> %s", workRegById(workId)->name());
+    _tmpString.clear();
+    Formatter::formatVirtRegNameWithPrefix(_tmpString, "<MOVE> ", 7u, wReg->virtReg());
     comment = _tmpString.data();
   }
 #endif
@@ -1541,12 +1546,14 @@ Error X86RAPass::emitSwap(uint32_t aWorkId, uint32_t aPhysId, uint32_t bWorkId, 
   RAWorkReg* wbReg = workRegById(bWorkId);
 
   bool is64Bit = Support::max(waReg->typeId(), wbReg->typeId()) >= TypeId::kInt64;
-  OperandSignature sign = is64Bit ? OperandSignature{RegTraits<RegType::kX86_Gpq>::kSignature}
-                                  : OperandSignature{RegTraits<RegType::kX86_Gpd>::kSignature};
+  OperandSignature sign = is64Bit ? OperandSignature{RegTraits<RegType::kGp64>::kSignature}
+                                  : OperandSignature{RegTraits<RegType::kGp32>::kSignature};
 
 #ifndef ASMJIT_NO_LOGGING
   if (hasDiagnosticOption(DiagnosticOptions::kRAAnnotate)) {
-    _tmpString.assignFormat("<SWAP> %s, %s", waReg->name(), wbReg->name());
+    _tmpString.clear();
+    Formatter::formatVirtRegNameWithPrefix(_tmpString, "<SWAP> ", 7u, waReg->virtReg());
+    Formatter::formatVirtRegNameWithPrefix(_tmpString, ", "     , 2u, wbReg->virtReg());
     cc()->setInlineComment(_tmpString.data());
   }
 #endif
@@ -1556,14 +1563,15 @@ Error X86RAPass::emitSwap(uint32_t aWorkId, uint32_t aPhysId, uint32_t bWorkId, 
 
 Error X86RAPass::emitLoad(uint32_t workId, uint32_t dstPhysId) noexcept {
   RAWorkReg* wReg = workRegById(workId);
-  BaseReg dstReg(wReg->signature(), dstPhysId);
+  Reg dstReg(wReg->signature(), dstPhysId);
   BaseMem srcMem(workRegAsMem(wReg));
 
   const char* comment = nullptr;
 
 #ifndef ASMJIT_NO_LOGGING
   if (hasDiagnosticOption(DiagnosticOptions::kRAAnnotate)) {
-    _tmpString.assignFormat("<LOAD> %s", workRegById(workId)->name());
+    _tmpString.clear();
+    Formatter::formatVirtRegNameWithPrefix(_tmpString, "<LOAD> ", 7u, wReg->virtReg());
     comment = _tmpString.data();
   }
 #endif
@@ -1574,13 +1582,14 @@ Error X86RAPass::emitLoad(uint32_t workId, uint32_t dstPhysId) noexcept {
 Error X86RAPass::emitSave(uint32_t workId, uint32_t srcPhysId) noexcept {
   RAWorkReg* wReg = workRegById(workId);
   BaseMem dstMem(workRegAsMem(wReg));
-  BaseReg srcReg(wReg->signature(), srcPhysId);
+  Reg srcReg(wReg->signature(), srcPhysId);
 
   const char* comment = nullptr;
 
 #ifndef ASMJIT_NO_LOGGING
   if (hasDiagnosticOption(DiagnosticOptions::kRAAnnotate)) {
-    _tmpString.assignFormat("<SAVE> %s", workRegById(workId)->name());
+    _tmpString.clear();
+    Formatter::formatVirtRegNameWithPrefix(_tmpString, "<SAVE> ", 7u, wReg->virtReg());
     comment = _tmpString.data();
   }
 #endif
@@ -1609,7 +1618,7 @@ Error X86RAPass::emitPreCall(InvokeNode* invokeNode) noexcept {
               break;
             }
 
-            if (arg.isReg() && Reg::groupOf(arg.regType()) == RegGroup::kVec) {
+            if (arg.isReg() && RegUtils::groupOf(arg.regType()) == RegGroup::kVec) {
               n++;
             }
           }
@@ -1634,9 +1643,9 @@ Error X86RAPass::emitPreCall(InvokeNode* invokeNode) noexcept {
               break;
             }
 
-            if (arg.isReg() && Reg::groupOf(arg.regType()) == RegGroup::kVec) {
+            if (arg.isReg() && RegUtils::groupOf(arg.regType()) == RegGroup::kVec) {
               Gp dst = gpq(fd.callConv().passedOrder(RegGroup::kGp)[argIndex]);
-              Xmm src = xmm(arg.regId());
+              Vec src = xmm(arg.regId());
               ASMJIT_PROPAGATE(cc()->emit(choose(Inst::kIdMovq, Inst::kIdVmovq), dst, src));
             }
           }

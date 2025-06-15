@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
@@ -66,7 +66,7 @@ ASMJIT_BEGIN_NAMESPACE
 // CPU features detection is a minefield on non-X86 platforms. The following list describes which
 // operating systems and architectures are supported and the status of the implementation:
 //
-//   * X86, X86_64:
+//   * X86|X86_64:
 //     - All OSes supported
 //     - Detection is based on using a CPUID instruction, which is a user-space instruction, so there
 //       is no need to use any OS specific APIs or syscalls to detect all features provided by the CPU.
@@ -710,7 +710,7 @@ static inline void populateBaseARMFeatures(CpuInfo& cpu) noexcept {
 
 // Populates mandatory ARMv8.[v]A features.
 [[maybe_unused]]
-static ASMJIT_FAVOR_SIZE void populateARMv8AFeatures(CpuFeatures::ARM& features, uint32_t v) noexcept {
+static ASMJIT_NOINLINE void populateARMv8AFeatures(CpuFeatures::ARM& features, uint32_t v) noexcept {
   switch (v) {
     default:
       [[fallthrough]];
@@ -982,6 +982,9 @@ static inline void detectAArch64FeaturesViaCPUID_AA64ISAR2(CpuInfo& cpu, uint64_
   MERGE_FEATURE_4B("RPRFM bits [51:48]"       , isar2, 48, Ext::kRPRFM);
   MERGE_FEATURE_4B("CSSC bits [55:52]"        , isar2, 52, Ext::kCSSC);
   MERGE_FEATURE_4B("LUT bits [59:56]"         , isar2, 56, Ext::kLUT);
+  /*
+  MERGE_FEATURE_4B("ATS1A bits [63:60]"       , isar2, 60, ...);
+  */
 }
 
 // TODO: This register is not accessed at the moment.
@@ -992,9 +995,15 @@ static inline void detectAArch64FeaturesViaCPUID_AA64ISAR3(CpuInfo& cpu, uint64_
   // ID_AA64ISAR3_EL1
   // ================
 
-  MERGE_FEATURE_4B("CPA bits [3:0]"           , isar3, 0, Ext::kCPA, Ext::kCPA2);
-  MERGE_FEATURE_4B("FAMINMAX bits [7:4]"      , isar3, 4, Ext::kFAMINMAX);
-  MERGE_FEATURE_4B("TLBIW bits [11:8]"        , isar3, 8, Ext::kTLBIW);
+  MERGE_FEATURE_4B("CPA bits [3:0]"           , isar3,  0, Ext::kCPA, Ext::kCPA2);
+  MERGE_FEATURE_4B("FAMINMAX bits [7:4]"      , isar3,  4, Ext::kFAMINMAX);
+  MERGE_FEATURE_4B("TLBIW bits [11:8]"        , isar3,  8, Ext::kTLBIW);
+  /*
+  MERGE_FEATURE_4B("PACM bits [15:12]"        , isar3, 12, ...);
+  */
+  MERGE_FEATURE_4B("LSFE bits [19:16]"        , isar3, 16, Ext::kLSFE);
+  MERGE_FEATURE_4B("OCCMO bits [23:20]"       , isar3, 20, Ext::kOCCMO);
+  MERGE_FEATURE_4B("LSUI bits [27:24]"        , isar3, 24, Ext::kLSUI);
 }
 #endif
 
@@ -1080,11 +1089,12 @@ static inline void detectAArch64FeaturesViaCPUID_AA64MMFR2(CpuInfo& cpu, uint64_
   */
 }
 
-// Detects features based on the content of ID_AA64ZFR0_EL1 register.
+// Detects features based on the content of ID_AA64ZFR0_EL1 (SVE Feature ID register 0).
 [[maybe_unused]]
 static inline void detectAArch64FeaturesViaCPUID_AA64ZFR0(CpuInfo& cpu, uint64_t zfr0) noexcept {
-  MERGE_FEATURE_4B("SVEver bits [3:0]"        , zfr0,  0, Ext::kSVE2, Ext::kSVE2_1);
+  MERGE_FEATURE_4B("SVEver bits [3:0]"        , zfr0,  0, Ext::kSVE2, Ext::kSVE2_1, Ext::kSVE2_2);
   MERGE_FEATURE_4B("AES bits [7:4]"           , zfr0,  4, Ext::kSVE_AES, Ext::kSVE_PMULL128);
+  MERGE_FEATURE_4B("EltPerm bits [15:12]"     , zfr0, 12, Ext::kSVE_ELTPERM);
   MERGE_FEATURE_4B("BitPerm bits [19:16]"     , zfr0, 16, Ext::kSVE_BITPERM);
   MERGE_FEATURE_4B("BF16 bits [23:20]"        , zfr0, 20, Ext::kSVE_BF16, Ext::kSVE_EBF16);
   MERGE_FEATURE_4B("B16B16 bits [27:24]"      , zfr0, 24, Ext::kSVE_B16B16);
@@ -1097,7 +1107,12 @@ static inline void detectAArch64FeaturesViaCPUID_AA64ZFR0(CpuInfo& cpu, uint64_t
 
 [[maybe_unused]]
 static inline void detectAArch64FeaturesViaCPUID_AA64SMFR0(CpuInfo& cpu, uint64_t smfr0) noexcept {
-  MERGE_FEATURE_1B("SF8DP2 bit [28]"          , smfr0, 29, Ext::kSSVE_FP8DOT2);
+  MERGE_FEATURE_1B("SMOP4 bit [0]"            , smfr0,  0, Ext::kSME_MOP4);
+  MERGE_FEATURE_1B("STMOP bit [16]"           , smfr0, 16, Ext::kSME_TMOP);
+  MERGE_FEATURE_1B("SFEXPA bit [23]"          , smfr0, 23, Ext::kSSVE_FEXPA);
+  MERGE_FEATURE_1B("AES bit [24]"             , smfr0, 24, Ext::kSSVE_AES);
+  MERGE_FEATURE_1B("SBitPerm bit [25]"        , smfr0, 25, Ext::kSSVE_BITPERM);
+  MERGE_FEATURE_1B("SF8DP2 bit [28]"          , smfr0, 28, Ext::kSSVE_FP8DOT2);
   MERGE_FEATURE_1B("SF8DP4 bit [29]"          , smfr0, 29, Ext::kSSVE_FP8DOT4);
   MERGE_FEATURE_1B("SF8FMA bit [30]"          , smfr0, 30, Ext::kSSVE_FP8FMA);
   MERGE_FEATURE_1B("F32F32 bit [32]"          , smfr0, 32, Ext::kSME_F32F32);
@@ -1112,7 +1127,7 @@ static inline void detectAArch64FeaturesViaCPUID_AA64SMFR0(CpuInfo& cpu, uint64_
   MERGE_FEATURE_4S("I16I32 bits [47:44]"      , smfr0, 44, 0x5, Ext::kSME_I16I32);
   MERGE_FEATURE_1B("F64F64 bit [48]"          , smfr0, 48, Ext::kSME_F64F64);
   MERGE_FEATURE_4S("I16I64 bits [55:52]"      , smfr0, 52, 0xF, Ext::kSME_I16I64);
-  MERGE_FEATURE_4B("SMEver bits [59:56]"      , smfr0, 56, Ext::kSME2, Ext::kSME2_1);
+  MERGE_FEATURE_4B("SMEver bits [59:56]"      , smfr0, 56, Ext::kSME2, Ext::kSME2_1, Ext::kSME2_2);
   MERGE_FEATURE_1B("LUTv2 bit [60]"           , smfr0, 60, Ext::kSME_LUTv2);
   MERGE_FEATURE_1B("FA64 bit [63]"            , smfr0, 63, Ext::kSME_FA64);
 }
@@ -1129,17 +1144,25 @@ static inline void detectAArch64FeaturesViaCPUID_AA64SMFR0(CpuInfo& cpu, uint64_
 // CPU features detection based on Apple family ID.
 enum class AppleFamilyId : uint32_t {
   // Apple design.
-  kSWIFT              = 0x1E2D6381u, // Apple A6/A6X (ARMv7s).
-  kCYCLONE            = 0x37A09642u, // Apple A7 (ARMv8.0-A).
-  kTYPHOON            = 0x2C91A47Eu, // Apple A8 (ARMv8.0-A).
-  kTWISTER            = 0x92FB37C8u, // Apple A9 (ARMv8.0-A).
-  kHURRICANE          = 0x67CEEE93u, // Apple A10 (ARMv8.1-A).
-  kMONSOON_MISTRAL    = 0xE81E7EF6u, // Apple A11 (ARMv8.2-A).
-  kVORTEX_TEMPEST     = 0x07D34B9Fu, // Apple A12 (ARMv8.3-A).
-  kLIGHTNING_THUNDER  = 0x462504D2u, // Apple A13 (ARMv8.4-A).
-  kFIRESTORM_ICESTORM = 0x1B588BB3u, // Apple A14/M1 (ARMv8.5-A).
-  kAVALANCHE_BLIZZARD = 0XDA33D83Du, // Apple A15/M2.
-  kEVEREST_SAWTOOTH   = 0X8765EDEAu  // Apple A16.
+  kSWIFT              = 0x1E2D6381u, // Apple A6/A6X  (ARMv7s).
+  kCYCLONE            = 0x37A09642u, // Apple A7      (ARMv8.0-A).
+  kTYPHOON            = 0x2C91A47Eu, // Apple A8      (ARMv8.0-A).
+  kTWISTER            = 0x92FB37C8u, // Apple A9      (ARMv8.0-A).
+  kHURRICANE          = 0x67CEEE93u, // Apple A10     (ARMv8.1-A).
+  kMONSOON_MISTRAL    = 0xE81E7EF6u, // Apple A11     (ARMv8.2-A).
+  kVORTEX_TEMPEST     = 0x07D34B9Fu, // Apple A12     (ARMv8.3-A).
+  kLIGHTNING_THUNDER  = 0x462504D2u, // Apple A13     (ARMv8.4-A).
+  kFIRESTORM_ICESTORM = 0x1B588BB3u, // Apple A14/M1  (ARMv8.5-A).
+  kAVALANCHE_BLIZZARD = 0XDA33D83Du, // Apple A15/M2  (ARMv8.6-A).
+  kEVEREST_SAWTOOTH   = 0X8765EDEAu, // Apple A16     (ARMv8.6-A).
+  kIBIZA              = 0xFA33415Eu, // Apple M3      (ARMv8.6-A).
+  kPALMA              = 0x72015832u, // Apple M3 Max  (ARMv8.6-A).
+  kLOBOS              = 0x5F4DEA93u, // Apple M3 Pro  (ARMv8.6-A).
+  kCOLL               = 0x2876F5B5u, // Apple A17 Pro (ARMv8.7-A).
+  kDONAN              = 0x6F5129ACu, // Apple M4      (ARMv8.7-A).
+  kBRAVA              = 0x17D5B93Au, // Apple M4 Max  (ARMv8.7-A).
+  kTUPAI              = 0x204526D0u, // Apple A18     .
+  kTAHITI             = 0x75D4ACB9u  // Apple A18 Pro .
 };
 
 [[maybe_unused]]
@@ -1153,55 +1176,93 @@ static ASMJIT_FAVOR_SIZE bool detectARMFeaturesViaAppleFamilyId(CpuInfo& cpu) no
     case uint32_t(Id::kTYPHOON):
     case uint32_t(Id::kTWISTER):
       populateARMv8AFeatures(features, 0);
-      features.add(Ext::kAES, Ext::kPMU, Ext::kPMULL, Ext::kSHA1, Ext::kSHA256);
+      features.add(
+        Ext::kPMU,
+        Ext::kAES, Ext::kPMULL, Ext::kSHA1, Ext::kSHA256
+      );
       return true;
 
     // Apple A10 (ARMv8.0-A).
     case uint32_t(Id::kHURRICANE):
       populateARMv8AFeatures(features, 0);
-      features.add(Ext::kAES, Ext::kCRC32, Ext::kLOR, Ext::kPAN, Ext::kPMU, Ext::kPMULL, Ext::kRDM, Ext::kSHA1,
-                   Ext::kSHA256, Ext::kVHE);
+      features.add(
+        Ext::kLOR, Ext::kPAN, Ext::kPMU, Ext::kVHE,
+        Ext::kAES, Ext::kCRC32, Ext::kPMULL, Ext::kSHA1, Ext::kSHA256, Ext::kRDM
+      );
       return true;
 
     // Apple A11 (ARMv8.2-A).
     case uint32_t(Id::kMONSOON_MISTRAL):
       populateARMv8AFeatures(features, 2);
-      features.add(Ext::kAES, Ext::kFP16, Ext::kFP16CONV, Ext::kPMU, Ext::kPMULL, Ext::kSHA1, Ext::kSHA256);
+      features.add(
+        Ext::kPMU,
+        Ext::kAES, Ext::kPMULL, Ext::kSHA1, Ext::kSHA256,
+        Ext::kFP16, Ext::kFP16CONV
+      );
       return true;
 
     // Apple A12 (ARMv8.3-A).
     case uint32_t(Id::kVORTEX_TEMPEST):
       populateARMv8AFeatures(features, 3);
-      features.add(Ext::kAES, Ext::kFP16, Ext::kFP16CONV, Ext::kPMU, Ext::kPMULL, Ext::kSHA1, Ext::kSHA256);
+      features.add(
+        Ext::kPMU,
+        Ext::kAES, Ext::kPMULL, Ext::kSHA1, Ext::kSHA256,
+        Ext::kFP16, Ext::kFP16CONV
+      );
       return true;
 
     // Apple A13 (ARMv8.4-A).
     case uint32_t(Id::kLIGHTNING_THUNDER):
       populateARMv8AFeatures(features, 4);
-      features.add(Ext::kAES, Ext::kFHM, Ext::kFP16, Ext::kFP16CONV, Ext::kPMU, Ext::kPMULL, Ext::kSHA1,
-                   Ext::kSHA256, Ext::kSHA3, Ext::kSHA512);
+      features.add(
+        Ext::kPMU,
+        Ext::kFP16, Ext::kFP16CONV, Ext::kFHM,
+        Ext::kAES, Ext::kPMULL, Ext::kSHA1, Ext::kSHA256, Ext::kSHA3, Ext::kSHA512
+      );
       return true;
 
     // Apple A14/M1 (ARMv8.5-A).
     case uint32_t(Id::kFIRESTORM_ICESTORM):
       populateARMv8AFeatures(features, 4);
-      features.add(Ext::kAES, Ext::kCSV2, Ext::kCSV3, Ext::kDPB2, Ext::kECV, Ext::kFHM, Ext::kFLAGM2,
-                   Ext::kFP16, Ext::kFP16CONV, Ext::kFRINTTS, Ext::kPMU, Ext::kPMULL, Ext::kSB,
-                   Ext::kSHA1, Ext::kSHA256, Ext::kSHA3, Ext::kSHA512, Ext::kSSBS);
+      features.add(
+        Ext::kCSV2, Ext::kCSV3, Ext::kDPB2, Ext::kECV, Ext::kFLAGM2, Ext::kPMU, Ext::kSB, Ext::kSSBS,
+        Ext::kFP16, Ext::kFP16CONV, Ext::kFHM,
+        Ext::kFRINTTS,
+        Ext::kAES, Ext::kPMULL, Ext::kSHA1, Ext::kSHA256, Ext::kSHA3, Ext::kSHA512);
       return true;
 
     // Apple A15/M2.
     case uint32_t(Id::kAVALANCHE_BLIZZARD):
       populateARMv8AFeatures(features, 6);
-      features.add(Ext::kAES, Ext::kFHM, Ext::kFP16, Ext::kFP16CONV, Ext::kPMU, Ext::kPMULL, Ext::kSHA1,
-                   Ext::kSHA256, Ext::kSHA3, Ext::kSHA512);
+      features.add(
+        Ext::kPMU,
+        Ext::kFP16, Ext::kFP16CONV, Ext::kFHM,
+        Ext::kAES, Ext::kPMULL, Ext::kSHA1, Ext::kSHA256, Ext::kSHA3, Ext::kSHA512);
       return true;
 
-    // Apple A16.
+    // Apple A16/M3.
     case uint32_t(Id::kEVEREST_SAWTOOTH):
+    case uint32_t(Id::kIBIZA):
+    case uint32_t(Id::kPALMA):
+    case uint32_t(Id::kLOBOS):
       populateARMv8AFeatures(features, 6);
-      features.add(Ext::kAES, Ext::kFHM, Ext::kFP16, Ext::kFP16CONV, Ext::kHCX, Ext::kPMU, Ext::kPMULL,
-                   Ext::kSHA1, Ext::kSHA256, Ext::kSHA3, Ext::kSHA512);
+      features.add(
+        Ext::kHCX, Ext::kPMU,
+        Ext::kFP16, Ext::kFP16CONV, Ext::kFHM,
+        Ext::kAES, Ext::kPMULL, Ext::kSHA1, Ext::kSHA256, Ext::kSHA3, Ext::kSHA512
+      );
+      return true;
+
+    // Apple A17/M4.
+    case uint32_t(Id::kCOLL):
+    case uint32_t(Id::kDONAN):
+    case uint32_t(Id::kBRAVA):
+      populateARMv8AFeatures(features, 7);
+      features.add(
+        Ext::kPMU,
+        Ext::kFP16, Ext::kFP16CONV, Ext::kFHM,
+        Ext::kAES, Ext::kSHA1, Ext::kSHA3, Ext::kSHA256, Ext::kSHA512,
+        Ext::kSME, Ext::kSME2, Ext::kSME_F64F64, Ext::kSME_I16I64);
       return true;
 
     default:
@@ -1625,48 +1686,96 @@ static void getAuxValues(unsigned long* vals, const unsigned long* tags, size_t 
 #error "[asmjit] getAuxValues() - Unsupported OS."
 #endif
 
-struct HWCapMapping {
-  uint8_t featureId;
-  uint8_t hwCapBit;
-};
-
 static const unsigned long hwCapTags[2] = { AT_HWCAP, AT_HWCAP2 };
 
-static ASMJIT_FAVOR_SIZE void mergeHWCaps(CpuInfo& cpu, unsigned long mask, const HWCapMapping* mapping, size_t size) noexcept {
-  for (size_t i = 0; i < size; i++) {
-    cpu.features().addIf(Support::bitTest(mask, mapping[i].hwCapBit), mapping[i].featureId);
+struct HWCapMapping32 { uint8_t featureId[32]; };
+struct HWCapMapping64 { uint8_t featureId[64]; };
+
+template<typename Mask, typename Map>
+static ASMJIT_FAVOR_SIZE void mergeHWCaps(CpuInfo& cpu, const Mask& mask, const Map& map) noexcept {
+  static_assert(sizeof(Mask) * 8u == sizeof(Map));
+
+  Support::BitWordIterator<Mask> it(mask);
+  while (it.hasNext()) {
+    uint32_t featureId = map.featureId[it.next()];
+    cpu.features().add(featureId);
   }
+  cpu.features().remove(0xFFu);
 }
 
 #if ASMJIT_ARCH_ARM == 32
 
 // Reference:
 //   - https://github.com/torvalds/linux/blob/master/arch/arm/include/uapi/asm/hwcap.h
-static const HWCapMapping hwCapMapping[] = {
-  { uint8_t(Ext::kEDSP)         , 7  }, // HWCAP_EDSP
-  { uint8_t(Ext::kASIMD)        , 12 }, // HWCAP_NEON
-  { uint8_t(Ext::kFP)           , 13 }, // HWCAP_VFPv3
-  { uint8_t(Ext::kFMAC)         , 16 }, // HWCAP_VFPv4
-  { uint8_t(Ext::kIDIVA)        , 17 }, // HWCAP_IDIVA
-  { uint8_t(Ext::kIDIVT)        , 18 }, // HWCAP_IDIVT
-  { uint8_t(Ext::kVFP_D32)      , 19 }, // HWCAP_VFPD32
-  { uint8_t(Ext::kFP16CONV)     , 22 }, // HWCAP_FPHP
-  { uint8_t(Ext::kFP16)         , 23 }, // HWCAP_ASIMDHP
-  { uint8_t(Ext::kDOTPROD)      , 24 }, // HWCAP_ASIMDDP
-  { uint8_t(Ext::kFHM)          , 25 }, // HWCAP_ASIMDFHM
-  { uint8_t(Ext::kBF16)         , 26 }, // HWCAP_ASIMDBF16
-  { uint8_t(Ext::kI8MM)         , 27 }  // HWCAP_I8MM
-};
+static constexpr HWCapMapping32 hwCap1Mapping = {{
+  uint8_t(0xFF)               , // [ 0]
+  uint8_t(0xFF)               , // [ 1]
+  uint8_t(0xFF)               , // [ 2]
+  uint8_t(0xFF)               , // [ 3]
+  uint8_t(0xFF)               , // [ 4]
+  uint8_t(0xFF)               , // [ 5]
+  uint8_t(0xFF)               , // [ 6]
+  uint8_t(Ext::kEDSP)         , // [ 7] HWCAP_EDSP
+  uint8_t(0xFF)               , // [ 8]
+  uint8_t(0xFF)               , // [ 9]
+  uint8_t(0xFF)               , // [10]
+  uint8_t(0xFF)               , // [11]
+  uint8_t(Ext::kASIMD)        , // [12] HWCAP_NEON
+  uint8_t(Ext::kFP)           , // [13] HWCAP_VFPv3
+  uint8_t(0xFF)               , // [14]
+  uint8_t(0xFF)               , // [15]
+  uint8_t(Ext::kFMAC)         , // [16] HWCAP_VFPv4
+  uint8_t(Ext::kIDIVA)        , // [17] HWCAP_IDIVA
+  uint8_t(Ext::kIDIVT)        , // [18] HWCAP_IDIVT
+  uint8_t(Ext::kVFP_D32)      , // [19] HWCAP_VFPD32
+  uint8_t(0xFF)               , // [20]
+  uint8_t(0xFF)               , // [21]
+  uint8_t(Ext::kFP16CONV)     , // [22] HWCAP_FPHP
+  uint8_t(Ext::kFP16)         , // [23] HWCAP_ASIMDHP
+  uint8_t(Ext::kDOTPROD)      , // [24] HWCAP_ASIMDDP
+  uint8_t(Ext::kFHM)          , // [25] HWCAP_ASIMDFHM
+  uint8_t(Ext::kBF16)         , // [26] HWCAP_ASIMDBF16
+  uint8_t(Ext::kI8MM)         , // [27] HWCAP_I8MM
+  uint8_t(0xFF)               , // [28]
+  uint8_t(0xFF)               , // [29]
+  uint8_t(0xFF)               , // [30]
+  uint8_t(0xFF)                 // [31]
+}};
 
-static const HWCapMapping hwCap2Mapping[] = {
-  { uint8_t(Ext::kAES)          , 0  }, // HWCAP2_AES
-  { uint8_t(Ext::kPMULL)        , 1  }, // HWCAP2_PMULL
-  { uint8_t(Ext::kSHA1)         , 2  }, // HWCAP2_SHA1
-  { uint8_t(Ext::kSHA256)       , 3  }, // HWCAP2_SHA2
-  { uint8_t(Ext::kCRC32)        , 4  }, // HWCAP2_CRC32
-  { uint8_t(Ext::kSB)           , 5  }, // HWCAP2_SB
-  { uint8_t(Ext::kSSBS)         , 6  }  // HWCAP2_SSBS
-};
+static constexpr HWCapMapping32 hwCap2Mapping = {{
+  uint8_t(Ext::kAES)          , // [ 0] HWCAP2_AES
+  uint8_t(Ext::kPMULL)        , // [ 1] HWCAP2_PMULL
+  uint8_t(Ext::kSHA1)         , // [ 2] HWCAP2_SHA1
+  uint8_t(Ext::kSHA256)       , // [ 3] HWCAP2_SHA2
+  uint8_t(Ext::kCRC32)        , // [ 4] HWCAP2_CRC32
+  uint8_t(Ext::kSB)           , // [ 5] HWCAP2_SB
+  uint8_t(Ext::kSSBS)         , // [ 6] HWCAP2_SSBS
+  uint8_t(0xFF)               , // [ 7]
+  uint8_t(0xFF)               , // [ 8]
+  uint8_t(0xFF)               , // [ 9]
+  uint8_t(0xFF)               , // [10]
+  uint8_t(0xFF)               , // [11]
+  uint8_t(0xFF)               , // [12]
+  uint8_t(0xFF)               , // [13]
+  uint8_t(0xFF)               , // [14]
+  uint8_t(0xFF)               , // [15]
+  uint8_t(0xFF)               , // [16]
+  uint8_t(0xFF)               , // [17]
+  uint8_t(0xFF)               , // [18]
+  uint8_t(0xFF)               , // [19]
+  uint8_t(0xFF)               , // [20]
+  uint8_t(0xFF)               , // [21]
+  uint8_t(0xFF)               , // [22]
+  uint8_t(0xFF)               , // [23]
+  uint8_t(0xFF)               , // [24]
+  uint8_t(0xFF)               , // [25]
+  uint8_t(0xFF)               , // [26]
+  uint8_t(0xFF)               , // [27]
+  uint8_t(0xFF)               , // [28]
+  uint8_t(0xFF)               , // [29]
+  uint8_t(0xFF)               , // [30]
+  uint8_t(0xFF)                 // [31]
+}};
 
 static ASMJIT_FAVOR_SIZE void detectARMCpu(CpuInfo& cpu) noexcept {
   cpu._wasDetected = true;
@@ -1675,18 +1784,20 @@ static ASMJIT_FAVOR_SIZE void detectARMCpu(CpuInfo& cpu) noexcept {
   unsigned long hwCapMasks[2] {};
   getAuxValues(hwCapMasks, hwCapTags, 2u);
 
-  mergeHWCaps(cpu, hwCapMasks[0], hwCapMapping, ASMJIT_ARRAY_SIZE(hwCapMapping));
-  mergeHWCaps(cpu, hwCapMasks[1], hwCap2Mapping, ASMJIT_ARRAY_SIZE(hwCap2Mapping));
+  mergeHWCaps(cpu, hwCapMasks[0], hwCap1Mapping);
+  mergeHWCaps(cpu, hwCapMasks[1], hwCap2Mapping);
 
   CpuFeatures::ARM& features = cpu.features().arm();
 
   // ARMv7 provides FP|ASIMD.
-  if (features.hasFP() || features.hasASIMD())
+  if (features.hasFP() || features.hasASIMD()) {
     features.add(CpuFeatures::ARM::kARMv7);
+  }
 
   // ARMv8 provives AES, CRC32, PMULL, SHA1, and SHA256.
-  if (features.hasAES() || features.hasCRC32() || features.hasPMULL() || features.hasSHA1() || features.hasSHA256())
+  if (features.hasAES() || features.hasCRC32() || features.hasPMULL() || features.hasSHA1() || features.hasSHA256()) {
     features.add(CpuFeatures::ARM::kARMv8a);
+  }
 
   postProcessARMCpuInfo(cpu);
 }
@@ -1696,95 +1807,139 @@ static ASMJIT_FAVOR_SIZE void detectARMCpu(CpuInfo& cpu) noexcept {
 // Reference:
 //   - https://docs.kernel.org/arch/arm64/elf_hwcaps.html
 //   - https://github.com/torvalds/linux/blob/master/arch/arm64/include/uapi/asm/hwcap.h
-static const HWCapMapping hwCapMapping[] = {
-  { uint8_t(Ext::kFP)           , 0  }, // HWCAP_FP
-  { uint8_t(Ext::kASIMD)        , 1  }, // HWCAP_ASIMD
-  /*
-  { uint8_t(Ext::k)             , 2  }, // HWCAP_EVTSTRM
-  */
-  { uint8_t(Ext::kAES)          , 3  }, // HWCAP_AES
-  { uint8_t(Ext::kPMULL)        , 4  }, // HWCAP_PMULL
-  { uint8_t(Ext::kSHA1)         , 5  }, // HWCAP_SHA1
-  { uint8_t(Ext::kSHA256)       , 6  }, // HWCAP_SHA2
-  { uint8_t(Ext::kCRC32)        , 7  }, // HWCAP_CRC32
-  { uint8_t(Ext::kLSE)          , 8  }, // HWCAP_ATOMICS
-  { uint8_t(Ext::kFP16CONV)     , 9  }, // HWCAP_FPHP
-  { uint8_t(Ext::kFP16)         , 10 }, // HWCAP_ASIMDHP
-  { uint8_t(Ext::kCPUID)        , 11 }, // HWCAP_CPUID
-  { uint8_t(Ext::kRDM)          , 12 }, // HWCAP_ASIMDRDM
-  { uint8_t(Ext::kJSCVT)        , 13 }, // HWCAP_JSCVT
-  { uint8_t(Ext::kFCMA)         , 14 }, // HWCAP_FCMA
-  { uint8_t(Ext::kLRCPC)        , 15 }, // HWCAP_LRCPC
-  { uint8_t(Ext::kDPB)          , 16 }, // HWCAP_DCPOP
-  { uint8_t(Ext::kSHA3)         , 17 }, // HWCAP_SHA3
-  { uint8_t(Ext::kSM3)          , 18 }, // HWCAP_SM3
-  { uint8_t(Ext::kSM4)          , 19 }, // HWCAP_SM4
-  { uint8_t(Ext::kDOTPROD)      , 20 }, // HWCAP_ASIMDDP
-  { uint8_t(Ext::kSHA512)       , 21 }, // HWCAP_SHA512
-  { uint8_t(Ext::kSVE)          , 22 }, // HWCAP_SVE
-  { uint8_t(Ext::kFHM)          , 23 }, // HWCAP_ASIMDFHM
-  { uint8_t(Ext::kDIT)          , 24 }, // HWCAP_DIT
-  { uint8_t(Ext::kLSE2)         , 25 }, // HWCAP_USCAT
-  { uint8_t(Ext::kLRCPC2)       , 26 }, // HWCAP_ILRCPC
-  { uint8_t(Ext::kFLAGM)        , 27 }, // HWCAP_FLAGM
-  { uint8_t(Ext::kSSBS)         , 28 }, // HWCAP_SSBS
-  { uint8_t(Ext::kSB)           , 29 }  // HWCAP_SB
-  /*
-  { uint8_t(Ext::k)             , 30 }, // HWCAP_PACA
-  { uint8_t(Ext::k)             , 31 }  // HWCAP_PACG
-  */
-};
+static constexpr HWCapMapping64 hwCap1Mapping = {{
+  uint8_t(Ext::kFP)           , // [ 0] HWCAP_FP
+  uint8_t(Ext::kASIMD)        , // [ 1] HWCAP_ASIMD
+  uint8_t(0xFF)               , // [ 2] HWCAP_EVTSTRM
+  uint8_t(Ext::kAES)          , // [ 3] HWCAP_AES
+  uint8_t(Ext::kPMULL)        , // [ 4] HWCAP_PMULL
+  uint8_t(Ext::kSHA1)         , // [ 5] HWCAP_SHA1
+  uint8_t(Ext::kSHA256)       , // [ 6] HWCAP_SHA2
+  uint8_t(Ext::kCRC32)        , // [ 7] HWCAP_CRC32
+  uint8_t(Ext::kLSE)          , // [ 8] HWCAP_ATOMICS
+  uint8_t(Ext::kFP16CONV)     , // [ 9] HWCAP_FPHP
+  uint8_t(Ext::kFP16)         , // [10] HWCAP_ASIMDHP
+  uint8_t(Ext::kCPUID)        , // [11] HWCAP_CPUID
+  uint8_t(Ext::kRDM)          , // [12] HWCAP_ASIMDRDM
+  uint8_t(Ext::kJSCVT)        , // [13] HWCAP_JSCVT
+  uint8_t(Ext::kFCMA)         , // [14] HWCAP_FCMA
+  uint8_t(Ext::kLRCPC)        , // [15] HWCAP_LRCPC
+  uint8_t(Ext::kDPB)          , // [16] HWCAP_DCPOP
+  uint8_t(Ext::kSHA3)         , // [17] HWCAP_SHA3
+  uint8_t(Ext::kSM3)          , // [18] HWCAP_SM3
+  uint8_t(Ext::kSM4)          , // [19] HWCAP_SM4
+  uint8_t(Ext::kDOTPROD)      , // [20] HWCAP_ASIMDDP
+  uint8_t(Ext::kSHA512)       , // [21] HWCAP_SHA512
+  uint8_t(Ext::kSVE)          , // [22] HWCAP_SVE
+  uint8_t(Ext::kFHM)          , // [23] HWCAP_ASIMDFHM
+  uint8_t(Ext::kDIT)          , // [24] HWCAP_DIT
+  uint8_t(Ext::kLSE2)         , // [25] HWCAP_USCAT
+  uint8_t(Ext::kLRCPC2)       , // [26] HWCAP_ILRCPC
+  uint8_t(Ext::kFLAGM)        , // [27] HWCAP_FLAGM
+  uint8_t(Ext::kSSBS)         , // [28] HWCAP_SSBS
+  uint8_t(Ext::kSB)           , // [29] HWCAP_SB
+  uint8_t(0xFF)               , // [30] HWCAP_PACA
+  uint8_t(0xFF)               , // [31] HWCAP_PACG
+  uint8_t(Ext::kGCS)          , // [32] HWCAP_GCS
+  uint8_t(Ext::kCMPBR)        , // [33] HWCAP_CMPBR
+  uint8_t(Ext::kFPRCVT)       , // [34] HWCAP_FPRCVT
+  uint8_t(Ext::kF8F32MM)      , // [35] HWCAP_F8MM8
+  uint8_t(Ext::kF8F16MM)      , // [36] HWCAP_F8MM4
+  uint8_t(Ext::kSVE_F16MM)    , // [37] HWCAP_SVE_F16MM
+  uint8_t(Ext::kSVE_ELTPERM)  , // [38] HWCAP_SVE_ELTPERM
+  uint8_t(Ext::kSVE_AES2)     , // [39] HWCAP_SVE_AES2
+  uint8_t(Ext::kSVE_BFSCALE)  , // [40] HWCAP_SVE_BFSCALE
+  uint8_t(Ext::kSVE2_2)       , // [41] HWCAP_SVE2P2
+  uint8_t(Ext::kSME2_2)       , // [42] HWCAP_SME2P2
+  uint8_t(Ext::kSSVE_BITPERM) , // [43] HWCAP_SME_SBITPERM
+  uint8_t(Ext::kSME_AES)      , // [44] HWCAP_SME_AES
+  uint8_t(Ext::kSSVE_FEXPA)   , // [45] HWCAP_SME_SFEXPA
+  uint8_t(Ext::kSME_TMOP)     , // [46] HWCAP_SME_STMOP
+  uint8_t(Ext::kSME_MOP4)     , // [47] HWCAP_SME_SMOP4
+  uint8_t(0xFF)               , // [48]
+  uint8_t(0xFF)               , // [49]
+  uint8_t(0xFF)               , // [50]
+  uint8_t(0xFF)               , // [51]
+  uint8_t(0xFF)               , // [52]
+  uint8_t(0xFF)               , // [53]
+  uint8_t(0xFF)               , // [54]
+  uint8_t(0xFF)               , // [55]
+  uint8_t(0xFF)               , // [56]
+  uint8_t(0xFF)               , // [57]
+  uint8_t(0xFF)               , // [58]
+  uint8_t(0xFF)               , // [59]
+  uint8_t(0xFF)               , // [60]
+  uint8_t(0xFF)               , // [61]
+  uint8_t(0xFF)               , // [62]
+  uint8_t(0xFF)                 // [63]
+}};
 
-static const HWCapMapping hwCap2Mapping[] = {
-  { uint8_t(Ext::kDPB2)         , 0  }, // HWCAP2_DCPODP
-  { uint8_t(Ext::kSVE2)         , 1  }, // HWCAP2_SVE2
-  { uint8_t(Ext::kSVE_AES)      , 2  }, // HWCAP2_SVEAES
-  { uint8_t(Ext::kSVE_PMULL128) , 3  }, // HWCAP2_SVEPMULL
-  { uint8_t(Ext::kSVE_BITPERM)  , 4  }, // HWCAP2_SVEBITPERM
-  { uint8_t(Ext::kSVE_SHA3)     , 5  }, // HWCAP2_SVESHA3
-  { uint8_t(Ext::kSVE_SM4)      , 6  }, // HWCAP2_SVESM4
-  { uint8_t(Ext::kFLAGM2)       , 7  }, // HWCAP2_FLAGM2
-  { uint8_t(Ext::kFRINTTS)      , 8  }, // HWCAP2_FRINT
-  { uint8_t(Ext::kSVE_I8MM)     , 9  }, // HWCAP2_SVEI8MM
-  { uint8_t(Ext::kSVE_F32MM)    , 10 }, // HWCAP2_SVEF32MM
-  { uint8_t(Ext::kSVE_F64MM)    , 11 }, // HWCAP2_SVEF64MM
-  { uint8_t(Ext::kSVE_BF16)     , 12 }, // HWCAP2_SVEBF16
-  { uint8_t(Ext::kI8MM)         , 13 }, // HWCAP2_I8MM
-  { uint8_t(Ext::kBF16)         , 14 }, // HWCAP2_BF16
-  { uint8_t(Ext::kDGH)          , 15 }, // HWCAP2_DGH
-  { uint8_t(Ext::kRNG)          , 16 }, // HWCAP2_RNG
-  { uint8_t(Ext::kBTI)          , 17 }, // HWCAP2_BTI
-  { uint8_t(Ext::kMTE)          , 18 }, // HWCAP2_MTE
-  { uint8_t(Ext::kECV)          , 19 }, // HWCAP2_ECV
-  { uint8_t(Ext::kAFP)          , 20 }, // HWCAP2_AFP
-  { uint8_t(Ext::kRPRES)        , 21 }, // HWCAP2_RPRES
-  { uint8_t(Ext::kMTE3)         , 22 }, // HWCAP2_MTE3
-  { uint8_t(Ext::kSME)          , 23 }, // HWCAP2_SME
-  { uint8_t(Ext::kSME_I16I64)   , 24 }, // HWCAP2_SME_I16I64
-  { uint8_t(Ext::kSME_F64F64)   , 25 }, // HWCAP2_SME_F64F64
-  { uint8_t(Ext::kSME_I8I32)    , 26 }, // HWCAP2_SME_I8I32
-  { uint8_t(Ext::kSME_F16F32)   , 27 }, // HWCAP2_SME_F16F32
-  { uint8_t(Ext::kSME_B16F32)   , 28 }, // HWCAP2_SME_B16F32
-  { uint8_t(Ext::kSME_F32F32)   , 29 }, // HWCAP2_SME_F32F32
-  { uint8_t(Ext::kSME_FA64)     , 30 }, // HWCAP2_SME_FA64
-  { uint8_t(Ext::kWFXT)         , 31 }, // HWCAP2_WFXT
-  { uint8_t(Ext::kEBF16)        , 32 }, // HWCAP2_EBF16
-  { uint8_t(Ext::kSVE_EBF16)    , 33 }, // HWCAP2_SVE_EBF16
-  { uint8_t(Ext::kCSSC)         , 34 }, // HWCAP2_CSSC
-  { uint8_t(Ext::kRPRFM)        , 35 }, // HWCAP2_RPRFM
-  { uint8_t(Ext::kSVE2_1)       , 36 }, // HWCAP2_SVE2P1
-  { uint8_t(Ext::kSME2)         , 37 }, // HWCAP2_SME2
-  { uint8_t(Ext::kSME2_1)       , 38 }, // HWCAP2_SME2P1
-  { uint8_t(Ext::kSME_I16I32)   , 39 }, // HWCAP2_SME_I16I32
-  { uint8_t(Ext::kSME_BI32I32)  , 40 }, // HWCAP2_SME_BI32I32
-  { uint8_t(Ext::kSME_B16B16)   , 41 }, // HWCAP2_SME_B16B16
-  { uint8_t(Ext::kSME_F16F16)   , 42 }, // HWCAP2_SME_F16F16
-  { uint8_t(Ext::kMOPS)         , 43 }, // HWCAP2_MOPS
-  { uint8_t(Ext::kHBC)          , 44 }, // HWCAP2_HBC
-  { uint8_t(Ext::kSVE_B16B16)   , 45 }, // HWCAP2_SVE_B16B16
-  { uint8_t(Ext::kLRCPC3)       , 46 }, // HWCAP2_LRCPC3
-  { uint8_t(Ext::kLSE128)       , 47 }, // HWCAP2_LSE128
-};
+static constexpr HWCapMapping64 hwCap2Mapping = {{
+  uint8_t(Ext::kDPB2)         , // [ 0] HWCAP2_DCPODP
+  uint8_t(Ext::kSVE2)         , // [ 1] HWCAP2_SVE2
+  uint8_t(Ext::kSVE_AES)      , // [ 2] HWCAP2_SVEAES
+  uint8_t(Ext::kSVE_PMULL128) , // [ 3] HWCAP2_SVEPMULL
+  uint8_t(Ext::kSVE_BITPERM)  , // [ 4] HWCAP2_SVEBITPERM
+  uint8_t(Ext::kSVE_SHA3)     , // [ 5] HWCAP2_SVESHA3
+  uint8_t(Ext::kSVE_SM4)      , // [ 6] HWCAP2_SVESM4
+  uint8_t(Ext::kFLAGM2)       , // [ 7] HWCAP2_FLAGM2
+  uint8_t(Ext::kFRINTTS)      , // [ 8] HWCAP2_FRINT
+  uint8_t(Ext::kSVE_I8MM)     , // [ 9] HWCAP2_SVEI8MM
+  uint8_t(Ext::kSVE_F32MM)    , // [10] HWCAP2_SVEF32MM
+  uint8_t(Ext::kSVE_F64MM)    , // [11] HWCAP2_SVEF64MM
+  uint8_t(Ext::kSVE_BF16)     , // [12] HWCAP2_SVEBF16
+  uint8_t(Ext::kI8MM)         , // [13] HWCAP2_I8MM
+  uint8_t(Ext::kBF16)         , // [14] HWCAP2_BF16
+  uint8_t(Ext::kDGH)          , // [15] HWCAP2_DGH
+  uint8_t(Ext::kRNG)          , // [16] HWCAP2_RNG
+  uint8_t(Ext::kBTI)          , // [17] HWCAP2_BTI
+  uint8_t(Ext::kMTE)          , // [18] HWCAP2_MTE
+  uint8_t(Ext::kECV)          , // [19] HWCAP2_ECV
+  uint8_t(Ext::kAFP)          , // [20] HWCAP2_AFP
+  uint8_t(Ext::kRPRES)        , // [21] HWCAP2_RPRES
+  uint8_t(Ext::kMTE3)         , // [22] HWCAP2_MTE3
+  uint8_t(Ext::kSME)          , // [23] HWCAP2_SME
+  uint8_t(Ext::kSME_I16I64)   , // [24] HWCAP2_SME_I16I64
+  uint8_t(Ext::kSME_F64F64)   , // [25] HWCAP2_SME_F64F64
+  uint8_t(Ext::kSME_I8I32)    , // [26] HWCAP2_SME_I8I32
+  uint8_t(Ext::kSME_F16F32)   , // [27] HWCAP2_SME_F16F32
+  uint8_t(Ext::kSME_B16F32)   , // [28] HWCAP2_SME_B16F32
+  uint8_t(Ext::kSME_F32F32)   , // [29] HWCAP2_SME_F32F32
+  uint8_t(Ext::kSME_FA64)     , // [30] HWCAP2_SME_FA64
+  uint8_t(Ext::kWFXT)         , // [31] HWCAP2_WFXT
+  uint8_t(Ext::kEBF16)        , // [32] HWCAP2_EBF16
+  uint8_t(Ext::kSVE_EBF16)    , // [33] HWCAP2_SVE_EBF16
+  uint8_t(Ext::kCSSC)         , // [34] HWCAP2_CSSC
+  uint8_t(Ext::kRPRFM)        , // [35] HWCAP2_RPRFM
+  uint8_t(Ext::kSVE2_1)       , // [36] HWCAP2_SVE2P1
+  uint8_t(Ext::kSME2)         , // [37] HWCAP2_SME2
+  uint8_t(Ext::kSME2_1)       , // [38] HWCAP2_SME2P1
+  uint8_t(Ext::kSME_I16I32)   , // [39] HWCAP2_SME_I16I32
+  uint8_t(Ext::kSME_BI32I32)  , // [40] HWCAP2_SME_BI32I32
+  uint8_t(Ext::kSME_B16B16)   , // [41] HWCAP2_SME_B16B16
+  uint8_t(Ext::kSME_F16F16)   , // [42] HWCAP2_SME_F16F16
+  uint8_t(Ext::kMOPS)         , // [43] HWCAP2_MOPS
+  uint8_t(Ext::kHBC)          , // [44] HWCAP2_HBC
+  uint8_t(Ext::kSVE_B16B16)   , // [45] HWCAP2_SVE_B16B16
+  uint8_t(Ext::kLRCPC3)       , // [46] HWCAP2_LRCPC3
+  uint8_t(Ext::kLSE128)       , // [47] HWCAP2_LSE128
+  uint8_t(Ext::kFPMR)         , // [48] HWCAP2_FPMR
+  uint8_t(Ext::kLUT)          , // [49] HWCAP2_LUT
+  uint8_t(Ext::kFAMINMAX)     , // [50] HWCAP2_FAMINMAX
+  uint8_t(Ext::kFP8)          , // [51] HWCAP2_F8CVT
+  uint8_t(Ext::kFP8FMA)       , // [52] HWCAP2_F8FMA
+  uint8_t(Ext::kFP8DOT4)      , // [53] HWCAP2_F8DP4
+  uint8_t(Ext::kFP8DOT2)      , // [54] HWCAP2_F8DP2
+  uint8_t(Ext::kF8E4M3)       , // [55] HWCAP2_F8E4M3
+  uint8_t(Ext::kF8E5M2)       , // [56] HWCAP2_F8E5M2
+  uint8_t(Ext::kSME_LUTv2)    , // [57] HWCAP2_SME_LUTV2
+  uint8_t(Ext::kSME_F8F16)    , // [58] HWCAP2_SME_F8F16
+  uint8_t(Ext::kSME_F8F32)    , // [59] HWCAP2_SME_F8F32
+  uint8_t(Ext::kSSVE_FP8FMA)  , // [60] HWCAP2_SME_SF8FMA
+  uint8_t(Ext::kSSVE_FP8DOT4) , // [61] HWCAP2_SME_SF8DP4
+  uint8_t(Ext::kSSVE_FP8DOT2) , // [62] HWCAP2_SME_SF8DP2
+  uint8_t(0xFF)                 // [63] HWCAP2_POE
+}};
 
 static ASMJIT_FAVOR_SIZE void detectARMCpu(CpuInfo& cpu) noexcept {
   cpu._wasDetected = true;
@@ -1793,8 +1948,8 @@ static ASMJIT_FAVOR_SIZE void detectARMCpu(CpuInfo& cpu) noexcept {
   unsigned long hwCapMasks[2] {};
   getAuxValues(hwCapMasks, hwCapTags, 2u);
 
-  mergeHWCaps(cpu, hwCapMasks[0], hwCapMapping, ASMJIT_ARRAY_SIZE(hwCapMapping));
-  mergeHWCaps(cpu, hwCapMasks[1], hwCap2Mapping, ASMJIT_ARRAY_SIZE(hwCap2Mapping));
+  mergeHWCaps(cpu, hwCapMasks[0], hwCap1Mapping);
+  mergeHWCaps(cpu, hwCapMasks[1], hwCap2Mapping);
 
 #if defined(ASMJIT_ARM_DETECT_VIA_CPUID)
   if (cpu.features().arm().hasCPUID()) {

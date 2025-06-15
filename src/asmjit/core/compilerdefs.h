@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_CORE_COMPILERDEFS_H_INCLUDED
@@ -57,7 +57,7 @@ public:
   uint8_t _hasStackSlot : 1;
   uint8_t _reservedBits : 5;
   //! Home register hint for the register allocator (initially unassigned).
-  uint8_t _homeIdHint = BaseReg::kIdBad;
+  uint8_t _homeIdHint = Reg::kIdBad;
 
   //! Stack offset assigned by the register allocator relative to stack pointer (can be negative as well).
   int32_t _stackOffset = 0;
@@ -65,7 +65,7 @@ public:
   //! Reserved for future use (padding).
   uint32_t _reservedU32 = 0;
 
-  //! Virtual register name (user provided or automatically generated).
+  //! Virtual register name (either empty or user provided).
   ZoneString<16> _name {};
 
   // The following members are used exclusively by RAPass. They are initialized when the VirtReg is created to
@@ -178,7 +178,7 @@ public:
 
   //! Tests whether this virtual register has assigned a physical register as a hint to the register allocator.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool hasHomeIdHint() const noexcept { return _homeIdHint != BaseReg::kIdBad; }
+  ASMJIT_INLINE_NODEBUG bool hasHomeIdHint() const noexcept { return _homeIdHint != Reg::kIdBad; }
 
   //! Returns a physical register hint, which will be used by the register allocator.
   [[nodiscard]]
@@ -187,7 +187,7 @@ public:
   //! Assigns a physical register hint, which will be used by the register allocator.
   ASMJIT_INLINE_NODEBUG void setHomeIdHint(uint32_t homeId) noexcept { _homeIdHint = uint8_t(homeId); }
   //! Resets a physical register hint.
-  ASMJIT_INLINE_NODEBUG void resetHomeIdHint() noexcept { _homeIdHint = BaseReg::kIdBad; }
+  ASMJIT_INLINE_NODEBUG void resetHomeIdHint() noexcept { _homeIdHint = Reg::kIdBad; }
 
   //! Returns a stack offset associated with a virtual register or explicit stack allocation.
   //!

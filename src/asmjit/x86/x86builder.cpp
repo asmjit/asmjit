@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
@@ -18,6 +18,8 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 Builder::Builder(CodeHolder* code) noexcept : BaseBuilder() {
   _archMask = (uint64_t(1) << uint32_t(Arch::kX86)) |
               (uint64_t(1) << uint32_t(Arch::kX64)) ;
+  initEmitterFuncs(this);
+
   if (code) {
     code->attach(this);
   }
@@ -27,16 +29,16 @@ Builder::~Builder() noexcept {}
 // x86::Builder - Events
 // =====================
 
-Error Builder::onAttach(CodeHolder* code) noexcept {
+Error Builder::onAttach(CodeHolder& code) noexcept {
   ASMJIT_PROPAGATE(Base::onAttach(code));
 
   _instructionAlignment = uint8_t(1);
-  assignEmitterFuncs(this);
+  updateEmitterFuncs(this);
 
   return kErrorOk;
 }
 
-Error Builder::onDetach(CodeHolder* code) noexcept {
+Error Builder::onDetach(CodeHolder& code) noexcept {
   return Base::onDetach(code);
 }
 

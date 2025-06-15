@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_CORE_RAPASS_P_H_INCLUDED
@@ -615,13 +615,13 @@ public:
     RegGroup group = workReg->group();
     RATiedReg* tiedReg = workReg->tiedReg();
 
-    if (useId != BaseReg::kIdBad) {
+    if (useId != Reg::kIdBad) {
       _stats.makeFixed(group);
       _used[group] |= Support::bitMask(useId);
       flags |= RATiedFlags::kUseFixed;
     }
 
-    if (outId != BaseReg::kIdBad) {
+    if (outId != Reg::kIdBad) {
       _clobbered[group] |= Support::bitMask(outId);
       flags |= RATiedFlags::kOutFixed;
     }
@@ -650,14 +650,14 @@ public:
         tiedReg->_consecutiveParent = consecutiveParent;
       }
 
-      if (useId != BaseReg::kIdBad) {
+      if (useId != Reg::kIdBad) {
         if (ASMJIT_UNLIKELY(tiedReg->hasUseId())) {
           return DebugUtils::errored(kErrorOverlappedRegs);
         }
         tiedReg->setUseId(useId);
       }
 
-      if (outId != BaseReg::kIdBad) {
+      if (outId != Reg::kIdBad) {
         if (ASMJIT_UNLIKELY(tiedReg->hasOutId())) {
           return DebugUtils::errored(kErrorOverlappedRegs);
         }
@@ -677,7 +677,7 @@ public:
 
   [[nodiscard]]
   Error addCallArg(RAWorkReg* workReg, uint32_t useId) noexcept {
-    ASMJIT_ASSERT(useId != BaseReg::kIdBad);
+    ASMJIT_ASSERT(useId != Reg::kIdBad);
 
     RATiedFlags flags = RATiedFlags::kUse | RATiedFlags::kRead | RATiedFlags::kUseFixed;
     RegGroup group = workReg->group();
@@ -694,7 +694,7 @@ public:
       ASMJIT_ASSERT(tiedRegCount() < ASMJIT_ARRAY_SIZE(_tiedRegs));
 
       tiedReg = _cur++;
-      tiedReg->init(workReg->workId(), flags, allocable, useId, 0, allocable, BaseReg::kIdBad, 0);
+      tiedReg->init(workReg->workId(), flags, allocable, useId, 0, allocable, Reg::kIdBad, 0);
 
       workReg->setTiedReg(tiedReg);
       workReg->assignBasicBlock(_basicBlockId);
@@ -720,7 +720,7 @@ public:
 
   [[nodiscard]]
   Error addCallRet(RAWorkReg* workReg, uint32_t outId) noexcept {
-    ASMJIT_ASSERT(outId != BaseReg::kIdBad);
+    ASMJIT_ASSERT(outId != Reg::kIdBad);
 
     RATiedFlags flags = RATiedFlags::kOut | RATiedFlags::kWrite | RATiedFlags::kOutFixed;
     RegGroup group = workReg->group();
@@ -737,7 +737,7 @@ public:
       ASMJIT_ASSERT(tiedRegCount() < ASMJIT_ARRAY_SIZE(_tiedRegs));
 
       tiedReg = _cur++;
-      tiedReg->init(workReg->workId(), flags, Support::allOnes<RegMask>(), BaseReg::kIdBad, 0, outRegs, outId, 0);
+      tiedReg->init(workReg->workId(), flags, Support::allOnes<RegMask>(), Reg::kIdBad, 0, outRegs, outId, 0);
 
       workReg->setTiedReg(tiedReg);
       workReg->assignBasicBlock(_basicBlockId);
@@ -901,9 +901,9 @@ public:
   Operand _temporaryMem = Operand();
 
   //! Stack pointer.
-  BaseReg _sp = BaseReg();
+  Reg _sp = Reg();
   //! Frame pointer.
-  BaseReg _fp = BaseReg();
+  Reg _fp = Reg();
   //! Stack manager.
   RAStackAllocator _stackAllocator {};
   //! Function arguments assignment.
@@ -1302,7 +1302,7 @@ public:
   inline BaseMem workRegAsMem(RAWorkReg* workReg) noexcept {
     (void)getOrCreateStackSlot(workReg);
     return BaseMem(OperandSignature::fromOpType(OperandType::kMem) |
-                   OperandSignature::fromMemBaseType(_sp.type()) |
+                   OperandSignature::fromMemBaseType(_sp.regType()) |
                    OperandSignature::fromBits(OperandSignature::kMemRegHomeFlag),
                    workReg->virtId(), 0, 0);
   }
@@ -1315,8 +1315,7 @@ public:
 
   [[nodiscard]]
   inline PhysToWorkMap* clonePhysToWorkMap(const PhysToWorkMap* map) noexcept {
-    size_t size = PhysToWorkMap::sizeOf(_physRegTotal);
-    return static_cast<PhysToWorkMap*>(zone()->dupAligned(map, size, sizeof(uint32_t)));
+    return static_cast<PhysToWorkMap*>(zone()->dup(map, PhysToWorkMap::sizeOf(_physRegTotal)));
   }
 
   //! \name Liveness Analysis & Statistics

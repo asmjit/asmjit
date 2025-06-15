@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_CORE_ARCHTRAITS_H_INCLUDED
@@ -110,13 +110,13 @@ enum class SubArch : uint8_t {
 
 //! Identifier used to represent names of different data types across architectures.
 enum class ArchTypeNameId : uint8_t {
-  //! Describes 'db' (X86/X86_64 convention, always 8-bit quantity).
+  //! Describes 'db' (X86|X86_64 convention, always 8-bit quantity).
   kDB = 0,
-  //! Describes 'dw' (X86/X86_64 convention, always 16-bit word).
+  //! Describes 'dw' (X86|X86_64 convention, always 16-bit word).
   kDW,
-  //! Describes 'dd' (X86/X86_64 convention, always 32-bit word).
+  //! Describes 'dd' (X86|X86_64 convention, always 32-bit word).
   kDD,
-  //! Describes 'dq' (X86/X86_64 convention, always 64-bit word).
+  //! Describes 'dq' (X86|X86_64 convention, always 64-bit word).
   kDQ,
   //! Describes 'byte' (always 8-bit quantity).
   kByte,
@@ -174,7 +174,7 @@ struct ArchTraits {
   //! Link register id.
   uint8_t _linkRegId;
   //! Instruction pointer (or program counter) register id, if accessible.
-  uint8_t _ipRegId;
+  uint8_t _pcRegId;
 
   // Reserved.
   uint8_t _reserved[3];
@@ -186,13 +186,12 @@ struct ArchTraits {
   //! Maximum addressable offset on stack depending on specific instruction.
   uint32_t _maxStackOffset;
 
+  //! Bit-mask indexed by \ref RegType that describes, which register types are supported by the ISA.
+  uint32_t _supportedRegTypes;
+
   //! Flags for each virtual register group.
   Support::Array<InstHints, Globals::kNumVirtGroups> _instHints;
 
-  //! Maps register type into a signature, that provides group, size and can be used to construct register operands.
-  Support::Array<OperandSignature, uint32_t(RegType::kMaxValue) + 1> _regSignature;
-  //! Maps a register to type-id, see \ref TypeId.
-  Support::Array<TypeId, uint32_t(RegType::kMaxValue) + 1> _regTypeToTypeId;
   //! Maps scalar TypeId values (from TypeId::_kIdBaseStart) to register types, see \ref TypeId.
   Support::Array<RegType, 32> _typeIdToRegType;
 
@@ -204,21 +203,21 @@ struct ArchTraits {
   //! \name Accessors
   //! \{
 
-  //! Returns stack pointer register id.
+  //! Returns stack pointer register id (always GP register).
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t spRegId() const noexcept { return _spRegId; }
 
-  //! Returns stack frame register id.
+  //! Returns stack frame register id (always GP register).
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t fpRegId() const noexcept { return _fpRegId; }
 
-  //! Returns link register id, if the architecture provides it.
+  //! Returns link register id, if the architecture provides it (always GP register).
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t linkRegId() const noexcept { return _linkRegId; }
 
-  //! Returns instruction pointer register id, if the architecture provides it.
+  //! Returns program counter register id, if the architecture exposes it (always GP register).
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t ipRegId() const noexcept { return _ipRegId; }
+  ASMJIT_INLINE_NODEBUG uint32_t pcRegId() const noexcept { return _pcRegId; }
 
   //! Returns a hardware stack alignment requirement.
   //!
@@ -230,7 +229,7 @@ struct ArchTraits {
   //! Tests whether the architecture provides link register, which is used across function calls. If the link
   //! register is not provided then a function call pushes the return address on stack (X86/X64).
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool hasLinkReg() const noexcept { return _linkRegId != BaseReg::kIdBad; }
+  ASMJIT_INLINE_NODEBUG bool hasLinkReg() const noexcept { return _linkRegId != Reg::kIdBad; }
 
   //! Returns minimum addressable offset on stack guaranteed for all instructions.
   [[nodiscard]]
@@ -258,24 +257,11 @@ struct ArchTraits {
 
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasRegType(RegType type) const noexcept {
-    return type <= RegType::kMaxValue && _regSignature[type].isValid();
+    if (ASMJIT_UNLIKELY(type > RegType::kMaxValue)) {
+      type = RegType::kNone;
+    }
+    return Support::bitTest(_supportedRegTypes, uint32_t(type));
   }
-
-  //! Returns an operand signature from the given register `type` of this architecture.
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG OperandSignature regTypeToSignature(RegType type) const noexcept { return _regSignature[type]; }
-
-  //! Returns a register from the given register `type` of this architecture.
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG RegGroup regTypeToGroup(RegType type) const noexcept { return _regSignature[type].regGroup(); }
-
-  //! Returns a register size the given register `type` of this architecture.
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t regTypeToSize(RegType type) const noexcept { return _regSignature[type].size(); }
-
-  //! Returns a corresponding `TypeId` from the given register `type` of this architecture.
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG TypeId regTypeToTypeId(RegType type) const noexcept { return _regTypeToTypeId[type]; }
 
   //! Returns a table of ISA word names that appear in formatted text. Word names are ISA dependent.
   //!

@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
@@ -29,7 +29,8 @@ Error ZoneStackBase::_init(ZoneAllocator* allocator, size_t middleIndex) noexcep
   }
 
   if (allocator) {
-    Block* block = static_cast<Block*>(allocator->alloc(kBlockSize));
+    size_t allocated;
+    Block* block = static_cast<Block*>(allocator->alloc(kBlockSize, allocated));
     if (ASMJIT_UNLIKELY(!block)) {
       return DebugUtils::errored(kErrorOutOfMemory);
     }
@@ -56,10 +57,14 @@ Error ZoneStackBase::_prepareBlock(uint32_t side, size_t initialIndex) noexcept 
   Block* prev = _block[side];
   ASMJIT_ASSERT(!prev->empty());
 
-  Block* block = _allocator->allocT<Block>(kBlockSize);
+  size_t allocated;
+  Block* block = static_cast<Block*>(_allocator->alloc(kBlockSize, allocated));
+
   if (ASMJIT_UNLIKELY(!block)) {
     return DebugUtils::errored(kErrorOutOfMemory);
   }
+
+  ASMJIT_ASSERT(kBlockSize == allocated);
 
   block->_link[ side] = nullptr;
   block->_link[!side] = prev;

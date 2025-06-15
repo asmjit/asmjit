@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_CORE_EMITHELPER_P_H_INCLUDED
@@ -39,8 +39,8 @@ public:
 
   //! Emits swap between two registers.
   virtual Error emitRegSwap(
-    const BaseReg& a,
-    const BaseReg& b, const char* comment = nullptr);
+    const Reg& a,
+    const Reg& b, const char* comment = nullptr);
 
   //! Emits move from a function argument (either register or stack) to a register.
   //!
@@ -48,7 +48,7 @@ public:
   //! to another, if it's possible. Any attempt of conversion that requires third register of a different group
   //! (for example conversion from K to MMX on X86/X64) will fail.
   virtual Error emitArgMove(
-    const BaseReg& dst_, TypeId dstTypeId,
+    const Reg& dst_, TypeId dstTypeId,
     const Operand_& src_, TypeId srcTypeId, const char* comment = nullptr);
 
   Error emitArgsAssignment(const FuncFrame& frame, const FuncArgsAssignment& args);

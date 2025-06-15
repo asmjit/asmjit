@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_X86_X86EMITTER_H_INCLUDED
@@ -4428,7 +4428,7 @@ struct EmitterImplicitT : public EmitterExplicitT<This> {
   //! \}
 };
 
-//! Emitter (X86).
+//! Emitter (X86|X86_64).
 //!
 //! \note This class cannot be instantiated, you can only cast to it and use it as emitter that emits to either
 //! `x86::Assembler`, `x86::Builder`, or `x86::Compiler` (use with caution with `x86::Compiler` as it requires

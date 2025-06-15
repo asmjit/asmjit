@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_X86_X86INSTDB_H_INCLUDED
@@ -13,7 +13,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //! \addtogroup asmjit_x86
 //! \{
 
-//! Instruction database (X86).
+//! Instruction database (X86|X86_64).
 namespace InstDB {
 
 //! Describes which operation mode is supported by an instruction.
@@ -112,7 +112,7 @@ ASMJIT_DEFINE_ENUM_FLAGS(OpFlags)
 
 //! Operand signature.
 //!
-//! Contains all possible operand combinations, memory size information, and a fixed register id (or `BaseReg::kIdBad`
+//! Contains all possible operand combinations, memory size information, and a fixed register id (or `Reg::kIdBad`
 //! if fixed id isn't required).
 struct OpSignature {
   //! \name Members

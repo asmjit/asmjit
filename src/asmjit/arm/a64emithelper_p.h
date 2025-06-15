@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_ARM_A64EMITHELPER_P_H_INCLUDED
@@ -31,18 +31,21 @@ public:
     const Operand_& src_, TypeId typeId, const char* comment = nullptr) override;
 
   Error emitRegSwap(
-    const BaseReg& a,
-    const BaseReg& b, const char* comment = nullptr) override;
+    const Reg& a,
+    const Reg& b, const char* comment = nullptr) override;
 
   Error emitArgMove(
-    const BaseReg& dst_, TypeId dstTypeId,
+    const Reg& dst_, TypeId dstTypeId,
     const Operand_& src_, TypeId srcTypeId, const char* comment = nullptr) override;
 
   Error emitProlog(const FuncFrame& frame);
   Error emitEpilog(const FuncFrame& frame);
 };
 
-void assignEmitterFuncs(BaseEmitter* emitter);
+void initEmitterFuncs(BaseEmitter* emitter);
+
+[[maybe_unused]]
+static inline void updateEmitterFuncs(BaseEmitter* emitter) noexcept { DebugUtils::unused(emitter); }
 
 //! \}
 //! \endcond

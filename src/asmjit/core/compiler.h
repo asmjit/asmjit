@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_CORE_COMPILER_H_INCLUDED
@@ -58,8 +58,6 @@ public:
 
   //! Current function.
   FuncNode* _func;
-  //! Allocates `VirtReg` objects.
-  Zone _vRegZone;
   //! Stores array of `VirtReg` pointers.
   ZoneVector<VirtReg*> _vRegArray;
   //! Stores jump annotations.
@@ -146,22 +144,22 @@ public:
   ASMJIT_API Error newVirtReg(VirtReg** ASMJIT_NONNULL(out), TypeId typeId, OperandSignature signature, const char* name);
 
   //! Creates a new virtual register of the given `typeId` and stores it to `out` operand.
-  ASMJIT_API Error _newReg(BaseReg* ASMJIT_NONNULL(out), TypeId typeId, const char* name = nullptr);
+  ASMJIT_API Error _newReg(Reg* ASMJIT_NONNULL(out), TypeId typeId, const char* name = nullptr);
 
   //! Creates a new virtual register of the given `typeId` and stores it to `out` operand.
   //!
   //! \note This version accepts a snprintf() format `fmt` followed by a variadic arguments.
-  ASMJIT_API Error _newRegFmt(BaseReg* ASMJIT_NONNULL(out), TypeId typeId, const char* fmt, ...);
+  ASMJIT_API Error _newRegFmt(Reg* ASMJIT_NONNULL(out), TypeId typeId, const char* fmt, ...);
   //! \overload
-  inline Error _newRegFmt(BaseReg* ASMJIT_NONNULL(out), TypeId typeId) { return _newRegFmt(out, typeId, nullptr); }
+  inline Error _newRegFmt(Reg* ASMJIT_NONNULL(out), TypeId typeId) { return _newRegFmt(out, typeId, nullptr); }
 
   //! Creates a new virtual register compatible with the provided reference register `ref`.
-  ASMJIT_API Error _newReg(BaseReg* ASMJIT_NONNULL(out), const BaseReg& ref, const char* name = nullptr);
+  ASMJIT_API Error _newReg(Reg* ASMJIT_NONNULL(out), const Reg& ref, const char* name = nullptr);
 
   //! Creates a new virtual register compatible with the provided reference register `ref`.
   //!
   //! \note This version accepts a snprintf() format `fmt` followed by a variadic arguments.
-  ASMJIT_API Error _newRegFmt(BaseReg* ASMJIT_NONNULL(out), const BaseReg& ref, const char* fmt, ...);
+  ASMJIT_API Error _newRegFmt(Reg* ASMJIT_NONNULL(out), const Reg& ref, const char* fmt, ...);
 
   //! Tests whether the given `id` is a valid virtual register id.
   [[nodiscard]]
@@ -172,7 +170,7 @@ public:
 
   //! Tests whether the given `reg` is a virtual register having a valid id.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool isVirtRegValid(const BaseReg& reg) const noexcept {
+  ASMJIT_INLINE_NODEBUG bool isVirtRegValid(const Reg& reg) const noexcept {
     return isVirtIdValid(reg.id());
   }
 
@@ -185,7 +183,7 @@ public:
 
   //! Returns \ref VirtReg associated with the given `reg`.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG VirtReg* virtRegByReg(const BaseReg& reg) const noexcept { return virtRegById(reg.id()); }
+  ASMJIT_INLINE_NODEBUG VirtReg* virtRegByReg(const Reg& reg) const noexcept { return virtRegById(reg.id()); }
 
   //! Returns \ref VirtReg associated with the given virtual register `index`.
   //!
@@ -231,7 +229,7 @@ public:
   //! \{
 
   //! Rename the given virtual register `reg` to a formatted string `fmt`.
-  ASMJIT_API void rename(const BaseReg& reg, const char* fmt, ...);
+  ASMJIT_API void rename(const Reg& reg, const char* fmt, ...);
 
   //! \}
 
@@ -256,8 +254,9 @@ public:
   //! \name Events
   //! \{
 
-  ASMJIT_API Error onAttach(CodeHolder* code) noexcept override;
-  ASMJIT_API Error onDetach(CodeHolder* code) noexcept override;
+  ASMJIT_API Error onAttach(CodeHolder& code) noexcept override;
+  ASMJIT_API Error onDetach(CodeHolder& code) noexcept override;
+  ASMJIT_API Error onReinit(CodeHolder& code) noexcept override;
 
   //! \}
 };
@@ -348,10 +347,10 @@ public:
   //! \name Construction & Destruction
   //! \{
 
-  inline JumpNode(BaseCompiler* ASMJIT_NONNULL(cc), InstId instId, InstOptions options, uint32_t opCount, JumpAnnotation* annotation) noexcept
-    : InstNodeWithOperands(cc, instId, options, opCount),
+  inline JumpNode(InstId instId, InstOptions options, uint32_t opCount, JumpAnnotation* annotation) noexcept
+    : InstNodeWithOperands(instId, options, opCount),
       _annotation(annotation) {
-    setType(NodeType::kJump);
+    _setType(NodeType::kJump);
   }
 
   //! \}
@@ -452,14 +451,14 @@ public:
   //! Creates a new `FuncNode` instance.
   //!
   //! Always use `BaseCompiler::addFunc()` to create a new `FuncNode`.
-  inline FuncNode(BaseBuilder* ASMJIT_NONNULL(cb)) noexcept
-    : LabelNode(cb),
+  inline explicit FuncNode(uint32_t labelId = Globals::kInvalidId) noexcept
+    : LabelNode(labelId),
       _funcDetail(),
       _frame(),
       _exitNode(nullptr),
       _end(nullptr),
       _args(nullptr) {
-    setType(NodeType::kFunc);
+    _setType(NodeType::kFunc);
   }
 
   //! \}
@@ -522,7 +521,7 @@ public:
   }
 
   //! Sets argument at `argIndex`.
-  inline void setArg(size_t argIndex, const BaseReg& vReg) noexcept {
+  inline void setArg(size_t argIndex, const Reg& vReg) noexcept {
     ASMJIT_ASSERT(argIndex < argCount());
     _args[argIndex][0].init(vReg);
   }
@@ -534,7 +533,7 @@ public:
   }
 
   //! Sets argument at `argIndex` and `valueIndex`.
-  inline void setArg(size_t argIndex, size_t valueIndex, const BaseReg& vReg) noexcept {
+  inline void setArg(size_t argIndex, size_t valueIndex, const Reg& vReg) noexcept {
     ASMJIT_ASSERT(argIndex < argCount());
     _args[argIndex][valueIndex].init(vReg);
   }
@@ -569,9 +568,9 @@ public:
   //! \{
 
   //! Creates a new `FuncRetNode` instance.
-  inline FuncRetNode(BaseBuilder* ASMJIT_NONNULL(cb)) noexcept
-    : InstNodeWithOperands(cb, BaseInst::kIdAbstract, InstOptions::kNone, 0) {
-    _any._nodeType = NodeType::kFuncRet;
+  inline FuncRetNode() noexcept
+    : InstNodeWithOperands(BaseInst::kIdAbstract, InstOptions::kNone, 0) {
+    _nodeType = NodeType::kFuncRet;
   }
 
   //! \}
@@ -626,14 +625,14 @@ public:
   //! \{
 
   //! Creates a new `InvokeNode` instance.
-  inline InvokeNode(BaseBuilder* ASMJIT_NONNULL(cb), InstId instId, InstOptions options) noexcept
-    : InstNodeWithOperands(cb, instId, options, 0),
+  inline InvokeNode(InstId instId, InstOptions options) noexcept
+    : InstNodeWithOperands(instId, options, 0),
       _funcDetail(),
       _args(nullptr) {
-    setType(NodeType::kInvoke);
+    _setType(NodeType::kInvoke);
     _resetOps();
     _rets.reset();
-    addFlags(NodeFlags::kIsRemovable);
+    _addFlags(NodeFlags::kIsRemovable);
   }
 
   //! \}
@@ -724,15 +723,15 @@ public:
   }
 
   //! Sets the function return value at `valueIndex` to `reg`.
-  ASMJIT_INLINE_NODEBUG void setRet(size_t valueIndex, const BaseReg& reg) noexcept { _setRet(valueIndex, reg); }
+  ASMJIT_INLINE_NODEBUG void setRet(size_t valueIndex, const Reg& reg) noexcept { _setRet(valueIndex, reg); }
 
   //! Sets the first function argument in a value-pack at `argIndex` to `reg`.
-  ASMJIT_INLINE_NODEBUG void setArg(size_t argIndex, const BaseReg& reg) noexcept { _setArg(argIndex, 0, reg); }
+  ASMJIT_INLINE_NODEBUG void setArg(size_t argIndex, const Reg& reg) noexcept { _setArg(argIndex, 0, reg); }
   //! Sets the first function argument in a value-pack at `argIndex` to `imm`.
   ASMJIT_INLINE_NODEBUG void setArg(size_t argIndex, const Imm& imm) noexcept { _setArg(argIndex, 0, imm); }
 
   //! Sets the function argument at `argIndex` and `valueIndex` to `reg`.
-  ASMJIT_INLINE_NODEBUG void setArg(size_t argIndex, size_t valueIndex, const BaseReg& reg) noexcept { _setArg(argIndex, valueIndex, reg); }
+  ASMJIT_INLINE_NODEBUG void setArg(size_t argIndex, size_t valueIndex, const Reg& reg) noexcept { _setArg(argIndex, valueIndex, reg); }
   //! Sets the function argument at `argIndex` and `valueIndex` to `imm`.
   ASMJIT_INLINE_NODEBUG void setArg(size_t argIndex, size_t valueIndex, const Imm& imm) noexcept { _setArg(argIndex, valueIndex, imm); }
 

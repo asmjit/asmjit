@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_X86_X86COMPILER_H_INCLUDED
@@ -43,7 +43,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //!
 //!   cc.addFunc(FuncSignature::build<int>()); // Begin a function of `int fn(void)` signature.
 //!
-//!   x86::Gp vReg = cc.newGpd();              // Create a 32-bit general purpose register.
+//!   x86::Gp vReg = cc.newGp32();             // Create a 32-bit general purpose register.
 //!   cc.mov(vReg, 1);                         // Move one to our virtual register `vReg`.
 //!   cc.ret(vReg);                            // Return `vReg` from the function.
 //!
@@ -180,7 +180,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //!
 //!   // Do something with the input pointer.
 //!   x86::Gp addr = cc.newIntPtr("addr");
-//!   x86::Zmm vreg = cc.newZmm("vreg");
+//!   x86::Vec vreg = cc.newZmm("vreg");
 //!
 //!   funcNode->setArg(0, addr);
 //!
@@ -382,8 +382,8 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //! static void exampleUseOfConstPool(x86::Compiler& cc) {
 //!   cc.addFunc(FuncSignature::build<int>());
 //!
-//!   x86::Gp v0 = cc.newGpd("v0");
-//!   x86::Gp v1 = cc.newGpd("v1");
+//!   x86::Gp v0 = cc.newGp32("v0");
+//!   x86::Gp v1 = cc.newGp32("v1");
 //!
 //!   x86::Mem c0 = cc.newInt32Const(ConstPoolScope::kLocal, 200);
 //!   x86::Mem c1 = cc.newInt32Const(ConstPoolScope::kLocal, 33);
@@ -417,8 +417,8 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //!   FuncNode* funcNode = cc.addFunc(FuncSignature::build<float, float, float, uint32_t>());
 //!
 //!   // Function arguments
-//!   x86::Xmm a = cc.newXmmSs("a");
-//!   x86::Xmm b = cc.newXmmSs("b");
+//!   x86::Vec a = cc.newXmmSs("a");
+//!   x86::Vec b = cc.newXmmSs("b");
 //!   x86::Gp op = cc.newUInt32("op");
 //!
 //!   x86::Gp target = cc.newIntPtr("target");
@@ -569,22 +569,27 @@ public:
   ASMJIT_NEW_REG_TYPED(newIntPtr , Gp  , TypeId::kIntPtr)
   ASMJIT_NEW_REG_TYPED(newUIntPtr, Gp  , TypeId::kUIntPtr)
 
+  ASMJIT_NEW_REG_TYPED(newGp8    , Gp  , TypeId::kUInt8)
+  ASMJIT_NEW_REG_TYPED(newGp16   , Gp  , TypeId::kUInt16)
+  ASMJIT_NEW_REG_TYPED(newGp32   , Gp  , TypeId::kUInt32)
+  ASMJIT_NEW_REG_TYPED(newGp64   , Gp  , TypeId::kUInt64)
+
   ASMJIT_NEW_REG_TYPED(newGpb    , Gp  , TypeId::kUInt8)
   ASMJIT_NEW_REG_TYPED(newGpw    , Gp  , TypeId::kUInt16)
   ASMJIT_NEW_REG_TYPED(newGpd    , Gp  , TypeId::kUInt32)
   ASMJIT_NEW_REG_TYPED(newGpq    , Gp  , TypeId::kUInt64)
   ASMJIT_NEW_REG_TYPED(newGpz    , Gp  , TypeId::kUIntPtr)
-  ASMJIT_NEW_REG_TYPED(newXmm    , Xmm , TypeId::kInt32x4)
-  ASMJIT_NEW_REG_TYPED(newXmmSs  , Xmm , TypeId::kFloat32x1)
-  ASMJIT_NEW_REG_TYPED(newXmmSd  , Xmm , TypeId::kFloat64x1)
-  ASMJIT_NEW_REG_TYPED(newXmmPs  , Xmm , TypeId::kFloat32x4)
-  ASMJIT_NEW_REG_TYPED(newXmmPd  , Xmm , TypeId::kFloat64x2)
-  ASMJIT_NEW_REG_TYPED(newYmm    , Ymm , TypeId::kInt32x8)
-  ASMJIT_NEW_REG_TYPED(newYmmPs  , Ymm , TypeId::kFloat32x8)
-  ASMJIT_NEW_REG_TYPED(newYmmPd  , Ymm , TypeId::kFloat64x4)
-  ASMJIT_NEW_REG_TYPED(newZmm    , Zmm , TypeId::kInt32x16)
-  ASMJIT_NEW_REG_TYPED(newZmmPs  , Zmm , TypeId::kFloat32x16)
-  ASMJIT_NEW_REG_TYPED(newZmmPd  , Zmm , TypeId::kFloat64x8)
+  ASMJIT_NEW_REG_TYPED(newXmm    , Vec , TypeId::kInt32x4)
+  ASMJIT_NEW_REG_TYPED(newXmmSs  , Vec , TypeId::kFloat32x1)
+  ASMJIT_NEW_REG_TYPED(newXmmSd  , Vec , TypeId::kFloat64x1)
+  ASMJIT_NEW_REG_TYPED(newXmmPs  , Vec , TypeId::kFloat32x4)
+  ASMJIT_NEW_REG_TYPED(newXmmPd  , Vec , TypeId::kFloat64x2)
+  ASMJIT_NEW_REG_TYPED(newYmm    , Vec , TypeId::kInt32x8)
+  ASMJIT_NEW_REG_TYPED(newYmmPs  , Vec , TypeId::kFloat32x8)
+  ASMJIT_NEW_REG_TYPED(newYmmPd  , Vec , TypeId::kFloat64x4)
+  ASMJIT_NEW_REG_TYPED(newZmm    , Vec , TypeId::kInt32x16)
+  ASMJIT_NEW_REG_TYPED(newZmmPs  , Vec , TypeId::kFloat32x16)
+  ASMJIT_NEW_REG_TYPED(newZmmPd  , Vec , TypeId::kFloat64x8)
   ASMJIT_NEW_REG_TYPED(newMm     , Mm  , TypeId::kMmx64)
   ASMJIT_NEW_REG_TYPED(newKb     , KReg, TypeId::kMask8)
   ASMJIT_NEW_REG_TYPED(newKw     , KReg, TypeId::kMask16)
@@ -684,9 +689,9 @@ public:
   //! Return from function.
   ASMJIT_INLINE_NODEBUG Error ret() { return addRet(Operand(), Operand()); }
   //! \overload
-  ASMJIT_INLINE_NODEBUG Error ret(const BaseReg& o0) { return addRet(o0, Operand()); }
+  ASMJIT_INLINE_NODEBUG Error ret(const Reg& o0) { return addRet(o0, Operand()); }
   //! \overload
-  ASMJIT_INLINE_NODEBUG Error ret(const BaseReg& o0, const BaseReg& o1) { return addRet(o0, o1); }
+  ASMJIT_INLINE_NODEBUG Error ret(const Reg& o0, const Reg& o1) { return addRet(o0, o1); }
 
   //! \}
 
@@ -696,7 +701,7 @@ public:
   using EmitterExplicitT<Compiler>::jmp;
 
   //! Adds a jump to the given `target` with the provided jump `annotation`.
-  ASMJIT_INLINE_NODEBUG Error jmp(const BaseReg& target, JumpAnnotation* annotation) { return emitAnnotatedJump(Inst::kIdJmp, target, annotation); }
+  ASMJIT_INLINE_NODEBUG Error jmp(const Reg& target, JumpAnnotation* annotation) { return emitAnnotatedJump(Inst::kIdJmp, target, annotation); }
   //! \overload
   ASMJIT_INLINE_NODEBUG Error jmp(const BaseMem& target, JumpAnnotation* annotation) { return emitAnnotatedJump(Inst::kIdJmp, target, annotation); }
 
@@ -705,8 +710,9 @@ public:
   //! \name Events
   //! \{
 
-  ASMJIT_API Error onAttach(CodeHolder* code) noexcept override;
-  ASMJIT_API Error onDetach(CodeHolder* code) noexcept override;
+  ASMJIT_API Error onAttach(CodeHolder& code) noexcept override;
+  ASMJIT_API Error onDetach(CodeHolder& code) noexcept override;
+  ASMJIT_API Error onReinit(CodeHolder& code) noexcept override;
 
   //! \}
 

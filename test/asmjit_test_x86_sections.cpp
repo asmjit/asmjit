@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 // ----------------------------------------------------------------------------
@@ -10,8 +10,8 @@
 // important to handle the following cases:
 //
 //   - Assign offsets to sections when the code generation is finished.
-//   - Tell the CodeHolder to resolve unresolved links and check whether
-//     all links were resolved.
+//   - Tell the CodeHolder to resolve unresolved fixups and check whether
+//     all fixups were resolved.
 //   - Relocate the code
 //   - Copy the code to the destination address.
 // ----------------------------------------------------------------------------
@@ -95,9 +95,8 @@ int main() {
     a.embed(dataArray, sizeof(dataArray));
   }
 
-  // Manually change he offsets of each section, start at 0. This code is very
-  // similar to what `CodeHolder::flatten()` does, however, it's shown here
-  // how to do it explicitly.
+  // Manually change he offsets of each section, start at 0. This code is very similar to
+  // what `CodeHolder::flatten()` does, however, it's shown here how to do it explicitly.
   printf("\nCalculating section offsets:\n");
   uint64_t offset = 0;
   for (Section* section : code.sectionsByOrder()) {
@@ -108,22 +107,23 @@ int main() {
     printf("  [0x%08X %s] {Id=%u Size=%u}\n",
            uint32_t(section->offset()),
            section->name(),
-           section->id(),
+           section->sectionId(),
            uint32_t(section->realSize()));
   }
   size_t codeSize = size_t(offset);
   printf("  Final code size: %zu\n", codeSize);
 
-  // Resolve cross-section links (if any). On 32-bit X86 this is not necessary
+  // Resolve cross-section fixups (if any). On 32-bit X86 this is not necessary
   // as this is handled through relocations as the addressing is different.
-  if (code.hasUnresolvedLinks()) {
-    printf("\nResolving cross-section links:\n");
-    printf("  Before 'resolveUnresolvedLinks()': %zu\n", code.unresolvedLinkCount());
+  if (code.hasUnresolvedFixups()) {
+    printf("\nResolving cross-section fixups:\n");
+    printf("  Before 'resolveCrossSectionFixups()': %zu\n", code.unresolvedFixupCount());
 
-    err = code.resolveUnresolvedLinks();
-    if (err)
-      fail("Failed to resolve cross-section links", err);
-    printf("  After 'resolveUnresolvedLinks()': %zu\n", code.unresolvedLinkCount());
+    err = code.resolveCrossSectionFixups();
+    if (err) {
+      fail("Failed to resolve cross-section fixups", err);
+    }
+    printf("  After 'resolveCrossSectionFixups()': %zu\n", code.unresolvedFixupCount());
   }
 
   // Allocate memory for the function and relocate it there.
@@ -163,7 +163,7 @@ int main() {
 
 #else
 int main() {
-  printf("AsmJit X86 Sections Test is disabled on non-x86 host or when compiled with ASMJIT_NO_JIT\n\n");
+  printf("!! This test is disabled: ASMJIT_NO_JIT or unsuitable target architecture !!\n\n");
   return 0;
 }
 #endif // ASMJIT_ARCH_X86 && !ASMJIT_NO_X86 && !ASMJIT_NO_JIT

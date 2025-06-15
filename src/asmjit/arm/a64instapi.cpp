@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
@@ -128,7 +128,7 @@ Error queryRWInfo(const BaseInst& inst, const Operand_* operands, size_t opCount
       OpRWFlags rwFlags = i < opCount - 1 ? (OpRWFlags)rwInfo.rwx[0] : (OpRWFlags)rwInfo.rwx[1];
 
       op._opFlags = rwFlags & ~(OpRWFlags::kZExt);
-      op._physId = BaseReg::kIdBad;
+      op._physId = Reg::kIdBad;
       op._rmSize = 0;
       op._resetReserved();
 
@@ -177,7 +177,7 @@ Error queryRWInfo(const BaseInst& inst, const Operand_* operands, size_t opCount
       OpRWFlags rwFlags = (OpRWFlags)rwInfo.rwx[i];
 
       op._opFlags = rwFlags & ~(OpRWFlags::kZExt);
-      op._physId = BaseReg::kIdBad;
+      op._physId = Reg::kIdBad;
       op._rmSize = 0;
       op._resetReserved();
 

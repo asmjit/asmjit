@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include <asmjit/core.h>
@@ -16,6 +16,24 @@
 #include "asmjitutils.h"
 
 using namespace asmjit;
+
+static void printAppInfo() {
+  printf("AsmJit Environment Test v%u.%u.%u [Arch=%s] [Mode=%s]\n\n",
+    unsigned((ASMJIT_LIBRARY_VERSION >> 16)       ),
+    unsigned((ASMJIT_LIBRARY_VERSION >>  8) & 0xFF),
+    unsigned((ASMJIT_LIBRARY_VERSION      ) & 0xFF),
+    asmjitArchAsString(Arch::kHost),
+    asmjitBuildType()
+  );
+
+  printf("This application can be used to verify AsmJit build options and to verify the\n");
+  printf("environment where it runs. For example to check CPU extensions available, system\n");
+  printf("hardening (RWX restrictions), large page support, and virtual memory allocations.\n");
+  printf("\n");
+}
+
+const char* stringifyBool(bool b) noexcept { return b ? "true" : "false"; };
+const char* stringifyResult(Error err) noexcept { return err == kErrorOk ? "success" : DebugUtils::errorAsString(err); };
 
 using VoidFunc = void (ASMJIT_CDECL*)(void);
 
@@ -77,7 +95,7 @@ static void invokeVoidFunction(void* ptr) noexcept {
 }
 #endif
 
-static void printVirtMemInfo() noexcept {
+static void printVirtMemInfoAndTestExecution() noexcept {
   using MemoryFlags = VirtMem::MemoryFlags;
   using HardenedRuntimeInfo = VirtMem::HardenedRuntimeInfo;
   using HardenedRuntimeFlags = VirtMem::HardenedRuntimeFlags;
@@ -89,16 +107,16 @@ static void printVirtMemInfo() noexcept {
   [[maybe_unused]]
   constexpr size_t kVirtFuncOffset = 64;
 
-  auto stringifyBool = [](bool b) noexcept { return b ? "true" : "false"; };
-  auto stringifySuccess = [](bool b) noexcept { return b ? "success" : "failure"; };
-
   size_t largePageSize = VirtMem::largePageSize();
   HardenedRuntimeInfo rti = VirtMem::hardenedRuntimeInfo();
 
   printf("Large/Huge Pages Info:\n");
   printf("  Large pages supported   : %s\n", stringifyBool(largePageSize != 0u));
-  if (largePageSize) {
-    printf("  Large page size         : %zu [KiB]\n", largePageSize / 1024u);
+  if (largePageSize >= 1024 * 1024) {
+    printf("  Large page size         : %zu MiB\n", largePageSize / (1024u * 1024u));
+  }
+  else if (largePageSize) {
+    printf("  Large page size         : %zu KiB\n", largePageSize / 1024u);
   }
   printf("\n");
 
@@ -113,7 +131,7 @@ static void printVirtMemInfo() noexcept {
 
     void* ptr = nullptr;
     Error result = VirtMem::alloc(&ptr, kVMemAllocSize, MemoryFlags::kAccessRWX);
-    printf("  Alloc virt memory (RWX) : %s\n", stringifySuccess(result == kErrorOk));
+    printf("  Alloc virt memory (RWX) : %s\n", stringifyResult(result));
 
     if (result == kErrorOk) {
 #if defined(TEST_ENVIRONMENT_HAS_JIT)
@@ -127,7 +145,7 @@ static void printVirtMemInfo() noexcept {
 #endif // TEST_ENVIRONMENT_HAS_JIT
 
       result = VirtMem::release(ptr, kVMemAllocSize);
-      printf("  Release virt memory     : %s\n", stringifySuccess(result == kErrorOk));
+      printf("  Release virt memory     : %s\n", stringifyResult(result));
     }
 
     printf("\n");
@@ -138,7 +156,7 @@ static void printVirtMemInfo() noexcept {
 
     void* ptr = nullptr;
     Error result = VirtMem::alloc(&ptr, kVMemAllocSize, MemoryFlags::kAccessRW | MemoryFlags::kMMapMaxAccessRWX);
-    printf("  Alloc virt memory (RW)  : %s (allocation uses kMMapMaxAccessRWX)\n", stringifySuccess(result == kErrorOk));
+    printf("  Alloc virt memory (RW)  : %s (allocation uses kMMapMaxAccessRWX)\n", stringifyResult(result));
 
     if (result == kErrorOk) {
 #if defined(TEST_ENVIRONMENT_HAS_JIT)
@@ -147,7 +165,7 @@ static void printVirtMemInfo() noexcept {
 #endif // TEST_ENVIRONMENT_HAS_JIT
 
       result = VirtMem::protect(ptr, kVMemAllocSize, MemoryFlags::kAccessRX);
-      printf("  Protect virt memory (RX): %s\n", stringifySuccess(result == kErrorOk));
+      printf("  Protect virt memory (RX): %s\n", stringifyResult(result));
 
 #if defined(TEST_ENVIRONMENT_HAS_JIT)
       if (funcSize) {
@@ -157,10 +175,10 @@ static void printVirtMemInfo() noexcept {
 #endif // TEST_ENVIRONMENT_HAS_JIT
 
       result = VirtMem::protect(ptr, kVMemAllocSize, MemoryFlags::kAccessRW);
-      printf("  Protect virt memory (RW): %s\n", stringifySuccess(result == kErrorOk));
+      printf("  Protect virt memory (RW): %s\n", stringifyResult(result));
 
       result = VirtMem::release(ptr, kVMemAllocSize);
-      printf("  Release virt memory (RW): %s\n", stringifySuccess(result == kErrorOk));
+      printf("  Release virt memory (RW): %s\n", stringifyResult(result));
     }
 
     printf("\n");
@@ -171,7 +189,7 @@ static void printVirtMemInfo() noexcept {
 
     void* ptr = nullptr;
     Error result = VirtMem::alloc(&ptr, kVMemAllocSize, MemoryFlags::kAccessRWX | MemoryFlags::kMMapEnableMapJit);
-    printf("  Alloc virt mem (RWX)    : %s (allocation uses kMMapEnableMapJit)\n", stringifySuccess(result == kErrorOk));
+    printf("  Alloc virt mem (RWX)    : %s (allocation uses kMMapEnableMapJit)\n", stringifyResult(result));
 
     if (result == kErrorOk) {
       printf("  Protect JIT Memory (RW) : (per-thread protection)\n");
@@ -193,7 +211,7 @@ static void printVirtMemInfo() noexcept {
 #endif // TEST_ENVIRONMENT_HAS_JIT
 
       result = VirtMem::release(ptr, kVMemAllocSize);
-      printf("  Release virt memory     : %s\n", stringifySuccess(result == kErrorOk));
+      printf("  Release virt memory     : %s\n", stringifyResult(result));
     }
 
     printf("\n");
@@ -204,7 +222,7 @@ static void printVirtMemInfo() noexcept {
 
     VirtMem::DualMapping dm {};
     Error result = VirtMem::allocDualMapping(&dm, kVMemAllocSize, MemoryFlags::kAccessRWX);
-    printf("  Alloc dual mem (RW+RX)  : %s\n", stringifySuccess(result == kErrorOk));
+    printf("  Alloc dual mem (RW+RX)  : %s\n", stringifyResult(result));
 
     if (result == kErrorOk) {
 #if defined(TEST_ENVIRONMENT_HAS_JIT)
@@ -216,35 +234,69 @@ static void printVirtMemInfo() noexcept {
 #endif // TEST_ENVIRONMENT_HAS_JIT
 
       result = VirtMem::releaseDualMapping(&dm, kVMemAllocSize);
-      printf("  Release dual mem (RW+RX): %s\n", stringifySuccess(result == kErrorOk));
+      printf("  Release dual mem (RW+RX): %s\n", stringifyResult(result));
     }
 
     printf("\n");
   }
+}
+
+#if defined(TEST_ENVIRONMENT_HAS_JIT)
+static void printJitRuntimeInfoAndTestExecutionWithParams(const JitAllocator::CreateParams* params, const char* paramsName) noexcept {
+  printf("JitRuntime (%s):\n", paramsName);
+
+  JitRuntime rt(params);
+  CodeHolder code;
+
+  Error result = code.init(rt.environment());
+  printf("  CodeHolder init result  : %s\n", stringifyResult(result));
+
+  if (result != kErrorOk) {
+    return;
+  }
+
+  emitVoidFunction(code);
+  VoidFunc fn;
+
+  result = rt.add(&fn, &code);
+  printf("  Runtime.add() result    : %s\n", stringifyResult(result));
+
+  if (result == kErrorOk) {
+    invokeVoidFunction((void*)fn);
+
+    result = rt.release(fn);
+    printf("  Runtime.release() result: %s\n", stringifyResult(result));
+  }
 
   printf("\n");
 }
+
+static void printJitRuntimeInfoAndTestExecution() noexcept {
+  printJitRuntimeInfoAndTestExecutionWithParams(nullptr, "<no params>");
+
+  if (VirtMem::largePageSize()) {
+    JitAllocator::CreateParams p{};
+    p.options = JitAllocatorOptions::kUseLargePages;
+
+    printJitRuntimeInfoAndTestExecutionWithParams(&p, "large pages");
+  }
+}
+#endif // TEST_ENVIRONMENT_HAS_JIT
+
 #endif // !ASMJIT_NO_JIT
 
 int main() {
-  printf("AsmJit Environment Test v%u.%u.%u [Arch=%s]\n\n",
-    unsigned((ASMJIT_LIBRARY_VERSION >> 16)       ),
-    unsigned((ASMJIT_LIBRARY_VERSION >>  8) & 0xFF),
-    unsigned((ASMJIT_LIBRARY_VERSION      ) & 0xFF),
-    asmjitArchAsString(Arch::kHost)
-  );
-
-  printf("This application can be used to verify AsmJit build options and to verify the\n");
-  printf("environment where it runs. For example to check CPU extensions available, system\n");
-  printf("hardening (RWX restrictions), large page support, and virtual memory allocations.\n");
-  printf("\n");
-
+  printAppInfo();
   printBuildOptions();
   printCpuInfo();
 
 #if !defined(ASMJIT_NO_JIT)
-  printVirtMemInfo();
+  printVirtMemInfoAndTestExecution();
 #endif // !ASMJIT_NO_JIT
+
+#if !defined(ASMJIT_NO_JIT) && defined(TEST_ENVIRONMENT_HAS_JIT)
+  printJitRuntimeInfoAndTestExecution();
+#endif // !ASMJIT_NO_JIT && TEST_ENVIRONMENT_HAS_JIT
 
   return 0;
 }

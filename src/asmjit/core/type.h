@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_CORE_TYPE_H_INCLUDED
@@ -466,6 +466,13 @@ struct Float32 {};
 //! double as C++ type-name.
 struct Float64 {};
 
+//! 128-bit vector register as C++ type-name.
+struct Vec128 {};
+//! 256-bit vector register as C++ type-name.
+struct Vec256 {};
+//! 512-bit vector register as C++ type-name.
+struct Vec512 {};
+
 } // {Type}
 
 //! \cond
@@ -491,6 +498,11 @@ ASMJIT_DEFINE_TYPE_ID(Type::IntPtr , TypeId::kIntPtr);
 ASMJIT_DEFINE_TYPE_ID(Type::UIntPtr, TypeId::kUIntPtr);
 ASMJIT_DEFINE_TYPE_ID(Type::Float32, TypeId::kFloat32);
 ASMJIT_DEFINE_TYPE_ID(Type::Float64, TypeId::kFloat64);
+ASMJIT_DEFINE_TYPE_ID(Type::Vec128 , TypeId::kInt32x4);
+ASMJIT_DEFINE_TYPE_ID(Type::Vec256 , TypeId::kInt32x8);
+ASMJIT_DEFINE_TYPE_ID(Type::Vec512 , TypeId::kInt32x16);
+
+#undef ASMJIT_DEFINE_TYPE_ID
 //! \endcond
 
 //! \}

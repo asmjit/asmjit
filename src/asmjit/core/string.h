@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_CORE_STRING_H_INCLUDED
@@ -35,7 +35,6 @@ union FixedString {
   //! \name Constants
   //! \{
 
-  // This cannot be constexpr as GCC 4.8 refuses constexpr members of unions.
   static inline constexpr uint32_t kNumUInt32Words = uint32_t((N + sizeof(uint32_t) - 1) / sizeof(uint32_t));
 
   //! \}

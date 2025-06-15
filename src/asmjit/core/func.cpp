@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
@@ -106,7 +106,7 @@ ASMJIT_FAVOR_SIZE Error FuncFrame::init(const FuncDetail& func) noexcept {
 
   _arch = arch;
   _spRegId = uint8_t(archTraits.spRegId());
-  _saRegId = uint8_t(BaseReg::kIdBad);
+  _saRegId = uint8_t(Reg::kIdBad);
 
   uint32_t naturalStackAlignment = func.callConv().naturalStackAlignment();
   uint32_t minDynamicAlignment = Support::max<uint32_t>(naturalStackAlignment, 16);
@@ -172,14 +172,14 @@ ASMJIT_FAVOR_SIZE Error FuncFrame::finalize() noexcept {
 
     // Currently required by ARM, if this works differently across architectures we would have to generalize most
     // likely in CallConv.
-    if (kLr != BaseReg::kIdBad) {
+    if (kLr != Reg::kIdBad) {
       _dirtyRegs[RegGroup::kGp] |= Support::bitMask(kLr);
     }
   }
 
   // These two are identical if the function doesn't align its stack dynamically.
   uint32_t saRegId = _saRegId;
-  if (saRegId == BaseReg::kIdBad) {
+  if (saRegId == Reg::kIdBad) {
     saRegId = kSp;
   }
 
