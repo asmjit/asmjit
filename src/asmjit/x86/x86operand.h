@@ -204,6 +204,12 @@ class Vec : public Reg {
   //! \}
 };
 
+#if !defined(ASMJIT_NO_DEPRECATED)
+using Xmm [[deprecated("Use x86::Vec instead of x86::Xmm")]] = Vec;
+using Ymm [[deprecated("Use x86::Vec instead of x86::Ymm")]] = Vec;
+using Zmm [[deprecated("Use x86::Vec instead of x86::Zmm")]] = Vec;
+#endif
+
 //! Segment register (X86|X86_64).
 class SReg : public Reg {
   ASMJIT_DEFINE_FINAL_REG(SReg, Reg, RegTraits<RegType::kSegment>)
@@ -266,23 +272,47 @@ static ASMJIT_INLINE_CONSTEXPR Gp gpb(uint32_t rId) noexcept { return Gp::make_r
 
 //! Creates an 8-bit low GPB register operand.
 [[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Gp gp8(uint32_t rId) noexcept { return Gp::make_r8(rId); }
+
+//! Creates an 8-bit low GPB register operand.
+[[nodiscard]]
 static ASMJIT_INLINE_CONSTEXPR Gp gpb_lo(uint32_t rId) noexcept { return Gp::make_r8lo(rId); }
+
+//! Creates an 8-bit low GPB register operand.
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Gp gp8_lo(uint32_t rId) noexcept { return Gp::make_r8lo(rId); }
 
 //! Creates an 8-bit high GPB register operand.
 [[nodiscard]]
 static ASMJIT_INLINE_CONSTEXPR Gp gpb_hi(uint32_t rId) noexcept { return Gp::make_r8hi(rId); }
 
+//! Creates an 8-bit high GPB register operand.
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Gp gp8_hi(uint32_t rId) noexcept { return Gp::make_r8hi(rId); }
+
 //! Creates a 16-bit GPW register operand.
 [[nodiscard]]
 static ASMJIT_INLINE_CONSTEXPR Gp gpw(uint32_t rId) noexcept { return Gp::make_r16(rId); }
+
+//! Creates a 16-bit GPW register operand.
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Gp gp16(uint32_t rId) noexcept { return Gp::make_r16(rId); }
 
 //! Creates a 32-bit GPD register operand.
 [[nodiscard]]
 static ASMJIT_INLINE_CONSTEXPR Gp gpd(uint32_t rId) noexcept { return Gp::make_r32(rId); }
 
+//! Creates a 32-bit GPD register operand.
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Gp gp32(uint32_t rId) noexcept { return Gp::make_r32(rId); }
+
 //! Creates a 64-bit GPQ register operand (64-bit).
 [[nodiscard]]
 static ASMJIT_INLINE_CONSTEXPR Gp gpq(uint32_t rId) noexcept { return Gp::make_r64(rId); }
+
+//! Creates a 64-bit GPQ register operand (64-bit).
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Gp gp64(uint32_t rId) noexcept { return Gp::make_r64(rId); }
 
 //! Creates a 128-bit XMM register operand.
 [[nodiscard]]

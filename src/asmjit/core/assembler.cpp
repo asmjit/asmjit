@@ -306,7 +306,7 @@ Error BaseAssembler::embedLabel(const Label& label, size_t dataSize) {
     OffsetFormat of;
     of.resetToSimpleValue(OffsetType::kUnsignedOffset, dataSize);
 
-    Fixup* fixup = _code->newFixup(&le, _section->sectionId(), offset(), 0, of);
+    Fixup* fixup = _code->newFixup(le, _section->sectionId(), offset(), 0, of);
     if (ASMJIT_UNLIKELY(!fixup)) {
       return reportError(DebugUtils::errored(kErrorOutOfMemory));
     }

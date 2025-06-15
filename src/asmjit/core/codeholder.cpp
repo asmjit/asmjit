@@ -664,23 +664,23 @@ static uint32_t CodeHolder_hashNameAndGetSize(const char* name, size_t& nameSize
   return hashCode;
 }
 
-Fixup* CodeHolder::newFixup(LabelEntry* le, uint32_t sectionId, size_t offset, intptr_t rel, const OffsetFormat& format) noexcept {
+Fixup* CodeHolder::newFixup(LabelEntry& le, uint32_t sectionId, size_t offset, intptr_t rel, const OffsetFormat& format) noexcept {
   // Cannot be bound if we are creating a link.
-  ASMJIT_ASSERT(!le->isBound());
+  ASMJIT_ASSERT(!le.isBound());
 
   Fixup* link = _fixupDataPool.alloc(_zone);
   if (ASMJIT_UNLIKELY(!link)) {
     return nullptr;
   }
 
-  link->next = le->_getFixups();
+  link->next = le._getFixups();
   link->sectionId = sectionId;
   link->labelOrRelocId = Globals::kInvalidId;
   link->offset = offset;
   link->rel = rel;
   link->format = format;
 
-  le->_setFixups(link);
+  le._setFixups(link);
   _unresolvedFixupCount++;
 
   return link;

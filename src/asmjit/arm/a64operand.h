@@ -677,9 +677,17 @@ namespace regs {
 [[nodiscard]]
 static ASMJIT_INLINE_CONSTEXPR Gp w(uint32_t id) noexcept { return Gp::make_r32(id); }
 
+//! Creates a 32-bit W register operand.
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Gp gp32(uint32_t id) noexcept { return Gp::make_r32(id); }
+
 //! Creates a 64-bit X register operand.
 [[nodiscard]]
 static ASMJIT_INLINE_CONSTEXPR Gp x(uint32_t id) noexcept { return Gp::make_r64(id); }
+
+//! Creates a 64-bit X register operand.
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Gp gp64(uint32_t id) noexcept { return Gp::make_r64(id); }
 
 //! Creates an 8-bit B register operand.
 [[nodiscard]]

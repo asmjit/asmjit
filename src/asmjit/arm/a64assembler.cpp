@@ -5115,7 +5115,7 @@ EmitOp_Rel:
       else {
         // Create a fixup referencing an non-bound label.
         size_t codeOffset = writer.offsetFrom(_bufferData);
-        Fixup* fixup = _code->newFixup(&le, _section->sectionId(), codeOffset, intptr_t(labelOffset), offsetFormat);
+        Fixup* fixup = _code->newFixup(le, _section->sectionId(), codeOffset, intptr_t(labelOffset), offsetFormat);
 
         if (ASMJIT_UNLIKELY(!fixup)) {
           goto OutOfMemory;
