@@ -28,34 +28,24 @@ public:
   //! \cond INTERNAL
 
   //! A single block of memory managed by `Zone`.
-  struct Block {
-    inline uint8_t* data() const noexcept {
+  struct alignas(Globals::kZoneAlignment) Block {
+    //! Link to the next block (single-linked list).
+    Block* next;
+    //! Size represents the number of bytes that can be allocated (it doesn't include overhead).
+    size_t size;
+
+    ASMJIT_INLINE_NODEBUG uint8_t* data() const noexcept {
       return const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(this) + sizeof(*this));
     }
 
-    //! Link to the previous block.
-    Block* prev;
-    //! Link to the next block.
-    Block* next;
-    //! Size of the block.
-    size_t size;
-  };
-
-  //! A state that can be saved and restored.
-  struct State {
-    //! Pointer in the current block.
-    uint8_t* ptr;
-    //! End of the current block.
-    uint8_t* end;
-    //! Current block.
-    Block* block;
+    ASMJIT_INLINE_NODEBUG uint8_t* end() const noexcept {
+      return data() + size;
+    }
   };
 
   static inline constexpr size_t kMinBlockSize = 256; // The number is ridiculously small, but still possible.
   static inline constexpr size_t kMaxBlockSize = size_t(1) << (sizeof(size_t) * 8 - 1);
-
   static inline constexpr size_t kBlockSize = sizeof(Block);
-  static inline constexpr size_t kBlockOverhead = kBlockSize + Globals::kAllocOverhead;
 
   static ASMJIT_API const Block _zeroBlock;
 
@@ -75,6 +65,8 @@ public:
   uint8_t* _end;
   //! Current block.
   Block* _block;
+  //! First block (single-linked list).
+  Block* _first;
 
   //! Current block size shift - reverted to _minimumBlockSizeShift every time the Zone is `reset(ResetPolicy::kHard)`.
   uint8_t _currentBlockSizeShift;
@@ -122,15 +114,17 @@ public:
     : _ptr(other._ptr),
       _end(other._end),
       _block(other._block),
+      _first(other._first),
       _currentBlockSizeShift(other._currentBlockSizeShift),
       _minimumBlockSizeShift(other._minimumBlockSizeShift),
       _maximumBlockSizeShift(other._maximumBlockSizeShift),
       _hasStaticBlock(other._hasStaticBlock),
       _reserved(other._reserved) {
     ASMJIT_ASSERT(!other.hasStaticBlock());
-    other._block = const_cast<Block*>(&_zeroBlock);
     other._ptr = other._block->data();
     other._end = other._block->data();
+    other._block = const_cast<Block*>(&_zeroBlock);
+    other._first = const_cast<Block*>(&_zeroBlock);
   }
 
   //! Destroys the `Zone` instance.
@@ -208,6 +202,7 @@ public:
     std::swap(_ptr, other._ptr);
     std::swap(_end, other._end);
     std::swap(_block, other._block);
+    std::swap(_first, other._first);
     std::swap(_currentBlockSizeShift, other._currentBlockSizeShift);
     std::swap(_minimumBlockSizeShift, other._minimumBlockSizeShift);
     std::swap(_maximumBlockSizeShift, other._maximumBlockSizeShift);
@@ -218,26 +213,6 @@ public:
   //! Aligns the current pointer to `alignment`.
   ASMJIT_INLINE_NODEBUG void align(size_t alignment) noexcept {
     _ptr = Support::min(Support::alignUp(_ptr, alignment), _end);
-  }
-
-  //! \}
-
-  //! \name State Save & Restore
-  //! \{
-
-  ASMJIT_INLINE State _saveState() const noexcept {
-    return State{_ptr, _end, _block};
-  }
-
-  ASMJIT_INLINE void _restoreState(const State& state) noexcept {
-    if (ASMJIT_LIKELY(state.block != nullptr)) {
-      _ptr = state.ptr;
-      _end = state.end;
-      _block = state.block;
-    }
-    else {
-      reset(ResetPolicy::kSoft);
-    }
   }
 
   //! \}
@@ -288,7 +263,6 @@ public:
   [[nodiscard]]
   ASMJIT_INLINE T* alloc(size_t size) noexcept {
     ASMJIT_ASSERT(Support::isAligned(size, Globals::kZoneAlignment));
-
 #if defined(__GNUC__)
     // We can optimize this function a little bit if we know that `size` is relatively small - which would mean
     // that we cannot possibly overflow `_ptr`. Since most of the time `alloc()` is used for known types (which
@@ -300,9 +274,9 @@ public:
         return static_cast<T*>(_alloc(size));
       }
 
-      uint8_t* ptr = _ptr;
+      uint8_t* p = _ptr;
       _ptr = after;
-      return static_cast<T*>(static_cast<void*>(ptr));
+      return static_cast<T*>(static_cast<void*>(p));
     }
 #endif
 
@@ -310,9 +284,9 @@ public:
       return static_cast<T*>(_alloc(size));
     }
 
-    uint8_t* ptr = _ptr;
+    uint8_t* p = _ptr;
     _ptr += size;
-    return static_cast<T*>(static_cast<void*>(ptr));
+    return static_cast<T*>(static_cast<void*>(p));
   }
 
   template<typename T>
@@ -329,20 +303,22 @@ public:
   template<typename T>
   [[nodiscard]]
   ASMJIT_INLINE T* newT() noexcept {
-    void* ptr = alloc(alignedSizeOf<T>());
-    if (ASMJIT_UNLIKELY(!ptr))
+    void* p = alloc(alignedSizeOf<T>());
+    if (ASMJIT_UNLIKELY(!p)) {
       return nullptr;
-    return new(Support::PlacementNew{ptr}) T();
+    }
+    return new(Support::PlacementNew{p}) T();
   }
 
   //! Like `new(std::nothrow) T(...)`, but allocated by `Zone`.
   template<typename T, typename... Args>
   [[nodiscard]]
   ASMJIT_INLINE T* newT(Args&&... args) noexcept {
-    void* ptr = alloc(alignedSizeOf<T>());
-    if (ASMJIT_UNLIKELY(!ptr))
+    void* p = alloc(alignedSizeOf<T>());
+    if (ASMJIT_UNLIKELY(!p)) {
       return nullptr;
-    return new(Support::PlacementNew{ptr}) T(std::forward<Args>(args)...);
+    }
+    return new(Support::PlacementNew{p}) T(std::forward<Args>(args)...);
   }
 
   //! Helper to duplicate data.

@@ -126,7 +126,7 @@ namespace asmjit {
 //!
 //!   - Tested:
 //!
-//!     - **Clang** - Tested by GitHub Actions - Clang 10+ is officially supported and tested by CI, older Clang versions
+//!     - **Clang** - Tested by GitHub Actions - Clang 14+ is officially supported and tested by CI, older Clang versions
 //!       having C++17 should work, but these versions are not tested anymore due to upgraded CI images.
 //!
 //!     - **GNU** - Tested by GitHub Actions - GCC 9+ is officially supported and tested by CI, older GCC versions such
@@ -134,18 +134,18 @@ namespace asmjit {
 //!
 //!     - **MINGW** - Reported to work, but not tested in our CI environment (help welcome!).
 //!
-//!     - **MSVC** - Tested by GitHub Actions - VS2019 and onwards are officially supported and tested by CI, VS2015 and
-//!       VS2017 are not tested anymore due to upgraded CI images.
+//!     - **MSVC** - Tested by GitHub Actions - VS2022 and onwards are officially supported and tested by CI, VS2015,
+//!       VS2017, and VS2019 are not tested anymore due to upgraded CI images. VS2019 should work well.
 //!
 //! ### Supported Operating Systems and Platforms
 //!
 //!   - Tested:
 //!
 //!     - **BSD** - FreeBSD, NetBSD, and OpenBSD tested by GitHub Actions (only recent images are tested by CI). BSD
-//!       runners only test BSD images with clang compiler.
+//!       runners only test BSD images with Clang compiler. Both X86_64 and AArch64 host builds are tested.
 //!
 //!     - **Linux** - Tested by GitHub Actions (only recent Ubuntu images are tested by CI, in general any distribution
-//!       should be supported as AsmJit has no dependencies).
+//!       should be supported as AsmJit has no dependencies). Linux tests X86, X86_64, and AArch64 host builds.
 //!
 //!     - **Mac OS** - Tested by GitHub Actions.
 //!
@@ -334,6 +334,11 @@ namespace asmjit {
 //!   - Renamed `asmjit::BaseReg` to asmjit::Reg, added `asmjit::UniGp` and `asmjit::UniVec` which are now base
 //!     classes for platform specific `[x86|a64]::Gp` and `[x86|a64]::Vec`
 //!
+//!   - Gp and Vec register API is now more platform independent - use `isGp32()` instead of `isGpd()`, similarly,
+//!     use `isGp64` instead of `isGpq()` (X86_64) or `isGpX()` (AArch64), etc... The same applies to vectors -
+//!     use `isVec128()` instead of `isXmm()` (X86) or `isVecQ()` (AArch64), `isVec256()` instead of `isYmm()`,
+//!     etc...
+//!
 //!   - Renamed some member functions in Operand and Reg:
 //!
 //!     - `isType(regId)` -> `isReg(regId)`
@@ -349,9 +354,18 @@ namespace asmjit {
 //!
 //!   - Removed sub-registers `x86::Gpb`, `x86::GpbLo`, `x86::GpbHi`, `x86::Gpw`, `x86::Gpd`, `x86::Gpq`, `x86::Xmm`,
 //!     `x86::Ymm`, `x86::Zmm` - use just `x86::Gp` and `x86::Vec`, which represent all removed X86 sub-registers.
+//!     From now, use `x86::Gp` to work with x86 general purpose registers and `x86::Vec` to work with XMM, YMM,
+//!     and ZMM registers.
 //!
 //!   - Removed sub-registers `a64::GpW` and `a64::GpX`, `a64::VecB`, `a64::VecH`, `a64::VecS`, `a64::VecD`,
-//!     `a64::VecV`, which represent all removed AArch64 sub-registers.
+//!     `a64::VecV`, which represent all removed AArch64 sub-registers. From now, use `a64::Gp` to work with
+//!     general purpose registers and `a64::Vec` to work with NEON registers of any size, element type, and
+//!     element index.
+//!
+//!   - Since sub-register types are gone it's no longer possible to write `gpb(id)` to get AL register, etc...
+//!     However, all register operands that can hold multiple register types now offer `Reg::make_xxx(id)` API,
+//!     which can be used as a convenience or just use platform specific API like `x86::gpd(id)` or `x86::gp32(id)`,
+//!     similarly for AArch64 use `a64::x(id)` or `a64::gp64(id)`, etc...
 //!
 //!   - Renamed some id getters - `Section::id()` -> `Section::sectionId()`, etc...
 //!
@@ -1114,11 +1128,15 @@ namespace asmjit {
 //!     - \ref x86::Assembler - Assembler implementation targeting X86 and X86_64 architectures.
 //!     - \ref a64::Assembler - Assembler implementation targeting AArch64 architecture.
 //!   - \ref Operand and its variations:
-//!     - \ref BaseReg - Base class for a register operand, inherited by:
-//!        - \ref x86::Reg - Register operand specific to X86 and X86_64 architectures.
-//!        - \ref arm::Reg - Register operand specific to AArch64 architecture.
+//!     - \ref Reg - Base class for a register operand, inherited by:
+//!        - \ref UniGp - Universal abstraction of a general purpose register, inherited by:
+//!          - \ref x86::Gp - GP register operand specific to X86 and X86_64 architectures.
+//!          - \ref a64::Gp - GP Register operand specific to AArch64 architecture.
+//!        - \ref UniVec - Universal abstraction of a vector register, inherited by:
+//!          - \ref x86::Vec - Vector register operand specific to X86 and X86_64 architectures.
+//!          - \ref a64::Vec - Vector register operand specific to AArch64 architecture.
 //!     - \ref BaseMem - Base class for a memory operand, inherited by:
-//!        - \ref x86::Mem - Memory operand specific to X86 architecture.
+//!        - \ref x86::Mem - Memory operand specific to X86 and X86_64 architectures.
 //!        - \ref arm::Mem - Memory operand specific to AArch64 architecture.
 //!     - \ref Imm - Immediate (value) operand.
 //!     - \ref Label - Label operand.
@@ -1972,7 +1990,7 @@ namespace asmjit {
 //!   const ZoneVector<Section*>& sections = code.sections();
 //!
 //!   // Contains all label entries managed by CodeHolder.
-//!   const ZoneVector<LabelEntry*>& labelEntries = code.labelEntries();
+//!   const ZoneVector<LabelEntry>& labelEntries = code.labelEntries();
 //!
 //!   // Contains all relocation entries managed by CodeHolder.
 //!   const ZoneVector<RelocEntry*>& relocEntries = code.relocEntries();
@@ -1987,11 +2005,11 @@ namespace asmjit {
 //! using namespace asmjit;
 //!
 //! void example(CodeHolder& code) {
-//!   for (LabelEntry* le : code.labelEntries()) {
-//!     printf("Label #%u {Bound=%s Offset=%llu}",
-//!       le->id(),
-//!       le->isBound() ? "true" : "false",
-//!       (unsigned long long)le->offset());
+//!   for (uint32_t labelId = 0; labelId < code.labelCount(); labelId++) {
+//!     const LabelEntry& le = code.labelEntry(labelId);
+//!     if (le.isBound()) {
+//!       printf("Bound Label #%u at offset=%llu\n", labelId, (unsigned long long)le->offset());
+//!     }
 //!   }
 //! }
 //! ```

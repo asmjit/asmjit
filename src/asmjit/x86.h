@@ -33,8 +33,8 @@
 //!
 //! ### Register Operands
 //!
-//!   - \ref x86::Gp - General purpose register.
-//!   - \ref x86::Vec - Vector (SIMD) register.
+//!   - \ref x86::Gp - General purpose register (abstracts 8-bit, 16-bit, 32-bit, and 64-bit GP registers).
+//!   - \ref x86::Vec - Vector (SIMD) register (abstracts XMM, YMM, and ZMM registers).
 //!   - \ref x86::Mm - 64-bit MMX register.
 //!   - \ref x86::St - 80-bit FPU register.
 //!   - \ref x86::KReg - opmask registers (AVX512+).

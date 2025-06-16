@@ -16,17 +16,15 @@ ASMJIT_BEGIN_NAMESPACE
 // and should never be modified.
 const Zone::Block Zone::_zeroBlock {};
 
-static inline void Zone_assignZeroBlock(Zone* zone) noexcept {
-  Zone::Block* block = const_cast<Zone::Block*>(&zone->_zeroBlock);
-  zone->_ptr = block->data();
-  zone->_end = block->data();
-  zone->_block = block;
+static ASMJIT_INLINE Zone::Block* Zone_getZeroBlock() noexcept {
+  return const_cast<Zone::Block*>(&Zone::_zeroBlock);
 }
 
-static inline void Zone_assignBlock(Zone* zone, Zone::Block* block) noexcept {
+static ASMJIT_INLINE void Zone_assignBlock(Zone* zone, Zone::Block* block) noexcept {
   zone->_ptr = Support::alignUp(block->data(), Globals::kZoneAlignment);
-  zone->_end = block->data() + block->size;
+  zone->_end = block->end();
   zone->_block = block;
+  ASMJIT_ASSERT(zone->_ptr <= zone->_end);
 }
 
 // Zone - Initialization & Reset
@@ -36,8 +34,7 @@ void Zone::_init(size_t blockSize, const Support::Temporary* temporary) noexcept
   ASMJIT_ASSERT(blockSize >= kMinBlockSize);
   ASMJIT_ASSERT(blockSize <= kMaxBlockSize);
 
-  Zone_assignZeroBlock(this);
-
+  Block* block = Zone_getZeroBlock();
   size_t blockSizeShift = Support::bitSizeOf<size_t>() - Support::clz(blockSize);
 
   _currentBlockSizeShift = uint8_t(blockSizeShift);
@@ -48,65 +45,47 @@ void Zone::_init(size_t blockSize, const Support::Temporary* temporary) noexcept
 
   // Setup the first [temporary] block, if necessary.
   if (temporary) {
-    Block* block = temporary->data<Block>();
-    block->prev = nullptr;
+    block = temporary->data<Block>();
     block->next = nullptr;
 
     ASMJIT_ASSERT(temporary->size() >= kBlockSize);
     block->size = temporary->size() - kBlockSize;
-
-    Zone_assignBlock(this, block);
   }
+
+  _first = block;
+  Zone_assignBlock(this, block);
 }
 
 void Zone::reset(ResetPolicy resetPolicy) noexcept {
-  Block* cur = _block;
-
-  // Can't be altered.
-  if (cur == &_zeroBlock) {
-    return;
-  }
+  Block* first = _first;
 
   if (resetPolicy == ResetPolicy::kHard) {
-    bool hasStatic = hasStaticBlock();
-    Block* initial = const_cast<Zone::Block*>(&_zeroBlock);
+    if (first == &_zeroBlock) {
+      return;
+    }
 
-    _ptr = initial->data();
-    _end = initial->data();
-    _block = initial;
+    Block* cur = first;
+    if (hasStaticBlock()) {
+      cur = cur->next;
+      first->next = nullptr;
+    }
+    else {
+      first = Zone_getZeroBlock();
+      _first = first;
+    }
+
     _currentBlockSizeShift = _minimumBlockSizeShift;
 
-    // Since cur can be in the middle of the double-linked list, we have to traverse both directions (`prev` and
-    // `next`) separately to visit all.
-    Block* next = cur->next;
-    do {
-      Block* prev = cur->prev;
-
-      if (prev == nullptr && hasStatic) {
-        // If this is the first block and this Zone is actually a ZoneTmp then the first block cannot be freed.
-        cur->prev = nullptr;
-        cur->next = nullptr;
-        Zone_assignBlock(this, cur);
-        break;
-      }
-
-      ::free(cur);
-      cur = prev;
-    } while (cur);
-
-    cur = next;
-    while (cur) {
-      next = cur->next;
-      ::free(cur);
-      cur = next;
+    if (cur) {
+      do {
+        Block* next = cur->next;
+        ::free(cur);
+        cur = next;
+      } while (cur);
     }
   }
-  else {
-    while (cur->prev) {
-      cur = cur->prev;
-    }
-    Zone_assignBlock(this, cur);
-  }
+
+  Zone_assignBlock(this, first);
 }
 
 // Zone - Alloc
@@ -133,12 +112,14 @@ void* Zone::_alloc(size_t size) noexcept {
   // have to check for remaining bytes in that case.
   if (next) {
     uint8_t* ptr = Support::alignUp(next->data(), Globals::kZoneAlignment);
-    uint8_t* end = next->data() + next->size;
+    uint8_t* end = next->end();
 
     if (size <= (size_t)(end - ptr)) {
       _block = next;
       _ptr = ptr + size;
       _end = end;
+
+      ASMJIT_ASSERT(_ptr <= _end);
       return static_cast<void*>(ptr);
     }
   }
@@ -170,30 +151,21 @@ void* Zone::_alloc(size_t size) noexcept {
 
   // Allocate new block.
   Block* newBlock = static_cast<Block*>(::malloc(blockSize));
-
   if (ASMJIT_UNLIKELY(!newBlock)) {
     return nullptr;
   }
 
-  // blockSize includes the struct size, which must be avoided when assigning the size to a newly allocated block.
+  // blockSize includes the struct size, which must be accounted when assigning size to a newly allocated block.
   size_t realBlockSize = blockSize - kBlockSize;
 
-  // Align the pointer to `minimumAlignment` and adjust the size of this block accordingly. It's the same as using
-  // `minimumAlignment - Support::alignUpDiff()`, just written differently.
-  newBlock->prev = nullptr;
-  newBlock->next = nullptr;
+  newBlock->next = next;
   newBlock->size = realBlockSize;
 
-  if (curBlock != &_zeroBlock) {
-    newBlock->prev = curBlock;
+  if (curBlock == &_zeroBlock) {
+    _first = newBlock;
+  }
+  else {
     curBlock->next = newBlock;
-
-    // Does only happen if there is a next block, but the requested memory can't fit into it. In this case a new
-    // buffer is allocated and inserted between the current block and the next one.
-    if (next) {
-      newBlock->next = next;
-      next->prev = newBlock;
-    }
   }
 
   uint8_t* ptr = Support::alignUp(newBlock->data(), Globals::kZoneAlignment);
@@ -420,6 +392,40 @@ void ZoneAllocator::_releaseDynamic(void* p, size_t size) noexcept {
 // ============
 
 #if defined(ASMJIT_TEST)
+UNIT(zone) {
+  struct SomeData {
+    size_t _x;
+    size_t _y;
+
+    inline SomeData(size_t x, size_t y) noexcept
+      : _x(x), _y(y) {}
+  };
+
+  {
+    Zone zone(1024u * 4u);
+
+    for (size_t r = 0; r < 3u; r++) {
+      for (size_t i = 0; i < 100000u; i++) {
+        uint8_t* p = zone.alloc<uint8_t>(32);
+        EXPECT_NOT_NULL(p);
+      }
+      zone.reset(r == 0 ? ResetPolicy::kSoft : ResetPolicy::kHard);
+    }
+  }
+
+  {
+    Zone zone(1024u * 4u);
+
+    for (size_t r = 0; r < 3u; r++) {
+      for (size_t i = 0; i < 100000u; i++) {
+        SomeData* p = zone.newT<SomeData>(r, i);
+        EXPECT_NOT_NULL(p);
+      }
+      zone.reset(r == 0 ? ResetPolicy::kSoft : ResetPolicy::kHard);
+    }
+  }
+}
+
 UNIT(zone_allocator_slots) {
   constexpr size_t kLoMaxSize = ZoneAllocator::kLoCount * ZoneAllocator::kLoGranularity;
   constexpr size_t kHiMaxSize = ZoneAllocator::kHiCount * ZoneAllocator::kHiGranularity + kLoMaxSize;

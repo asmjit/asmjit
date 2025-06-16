@@ -26,8 +26,8 @@
 //!
 //! ### Register Operands
 //!
-//!   - \ref a64::Gp - General purpose register (AArch64).
-//!   - \ref a64::Vec - Vector (SIMD) register.
+//!   - \ref a64::Gp - General purpose register (abstracts 32-bit and 64-bit general purpose registers).
+//!   - \ref a64::Vec - Vector register (abstracts B, H, S, D, and Q NEON register with possible element type and index).
 //!
 //! ### Memory Operands
 //!

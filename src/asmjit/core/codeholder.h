@@ -1124,7 +1124,7 @@ public:
   //!
   //! Returns `null` if the allocation failed.
   [[nodiscard]]
-  ASMJIT_API Fixup* newFixup(LabelEntry* le, uint32_t sectionId, size_t offset, intptr_t rel, const OffsetFormat& format) noexcept;
+  ASMJIT_API Fixup* newFixup(LabelEntry& le, uint32_t sectionId, size_t offset, intptr_t rel, const OffsetFormat& format) noexcept;
 
   //! Resolves cross-section fixups associated with each label that was used as a destination in code of a different
   //! section. It's only useful to people that use multiple sections as it will do nothing if the code only contains

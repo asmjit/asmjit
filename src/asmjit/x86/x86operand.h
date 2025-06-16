@@ -32,6 +32,15 @@ class Rip;
 using Reg = Reg;
 
 //! General purpose register (X86|X86_64).
+//!
+//! To get a specific register you can use:
+//!   - specific registers directly, like `x86::eax` or `x86::rbx`, etc...
+//!   - construct a register operand dynamically, like `x86::gp8(id)`, `x86::gp64(id)`, etc...
+//!   - use `Gp::make_r[8|8lo|8hi|16|32|64](id)` API for convenience
+//!
+//! To cast a register to a specific type, use \ref r8(), \ref r8Lo(), \ref r8Hi(), \ref r16(), \ref r32(),
+//! and \ref r64() member functions. Each cast first clones the register and then changes its signature to
+//! match the register it has been casted to.
 class Gp : public UniGp {
 public:
   //! \name Constants
@@ -124,6 +133,15 @@ public:
 };
 
 //! Vector register (XMM|YMM|ZMM) (X86|X86_64).
+//!
+//! To get a specific register you can use:
+//!   - specific registers directly, like `x86::xmm0` or `x86::ymm1`, `x86::zmm2`, etc...
+//!   - construct a register operand dynamically, like `x86::xmm(id)`, `x86::ymm(id)`, and `x86::zmm(id)`
+//!   - use `Vec::make_v[128|256|512](id)` or `Vec::make_[xmm|ymm|zmm](id)` API for convenience
+//!
+//! To cast a register to a specific type, use \ref v128(), \ref v256(), \ref v512(), \ref xmm(), \ref ymm(),
+//! and \ref zmm() member functions. Each cast first clones the register and then changes its signature to
+//! match the register it has been casted to.
 class Vec : public Reg {
   ASMJIT_DEFINE_ABSTRACT_REG(Vec, Reg)
 
@@ -204,6 +222,12 @@ class Vec : public Reg {
   //! \}
 };
 
+#if !defined(ASMJIT_NO_DEPRECATED)
+using Xmm [[deprecated("Use x86::Vec instead of x86::Xmm")]] = Vec;
+using Ymm [[deprecated("Use x86::Vec instead of x86::Ymm")]] = Vec;
+using Zmm [[deprecated("Use x86::Vec instead of x86::Zmm")]] = Vec;
+#endif // ASMJIT_NO_DEPRECATED
+
 //! Segment register (X86|X86_64).
 class SReg : public Reg {
   ASMJIT_DEFINE_FINAL_REG(SReg, Reg, RegTraits<RegType::kSegment>)
@@ -266,23 +290,47 @@ static ASMJIT_INLINE_CONSTEXPR Gp gpb(uint32_t rId) noexcept { return Gp::make_r
 
 //! Creates an 8-bit low GPB register operand.
 [[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Gp gp8(uint32_t rId) noexcept { return Gp::make_r8(rId); }
+
+//! Creates an 8-bit low GPB register operand.
+[[nodiscard]]
 static ASMJIT_INLINE_CONSTEXPR Gp gpb_lo(uint32_t rId) noexcept { return Gp::make_r8lo(rId); }
+
+//! Creates an 8-bit low GPB register operand.
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Gp gp8_lo(uint32_t rId) noexcept { return Gp::make_r8lo(rId); }
 
 //! Creates an 8-bit high GPB register operand.
 [[nodiscard]]
 static ASMJIT_INLINE_CONSTEXPR Gp gpb_hi(uint32_t rId) noexcept { return Gp::make_r8hi(rId); }
 
+//! Creates an 8-bit high GPB register operand.
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Gp gp8_hi(uint32_t rId) noexcept { return Gp::make_r8hi(rId); }
+
 //! Creates a 16-bit GPW register operand.
 [[nodiscard]]
 static ASMJIT_INLINE_CONSTEXPR Gp gpw(uint32_t rId) noexcept { return Gp::make_r16(rId); }
+
+//! Creates a 16-bit GPW register operand.
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Gp gp16(uint32_t rId) noexcept { return Gp::make_r16(rId); }
 
 //! Creates a 32-bit GPD register operand.
 [[nodiscard]]
 static ASMJIT_INLINE_CONSTEXPR Gp gpd(uint32_t rId) noexcept { return Gp::make_r32(rId); }
 
+//! Creates a 32-bit GPD register operand.
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Gp gp32(uint32_t rId) noexcept { return Gp::make_r32(rId); }
+
 //! Creates a 64-bit GPQ register operand (64-bit).
 [[nodiscard]]
 static ASMJIT_INLINE_CONSTEXPR Gp gpq(uint32_t rId) noexcept { return Gp::make_r64(rId); }
+
+//! Creates a 64-bit GPQ register operand (64-bit).
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Gp gp64(uint32_t rId) noexcept { return Gp::make_r64(rId); }
 
 //! Creates a 128-bit XMM register operand.
 [[nodiscard]]

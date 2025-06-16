@@ -4951,7 +4951,7 @@ EmitRel:
     OffsetFormat of;
     of.resetToSimpleValue(OffsetType::kSignedOffset, relSize);
 
-    Fixup* fixup = _code->newFixup(label, _section->sectionId(), offset, relOffset, of);
+    Fixup* fixup = _code->newFixup(*label, _section->sectionId(), offset, relOffset, of);
     if (ASMJIT_UNLIKELY(!fixup)) {
       goto OutOfMemory;
     }
