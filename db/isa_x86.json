@@ -4268,7 +4268,7 @@
     {"group": "Control Flow", "instructions": [
       {"name": "call lcall", "control": "call"},
       {"name": "iret iretd iretq", "control": "return"},
-      {"name": "jb jnb jz jnz jbe jnbe jp jnp jl jnl jle jnle jecxz", "control": "branch"},
+      {"name": "jb jbe jl jle jnb jnbe jnl jnle jno jnp jns jnz jo jp js jz jecxz", "control": "branch"},
       {"name": "jmp jmpabs ljmp", "control": "jump"},
       {"name": "loop loope loopne", "control": "branch"},
       {"name": "ret retf", "control": "return"}
