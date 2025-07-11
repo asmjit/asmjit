@@ -276,7 +276,7 @@ public:
 
       uint8_t* p = _ptr;
       _ptr = after;
-      return static_cast<T*>(static_cast<void*>(p));
+      return reinterpret_cast<T*>(p);
     }
 #endif
 
@@ -286,7 +286,7 @@ public:
 
     uint8_t* p = _ptr;
     _ptr += size;
-    return static_cast<T*>(static_cast<void*>(p));
+    return reinterpret_cast<T*>(p);
   }
 
   template<typename T>
@@ -574,7 +574,7 @@ public:
       return zone.alloc<T>(Support::alignUp(SizeOfT, Globals::kZoneAlignment));
     }
     _data = p->next;
-    return static_cast<T*>(static_cast<void*>(p));
+    return reinterpret_cast<T*>(p);
   }
 
   //! Pools the previously allocated memory.

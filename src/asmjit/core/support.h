@@ -127,16 +127,12 @@ struct EnumValues {
 
 template<typename Dst, typename Src, typename Offset>
 static ASMJIT_INLINE_NODEBUG Dst* offsetPtr(Src* ptr, const Offset& n) noexcept {
-  return static_cast<Dst*>(
-    static_cast<void*>(static_cast<char*>(static_cast<void*>(ptr)) + n)
-  );
+  return reinterpret_cast<Dst*>(reinterpret_cast<char*>(ptr) + n);
 }
 
 template<typename Dst, typename Src, typename Offset>
 static ASMJIT_INLINE_NODEBUG const Dst* offsetPtr(const Src* ptr, const Offset& n) noexcept {
-  return static_cast<const Dst*>(
-    static_cast<const void*>(static_cast<const char*>(static_cast<const void*>(ptr)) + n)
-  );
+  return reinterpret_cast<const Dst*>(reinterpret_cast<const char*>(ptr) + n);
 }
 
 // Support - Boolean Operations
