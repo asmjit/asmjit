@@ -3,6 +3,7 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
+#include <new>
 #include "../core/api-build_p.h"
 #ifndef ASMJIT_NO_COMPILER
 
@@ -97,7 +98,9 @@ Error BaseCompiler::newFuncNode(FuncNode** out, const FuncSignature& signature) 
     if (ASMJIT_UNLIKELY(!funcNode->_args)) {
       return reportError(DebugUtils::errored(kErrorOutOfMemory));
     }
-    memset(funcNode->_args, 0, funcNode->argCount() * sizeof(FuncNode::ArgPack));
+    for (size_t i = 0; i < funcNode->argCount(); i++) {
+      new (funcNode->_args+i) FuncNode::ArgPack();
+    }
   }
 
   ASMJIT_PROPAGATE(registerLabelNode(funcNode));
@@ -206,7 +209,9 @@ Error BaseCompiler::newInvokeNode(InvokeNode** out, InstId instId, const Operand
     if (!node->_args) {
       return reportError(DebugUtils::errored(kErrorOutOfMemory));
     }
-    memset(node->_args, 0, argCount * sizeof(InvokeNode::OperandPack));
+    for (size_t i = 0; i < argCount; i++) {
+      new (node->_args+i) InvokeNode::OperandPack();
+    }
   }
 
   *out = node;
