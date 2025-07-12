@@ -23,7 +23,7 @@ public:
   A64TestCase(const char* name = nullptr)
     : TestCase(name, Arch::kAArch64) {}
 
-  virtual void compile(BaseCompiler& cc) override {
+  void compile(BaseCompiler& cc) override {
     compile(static_cast<a64::Compiler&>(cc));
   }
 
@@ -51,7 +51,7 @@ public:
     }
   }
 
-  virtual void compile(a64::Compiler& cc) {
+  void compile(a64::Compiler& cc) override {
     uint32_t i;
     uint32_t argCount = _argCount;
 
@@ -86,7 +86,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using U = unsigned int;
 
     using Func0 = U (*)();
@@ -200,7 +200,7 @@ public:
     app.add(new A64Test_Simd1());
   }
 
-  virtual void compile(a64::Compiler& cc) {
+  void compile(a64::Compiler& cc) override {
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<void, void*, const void*, const void*>());
 
     a64::Gp dst = cc.newUIntPtr("dst");
@@ -223,7 +223,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(void*, const void*, const void*);
 
     uint32_t dst[4];
@@ -260,7 +260,7 @@ public:
       app.add(new A64Test_ManyRegs(i));
   }
 
-  virtual void compile(a64::Compiler& cc) {
+  void compile(a64::Compiler& cc) override {
     cc.addFunc(FuncSignature::build<int>());
 
     a64::Gp* regs = static_cast<a64::Gp*>(malloc(_regCount * sizeof(a64::Gp)));
@@ -283,7 +283,7 @@ public:
     free(regs);
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(void);
     Func func = ptr_as_func<Func>(_func);
 
@@ -310,7 +310,7 @@ public:
     app.add(new A64Test_Adr());
   }
 
-  virtual void compile(a64::Compiler& cc) {
+  void compile(a64::Compiler& cc) override {
     cc.addFunc(FuncSignature::build<int>());
 
     a64::Gp addr = cc.newIntPtr("addr");
@@ -331,7 +331,7 @@ public:
     cc.embedInt32(5);
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(void);
     Func func = ptr_as_func<Func>(_func);
 
@@ -354,7 +354,7 @@ public:
     app.add(new A64Test_Branch1());
   }
 
-  virtual void compile(a64::Compiler& cc) {
+  void compile(a64::Compiler& cc) override {
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<void, void*, size_t>());
 
     a64::Gp p = cc.newIntPtr("p");
@@ -376,7 +376,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(void* p, size_t n);
     Func func = ptr_as_func<Func>(_func);
 
@@ -409,7 +409,7 @@ public:
     app.add(new A64Test_Invoke1());
   }
 
-  virtual void compile(a64::Compiler& cc) {
+  void compile(a64::Compiler& cc) override {
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<uint32_t, uint32_t, uint32_t>());
 
     a64::Gp x = cc.newUInt32("x");
@@ -432,7 +432,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = uint32_t (*)(uint32_t, uint32_t);
     Func func = ptr_as_func<Func>(_func);
 
@@ -462,7 +462,7 @@ public:
     app.add(new A64Test_Invoke2());
   }
 
-  virtual void compile(a64::Compiler& cc) {
+  void compile(a64::Compiler& cc) override {
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<double, double, double>());
 
     a64::Vec x = cc.newVecD("x");
@@ -484,7 +484,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = double (*)(double, double);
     Func func = ptr_as_func<Func>(_func);
 
@@ -514,7 +514,7 @@ public:
     app.add(new A64Test_Invoke3());
   }
 
-  virtual void compile(a64::Compiler& cc) {
+  void compile(a64::Compiler& cc) override {
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<double, double, double>());
 
     a64::Vec x = cc.newVecD("x");
@@ -536,7 +536,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = double (*)(double, double);
     Func func = ptr_as_func<Func>(_func);
 
@@ -579,7 +579,7 @@ public:
     app.add(new A64Test_JumpTable(true));
   }
 
-  virtual void compile(a64::Compiler& cc) {
+  void compile(a64::Compiler& cc) override {
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<float, float, float, uint32_t>());
 
     a64::Vec a = cc.newVecS("a");
@@ -645,7 +645,7 @@ public:
     cc.embedLabelDelta(L_Div, L_Table, 4);
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = float (*)(float, float, uint32_t);
     Func func = ptr_as_func<Func>(_func);
 
