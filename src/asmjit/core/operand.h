@@ -2479,7 +2479,7 @@ public:
   //! to `predicate`.
   //!
   //! \note Predicate is currently only used by ARM architectures.
-  template<typename T, typename = typename std::enable_if<IsConstexprConstructibleAsImmType<std::decay_t<T>>::value>::type>
+  template<typename T, typename = std::enable_if_t<IsConstexprConstructibleAsImmType<std::decay_t<T>>::value>>
   ASMJIT_INLINE_CONSTEXPR Imm(const T& val, const uint32_t predicate = 0) noexcept
     : Operand(Globals::Init,
               Signature::fromOpType(OperandType::kImm) | Signature::fromPredicate(predicate),

@@ -16,7 +16,7 @@ public:
   SimpleErrorHandler()
     : _err(asmjit::kErrorOk) {}
 
-  virtual void handleError(asmjit::Error err, const char* message, asmjit::BaseEmitter* origin) {
+  void handleError(asmjit::Error err, const char* message, asmjit::BaseEmitter* origin) override {
     asmjit::DebugUtils::unused(origin);
     _err = err;
     _message.assign(message);

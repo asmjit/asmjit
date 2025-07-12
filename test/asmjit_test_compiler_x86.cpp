@@ -35,7 +35,7 @@ public:
   X86TestCase(const char* name = nullptr)
     : TestCase(name, Arch::kHost == Arch::kX86 ? Arch::kX86 : Arch::kX64) {}
 
-  virtual void compile(BaseCompiler& cc) override {
+  void compile(BaseCompiler& cc) override {
     compile(static_cast<x86::Compiler&>(cc));
   }
 
@@ -63,7 +63,7 @@ public:
     }
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     uint32_t i;
     uint32_t argCount = _argCount;
 
@@ -105,7 +105,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using U = unsigned int;
 
     using Func0 = U (*)();
@@ -222,12 +222,12 @@ public:
     app.add(new X86Test_NoCode());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     cc.addFunc(FuncSignature::build<void>());
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     DebugUtils::unused(result, expect);
 
     using Func = void (*)(void);
@@ -249,14 +249,14 @@ public:
     app.add(new X86Test_NoAlign());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     cc.addFunc(FuncSignature::build<void>());
     cc.align(AlignMode::kCode, 0);
     cc.align(AlignMode::kCode, 1);
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     DebugUtils::unused(result, expect);
 
     using Func = void (*)(void);
@@ -278,13 +278,13 @@ public:
     app.add(new X86Test_IndirectBranchProtection());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     FuncNode* func = cc.addFunc(FuncSignature::build<void>());
     func->addAttributes(FuncAttributes::kIndirectBranchProtection);
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     DebugUtils::unused(result, expect);
 
     using Func = void (*)(void);
@@ -307,7 +307,7 @@ public:
     app.add(new X86Test_JumpMerge());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     Label L0 = cc.newLabel();
     Label L1 = cc.newLabel();
     Label L2 = cc.newLabel();
@@ -343,7 +343,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(int*, int);
     Func func = ptr_as_func<Func>(_func);
 
@@ -371,7 +371,7 @@ public:
     app.add(new X86Test_JumpCross());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     cc.addFunc(FuncSignature::build<void>());
 
     Label L1 = cc.newLabel();
@@ -390,7 +390,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     DebugUtils::unused(result, expect);
 
     using Func = void (*)(void);
@@ -412,7 +412,7 @@ public:
     app.add(new X86Test_JumpMany());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     cc.addFunc(FuncSignature::build<int>());
     for (uint32_t i = 0; i < 1000; i++) {
       Label L = cc.newLabel();
@@ -426,7 +426,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(void);
 
     Func func = ptr_as_func<Func>(_func);
@@ -452,7 +452,7 @@ public:
     app.add(new X86Test_JumpUnreachable1());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     cc.addFunc(FuncSignature::build<void>());
 
     Label L_1 = cc.newLabel();
@@ -490,7 +490,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(void);
     Func func = ptr_as_func<Func>(_func);
 
@@ -514,7 +514,7 @@ public:
     app.add(new X86Test_JumpUnreachable2());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     cc.addFunc(FuncSignature::build<void>());
 
     Label L_1 = cc.newLabel();
@@ -536,7 +536,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(void);
     Func func = ptr_as_func<Func>(_func);
 
@@ -574,7 +574,7 @@ public:
     app.add(new X86Test_JumpTable1(true));
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     x86::Vec a = cc.newXmmSs("a");
     x86::Vec b = cc.newXmmSs("b");
     x86::Gp op = cc.newUInt32("op");
@@ -641,7 +641,7 @@ public:
     cc.embedLabelDelta(L_Div, L_Table, 4);
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = float (*)(float, float, uint32_t);
     Func func = ptr_as_func<Func>(_func);
 
@@ -677,7 +677,7 @@ public:
     app.add(new X86Test_JumpTable2());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     x86::Gp result = cc.newUInt32("result");
     x86::Gp value = cc.newUInt32("value");
     x86::Gp target = cc.newIntPtr("target");
@@ -726,7 +726,7 @@ public:
     cc.embedLabelDelta(L_Case1, L_Table, 4);
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int);
     Func func = ptr_as_func<Func>(_func);
 
@@ -758,7 +758,7 @@ public:
     app.add(new X86Test_JumpTable3());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     cc.addFunc(FuncSignature::build<int>());
 
     Label L_Target = cc.newLabel();
@@ -777,7 +777,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(void);
     Func func = ptr_as_func<Func>(_func);
 
@@ -803,7 +803,7 @@ public:
     app.add(new X86Test_JumpTable4());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     x86::Gp result = cc.newUInt32("result");
     x86::Gp condition = cc.newUInt32("condition");
 
@@ -852,7 +852,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int);
     Func func = ptr_as_func<Func>(_func);
 
@@ -877,7 +877,7 @@ public:
     app.add(new X86Test_AllocBase());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     cc.addFunc(FuncSignature::build<int>());
 
     x86::Gp v0 = cc.newInt32("v0");
@@ -902,7 +902,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(void);
     Func func = ptr_as_func<Func>(_func);
 
@@ -929,7 +929,7 @@ public:
     app.add(new X86Test_AllocMany1());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     x86::Gp a0 = cc.newIntPtr("a0");
     x86::Gp a1 = cc.newIntPtr("a1");
 
@@ -967,7 +967,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(int*, int*);
     Func func = ptr_as_func<Func>(_func);
 
@@ -997,7 +997,7 @@ public:
     app.add(new X86Test_AllocMany2());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     x86::Gp a = cc.newIntPtr("a");
     x86::Gp v[32];
 
@@ -1021,7 +1021,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(uint32_t*);
     Func func = ptr_as_func<Func>(_func);
 
@@ -1058,7 +1058,7 @@ public:
     app.add(new X86Test_AllocInt8());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     x86::Gp x = cc.newInt8("x");
     x86::Gp y = cc.newInt32("y");
 
@@ -1071,7 +1071,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int8_t);
     Func func = ptr_as_func<Func>(_func);
 
@@ -1096,7 +1096,7 @@ public:
     app.add(new X86Test_AllocUnhandledArg());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     x86::Gp x = cc.newInt32("x");
 
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<int, int, int, int>());
@@ -1106,7 +1106,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int, int, int);
     Func func = ptr_as_func<Func>(_func);
 
@@ -1131,7 +1131,7 @@ public:
     app.add(new X86Test_AllocArgsIntPtr());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<void, void*, void*, void*, void*, void*, void*, void*, void*>());
     x86::Gp var[8];
 
@@ -1153,7 +1153,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(void*, void*, void*, void*, void*, void*, void*, void*);
     Func func = ptr_as_func<Func>(_func);
 
@@ -1187,7 +1187,7 @@ public:
     app.add(new X86Test_AllocArgsFloat());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<void, float, float, float, float, float, float, float, void*>());
 
     x86::Gp p = cc.newIntPtr("p");
@@ -1211,7 +1211,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(float, float, float, float, float, float, float, float*);
     Func func = ptr_as_func<Func>(_func);
 
@@ -1238,7 +1238,7 @@ public:
     app.add(new X86Test_AllocArgsDouble());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<void, double, double, double, double, double, double, double, void*>());
 
     x86::Gp p = cc.newIntPtr("p");
@@ -1262,7 +1262,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(double, double, double, double, double, double, double, double*);
     Func func = ptr_as_func<Func>(_func);
 
@@ -1295,7 +1295,7 @@ public:
 #endif
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     x86::Vec a = cc.newXmm("aXmm");
     x86::Vec b = cc.newXmm("bXmm");
 
@@ -1309,7 +1309,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = __m128i (*)(__m128i, __m128i);
     Func func = ptr_as_func<Func>(_func);
 
@@ -1344,7 +1344,7 @@ public:
     app.add(new X86Test_AllocRetFloat1());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     x86::Vec x = cc.newXmmSs("x");
 
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<float, float>());
@@ -1354,7 +1354,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = float (*)(float);
     Func func = ptr_as_func<Func>(_func);
 
@@ -1379,7 +1379,7 @@ public:
     app.add(new X86Test_AllocRetFloat2());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     x86::Vec x = cc.newXmmSs("x");
     x86::Vec y = cc.newXmmSs("y");
 
@@ -1393,7 +1393,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = float (*)(float, float);
     Func func = ptr_as_func<Func>(_func);
 
@@ -1418,7 +1418,7 @@ public:
     app.add(new X86Test_AllocRetDouble1());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     x86::Vec x = cc.newXmmSd("x");
 
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<double, double>());
@@ -1428,7 +1428,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = double (*)(double);
     Func func = ptr_as_func<Func>(_func);
 
@@ -1453,7 +1453,7 @@ public:
     app.add(new X86Test_AllocRetDouble2());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     x86::Vec x = cc.newXmmSd("x");
     x86::Vec y = cc.newXmmSd("y");
 
@@ -1467,7 +1467,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = double (*)(double, double);
     Func func = ptr_as_func<Func>(_func);
 
@@ -1494,7 +1494,7 @@ public:
     app.add(new X86Test_AllocStack());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     cc.addFunc(FuncSignature::build<int>());
 
     x86::Mem stack = cc.newStack(kSize, 1);
@@ -1534,7 +1534,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(void);
     Func func = ptr_as_func<Func>(_func);
 
@@ -1559,7 +1559,7 @@ public:
     app.add(new X86Test_Imul1());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     x86::Gp dstHi = cc.newIntPtr("dstHi");
     x86::Gp dstLo = cc.newIntPtr("dstLo");
 
@@ -1579,7 +1579,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(int*, int*, int, int);
     Func func = ptr_as_func<Func>(_func);
 
@@ -1612,7 +1612,7 @@ public:
     app.add(new X86Test_Imul2());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     x86::Gp dst = cc.newIntPtr("dst");
     x86::Gp src = cc.newIntPtr("src");
 
@@ -1636,7 +1636,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(int*, const int*);
     Func func = ptr_as_func<Func>(_func);
 
@@ -1664,7 +1664,7 @@ public:
     app.add(new X86Test_Idiv1());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     x86::Gp a = cc.newInt32("a");
     x86::Gp b = cc.newInt32("b");
     x86::Gp dummy = cc.newInt32("dummy");
@@ -1680,7 +1680,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int, int);
     Func func = ptr_as_func<Func>(_func);
 
@@ -1708,7 +1708,7 @@ public:
     app.add(new X86Test_Setz());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     x86::Gp src0 = cc.newInt32("src0");
     x86::Gp src1 = cc.newInt32("src1");
     x86::Gp dst0 = cc.newIntPtr("dst0");
@@ -1724,7 +1724,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(int, int, char*);
     Func func = ptr_as_func<Func>(_func);
 
@@ -1757,7 +1757,7 @@ public:
     app.add(new X86Test_ShlRor());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     x86::Gp dst = cc.newIntPtr("dst");
     x86::Gp var = cc.newInt32("var");
     x86::Gp vShlParam = cc.newInt32("vShlParam");
@@ -1775,7 +1775,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(int*, int, int, int);
     Func func = ptr_as_func<Func>(_func);
 
@@ -1806,7 +1806,7 @@ public:
     app.add(new X86Test_GpbLo1());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     x86::Gp rPtr = cc.newUIntPtr("rPtr");
     x86::Gp rSum = cc.newUInt32("rSum");
     x86::Gp x[kCount];
@@ -1842,7 +1842,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = uint32_t (*)(uint32_t*);
     Func func = ptr_as_func<Func>(_func);
 
@@ -1889,7 +1889,7 @@ public:
     app.add(new X86Test_GpbLo2());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     x86::Gp v = cc.newUInt32("v");
 
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<uint32_t, uint32_t>());
@@ -1900,7 +1900,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = uint32_t (*)(uint32_t);
     Func func = ptr_as_func<Func>(_func);
 
@@ -1925,7 +1925,7 @@ public:
     app.add(new X86Test_RepMovsb());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     x86::Gp dst = cc.newIntPtr("dst");
     x86::Gp src = cc.newIntPtr("src");
     x86::Gp cnt = cc.newIntPtr("cnt");
@@ -1939,7 +1939,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(void*, void*, size_t);
     Func func = ptr_as_func<Func>(_func);
 
@@ -1965,7 +1965,7 @@ public:
     app.add(new X86Test_IfElse1());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     x86::Gp v1 = cc.newInt32("v1");
     x86::Gp v2 = cc.newInt32("v2");
 
@@ -1990,7 +1990,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int, int);
     Func func = ptr_as_func<Func>(_func);
 
@@ -2015,7 +2015,7 @@ public:
     app.add(new X86Test_IfElse2());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     x86::Gp v1 = cc.newInt32("v1");
     x86::Gp v2 = cc.newInt32("v2");
 
@@ -2049,7 +2049,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int, int);
     Func func = ptr_as_func<Func>(_func);
 
@@ -2074,7 +2074,7 @@ public:
     app.add(new X86Test_IfElse3());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     x86::Gp v1 = cc.newInt32("v1");
     x86::Gp v2 = cc.newInt32("v2");
     x86::Gp counter = cc.newInt32("counter");
@@ -2108,7 +2108,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int, int);
     Func func = ptr_as_func<Func>(_func);
 
@@ -2133,7 +2133,7 @@ public:
     app.add(new X86Test_IfElse4());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     x86::Gp v1 = cc.newInt32("v1");
     x86::Gp v2 = cc.newInt32("v2");
     x86::Gp counter = cc.newInt32("counter");
@@ -2171,7 +2171,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int, int);
     Func func = ptr_as_func<Func>(_func);
 
@@ -2198,7 +2198,7 @@ public:
     app.add(new X86Test_Memcpy());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     x86::Gp dst = cc.newIntPtr("dst");
     x86::Gp src = cc.newIntPtr("src");
     x86::Gp cnt = cc.newUIntPtr("cnt");
@@ -2230,7 +2230,7 @@ public:
     cc.endFunc();                                   // End of function.
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(uint32_t*, const uint32_t*, size_t);
     Func func = ptr_as_func<Func>(_func);
 
@@ -2277,7 +2277,7 @@ public:
     app.add(new X86Test_ExtraBlock());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     x86::Gp cond = cc.newInt32("cond");
     x86::Gp ret = cc.newInt32("ret");
     x86::Gp a = cc.newInt32("a");
@@ -2311,7 +2311,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int, int, int);
     Func func = ptr_as_func<Func>(_func);
 
@@ -2356,11 +2356,11 @@ public:
     return d_20 + d_31 + s;
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     asmtest::generateSseAlphaBlend(cc, true);
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(void*, const void*, size_t);
     Func func = ptr_as_func<Func>(_func);
 
@@ -2421,7 +2421,7 @@ public:
     }
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<uint32_t, const void*, const void*, uint32_t>());
 
     x86::Gp a = cc.newIntPtr("a");
@@ -2447,7 +2447,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = uint32_t (*)(const void*, const void*, uint32_t prevK);
     Func func = ptr_as_func<Func>(_func);
 
@@ -2478,7 +2478,7 @@ public:
     }
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<void, void*>());
 
     x86::Gp out = cc.newIntPtr("outPtr");
@@ -2491,7 +2491,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(void*);
     Func func = ptr_as_func<Func>(_func);
 
@@ -2528,7 +2528,7 @@ public:
     app.add(new X86Test_FuncArgInt8());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     x86::Gp v0 = cc.newUInt32("v0");
     x86::Gp v1 = cc.newUInt32("v1");
 
@@ -2542,7 +2542,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = uint32_t (*)(uint8_t, uint8_t, uint32_t);
     Func func = ptr_as_func<Func>(_func);
 
@@ -2569,7 +2569,7 @@ public:
     app.add(new X86Test_FuncCallBase1());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     x86::Gp v0 = cc.newInt32("v0");
     x86::Gp v1 = cc.newInt32("v1");
     x86::Gp v2 = cc.newInt32("v2");
@@ -2596,7 +2596,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int, int, int);
     Func func = ptr_as_func<Func>(_func);
 
@@ -2625,7 +2625,7 @@ public:
     app.add(new X86Test_FuncCallBase2());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     cc.addFunc(FuncSignature::build<int>());
 
     const int kTokenSize = 32;
@@ -2679,7 +2679,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(void);
     Func func = ptr_as_func<Func>(_func);
 
@@ -2704,7 +2704,7 @@ public:
     app.add(new X86Test_FuncCallStd());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     x86::Gp x = cc.newInt32("x");
     x86::Gp y = cc.newInt32("y");
     x86::Gp z = cc.newInt32("z");
@@ -2727,7 +2727,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int, int, int);
     Func func = ptr_as_func<Func>(_func);
 
@@ -2757,7 +2757,7 @@ public:
     app.add(new X86Test_FuncCallFast());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     x86::Gp var = cc.newInt32("var");
 
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<int, int>());
@@ -2777,7 +2777,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int);
     Func func = ptr_as_func<Func>(_func);
 
@@ -2817,7 +2817,7 @@ public:
 #endif
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<void, void*, const void*, const void*>());
 
     x86::Gp resultPtr = cc.newIntPtr("resultPtr");
@@ -2858,7 +2858,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(void*, const void*, const void*);
     Func func = ptr_as_func<Func>(_func);
 
@@ -2899,7 +2899,7 @@ public:
     app.add(new X86Test_FuncCallLight());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     FuncSignature f1Sig = FuncSignature::build<void, const void*, const void*, const void*, const void*, void*>();
     FuncSignature f2Sig = FuncSignature::build<Type::Vec128, Type::Vec128, Type::Vec128>(CallConvId::kLightCall2);
 
@@ -2964,7 +2964,7 @@ public:
     }
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(const void*, const void*, const void*, const void*, void*);
 
     Func func = ptr_as_func<Func>(_func);
@@ -3001,7 +3001,7 @@ public:
     return (a * b * c * d * e) + (f * g * h * i * j);
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     cc.addFunc(FuncSignature::build<int>());
 
     // Prepare.
@@ -3048,7 +3048,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(void);
     Func func = ptr_as_func<Func>(_func);
 
@@ -3077,7 +3077,7 @@ public:
     return (a * b * c * d * e) + (f * g * h * i * j);
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     cc.addFunc(FuncSignature::build<int>());
 
     // Prepare.
@@ -3105,7 +3105,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(void);
     Func func = ptr_as_func<Func>(_func);
 
@@ -3130,7 +3130,7 @@ public:
     app.add(new X86Test_FuncCallImmArgs());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     cc.addFunc(FuncSignature::build<int>());
 
     // Prepare.
@@ -3158,7 +3158,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(void);
     Func func = ptr_as_func<Func>(_func);
 
@@ -3196,7 +3196,7 @@ public:
            int((intptr_t)j) ;
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     cc.addFunc(FuncSignature::build<int>());
 
     // Prepare.
@@ -3224,7 +3224,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(void);
     Func func = ptr_as_func<Func>(_func);
 
@@ -3257,7 +3257,7 @@ public:
     return a + b + c + d;
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<int, int&, int&, int&, int&>());
 
     // Prepare.
@@ -3288,7 +3288,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int&, int&, int&, int&);
     Func func = ptr_as_func<Func>(_func);
 
@@ -3319,7 +3319,7 @@ public:
     return a * b;
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<float, float, float>());
 
     x86::Vec a = cc.newXmmSs("a");
@@ -3340,7 +3340,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = float (*)(float, float);
     Func func = ptr_as_func<Func>(_func);
 
@@ -3369,7 +3369,7 @@ public:
     return a * b;
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<double, double, double>());
 
     x86::Vec a = cc.newXmmSd("a");
@@ -3389,7 +3389,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = double (*)(double, double);
     Func func = ptr_as_func<Func>(_func);
 
@@ -3414,7 +3414,7 @@ public:
     app.add(new X86Test_FuncCallConditional());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     x86::Gp x = cc.newInt32("x");
     x86::Gp y = cc.newInt32("y");
     x86::Gp op = cc.newInt32("op");
@@ -3460,7 +3460,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int, int, int);
     Func func = ptr_as_func<Func>(_func);
 
@@ -3498,7 +3498,7 @@ public:
     return pInt[index];
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     unsigned int i;
 
     x86::Gp buf = cc.newIntPtr("buf");
@@ -3543,7 +3543,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int*);
     Func func = ptr_as_func<Func>(_func);
 
@@ -3570,7 +3570,7 @@ public:
     app.add(new X86Test_FuncCallRecursive());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     x86::Gp val = cc.newInt32("val");
     Label skip = cc.newLabel();
 
@@ -3596,7 +3596,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int);
     Func func = ptr_as_func<Func>(_func);
 
@@ -3621,7 +3621,7 @@ public:
     app.add(new X86Test_FuncCallVarArg1());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<int, int, int, int, int>());
 
     x86::Gp a0 = cc.newInt32("a0");
@@ -3652,7 +3652,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int, int, int, int);
     Func func = ptr_as_func<Func>(_func);
 
@@ -3689,7 +3689,7 @@ public:
     app.add(new X86Test_FuncCallVarArg2());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<double, double, double, double, double>());
 
     x86::Vec a0 = cc.newXmmSd("a0");
@@ -3720,7 +3720,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = double (*)(double, double, double, double);
     Func func = ptr_as_func<Func>(_func);
 
@@ -3757,7 +3757,7 @@ public:
     app.add(new X86Test_FuncCallInt64Arg());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<uint64_t, uint64_t>());
 
     if (cc.is64Bit()) {
@@ -3781,7 +3781,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = uint64_t (*)(uint64_t);
     Func func = ptr_as_func<Func>(_func);
 
@@ -3820,7 +3820,7 @@ public:
 
   static void dummy(int, int) {}
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<int, int, int>());
 
     x86::Gp a = cc.newInt32("a");
@@ -3843,7 +3843,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int, int);
     Func func = ptr_as_func<Func>(_func);
 
@@ -3868,7 +3868,7 @@ public:
     app.add(new X86Test_FuncCallMisc2());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<double, const double*>());
 
     x86::Gp p = cc.newIntPtr("p");
@@ -3889,7 +3889,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = double (*)(const double*);
     Func func = ptr_as_func<Func>(_func);
 
@@ -3918,7 +3918,7 @@ public:
     app.add(new X86Test_FuncCallMisc3());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<double, const double*>());
 
     x86::Gp p = cc.newIntPtr("p");
@@ -3942,7 +3942,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = double (*)(const double*);
     Func func = ptr_as_func<Func>(_func);
 
@@ -3971,7 +3971,7 @@ public:
     app.add(new X86Test_FuncCallMisc4());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     InvokeNode* invokeNode;
 
     FuncSignature funcSignature;
@@ -3991,7 +3991,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = double (*)(void);
     Func func = ptr_as_func<Func>(_func);
 
@@ -4019,7 +4019,7 @@ public:
     app.add(new X86Test_FuncCallMisc5());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     cc.addFunc(FuncSignature::build<int>());
 
     x86::Gp pFn = cc.newIntPtr("pFn");
@@ -4049,7 +4049,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(void);
     Func func = ptr_as_func<Func>(_func);
 
@@ -4076,7 +4076,7 @@ public:
     app.add(new X86Test_FuncCallMisc6());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<uint32_t, uint32_t>());
 
     constexpr uint32_t kCount = 16;
@@ -4109,7 +4109,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = uint32_t (*)(uint32_t x);
     Func func = ptr_as_func<Func>(_func);
 
@@ -4140,7 +4140,7 @@ public:
     }
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     FuncNode* mainFunc = cc.addFunc(FuncSignature::build<void, void*, const void*, const void*>());
     mainFunc->frame().setAvxEnabled();
     mainFunc->frame().setAvxCleanup();
@@ -4209,7 +4209,7 @@ public:
     }
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(void*, const void*, const void*);
     Func func = ptr_as_func<Func>(_func);
 
@@ -4257,7 +4257,7 @@ public:
     app.add(new X86Test_VecToScalar());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     FuncNode* func = cc.addFunc(FuncSignature::build<uint32_t, uint32_t>());
 
     x86::Gp x = cc.newInt32("x");
@@ -4284,7 +4284,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = uint32_t (*)(uint32_t);
     Func func = ptr_as_func<Func>(_func);
 
@@ -4309,7 +4309,7 @@ public:
     app.add(new X86Test_MiscLocalConstPool());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     cc.addFunc(FuncSignature::build<int>());
 
     x86::Gp v0 = cc.newInt32("v0");
@@ -4326,7 +4326,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(void);
     Func func = ptr_as_func<Func>(_func);
 
@@ -4351,7 +4351,7 @@ public:
     app.add(new X86Test_MiscGlobalConstPool());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     cc.addFunc(FuncSignature::build<int>());
 
     x86::Gp v0 = cc.newInt32("v0");
@@ -4368,7 +4368,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(void);
     Func func = ptr_as_func<Func>(_func);
 
@@ -4392,7 +4392,7 @@ struct X86Test_MiscMultiRet : public X86TestCase {
     app.add(new X86Test_MiscMultiRet());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     FuncNode* funcNode = cc.addFunc(FuncSignature::build<int, int, int, int>());
 
     x86::Gp op = cc.newInt32("op");
@@ -4449,7 +4449,7 @@ struct X86Test_MiscMultiRet : public X86TestCase {
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int, int, int);
 
     Func func = ptr_as_func<Func>(_func);
@@ -4484,7 +4484,7 @@ public:
     app.add(new X86Test_MiscMultiFunc());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     FuncNode* f1Node = cc.newFunc(FuncSignature::build<int, int, int>());
     FuncNode* f2Node = cc.newFunc(FuncSignature::build<int, int, int>());
 
@@ -4520,7 +4520,7 @@ public:
     }
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int, int);
 
     Func func = ptr_as_func<Func>(_func);
@@ -4549,7 +4549,7 @@ public:
     app.add(new X86Test_MiscUnfollow());
   }
 
-  virtual void compile(x86::Compiler& cc) {
+  void compile(x86::Compiler& cc) override {
     // NOTE: Fastcall calling convention is the most appropriate here as all arguments are passed via registers and
     // there won't be any stack misalignment in the `handler()`. This was failing on MacOS when targeting 32-bit mode.
     x86::Gp a = cc.newInt32("a");
@@ -4568,7 +4568,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, String& result, String& expect) {
+  bool run(void* _func, String& result, String& expect) override {
     using Func = int (ASMJIT_FASTCALL*)(int, void*);
     Func func = ptr_as_func<Func>(_func);
 

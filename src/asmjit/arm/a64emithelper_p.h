@@ -24,7 +24,7 @@ public:
   ASMJIT_INLINE_NODEBUG explicit EmitHelper(BaseEmitter* emitter = nullptr) noexcept
     : BaseEmitHelper(emitter) {}
 
-  ASMJIT_INLINE_NODEBUG virtual ~EmitHelper() noexcept = default;
+  ASMJIT_INLINE_NODEBUG ~EmitHelper() noexcept override = default;
 
   Error emitRegMove(
     const Operand_& dst_,

@@ -128,17 +128,17 @@ static void BrokenAPI_runUnit(BrokenAPI::Unit* unit) noexcept {
 
   _brokenGlobal._unitRunning = unit;
   unit->entry();
-  _brokenGlobal._unitRunning = NULL;
+  _brokenGlobal._unitRunning = nullptr;
 }
 
 static void BrokenAPI_runAll() noexcept {
   BrokenAPI::Unit* unit = _brokenGlobal._unitList;
 
-  bool hasUnits = unit != NULL;
+  bool hasUnits = unit != nullptr;
   size_t count = 0;
   int currentPriority = 0;
 
-  while (unit != NULL) {
+  while (unit != nullptr) {
     if (BrokenAPI_canRun(unit)) {
       if (currentPriority != unit->priority) {
         if (count)
@@ -166,12 +166,12 @@ static void BrokenAPI_runAll() noexcept {
 static void BrokenAPI_listAll() noexcept {
   BrokenAPI::Unit* unit = _brokenGlobal._unitList;
 
-  if (unit != NULL) {
+  if (unit != nullptr) {
     INFO("Units:");
     do {
       INFO("  %s [priority=%d]", unit->name, unit->priority);
       unit = unit->next;
-    } while (unit != NULL);
+    } while (unit != nullptr);
   }
   else {
     INFO("Warning:");
@@ -189,7 +189,7 @@ void BrokenAPI::addUnit(Unit* unit) noexcept {
 
   // C++ static initialization doesn't guarantee anything. We sort all units by
   // name so the execution will always happen in deterministic order.
-  while (current != NULL) {
+  while (current != nullptr) {
     if (BrokenAPI_compareUnits(current, unit) >= 0)
       break;
 
