@@ -70,7 +70,7 @@ static ASMJIT_INLINE bool ZoneVector_byteSizeIsSafe(size_t nBytes, uint32_t n) n
   else {
     return nBytes >= size_t(n);
   }
-};
+}
 
 Error ZoneVectorBase::_grow(ZoneAllocator* allocator, uint32_t sizeOfT, uint32_t n) noexcept {
   uint32_t capacity = _capacity;

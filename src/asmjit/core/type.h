@@ -484,23 +484,23 @@ namespace TypeUtils {                                             \
   };                                                              \
 }
 
-ASMJIT_DEFINE_TYPE_ID(void         , TypeId::kVoid);
-ASMJIT_DEFINE_TYPE_ID(Type::Bool   , TypeId::kUInt8);
-ASMJIT_DEFINE_TYPE_ID(Type::Int8   , TypeId::kInt8);
-ASMJIT_DEFINE_TYPE_ID(Type::UInt8  , TypeId::kUInt8);
-ASMJIT_DEFINE_TYPE_ID(Type::Int16  , TypeId::kInt16);
-ASMJIT_DEFINE_TYPE_ID(Type::UInt16 , TypeId::kUInt16);
-ASMJIT_DEFINE_TYPE_ID(Type::Int32  , TypeId::kInt32);
-ASMJIT_DEFINE_TYPE_ID(Type::UInt32 , TypeId::kUInt32);
-ASMJIT_DEFINE_TYPE_ID(Type::Int64  , TypeId::kInt64);
-ASMJIT_DEFINE_TYPE_ID(Type::UInt64 , TypeId::kUInt64);
-ASMJIT_DEFINE_TYPE_ID(Type::IntPtr , TypeId::kIntPtr);
-ASMJIT_DEFINE_TYPE_ID(Type::UIntPtr, TypeId::kUIntPtr);
-ASMJIT_DEFINE_TYPE_ID(Type::Float32, TypeId::kFloat32);
-ASMJIT_DEFINE_TYPE_ID(Type::Float64, TypeId::kFloat64);
-ASMJIT_DEFINE_TYPE_ID(Type::Vec128 , TypeId::kInt32x4);
-ASMJIT_DEFINE_TYPE_ID(Type::Vec256 , TypeId::kInt32x8);
-ASMJIT_DEFINE_TYPE_ID(Type::Vec512 , TypeId::kInt32x16);
+ASMJIT_DEFINE_TYPE_ID(void         , TypeId::kVoid)
+ASMJIT_DEFINE_TYPE_ID(Type::Bool   , TypeId::kUInt8)
+ASMJIT_DEFINE_TYPE_ID(Type::Int8   , TypeId::kInt8)
+ASMJIT_DEFINE_TYPE_ID(Type::UInt8  , TypeId::kUInt8)
+ASMJIT_DEFINE_TYPE_ID(Type::Int16  , TypeId::kInt16)
+ASMJIT_DEFINE_TYPE_ID(Type::UInt16 , TypeId::kUInt16)
+ASMJIT_DEFINE_TYPE_ID(Type::Int32  , TypeId::kInt32)
+ASMJIT_DEFINE_TYPE_ID(Type::UInt32 , TypeId::kUInt32)
+ASMJIT_DEFINE_TYPE_ID(Type::Int64  , TypeId::kInt64)
+ASMJIT_DEFINE_TYPE_ID(Type::UInt64 , TypeId::kUInt64)
+ASMJIT_DEFINE_TYPE_ID(Type::IntPtr , TypeId::kIntPtr)
+ASMJIT_DEFINE_TYPE_ID(Type::UIntPtr, TypeId::kUIntPtr)
+ASMJIT_DEFINE_TYPE_ID(Type::Float32, TypeId::kFloat32)
+ASMJIT_DEFINE_TYPE_ID(Type::Float64, TypeId::kFloat64)
+ASMJIT_DEFINE_TYPE_ID(Type::Vec128 , TypeId::kInt32x4)
+ASMJIT_DEFINE_TYPE_ID(Type::Vec256 , TypeId::kInt32x8)
+ASMJIT_DEFINE_TYPE_ID(Type::Vec512 , TypeId::kInt32x16)
 
 #undef ASMJIT_DEFINE_TYPE_ID
 //! \endcond

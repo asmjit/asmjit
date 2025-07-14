@@ -807,7 +807,7 @@ namespace Inst {
 
   //! Tests whether the `instId` is defined (counts also Inst::kIdNone, which must be zero).
   static ASMJIT_INLINE_NODEBUG bool isDefinedId(InstId instId) noexcept { return (instId & uint32_t(InstIdParts::kRealId)) < _kIdCount; }
-};
+}
 
 namespace Predicate {
 
@@ -1089,7 +1089,7 @@ namespace PState {
     kSSBS    = encode(0b011, 0b001),
     kTCO     = encode(0b011, 0b100)
   };
-};
+}
 
 //! System register identifiers and utilities (MSR/MRS).
 namespace SysReg {
@@ -1906,7 +1906,7 @@ namespace SysReg {
     kZCR_EL2              = encode(0b11, 0b100, 0b0001, 0b0010, 0b000), // RW
     kZCR_EL3              = encode(0b11, 0b110, 0b0001, 0b0010, 0b000)  // RW
   };
-};
+}
 
 } // {Predicate}
 
