@@ -4010,6 +4010,28 @@ static void ASMJIT_NOINLINE testA64AssemblerSIMD(AssemblerTester<a64::Assembler>
   TEST_INSTRUCTION("4178434E", zip2(v1.h8(), v2.h8(), v3.h8()));
   TEST_INSTRUCTION("4178834E", zip2(v1.s4(), v2.s4(), v3.s4()));
   TEST_INSTRUCTION("4178C34E", zip2(v1.d2(), v2.d2(), v3.d2()));
+
+  TEST_INSTRUCTION("E103C1DA", pacia(x1, sp));
+  TEST_INSTRUCTION("5F2103D5", pacib1716());
+  TEST_INSTRUCTION("3F2303D5", paciasp());
+  TEST_INSTRUCTION("1F2303D5", paciaz());
+  TEST_INSTRUCTION("E123C1DA", paciza(x1));
+  TEST_INSTRUCTION("E107C1DA", pacib(x1, sp));
+  TEST_INSTRUCTION("5F2103D5", pacib1716());
+  TEST_INSTRUCTION("7F2303D5", pacibsp());
+  TEST_INSTRUCTION("5F2303D5", pacibz());
+  TEST_INSTRUCTION("E027C1DA", pacizb(x0));
+  TEST_INSTRUCTION("FF0B5FD6", retaa());
+  TEST_INSTRUCTION("FF0F5FD6", retab());
+  TEST_INSTRUCTION("3F0C1FD7", brab(x1, sp));
+  TEST_INSTRUCTION("3F083FD7", blraa(x1, sp));
+  TEST_INSTRUCTION("3F083FD6", blraaz(x1));
+  TEST_INSTRUCTION("3F0C3FD7", blrab(x1, sp));
+  TEST_INSTRUCTION("3F0C1FD6", brabz(x1));
+  TEST_INSTRUCTION("FF0B9FD6", eretaa());
+  TEST_INSTRUCTION("FF0F9FD6", eretab());
+
+
 }
 
 static void ASMJIT_NOINLINE testA64AssemblerExtras(AssemblerTester<a64::Assembler>& tester) noexcept {

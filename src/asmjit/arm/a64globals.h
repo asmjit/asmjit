@@ -801,6 +801,28 @@ namespace Inst {
     kIdXtn2_v,                           //!< Instruction 'xtn2' {ASIMD}.
     kIdZip1_v,                           //!< Instruction 'zip1' {ASIMD}.
     kIdZip2_v,                           //!< Instruction 'zip2' {ASIMD}.
+    kIdPacia,                            //!< Instruction 'pacia'.
+    kIdPacia1716,                        //!< Instruction 'pacia1716'.
+    kIdPaciasp,                          //!< Instruction 'paciasp'.
+    kIdPaciaz,                           //!< Instruction 'paciaz'.
+    kIdPaciza,                           //!< Instruction 'paciza'.
+    kIdPacib,                            //!< Instruction 'pacib'.
+    kIdPacib1716,                        //!< Instruction 'pacib1716'.
+    kIdPacibsp,                          //!< Instruction 'pacibsp'.
+    kIdPacibz,                           //!< Instruction 'pacibz'.
+    kIdPacizb,                           //!< Instruction 'pacizb'.
+    kIdBlraa,                            //!< Instruction 'blraa'.
+    kIdBlraaz,                           //!< Instruction 'blraaz'.
+    kIdBlrab,                            //!< Instruction 'blrab'.
+    kIdBlrabz,                           //!< Instruction 'blrabz'.
+    kIdBraa,                             //!< Instruction 'braa'.
+    kIdBraaz,                            //!< Instruction 'braaz'.
+    kIdBrab,                             //!< Instruction 'brab'.
+    kIdBrabz,                            //!< Instruction 'brabz'.
+    kIdRetaa,                            //!< Instruction 'retaa'.
+    kIdRetab,                            //!< Instruction 'retab'.
+    kIdEretaa,                           //!< Instruction 'eretaa'.
+    kIdEretab,                           //!< Instruction 'eretab'.
     _kIdCount
     // ${InstId:End}
   };

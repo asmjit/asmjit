@@ -31,20 +31,13 @@ namespace InstDB {
 
 // TODO: [ARM] Missing Instructions:
 /*
-BLRAA, BLRAAZ, BLRAB, BLRABZ: Branch with Link to Register, with pointer authentication.
-BRAA, BRAAZ, BRAB, BRABZ: Branch to Register, with pointer authentication.
-
 CFP: Control Flow Prediction Restriction by Context: an alias of SYS.
 CPP: Cache Prefetch Prediction Restriction by Context: an alias of SYS.
 DVP: Data Value Prediction Restriction by Context: an alias of SYS.
 PSB CSYNC: Profiling Synchronization Barrier.
 
-ERETAA, ERETAB: Exception Return, with pointer authentication.
 LDAPxxx
-PACIA, PACIA1716, PACIASP, PACIAZ, PACIZA: Pointer Authentication Code for Instruction address, using key A.
-PACIB, PACIB1716, PACIBSP, PACIBZ, PACIZB: Pointer Authentication Code for Instruction address, using key B.
 PRFUM: Prefetch Memory (unscaled offset).
-RETAA, RETAB: Return from subroutine, with pointer authentication.
 RMIF: Rotate, Mask Insert Flags.
 SYSL
 IRG: Insert Random Tag.
@@ -830,7 +823,29 @@ const InstInfo _instInfoTable[] = {
   INST(Xtn_v            , ISimdVV            , (0b0000111000100001001010, kVO_V_B8H4S2)                                              , kRWI_W    , F(Narrow)                 , 27 ), // #772
   INST(Xtn2_v           , ISimdVV            , (0b0100111000100001001010, kVO_V_B16H8S4)                                             , kRWI_X    , F(Narrow)                 , 28 ), // #773
   INST(Zip1_v           , ISimdVVV           , (0b0000111000000000001110, kVO_V_BHS_D2)                                              , kRWI_W    , 0                         , 63 ), // #774
-  INST(Zip2_v           , ISimdVVV           , (0b0000111000000000011110, kVO_V_BHS_D2)                                              , kRWI_W    , 0                         , 64 )  // #775
+  INST(Zip2_v           , ISimdVVV           , (0b0000111000000000011110, kVO_V_BHS_D2)                                              , kRWI_W    , 0                         , 64 ), // #775
+  INST(Pacia            , BaseRR             , (0b11011010110000010000000000000000, kX, kZR, 0, kX, kSP, 5, true)                    , kRWI_X    , 0                         , 18 ), // #776
+  INST(Pacia1716        , BaseOp             , (0b11010101000000110010000101011111)                                                  , 0         , 0                         , 24 ), // #777
+  INST(Paciasp          , BaseOp             , (0b11010101000000110010001100111111)                                                  , 0         , 0                         , 25 ), // #778
+  INST(Paciaz           , BaseOp             , (0b11010101000000110010001100011111)                                                  , 0         , 0                         , 26 ), // #779
+  INST(Paciza           , BaseR              , (0b11011010110000010010001111100000, kX, kZR, 0)                                      , kRWI_W    , 0                         , 10 ), // #780
+  INST(Pacib            , BaseRR             , (0b11011010110000010000011000000000, kX, kZR, 0, kX, kSP, 5, true)                    , kRWI_W    , 0                         , 19 ), // #781
+  INST(Pacib1716        , BaseOp             , (0b11010101000000110010000101011111)                                                  , 0         , 0                         , 27 ), // #782
+  INST(Pacibsp          , BaseOp             , (0b11010101000000110010001101111111)                                                  , 0         , 0                         , 28 ), // #783
+  INST(Pacibz           , BaseOp             , (0b11010101000000110010001101011111)                                                  , 0         , 0                         , 29 ), // #784
+  INST(Pacizb           , BaseR              , (0b11011010110000010010011111100000, kX, kZR, 5)                                      , kRWI_W    , 0                         , 11 ), // #785
+  INST(Blraa            , BaseRR             , (0b11010111001111110000100000000000, kX, kZR, 5, kX, kSP, 0, true)                    , 0         , 0                         , 20 ), // #786
+  INST(Blraaz           , BaseR              , (0b11010110001111110000100000011111, kX, kZR, 5)                                      , 0         , 0                         , 12 ), // #787
+  INST(Blrab            , BaseRR             , (0b11010111001111110000110000000000, kX, kZR, 5, kX, kSP, 0, true)                    , 0         , 0                         , 21 ), // #788
+  INST(Blrabz           , BaseRR             , (0b11010110001111110000110000000000, kX, kZR, 5, kX, kZR, 0, true)                    , 0         , 0                         , 22 ), // #789
+  INST(Braa             , BaseRR             , (0b11010111000111110000100000000000, kX, kZR, 5, kX, kSP, 0, true)                    , 0         , 0                         , 23 ), // #790
+  INST(Braaz            , BaseR              , (0b11010110000111110000100000011111, kX, kZR, 5)                                      , 0         , 0                         , 13 ), // #791
+  INST(Brab             , BaseRR             , (0b11010111000111110000110000000000, kX, kZR, 5, kX, kSP, 0, true)                    , 0         , 0                         , 24 ), // #792
+  INST(Brabz            , BaseR              , (0b11010110000111110000110000011111, kX, kZR, 5)                                      , 0         , 0                         , 14 ), // #793
+  INST(Retaa            , BaseOp             , (0b11010110010111110000101111111111)                                                  , 0         , 0                         , 30 ), // #794
+  INST(Retab            , BaseOp             , (0b11010110010111110000111111111111)                                                  , 0         , 0                         , 31 ), // #795
+  INST(Eretaa           , BaseOp             , (0b11010110100111110000101111111111)                                                  , 0         , 0                         , 32 ), // #796
+  INST(Eretab           , BaseOp             , (0b11010110100111110000111111111111)                                                  , 0         , 0                         , 33 )  // #797
   // ${InstInfo:End}
 };
 
@@ -1185,7 +1200,7 @@ const BaseMvnNeg baseMvnNeg[3] = {
   { 0b01101011000000000000001111100000 }  // negs
 };
 
-const BaseOp baseOp[24] = {
+const BaseOp baseOp[34] = {
   { 0b11010101000000110010000110011111 }, // autia1716
   { 0b11010101000000110010001110111111 }, // autiasp
   { 0b11010101000000110010001110011111 }, // autiaz
@@ -1209,7 +1224,17 @@ const BaseOp baseOp[24] = {
   { 0b11010101000000110010000001111111 }, // wfi
   { 0b11010101000000000100000000111111 }, // xaflag
   { 0b11010101000000110010000011111111 }, // xpaclri
-  { 0b11010101000000110010000000111111 }  // yield
+  { 0b11010101000000110010000000111111 }, // yield
+  { 0b11010101000000110010000101011111 }, // pacia1716
+  { 0b11010101000000110010001100111111 }, // paciasp
+  { 0b11010101000000110010001100011111 }, // paciaz
+  { 0b11010101000000110010000101011111 }, // pacib1716
+  { 0b11010101000000110010001101111111 }, // pacibsp
+  { 0b11010101000000110010001101011111 }, // pacibz
+  { 0b11010110010111110000101111111111 }, // retaa
+  { 0b11010110010111110000111111111111 }, // retab
+  { 0b11010110100111110000101111111111 }, // eretaa
+  { 0b11010110100111110000111111111111 }  // eretab
 };
 
 const BaseOpImm baseOpImm[15] = {
@@ -1238,7 +1263,7 @@ const BasePrfm basePrfm[1] = {
   { 0b11111000101, 0b1111100110, 0b11111000100, 0b11011000 }  // prfm
 };
 
-const BaseR baseR[10] = {
+const BaseR baseR[15] = {
   { 0b11011010110000010011101111100000, kX, kZR, 0 }, // autdza
   { 0b11011010110000010011111111100000, kX, kZR, 0 }, // autdzb
   { 0b11011010110000010011001111100000, kX, kZR, 0 }, // autiza
@@ -1248,7 +1273,12 @@ const BaseR baseR[10] = {
   { 0b00111010000000000000100000001101, kW, kZR, 5 }, // setf8
   { 0b00111010000000000100100000001101, kW, kZR, 5 }, // setf16
   { 0b11011010110000010100011111100000, kX, kZR, 0 }, // xpacd
-  { 0b11011010110000010100001111100000, kX, kZR, 0 }  // xpaci
+  { 0b11011010110000010100001111100000, kX, kZR, 0 }, // xpaci
+  { 0b11011010110000010010001111100000, kX, kZR, 0 }, // paciza
+  { 0b11011010110000010010011111100000, kX, kZR, 5 }, // pacizb
+  { 0b11010110001111110000100000011111, kX, kZR, 5 }, // blraaz
+  { 0b11010110000111110000100000011111, kX, kZR, 5 }, // braaz
+  { 0b11010110000111110000110000011111, kX, kZR, 5 }  // brabz
 };
 
 const BaseRM_NoImm baseRM_NoImm[21] = {
@@ -1306,7 +1336,7 @@ const BaseRM_SImm9 baseRM_SImm9[23] = {
   { 0b1101100101100000000010, 0b1101100101100000000001, kX , kSP, 0, 4 }  // stzg
 };
 
-const BaseRR baseRR[18] = {
+const BaseRR baseRR[25] = {
   { 0b01011010110000000010000000000000, kWX, kZR, 0, kWX, kZR, 5, true }, // abs
   { 0b11011010110000010001100000000000, kX, kZR, 0, kX, kSP, 5, true }, // autda
   { 0b11011010110000010001110000000000, kX, kZR, 0, kX, kSP, 5, true }, // autdb
@@ -1324,7 +1354,14 @@ const BaseRR baseRR[18] = {
   { 0b01011010110000000000000000000000, kWX, kZR, 0, kWX, kZR, 5, true }, // rbit
   { 0b01011010110000000000010000000000, kWX, kZR, 0, kWX, kZR, 5, true }, // rev16
   { 0b11011010110000000000100000000000, kWX, kZR, 0, kWX, kZR, 5, true }, // rev32
-  { 0b11011010110000000000110000000000, kWX, kZR, 0, kWX, kZR, 5, true }  // rev64
+  { 0b11011010110000000000110000000000, kWX, kZR, 0, kWX, kZR, 5, true }, // rev64
+  { 0b11011010110000010000000000000000, kX, kZR, 0, kX, kSP, 5, true }, // pacia
+  { 0b11011010110000010000011000000000, kX, kZR, 0, kX, kSP, 5, true }, // pacib
+  { 0b11010111001111110000100000000000, kX, kZR, 5, kX, kSP, 0, true }, // blraa
+  { 0b11010111001111110000110000000000, kX, kZR, 5, kX, kSP, 0, true }, // blrab
+  { 0b11010110001111110000110000000000, kX, kZR, 5, kX, kZR, 0, true }, // blrabz
+  { 0b11010111000111110000100000000000, kX, kZR, 5, kX, kSP, 0, true }, // braa
+  { 0b11010111000111110000110000000000, kX, kZR, 5, kX, kSP, 0, true }  // brab
 };
 
 const BaseRRII baseRRII[2] = {
@@ -1878,10 +1915,10 @@ const InstDB::CommonInfo InstDB::commonData[] = {
 // ------------------- Automatically generated, do not edit -------------------
 const InstNameIndex InstDB::instNameIndex = {{
   { Inst::kIdAbs          , Inst::kIdAnd_v         + 1 },
-  { Inst::kIdB            , Inst::kIdBsl_v         + 1 },
+  { Inst::kIdB            , Inst::kIdBrabz         + 1 },
   { Inst::kIdCas          , Inst::kIdCnt_v         + 1 },
   { Inst::kIdDc           , Inst::kIdDup_v         + 1 },
-  { Inst::kIdEon          , Inst::kIdExt_v         + 1 },
+  { Inst::kIdEon          , Inst::kIdEretab        + 1 },
   { Inst::kIdFabd_v       , Inst::kIdFsub_v        + 1 },
   { Inst::kIdGmi          , Inst::kIdGmi           + 1 },
   { Inst::kIdHint         , Inst::kIdHvc           + 1 },
@@ -1892,9 +1929,9 @@ const InstNameIndex InstDB::instNameIndex = {{
   { Inst::kIdMadd         , Inst::kIdMvni_v        + 1 },
   { Inst::kIdNeg          , Inst::kIdNot_v         + 1 },
   { Inst::kIdOrn          , Inst::kIdOrr_v         + 1 },
-  { Inst::kIdPacda        , Inst::kIdPmull2_v      + 1 },
+  { Inst::kIdPacda        , Inst::kIdPacizb        + 1 },
   { Inst::kIdNone         , Inst::kIdNone          + 1 },
-  { Inst::kIdRbit         , Inst::kIdRsubhn2_v     + 1 },
+  { Inst::kIdRbit         , Inst::kIdRetab         + 1 },
   { Inst::kIdSbc          , Inst::kIdSxtl2_v       + 1 },
   { Inst::kIdTlbi         , Inst::kIdTrn2_v        + 1 },
   { Inst::kIdUbfiz        , Inst::kIdUzp2_v        + 1 },
@@ -1908,16 +1945,16 @@ const InstNameIndex InstDB::instNameIndex = {{
 const char InstDB::_instNameStringTable[] =
   "\x61\x75\x74\x69\x61\x31\x37\x31\x36\x61\x75\x74\x69\x62\x6C\x64\x73\x6D\x61\x78\x61\x6C\x68\x6C\x64\x73\x6D\x69\x6E"
   "\x61\x6C\x6C\x64\x75\x6D\x61\x78\x61\x6C\x6C\x64\x75\x6D\x69\x6E\x61\x6C\x73\x68\x61\x32\x35\x36\x73\x75\x30\x73\x68"
-  "\x61\x35\x31\x32\x73\x75\x31\x73\x6D\x33\x70\x61\x72\x74\x77\x73\x71\x72\x73\x68\x72\x75\x6E\x6C\x64\x61\x64\x64\x61"
-  "\x6C\x6C\x64\x63\x6C\x72\x61\x6C\x6C\x64\x65\x6F\x72\x61\x6C\x6C\x64\x73\x65\x74\x61\x6C\x6C\x62\x73\x74\x73\x6D\x61"
-  "\x78\x73\x74\x73\x6D\x69\x6E\x73\x74\x75\x6D\x61\x78\x73\x74\x75\x6D\x69\x6E\x66\x72\x69\x6E\x74\x33\x32\x7A\x36\x34"
-  "\x78\x36\x34\x7A\x68\x32\x73\x71\x64\x6D\x6C\x61\x6C\x73\x6C\x32\x73\x71\x64\x6D\x75\x6C\x73\x71\x72\x64\x6D\x6C\x61"
-  "\x75\x6C\x68\x6E\x32\x73\x71\x73\x68\x72\x75\x75\x71\x72\x73\x68\x72\x73\x70\x63\x68\x6B\x66\x65\x61\x63\x72\x63\x33"
-  "\x32\x63\x73\x74\x61\x64\x64\x73\x74\x63\x6C\x72\x73\x74\x65\x6F\x72\x73\x74\x73\x65\x74\x78\x70\x61\x63\x6C\x62\x66"
-  "\x63\x76\x74\x62\x66\x6D\x6C\x61\x6C\x74\x66\x63\x76\x74\x78\x66\x6A\x63\x76\x74\x7A\x66\x6D\x61\x78\x6E\x6D\x66\x6D"
-  "\x69\x6E\x6E\x6D\x66\x72\x73\x71\x72\x72\x61\x64\x64\x72\x73\x75\x62\x73\x68\x61\x31\x73\x6D\x33\x74\x74\x31\x32\x61"
-  "\x32\x62\x73\x6D\x34\x65\x6B\x65\x79\x73\x71\x78\x74\x75\x75\x71\x73\x68\x72\x75\x72\x73\x71\x72\x73\x65\x74\x66\x72"
-  "\x65\x76\x38";
+  "\x61\x35\x31\x32\x73\x75\x31\x73\x6D\x33\x70\x61\x72\x74\x77\x73\x71\x72\x73\x68\x72\x75\x6E\x70\x61\x63\x70\x61\x63"
+  "\x69\x62\x6C\x64\x61\x64\x64\x61\x6C\x6C\x64\x63\x6C\x72\x61\x6C\x6C\x64\x65\x6F\x72\x61\x6C\x6C\x64\x73\x65\x74\x61"
+  "\x6C\x6C\x62\x73\x74\x73\x6D\x61\x78\x73\x74\x73\x6D\x69\x6E\x73\x74\x75\x6D\x61\x78\x73\x74\x75\x6D\x69\x6E\x66\x72"
+  "\x69\x6E\x74\x33\x32\x7A\x36\x34\x78\x36\x34\x7A\x68\x32\x73\x71\x64\x6D\x6C\x61\x6C\x73\x6C\x32\x73\x71\x64\x6D\x75"
+  "\x6C\x73\x71\x72\x64\x6D\x6C\x61\x75\x6C\x68\x6E\x32\x73\x71\x73\x68\x72\x75\x75\x71\x72\x73\x68\x72\x73\x70\x63\x68"
+  "\x6B\x66\x65\x61\x63\x72\x63\x33\x32\x63\x73\x74\x61\x64\x64\x73\x74\x63\x6C\x72\x73\x74\x65\x6F\x72\x73\x74\x73\x65"
+  "\x74\x78\x70\x61\x63\x6C\x62\x66\x63\x76\x74\x62\x66\x6D\x6C\x61\x6C\x74\x66\x63\x76\x74\x78\x66\x6A\x63\x76\x74\x7A"
+  "\x66\x6D\x61\x78\x6E\x6D\x66\x6D\x69\x6E\x6E\x6D\x66\x72\x73\x71\x72\x72\x61\x64\x64\x72\x73\x75\x62\x73\x68\x61\x31"
+  "\x73\x6D\x33\x74\x74\x31\x32\x61\x32\x62\x73\x6D\x34\x65\x6B\x65\x79\x73\x71\x78\x74\x75\x75\x71\x73\x68\x72\x75\x72"
+  "\x73\x71\x72\x70\x61\x63\x69\x61\x73\x65\x74\x66\x72\x65\x76\x38";
 
 
 const uint32_t InstDB::_instNameIndexTable[] = {
@@ -1941,11 +1978,11 @@ const uint32_t InstDB::_instNameIndexTable[] = {
   0x85A252A1, // Small 'autdzb'.
   0x8014D2A1, // Small 'autia'.
   0x00009000, // Large 'autia1716'.
-  0x20BF5000, // Large 'autia|sp'.
+  0x20C75000, // Large 'autia|sp'.
   0xB414D2A1, // Small 'autiaz'.
   0x8024D2A1, // Small 'autib'.
   0x40055009, // Large 'autib|1716'.
-  0x20BF5009, // Large 'autib|sp'.
+  0x20C75009, // Large 'autib|sp'.
   0xB424D2A1, // Small 'autibz'.
   0x83A4D2A1, // Small 'autiza'.
   0x85A4D2A1, // Small 'autizb'.
@@ -1984,7 +2021,7 @@ const uint32_t InstDB::_instNameIndexTable[] = {
   0x80073463, // Small 'ccmn'.
   0x80083463, // Small 'ccmp'.
   0x816724C3, // Small 'cfinv'.
-  0x100260C1, // Large 'chkfea|t'.
+  0x100260C9, // Large 'chkfea|t'.
   0x8001B923, // Small 'cinc'.
   0x800B3923, // Small 'cinv'.
   0x84814983, // Small 'clrbhb'.
@@ -1997,10 +2034,10 @@ const uint32_t InstDB::_instNameIndexTable[] = {
   0x800395C3, // Small 'cneg'.
   0x800051C3, // Small 'cnt'.
   0x85DF0E43, // Small 'crc32b'.
-  0x100D60C7, // Large 'crc32c|b'.
-  0x101660C7, // Large 'crc32c|h'.
-  0x104860C7, // Large 'crc32c|w'.
-  0x101360C7, // Large 'crc32c|x'.
+  0x100D60CF, // Large 'crc32c|b'.
+  0x101660CF, // Large 'crc32c|h'.
+  0x104860CF, // Large 'crc32c|w'.
+  0x101360CF, // Large 'crc32c|x'.
   0x91DF0E43, // Small 'crc32h'.
   0xAFDF0E43, // Small 'crc32w'.
   0xB1DF0E43, // Small 'crc32x'.
@@ -2033,16 +2070,16 @@ const uint32_t InstDB::_instNameIndexTable[] = {
   0x80000A69, // Small 'isb'.
   0x8042048C, // Small 'ldadd'.
   0x8242048C, // Small 'ldadda'.
-  0x100D6051, // Large 'ldadda|b'.
-  0x10166051, // Large 'ldadda|h'.
-  0x00007051, // Large 'ldaddal'.
-  0x100D7051, // Large 'ldaddal|b'.
-  0x10167051, // Large 'ldaddal|h'.
+  0x100D6059, // Large 'ldadda|b'.
+  0x10166059, // Large 'ldadda|h'.
+  0x00007059, // Large 'ldaddal'.
+  0x100D7059, // Large 'ldaddal|b'.
+  0x10167059, // Large 'ldaddal|h'.
   0x8442048C, // Small 'ldaddb'.
   0x9042048C, // Small 'ldaddh'.
   0x9842048C, // Small 'ldaddl'.
-  0x206D5051, // Large 'ldadd|lb'.
-  0x20155051, // Large 'ldadd|lh'.
+  0x20755059, // Large 'ldadd|lb'.
+  0x20155059, // Large 'ldadd|lh'.
   0x8009048C, // Small 'ldar'.
   0x8029048C, // Small 'ldarb'.
   0x8089048C, // Small 'ldarh'.
@@ -2052,28 +2089,28 @@ const uint32_t InstDB::_instNameIndexTable[] = {
   0x912C048C, // Small 'ldaxrh'.
   0x81260C8C, // Small 'ldclr'.
   0x83260C8C, // Small 'ldclra'.
-  0x100D6058, // Large 'ldclra|b'.
-  0x10166058, // Large 'ldclra|h'.
-  0x00007058, // Large 'ldclral'.
-  0x100D7058, // Large 'ldclral|b'.
-  0x10167058, // Large 'ldclral|h'.
+  0x100D6060, // Large 'ldclra|b'.
+  0x10166060, // Large 'ldclra|h'.
+  0x00007060, // Large 'ldclral'.
+  0x100D7060, // Large 'ldclral|b'.
+  0x10167060, // Large 'ldclral|h'.
   0x85260C8C, // Small 'ldclrb'.
   0x91260C8C, // Small 'ldclrh'.
   0x99260C8C, // Small 'ldclrl'.
-  0x206D5058, // Large 'ldclr|lb'.
-  0x20155058, // Large 'ldclr|lh'.
+  0x20755060, // Large 'ldclr|lb'.
+  0x20155060, // Large 'ldclr|lh'.
   0x8127948C, // Small 'ldeor'.
   0x8327948C, // Small 'ldeora'.
-  0x100D605F, // Large 'ldeora|b'.
-  0x1016605F, // Large 'ldeora|h'.
-  0x0000705F, // Large 'ldeoral'.
-  0x100D705F, // Large 'ldeoral|b'.
-  0x1016705F, // Large 'ldeoral|h'.
+  0x100D6067, // Large 'ldeora|b'.
+  0x10166067, // Large 'ldeora|h'.
+  0x00007067, // Large 'ldeoral'.
+  0x100D7067, // Large 'ldeoral|b'.
+  0x10167067, // Large 'ldeoral|h'.
   0x8527948C, // Small 'ldeorb'.
   0x9127948C, // Small 'ldeorh'.
   0x9927948C, // Small 'ldeorl'.
-  0x206D505F, // Large 'ldeor|lb'.
-  0x2015505F, // Large 'ldeor|lh'.
+  0x20755067, // Large 'ldeor|lb'.
+  0x20155067, // Large 'ldeor|lh'.
   0x80001C8C, // Small 'ldg'.
   0x80069C8C, // Small 'ldgm'.
   0x8120B08C, // Small 'ldlar'.
@@ -2092,16 +2129,16 @@ const uint32_t InstDB::_instNameIndexTable[] = {
   0x8179C88C, // Small 'ldrsw'.
   0x8142CC8C, // Small 'ldset'.
   0x8342CC8C, // Small 'ldseta'.
-  0x100D6066, // Large 'ldseta|b'.
-  0x10166066, // Large 'ldseta|h'.
-  0x00007066, // Large 'ldsetal'.
-  0x100D7066, // Large 'ldsetal|b'.
-  0x10167066, // Large 'ldsetal|h'.
+  0x100D606E, // Large 'ldseta|b'.
+  0x1016606E, // Large 'ldseta|h'.
+  0x0000706E, // Large 'ldsetal'.
+  0x100D706E, // Large 'ldsetal|b'.
+  0x1016706E, // Large 'ldsetal|h'.
   0x8542CC8C, // Small 'ldsetb'.
   0x9142CC8C, // Small 'ldseth'.
   0x9942CC8C, // Small 'ldsetl'.
-  0x206D5066, // Large 'ldset|lb'.
-  0x20155066, // Large 'ldset|lh'.
+  0x2075506E, // Large 'ldset|lb'.
+  0x2015506E, // Large 'ldset|lh'.
   0xB016CC8C, // Small 'ldsmax'.
   0x0000700E, // Large 'ldsmaxa'.
   0x100D700E, // Large 'ldsmaxa|b'.
@@ -2112,7 +2149,7 @@ const uint32_t InstDB::_instNameIndexTable[] = {
   0x100D600E, // Large 'ldsmax|b'.
   0x1016600E, // Large 'ldsmax|h'.
   0x100E600E, // Large 'ldsmax|l'.
-  0x206D600E, // Large 'ldsmax|lb'.
+  0x2075600E, // Large 'ldsmax|lb'.
   0x2015600E, // Large 'ldsmax|lh'.
   0x9C96CC8C, // Small 'ldsmin'.
   0x00007017, // Large 'ldsmina'.
@@ -2124,7 +2161,7 @@ const uint32_t InstDB::_instNameIndexTable[] = {
   0x100D6017, // Large 'ldsmin|b'.
   0x10166017, // Large 'ldsmin|h'.
   0x100E6017, // Large 'ldsmin|l'.
-  0x206D6017, // Large 'ldsmin|lb'.
+  0x20756017, // Large 'ldsmin|lb'.
   0x20156017, // Large 'ldsmin|lh'.
   0x8009508C, // Small 'ldtr'.
   0x8029508C, // Small 'ldtrb'.
@@ -2142,7 +2179,7 @@ const uint32_t InstDB::_instNameIndexTable[] = {
   0x100D601F, // Large 'ldumax|b'.
   0x1016601F, // Large 'ldumax|h'.
   0x100E601F, // Large 'ldumax|l'.
-  0x206D601F, // Large 'ldumax|lb'.
+  0x2075601F, // Large 'ldumax|lb'.
   0x2015601F, // Large 'ldumax|lh'.
   0x9C96D48C, // Small 'ldumin'.
   0x00007027, // Large 'ldumina'.
@@ -2154,7 +2191,7 @@ const uint32_t InstDB::_instNameIndexTable[] = {
   0x100D6027, // Large 'ldumin|b'.
   0x10166027, // Large 'ldumin|h'.
   0x100E6027, // Large 'ldumin|l'.
-  0x206D6027, // Large 'ldumin|lb'.
+  0x20756027, // Large 'ldumin|lb'.
   0x20156027, // Large 'ldumin|lh'.
   0x8009548C, // Small 'ldur'.
   0x8029548C, // Small 'ldurb'.
@@ -2198,9 +2235,9 @@ const uint32_t InstDB::_instNameIndexTable[] = {
   0x800A2452, // Small 'rbit'.
   0x800050B2, // Small 'ret'.
   0x800058B2, // Small 'rev'.
-  0x2007313E, // Large 'rev|16'.
+  0x2007314B, // Large 'rev|16'.
   0x81DF58B2, // Small 'rev32'.
-  0x208F313E, // Large 'rev|64'.
+  0x2097314B, // Large 'rev|64'.
   0x800049F2, // Small 'ror'.
   0x800B49F2, // Small 'rorv'.
   0x80000C53, // Small 'sbc'.
@@ -2209,8 +2246,8 @@ const uint32_t InstDB::_instNameIndexTable[] = {
   0x80069853, // Small 'sbfm'.
   0x800C1853, // Small 'sbfx'.
   0x800B2493, // Small 'sdiv'.
-  0x1141413A, // Large 'setf|8'.
-  0x2007413A, // Large 'setf|16'.
+  0x114E4147, // Large 'setf|8'.
+  0x20074147, // Large 'setf|16'.
   0x800058B3, // Small 'sev'.
   0x800658B3, // Small 'sevl'.
   0x984205B3, // Small 'smaddl'.
@@ -2226,21 +2263,21 @@ const uint32_t InstDB::_instNameIndexTable[] = {
   0x80420693, // Small 'stadd'.
   0x98420693, // Small 'staddl'.
   0x84420693, // Small 'staddb'.
-  0x206D50CD, // Large 'stadd|lb'.
+  0x207550D5, // Large 'stadd|lb'.
   0x90420693, // Small 'staddh'.
-  0x201550CD, // Large 'stadd|lh'.
+  0x201550D5, // Large 'stadd|lh'.
   0x81260E93, // Small 'stclr'.
   0x99260E93, // Small 'stclrl'.
   0x85260E93, // Small 'stclrb'.
-  0x206D50D2, // Large 'stclr|lb'.
+  0x207550DA, // Large 'stclr|lb'.
   0x91260E93, // Small 'stclrh'.
-  0x201550D2, // Large 'stclr|lh'.
+  0x201550DA, // Large 'stclr|lh'.
   0x81279693, // Small 'steor'.
   0x99279693, // Small 'steorl'.
   0x85279693, // Small 'steorb'.
-  0x206D50D7, // Large 'steor|lb'.
+  0x207550DF, // Large 'steor|lb'.
   0x91279693, // Small 'steorh'.
-  0x201550D7, // Large 'steor|lh'.
+  0x201550DF, // Large 'steor|lh'.
   0x80001E93, // Small 'stg'.
   0x80069E93, // Small 'stgm'.
   0x80081E93, // Small 'stgp'.
@@ -2262,36 +2299,36 @@ const uint32_t InstDB::_instNameIndexTable[] = {
   0x8142CE93, // Small 'stset'.
   0x9942CE93, // Small 'stsetl'.
   0x8542CE93, // Small 'stsetb'.
-  0x206D50DC, // Large 'stset|lb'.
+  0x207550E4, // Large 'stset|lb'.
   0x9142CE93, // Small 'stseth'.
-  0x201550DC, // Large 'stset|lh'.
+  0x201550E4, // Large 'stset|lh'.
   0xB016CE93, // Small 'stsmax'.
-  0x100E606F, // Large 'stsmax|l'.
-  0x100D606F, // Large 'stsmax|b'.
-  0x206D606F, // Large 'stsmax|lb'.
-  0x1016606F, // Large 'stsmax|h'.
-  0x2015606F, // Large 'stsmax|lh'.
+  0x100E6077, // Large 'stsmax|l'.
+  0x100D6077, // Large 'stsmax|b'.
+  0x20756077, // Large 'stsmax|lb'.
+  0x10166077, // Large 'stsmax|h'.
+  0x20156077, // Large 'stsmax|lh'.
   0x9C96CE93, // Small 'stsmin'.
-  0x100E6075, // Large 'stsmin|l'.
-  0x100D6075, // Large 'stsmin|b'.
-  0x206D6075, // Large 'stsmin|lb'.
-  0x10166075, // Large 'stsmin|h'.
-  0x20156075, // Large 'stsmin|lh'.
+  0x100E607D, // Large 'stsmin|l'.
+  0x100D607D, // Large 'stsmin|b'.
+  0x2075607D, // Large 'stsmin|lb'.
+  0x1016607D, // Large 'stsmin|h'.
+  0x2015607D, // Large 'stsmin|lh'.
   0x80095293, // Small 'sttr'.
   0x80295293, // Small 'sttrb'.
   0x80895293, // Small 'sttrh'.
   0xB016D693, // Small 'stumax'.
-  0x100E607B, // Large 'stumax|l'.
-  0x100D607B, // Large 'stumax|b'.
-  0x206D607B, // Large 'stumax|lb'.
-  0x1016607B, // Large 'stumax|h'.
-  0x2015607B, // Large 'stumax|lh'.
+  0x100E6083, // Large 'stumax|l'.
+  0x100D6083, // Large 'stumax|b'.
+  0x20756083, // Large 'stumax|lb'.
+  0x10166083, // Large 'stumax|h'.
+  0x20156083, // Large 'stumax|lh'.
   0x9C96D693, // Small 'stumin'.
-  0x100E6081, // Large 'stumin|l'.
-  0x100D6081, // Large 'stumin|b'.
-  0x206D6081, // Large 'stumin|lb'.
-  0x10166081, // Large 'stumin|h'.
-  0x20156081, // Large 'stumin|lh'.
+  0x100E6089, // Large 'stumin|l'.
+  0x100D6089, // Large 'stumin|b'.
+  0x20756089, // Large 'stumin|lb'.
+  0x10166089, // Large 'stumin|h'.
+  0x20156089, // Large 'stumin|lh'.
   0x80095693, // Small 'stur'.
   0x80295693, // Small 'sturb'.
   0x80895693, // Small 'sturh'.
@@ -2347,7 +2384,7 @@ const uint32_t InstDB::_instNameIndexTable[] = {
   0x8E161838, // Small 'xaflag'.
   0x80418618, // Small 'xpacd'.
   0x80918618, // Small 'xpaci'.
-  0x208850E1, // Large 'xpacl|ri'.
+  0x209050E9, // Large 'xpacl|ri'.
   0x80461539, // Small 'yield'.
   0x80004C41, // Small 'abs'.
   0x80001081, // Small 'add'.
@@ -2363,10 +2400,10 @@ const uint32_t InstDB::_instNameIndexTable[] = {
   0x800C0462, // Small 'bcax'.
   0x814B0CC2, // Small 'bfcvt'.
   0x9D4B0CC2, // Small 'bfcvtn'.
-  0x20B150E6, // Large 'bfcvt|n2'.
+  0x20B950EE, // Large 'bfcvt|n2'.
   0x814790C2, // Small 'bfdot'.
-  0x206D50EB, // Large 'bfmla|lb'.
-  0x20F050EB, // Large 'bfmla|lt'.
+  0x207550F3, // Large 'bfmla|lb'.
+  0x20F850F3, // Large 'bfmla|lt'.
   0x82C6B4C2, // Small 'bfmmla'.
   0x80000D22, // Small 'bic'.
   0x80001922, // Small 'bif'.
@@ -2419,22 +2456,22 @@ const uint32_t InstDB::_instNameIndexTable[] = {
   0xA70A5866, // Small 'fcvtps'.
   0xAB0A5866, // Small 'fcvtpu'.
   0x9D8A5866, // Small 'fcvtxn'.
-  0x20B150F2, // Large 'fcvtx|n2'.
+  0x20B950FA, // Large 'fcvtx|n2'.
   0xA7AA5866, // Small 'fcvtzs'.
   0xABAA5866, // Small 'fcvtzu'.
   0x800B2486, // Small 'fdiv'.
-  0x101060F7, // Large 'fjcvtz|s'.
+  0x101060FF, // Large 'fjcvtz|s'.
   0x804205A6, // Small 'fmadd'.
   0x800C05A6, // Small 'fmax'.
   0x9AEC05A6, // Small 'fmaxnm'.
-  0x104460FD, // Large 'fmaxnm|p'.
-  0x10E960FD, // Large 'fmaxnm|v'.
+  0x10446105, // Large 'fmaxnm|p'.
+  0x10F16105, // Large 'fmaxnm|v'.
   0x810C05A6, // Small 'fmaxp'.
   0x816C05A6, // Small 'fmaxv'.
   0x800725A6, // Small 'fmin'.
   0x9AE725A6, // Small 'fminnm'.
-  0x10446103, // Large 'fminnm|p'.
-  0x10E96103, // Large 'fminnm|v'.
+  0x1044610B, // Large 'fminnm|p'.
+  0x10F1610B, // Large 'fminnm|v'.
   0x810725A6, // Small 'fminp'.
   0x816725A6, // Small 'fminv'.
   0x8000B1A6, // Small 'fmla'.
@@ -2454,10 +2491,10 @@ const uint32_t InstDB::_instNameIndexTable[] = {
   0x8B019646, // Small 'frecpe'.
   0xA7019646, // Small 'frecps'.
   0xB1019646, // Small 'frecpx'.
-  0x10137087, // Large 'frint32|x'.
-  0x108E7087, // Large 'frint32|z'.
-  0x308F5087, // Large 'frint|64x'.
-  0x30925087, // Large 'frint|64z'.
+  0x1013708F, // Large 'frint32|x'.
+  0x1096708F, // Large 'frint32|z'.
+  0x3097508F, // Large 'frint|64x'.
+  0x309A508F, // Large 'frint|64z'.
   0x83472646, // Small 'frinta'.
   0x93472646, // Small 'frinti'.
   0x9B472646, // Small 'frintm'.
@@ -2465,8 +2502,8 @@ const uint32_t InstDB::_instNameIndexTable[] = {
   0xA1472646, // Small 'frintp'.
   0xB1472646, // Small 'frintx'.
   0xB5472646, // Small 'frintz'.
-  0x20D85109, // Large 'frsqr|te'.
-  0x20705109, // Large 'frsqr|ts'.
+  0x20E05111, // Large 'frsqr|te'.
+  0x20785111, // Large 'frsqr|ts'.
   0x81494666, // Small 'fsqrt'.
   0x80015666, // Small 'fsub'.
   0x80004DC9, // Small 'ins'.
@@ -2497,16 +2534,16 @@ const uint32_t InstDB::_instNameIndexTable[] = {
   0x80C655B0, // Small 'pmull'.
   0xBAC655B0, // Small 'pmull2'.
   0x9C821032, // Small 'raddhn'.
-  0x30B0410E, // Large 'radd|hn2'.
+  0x30B84116, // Large 'radd|hn2'.
   0x800E6032, // Small 'rax1'.
   0x800A2452, // Small 'rbit'.
-  0x2007313E, // Large 'rev|16'.
+  0x2007314B, // Large 'rev|16'.
   0x81DF58B2, // Small 'rev32'.
-  0x208F313E, // Large 'rev|64'.
+  0x2097314B, // Large 'rev|64'.
   0x80E92272, // Small 'rshrn'.
   0xBAE92272, // Small 'rshrn2'.
   0x9C815672, // Small 'rsubhn'.
-  0x30B04112, // Large 'rsub|hn2'.
+  0x30B8411A, // Large 'rsub|hn2'.
   0x80008833, // Small 'saba'.
   0x80C08833, // Small 'sabal'.
   0xBAC08833, // Small 'sabal2'.
@@ -2526,14 +2563,14 @@ const uint32_t InstDB::_instNameIndexTable[] = {
   0x808E0513, // Small 'sha1h'.
   0x80DE0513, // Small 'sha1m'.
   0x810E0513, // Small 'sha1p'.
-  0x30354116, // Large 'sha1|su0'.
-  0x303E4116, // Large 'sha1|su1'.
+  0x3035411E, // Large 'sha1|su0'.
+  0x303E411E, // Large 'sha1|su1'.
   0x1016602F, // Large 'sha256|h'.
-  0x2095602F, // Large 'sha256|h2'.
+  0x209D602F, // Large 'sha256|h2'.
   0x0000902F, // Large 'sha256su0'.
   0x1005802F, // Large 'sha256su|1'.
   0x10166038, // Large 'sha512|h'.
-  0x20956038, // Large 'sha512|h2'.
+  0x209D6038, // Large 'sha512|h2'.
   0x30356038, // Large 'sha512|su0'.
   0x303E6038, // Large 'sha512|su1'.
   0x80420513, // Small 'shadd'.
@@ -2547,12 +2584,12 @@ const uint32_t InstDB::_instNameIndexTable[] = {
   0x10058041, // Large 'sm3partw|1'.
   0x10328041, // Large 'sm3partw|2'.
   0xB939F9B3, // Small 'sm3ss1'.
-  0x1000611A, // Large 'sm3tt1|a'.
-  0x100D611A, // Large 'sm3tt1|b'.
-  0x2120511A, // Large 'sm3tt|2a'.
-  0x2122511A, // Large 'sm3tt|2b'.
+  0x10006122, // Large 'sm3tt1|a'.
+  0x100D6122, // Large 'sm3tt1|b'.
+  0x21285122, // Large 'sm3tt|2a'.
+  0x212A5122, // Large 'sm3tt|2b'.
   0x8002FDB3, // Small 'sm4e'.
-  0x00007124, // Large 'sm4ekey'.
+  0x0000712C, // Large 'sm4ekey'.
   0x800C05B3, // Small 'smax'.
   0x810C05B3, // Small 'smaxp'.
   0x816C05B3, // Small 'smaxv'.
@@ -2569,33 +2606,33 @@ const uint32_t InstDB::_instNameIndexTable[] = {
   0xBAC655B3, // Small 'smull2'.
   0x81310633, // Small 'sqabs'.
   0x80420633, // Small 'sqadd'.
-  0x00007097, // Large 'sqdmlal'.
-  0x10327097, // Large 'sqdmlal|2'.
-  0x209E5097, // Large 'sqdml|sl'.
-  0x309E5097, // Large 'sqdml|sl2'.
-  0x101660A1, // Large 'sqdmul|h'.
-  0x100E60A1, // Large 'sqdmul|l'.
-  0x209F60A1, // Large 'sqdmul|l2'.
+  0x0000709F, // Large 'sqdmlal'.
+  0x1032709F, // Large 'sqdmlal|2'.
+  0x20A6509F, // Large 'sqdml|sl'.
+  0x30A6509F, // Large 'sqdml|sl2'.
+  0x101660A9, // Large 'sqdmul|h'.
+  0x100E60A9, // Large 'sqdmul|l'.
+  0x20A760A9, // Large 'sqdmul|l2'.
   0x8072BA33, // Small 'sqneg'.
-  0x101670A7, // Large 'sqrdmla|h'.
-  0x202F60A7, // Large 'sqrdml|sh'.
-  0x30AE50A7, // Large 'sqrdm|ulh'.
+  0x101670AF, // Large 'sqrdmla|h'.
+  0x202F60AF, // Large 'sqrdml|sh'.
+  0x30B650AF, // Large 'sqrdm|ulh'.
   0x9889CA33, // Small 'sqrshl'.
   0x101C6049, // Large 'sqrshr|n'.
-  0x20B16049, // Large 'sqrshr|n2'.
+  0x20B96049, // Large 'sqrshr|n2'.
   0x00008049, // Large 'sqrshrun'.
   0x10328049, // Large 'sqrshrun|2'.
   0x80C44E33, // Small 'sqshl'.
   0xAAC44E33, // Small 'sqshlu'.
   0x9D244E33, // Small 'sqshrn'.
-  0x20B150B3, // Large 'sqshr|n2'.
-  0x101C60B3, // Large 'sqshru|n'.
-  0x20B160B3, // Large 'sqshru|n2'.
+  0x20B950BB, // Large 'sqshr|n2'.
+  0x101C60BB, // Large 'sqshru|n'.
+  0x20B960BB, // Large 'sqshru|n2'.
   0x802ACE33, // Small 'sqsub'.
   0x80EA6233, // Small 'sqxtn'.
   0xBAEA6233, // Small 'sqxtn2'.
   0x9D5A6233, // Small 'sqxtun'.
-  0x20B1512B, // Large 'sqxtu|n2'.
+  0x20B95133, // Large 'sqxtu|n2'.
   0x8840A253, // Small 'srhadd'.
   0x80002653, // Small 'sri'.
   0x80C44E53, // Small 'srshl'.
@@ -2662,11 +2699,11 @@ const uint32_t InstDB::_instNameIndexTable[] = {
   0xBAC655B5, // Small 'umull2'.
   0x80420635, // Small 'uqadd'.
   0x9889CA35, // Small 'uqrshl'.
-  0x101C60B9, // Large 'uqrshr|n'.
-  0x20B160B9, // Large 'uqrshr|n2'.
+  0x101C60C1, // Large 'uqrshr|n'.
+  0x20B960C1, // Large 'uqrshr|n2'.
   0x80C44E35, // Small 'uqshl'.
   0x9D244E35, // Small 'uqshrn'.
-  0x20B15130, // Large 'uqshr|n2'.
+  0x20B95138, // Large 'uqshr|n2'.
   0x802ACE35, // Small 'uqsub'.
   0x80EA6235, // Small 'uqxtn'.
   0xBAEA6235, // Small 'uqxtn2'.
@@ -2674,7 +2711,7 @@ const uint32_t InstDB::_instNameIndexTable[] = {
   0x8840A255, // Small 'urhadd'.
   0x80C44E55, // Small 'urshl'.
   0x81244E55, // Small 'urshr'.
-  0x20D85135, // Large 'ursqr|te'.
+  0x20E0513D, // Large 'ursqr|te'.
   0x80194E55, // Small 'ursra'.
   0x81479275, // Small 'usdot'.
   0x80062275, // Small 'ushl'.
@@ -2696,7 +2733,29 @@ const uint32_t InstDB::_instNameIndexTable[] = {
   0x80003A98, // Small 'xtn'.
   0x800EBA98, // Small 'xtn2'.
   0x800E413A, // Small 'zip1'.
-  0x800EC13A  // Small 'zip2'.
+  0x800EC13A, // Small 'zip2'.
+  0x80148C30, // Small 'pacia'.
+  0x60033051, // Large 'pac|ia1716'.
+  0x20C75142, // Large 'pacia|sp'.
+  0xB4148C30, // Small 'paciaz'.
+  0x83A48C30, // Small 'paciza'.
+  0x80248C30, // Small 'pacib'.
+  0x40055054, // Large 'pacib|1716'.
+  0x20C75054, // Large 'pacib|sp'.
+  0xB4248C30, // Small 'pacibz'.
+  0x85A48C30, // Small 'pacizb'.
+  0x8010C982, // Small 'blraa'.
+  0xB410C982, // Small 'blraaz'.
+  0x8020C982, // Small 'blrab'.
+  0xB420C982, // Small 'blrabz'.
+  0x80008642, // Small 'braa'.
+  0x81A08642, // Small 'braaz'.
+  0x80010642, // Small 'brab'.
+  0x81A10642, // Small 'brabz'.
+  0x8010D0B2, // Small 'retaa'.
+  0x8020D0B2, // Small 'retab'.
+  0x821A1645, // Small 'eretaa'.
+  0x841A1645  // Small 'eretab'.
 };
 // ----------------------------------------------------------------------------
 // ${NameData:End}

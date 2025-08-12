@@ -737,7 +737,7 @@ struct EmitterExplicitT {
 
   ASMJIT_INST_3x(subp, Subp, Gp, Gp, Gp);
   ASMJIT_INST_3x(subps, Subps, Gp, Gp, Gp);
-  ASMJIT_INST_4x(subg, Subg, Gp, Gp, Imm, Imm);
+  ASMJIT_INST_4x(subg, Subg, Gp, Gp, Imm, Imm)
 
   ASMJIT_INST_2x(st2g, St2g, Gp, Mem)
   ASMJIT_INST_2x(stg, Stg, Gp, Mem)
@@ -747,10 +747,33 @@ struct EmitterExplicitT {
   ASMJIT_INST_2x(stz2g, Stz2g, Gp, Mem)
   ASMJIT_INST_2x(stzgm, Stzgm, Gp, Mem)
 
-  ASMJIT_INST_1x(xpacd, Xpacd, Gp);
-  ASMJIT_INST_1x(xpaci, Xpaci, Gp);
-  ASMJIT_INST_0x(xpaclri, Xpaclri);
+  ASMJIT_INST_1x(xpacd, Xpacd, Gp)
+  ASMJIT_INST_1x(xpaci, Xpaci, Gp)
+  ASMJIT_INST_0x(xpaclri, Xpaclri)
 
+  ASMJIT_INST_0x(eretaa, Eretaa)
+  ASMJIT_INST_0x(eretab, Eretab)
+  ASMJIT_INST_0x(retaa, Retaa)
+  ASMJIT_INST_0x(retab, Retab)
+  ASMJIT_INST_2x(blraa, Blraa, Gp,Gp)
+  ASMJIT_INST_1x(blraaz, Blraaz, Gp)
+  ASMJIT_INST_2x(blrab, Blrab, Gp,Gp)
+  ASMJIT_INST_1x(blrabz, Blrabz, Gp)
+  ASMJIT_INST_2x(braa, Blr, Gp, Gp)
+  ASMJIT_INST_1x(braaz, Braaz, Gp)
+  ASMJIT_INST_2x(brab, Brab, Gp, Gp)
+  ASMJIT_INST_1x(brabz, Brabz, Gp)
+
+  ASMJIT_INST_2x(pacia, Pacia, Gp, Gp)
+  ASMJIT_INST_0x(pacia1716, Pacia1716)
+  ASMJIT_INST_0x(paciasp, Paciasp)
+  ASMJIT_INST_0x(paciaz, Paciaz)
+  ASMJIT_INST_1x(paciza, Paciza, Gp)
+  ASMJIT_INST_2x(pacib, Pacib, Gp, Gp)
+  ASMJIT_INST_0x(pacib1716, Pacib1716)
+  ASMJIT_INST_0x(pacibsp, Pacibsp)
+  ASMJIT_INST_0x(pacibz, Pacibz)
+  ASMJIT_INST_1x(pacizb, Pacizb, Gp)
   //! \}
 
   //! \name Hint Instructions
