@@ -281,7 +281,7 @@ namespace asmjit {
 //!
 //! \section api_changes API Changes
 //!
-//! ### Changes committed at 2025-XX-XX
+//! ### Changes committed at 2025-09-06
 //!
 //! Core changes:
 //!
