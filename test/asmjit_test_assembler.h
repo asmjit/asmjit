@@ -32,72 +32,72 @@ public:
     prepare();
   }
 
-  void printHeader(const char* archName) noexcept {
-    printf("%s assembler tests:\n", archName);
+  void print_header(const char* arch_name) noexcept {
+    printf("%s assembler tests:\n", arch_name);
   }
 
-  void printSummary() noexcept {
+  void print_summary() noexcept {
     printf("  Passed: %zu / %zu tests\n\n", passed, count);
   }
 
-  bool didPass() const noexcept { return passed == count; }
+  bool did_pass() const noexcept { return passed == count; }
 
   void prepare() noexcept {
     code.reset();
     code.init(env, 0);
     code.attach(&assembler);
-    L0 = assembler.newLabel();
+    L0 = assembler.new_label();
 
     if (settings.validate)
-      assembler.addDiagnosticOptions(asmjit::DiagnosticOptions::kValidateAssembler);
+      assembler.add_diagnostic_options(asmjit::DiagnosticOptions::kValidateAssembler);
   }
 
-  ASMJIT_NOINLINE bool testValidInstruction(const char* s, const char* expectedOpcode, asmjit::Error err = asmjit::kErrorOk) noexcept {
+  ASMJIT_NOINLINE bool test_valid_instruction(const char* s, const char* expected_opcode, asmjit::Error err = asmjit::Error::kOk) noexcept {
     count++;
 
-    if (err) {
+    if (err != asmjit::Error::kOk) {
       printf("  !! %s\n"
-             "    <%s>\n", s, asmjit::DebugUtils::errorAsString(err));
+             "    <%s>\n", s, asmjit::DebugUtils::error_as_string(err));
       prepare();
       return false;
     }
 
-    asmjit::String encodedOpcode;
-    asmjit::Section* text = code.textSection();
+    asmjit::String encoded_opcode;
+    asmjit::Section* text = code.text_section();
 
-    encodedOpcode.appendHex(text->data(), text->bufferSize());
-    if (encodedOpcode != expectedOpcode) {
+    encoded_opcode.append_hex(text->data(), text->buffer_size());
+    if (encoded_opcode != expected_opcode) {
       printf("  !! [%s] <- %s\n"
-             "     [%s] (Expected)\n", encodedOpcode.data(), s, expectedOpcode);
+             "     [%s] (Expected)\n", encoded_opcode.data(), s, expected_opcode);
       prepare();
       return false;
     }
 
     if (settings.verbose)
-      printf("  OK [%s] <- %s\n", encodedOpcode.data(), s);
+      printf("  OK [%s] <- %s\n", encoded_opcode.data(), s);
 
     passed++;
     prepare();
     return true;
   }
 
-  ASMJIT_NOINLINE bool testInvalidInstruction(const char* s, asmjit::Error expectedError, asmjit::Error err) noexcept {
+  ASMJIT_NOINLINE bool test_invalid_instruction(const char* s, asmjit::Error expected_error, asmjit::Error err) noexcept {
     count++;
 
-    if (err == asmjit::kErrorOk) {
-      printf("  !! %s passed, but should have failed with <%s> error\n", s, asmjit::DebugUtils::errorAsString(expectedError));
+    if (err == asmjit::Error::kOk) {
+      printf("  !! %s passed, but should have failed with <%s> error\n", s, asmjit::DebugUtils::error_as_string(expected_error));
       prepare();
       return false;
     }
 
-    if (err != asmjit::kErrorOk) {
-      printf("  !! %s failed with <%s>, but should have failed with <%s>\n", s, asmjit::DebugUtils::errorAsString(err), asmjit::DebugUtils::errorAsString(expectedError));
+    if (err != asmjit::Error::kOk) {
+      printf("  !! %s failed with <%s>, but should have failed with <%s>\n", s, asmjit::DebugUtils::error_as_string(err), asmjit::DebugUtils::error_as_string(expected_error));
       prepare();
       return false;
     }
 
     if (settings.verbose)
-      printf("  OK [%s] <- %s\n", asmjit::DebugUtils::errorAsString(err), s);
+      printf("  OK [%s] <- %s\n", asmjit::DebugUtils::error_as_string(err), s);
 
     passed++;
     prepare();

@@ -12,65 +12,65 @@ namespace InstNameUtils {
 
 static constexpr uint32_t kBufferSize = 32;
 
-static ASMJIT_INLINE_CONSTEXPR char decode5BitChar(uint32_t c) noexcept {
+static ASMJIT_INLINE_CONSTEXPR char decode_5bit_char(uint32_t c) noexcept {
   uint32_t base = c <= 26 ? uint32_t('a') - 1u : uint32_t('0') - 27u;
   return char(base + c);
 }
 
-static ASMJIT_INLINE size_t decodeToBuffer(char nameOut[kBufferSize], uint32_t nameValue, InstStringifyOptions options, const char* stringTable) noexcept {
+static ASMJIT_INLINE size_t decode_to_buffer(char name_out[kBufferSize], uint32_t name_value, InstStringifyOptions options, const char* string_table) noexcept {
   size_t i;
 
-  if (nameValue & 0x80000000u) {
+  if (name_value & 0x80000000u) {
     // Small string of 5-bit characters.
     //
     // NOTE: Small string optimization never provides additional
     // aliases formatting, so we don't have to consider `options`.
-    for (i = 0; i < 6; i++, nameValue >>= 5) {
-      uint32_t c = nameValue & 0x1F;
+    for (i = 0; i < 6; i++, name_value >>= 5) {
+      uint32_t c = name_value & 0x1F;
       if (c == 0)
         break;
-      nameOut[i] = decode5BitChar(c);
+      name_out[i] = decode_5bit_char(c);
     }
     return i;
   }
   else {
-    size_t prefixBase = nameValue & 0xFFFu;
-    size_t prefixSize = (nameValue >> 12) & 0xFu;
+    size_t prefix_base = name_value & 0xFFFu;
+    size_t prefix_size = (name_value >> 12) & 0xFu;
 
-    size_t suffixBase = (nameValue >> 16) & 0xFFFu;
-    size_t suffixSize = (nameValue >> 28) & 0x7u;
+    size_t suffix_base = (name_value >> 16) & 0xFFFu;
+    size_t suffix_size = (name_value >> 28) & 0x7u;
 
-    if (Support::test(options, InstStringifyOptions::kAliases) && suffixBase == 0xFFFu) {
+    if (Support::test(options, InstStringifyOptions::kAliases) && suffix_base == 0xFFFu) {
       // Alias formatting immediately follows the instruction name in string table.
       // The first character specifies the length and then string data follows.
-      prefixBase += prefixSize;
-      prefixSize = uint8_t(stringTable[prefixBase]);
-      ASMJIT_ASSERT(prefixSize <= kBufferSize);
+      prefix_base += prefix_size;
+      prefix_size = uint8_t(string_table[prefix_base]);
+      ASMJIT_ASSERT(prefix_size <= kBufferSize);
 
-      prefixBase += 1; // Skip the byte that specifies the length of a formatted alias.
+      prefix_base += 1; // Skip the byte that specifies the length of a formatted alias.
     }
 
-    for (i = 0; i < prefixSize; i++) {
-      nameOut[i] = stringTable[prefixBase + i];
+    for (i = 0; i < prefix_size; i++) {
+      name_out[i] = string_table[prefix_base + i];
     }
 
-    char* suffixOut = nameOut + prefixSize;
-    for (i = 0; i < suffixSize; i++) {
-      suffixOut[i] = stringTable[suffixBase + i];
+    char* suffix_out = name_out + prefix_size;
+    for (i = 0; i < suffix_size; i++) {
+      suffix_out[i] = string_table[suffix_base + i];
     }
 
-    return prefixSize + suffixSize;
+    return prefix_size + suffix_size;
   }
 }
 
-Error decode(uint32_t nameValue, InstStringifyOptions options, const char* stringTable, String& output) noexcept {
-  char nameData[kBufferSize];
-  size_t nameSize = decodeToBuffer(nameData, nameValue, options, stringTable);
+Error decode(uint32_t name_value, InstStringifyOptions options, const char* string_table, String& output) noexcept {
+  char name_data[kBufferSize];
+  size_t name_size = decode_to_buffer(name_data, name_value, options, string_table);
 
-  return output.append(nameData, nameSize);
+  return output.append(name_data, name_size);
 }
 
-InstId findInstruction(const char* s, size_t len, const uint32_t* nameTable, const char* stringTable, const InstNameIndex& nameIndex) noexcept {
+InstId find_instruction(const char* s, size_t len, const uint32_t* name_table, const char* string_table, const InstNameIndex& name_index) noexcept {
   ASMJIT_ASSERT(s != nullptr);
   ASMJIT_ASSERT(len > 0u);
 
@@ -79,48 +79,48 @@ InstId findInstruction(const char* s, size_t len, const uint32_t* nameTable, con
     return BaseInst::kIdNone;
   }
 
-  size_t base = nameIndex.data[prefix].start;
-  size_t end = nameIndex.data[prefix].end;
+  size_t base = name_index.data[prefix].start;
+  size_t end = name_index.data[prefix].end;
 
   if (ASMJIT_UNLIKELY(!base)) {
     return BaseInst::kIdNone;
   }
 
-  char nameData[kBufferSize];
+  char name_data[kBufferSize];
   for (size_t lim = end - base; lim != 0; lim >>= 1) {
-    size_t instId = base + (lim >> 1);
-    size_t nameSize = decodeToBuffer(nameData, nameTable[instId], InstStringifyOptions::kNone, stringTable);
+    size_t inst_id = base + (lim >> 1);
+    size_t name_size = decode_to_buffer(name_data, name_table[inst_id], InstStringifyOptions::kNone, string_table);
 
-    int result = Support::compareStringViews(s, len, nameData, nameSize);
+    int result = Support::compare_string_views(s, len, name_data, name_size);
     if (result < 0) {
       continue;
     }
 
     if (result > 0) {
-      base = instId + 1;
+      base = inst_id + 1;
       lim--;
       continue;
     }
 
-    return InstId(instId);
+    return InstId(inst_id);
   }
 
   return BaseInst::kIdNone;
 }
 
 
-uint32_t findAlias(const char* s, size_t len, const uint32_t* nameTable, const char* stringTable, uint32_t aliasNameCount) noexcept {
+uint32_t find_alias(const char* s, size_t len, const uint32_t* name_table, const char* string_table, uint32_t alias_name_count) noexcept {
   ASMJIT_ASSERT(s != nullptr);
   ASMJIT_ASSERT(len > 0u);
 
   size_t base = 0;
-  char nameData[kBufferSize];
+  char name_data[kBufferSize];
 
-  for (size_t lim = size_t(aliasNameCount) - base; lim != 0; lim >>= 1) {
+  for (size_t lim = size_t(alias_name_count) - base; lim != 0; lim >>= 1) {
     size_t index = base + (lim >> 1);
-    size_t nameSize = decodeToBuffer(nameData, nameTable[index], InstStringifyOptions::kNone, stringTable);
+    size_t name_size = decode_to_buffer(name_data, name_table[index], InstStringifyOptions::kNone, string_table);
 
-    int result = Support::compareStringViews(s, len, nameData, nameSize);
+    int result = Support::compare_string_views(s, len, name_data, name_size);
     if (result < 0) {
       continue;
     }

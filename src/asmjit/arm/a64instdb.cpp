@@ -19,12 +19,12 @@ namespace InstDB {
 // ===========================
 
 // Defines an ARM/AArch64 instruction.
-#define INST(id, opcodeEncoding, opcodeData, rwInfoIndex, flags, opcodeDataIndex) { \
-  uint32_t(kEncoding##opcodeEncoding),      \
-  uint32_t(opcodeDataIndex),                \
-  0,                                        \
-  uint16_t(rwInfoIndex),                    \
-  uint16_t(flags)                           \
+#define INST(id, opcode_encoding, opcode_data, rw_info_index, flags, opcode_data_index) { \
+  uint32_t(kEncoding##opcode_encoding),                                                   \
+  uint32_t(opcode_data_index),                                                            \
+  0,                                                                                      \
+  uint16_t(rw_info_index),                                                                \
+  uint16_t(flags)                                                                         \
 }
 
 #define F(flag) kInstFlag##flag
@@ -50,7 +50,7 @@ SYSL
 IRG: Insert Random Tag.
 INST_(Irg              , BaseRRR            , (0b1001101011000000000100, kX , kSP, kX , kSP, kX , kZR, true)                        , kRWI_W    , 0                         , 0  , 1   ), // #1
 */
-const InstInfo _instInfoTable[] = {
+const InstInfo _inst_info_table[] = {
   // +------------------+---------------------+--------------------------------------------------------------------------------------+-----------+---------------------------+----+
   // | Instruction Id   | Encoding            | Opcode Data                                                                          | RW Info   | Instruction Flags         |DatX|
   // +------------------+---------------------+--------------------------------------------------------------------------------------+-----------+---------------------------+----+
@@ -109,10 +109,10 @@ const InstInfo _instInfoTable[] = {
   INST(Casl             , BaseAtomicOp       , (0b1000100010100000111111, kWX, 30, 0)                                                , kRWI_XRX  , 0                         , 9  ), // #51
   INST(Caslb            , BaseAtomicOp       , (0b0000100010100000111111, kW , 0 , 0)                                                , kRWI_XRX  , 0                         , 10 ), // #52
   INST(Caslh            , BaseAtomicOp       , (0b0100100010100000111111, kW , 0 , 0)                                                , kRWI_XRX  , 0                         , 11 ), // #53
-  INST(Casp             , BaseAtomicCasp     , (0b0000100000100000011111, kWX, 30)                                                   , kRWI_XXRRX, 0                         , 0  ), // #54
-  INST(Caspa            , BaseAtomicCasp     , (0b0000100001100000011111, kWX, 30)                                                   , kRWI_XXRRX, 0                         , 1  ), // #55
-  INST(Caspal           , BaseAtomicCasp     , (0b0000100001100000111111, kWX, 30)                                                   , kRWI_XXRRX, 0                         , 2  ), // #56
-  INST(Caspl            , BaseAtomicCasp     , (0b0000100000100000111111, kWX, 30)                                                   , kRWI_XXRRX, 0                         , 3  ), // #57
+  INST(Casp             , BaseAtomicCasp     , (0b0000100000100000011111, kWX, 30)                                                   , kRWI_XXRRX, F(Consecutive)            , 0  ), // #54
+  INST(Caspa            , BaseAtomicCasp     , (0b0000100001100000011111, kWX, 30)                                                   , kRWI_XXRRX, F(Consecutive)            , 1  ), // #55
+  INST(Caspal           , BaseAtomicCasp     , (0b0000100001100000111111, kWX, 30)                                                   , kRWI_XXRRX, F(Consecutive)            , 2  ), // #56
+  INST(Caspl            , BaseAtomicCasp     , (0b0000100000100000111111, kWX, 30)                                                   , kRWI_XXRRX, F(Consecutive)            , 3  ), // #57
   INST(Cbnz             , BaseBranchCmp      , (0b00110101000000000000000000000000)                                                  , kRWI_R    , 0                         , 0  ), // #58
   INST(Cbz              , BaseBranchCmp      , (0b00110100000000000000000000000000)                                                  , kRWI_R    , 0                         , 1  ), // #59
   INST(Ccmn             , BaseCCmp           , (0b00111010010000000000000000000000)                                                  , kRWI_R    , 0                         , 0  ), // #60
@@ -1876,7 +1876,7 @@ const InstDB::CommonInfo InstDB::commonData[] = {
 #ifndef ASMJIT_NO_TEXT
 // ${NameData:Begin}
 // ------------------- Automatically generated, do not edit -------------------
-const InstNameIndex InstDB::instNameIndex = {{
+const InstNameIndex InstDB::_inst_name_index = {{
   { Inst::kIdAbs          , Inst::kIdAnd_v         + 1 },
   { Inst::kIdB            , Inst::kIdBsl_v         + 1 },
   { Inst::kIdCas          , Inst::kIdCnt_v         + 1 },
@@ -1905,7 +1905,7 @@ const InstNameIndex InstDB::instNameIndex = {{
   { Inst::kIdZip1_v       , Inst::kIdZip2_v        + 1 }
 }, uint16_t(9)};
 
-const char InstDB::_instNameStringTable[] =
+const char InstDB::_inst_name_string_table[] =
   "\x61\x75\x74\x69\x61\x31\x37\x31\x36\x61\x75\x74\x69\x62\x6C\x64\x73\x6D\x61\x78\x61\x6C\x68\x6C\x64\x73\x6D\x69\x6E"
   "\x61\x6C\x6C\x64\x75\x6D\x61\x78\x61\x6C\x6C\x64\x75\x6D\x69\x6E\x61\x6C\x73\x68\x61\x32\x35\x36\x73\x75\x30\x73\x68"
   "\x61\x35\x31\x32\x73\x75\x31\x73\x6D\x33\x70\x61\x72\x74\x77\x73\x71\x72\x73\x68\x72\x75\x6E\x6C\x64\x61\x64\x64\x61"
@@ -1920,7 +1920,7 @@ const char InstDB::_instNameStringTable[] =
   "\x65\x76\x38";
 
 
-const uint32_t InstDB::_instNameIndexTable[] = {
+const uint32_t InstDB::_inst_name_index_table[] = {
   0x80000000, // Small ''.
   0x80004C41, // Small 'abs'.
   0x80000C81, // Small 'adc'.

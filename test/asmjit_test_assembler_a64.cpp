@@ -17,9 +17,9 @@
 using namespace asmjit;
 
 #define TEST_INSTRUCTION(OPCODE, ...) \
-  tester.testValidInstruction(#__VA_ARGS__, OPCODE, tester.assembler.__VA_ARGS__)
+  tester.test_valid_instruction(#__VA_ARGS__, OPCODE, tester.assembler.__VA_ARGS__)
 
-static void ASMJIT_NOINLINE testA64AssemblerBase(AssemblerTester<a64::Assembler>& tester) noexcept {
+static void ASMJIT_NOINLINE test_aarch64_assembler_base(AssemblerTester<a64::Assembler>& tester) noexcept {
   using namespace a64;
 
   TEST_INSTRUCTION("4120C05A", abs(w1, w2));
@@ -1135,7 +1135,7 @@ static void ASMJIT_NOINLINE testA64AssemblerBase(AssemblerTester<a64::Assembler>
   TEST_INSTRUCTION("FF2003D5", xpaclri());
 }
 
-static void ASMJIT_NOINLINE testA64AssemblerRel(AssemblerTester<a64::Assembler>& tester) noexcept {
+static void ASMJIT_NOINLINE test_aarch64_assembler_rel(AssemblerTester<a64::Assembler>& tester) noexcept {
   using namespace a64;
 
   // Must be a reference, because it's recreated after every `TEST_INSTRUCTION()`.
@@ -1185,7 +1185,7 @@ static void ASMJIT_NOINLINE testA64AssemblerRel(AssemblerTester<a64::Assembler>&
   TEST_INSTRUCTION("010008B6", tbz(x1, 33, L0));
 }
 
-static void ASMJIT_NOINLINE testA64AssemblerSIMD(AssemblerTester<a64::Assembler>& tester) noexcept {
+static void ASMJIT_NOINLINE test_aarch64_assembler_simd(AssemblerTester<a64::Assembler>& tester) noexcept {
   using namespace a64;
 
   TEST_INSTRUCTION("41B8200E", abs(v1.b8(), v2.b8()));
@@ -4012,7 +4012,7 @@ static void ASMJIT_NOINLINE testA64AssemblerSIMD(AssemblerTester<a64::Assembler>
   TEST_INSTRUCTION("4178C34E", zip2(v1.d2(), v2.d2(), v3.d2()));
 }
 
-static void ASMJIT_NOINLINE testA64AssemblerExtras(AssemblerTester<a64::Assembler>& tester) noexcept {
+static void ASMJIT_NOINLINE test_aarch64_assembler_extra(AssemblerTester<a64::Assembler>& tester) noexcept {
   using namespace a64;
 
   // AsmJit additions - AArch64 assembler accepts variety of immediates in
@@ -4033,19 +4033,19 @@ static void ASMJIT_NOINLINE testA64AssemblerExtras(AssemblerTester<a64::Assemble
   TEST_INSTRUCTION("C167074F", movi(v1.d2(), 0xFE000000FE000000));
 }
 
-bool testA64Assembler(const TestSettings& settings) noexcept {
+bool test_aarch64_assembler(const TestSettings& settings) noexcept {
   using namespace a64;
 
   AssemblerTester<Assembler> tester(Arch::kAArch64, settings);
-  tester.printHeader("AArch64");
+  tester.print_header("AArch64");
 
-  testA64AssemblerBase(tester);
-  testA64AssemblerRel(tester);
-  testA64AssemblerSIMD(tester);
-  testA64AssemblerExtras(tester);
+  test_aarch64_assembler_base(tester);
+  test_aarch64_assembler_rel(tester);
+  test_aarch64_assembler_simd(tester);
+  test_aarch64_assembler_extra(tester);
 
-  tester.printSummary();
-  return tester.didPass();
+  tester.print_summary();
+  return tester.did_pass();
 }
 
 #undef TEST_INSTRUCTION

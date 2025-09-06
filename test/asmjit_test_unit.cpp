@@ -16,12 +16,18 @@
 #include "asmjitutils.h"
 #include "broken.h"
 
+#if !defined(ASMJIT_NO_COMPILER)
+#include <asmjit/core/racfgblock_p.h>
+#include <asmjit/core/rainst_p.h>
+#include <asmjit/core/rapass_p.h>
+#endif
+
 using namespace asmjit;
 
 #define DUMP_TYPE(...) \
   printf("  %-26s: %u\n", #__VA_ARGS__, uint32_t(sizeof(__VA_ARGS__)))
 
-static void printTypeSizes(void) noexcept {
+static void print_type_sizes(void) noexcept {
   printf("Size of C++ types:\n");
     DUMP_TYPE(int8_t);
     DUMP_TYPE(int16_t);
@@ -51,14 +57,13 @@ static void printTypeSizes(void) noexcept {
     DUMP_TYPE(Target);
   printf("\n");
 
-  printf("Size of zone classes:\n");
-    DUMP_TYPE(Zone);
-    DUMP_TYPE(ZoneAllocator);
-    DUMP_TYPE(ZoneBitVector);
-    DUMP_TYPE(ZoneHashNode);
-    DUMP_TYPE(ZoneHash<ZoneHashNode>);
-    DUMP_TYPE(ZoneList<int>);
-    DUMP_TYPE(ZoneVector<int>);
+  printf("Size of arena classes:\n");
+    DUMP_TYPE(Arena);
+    DUMP_TYPE(ArenaHashNode);
+    DUMP_TYPE(ArenaHash<ArenaHashNode>);
+    DUMP_TYPE(ArenaList<int>);
+    DUMP_TYPE(ArenaVector<int>);
+    DUMP_TYPE(ArenaString<16>);
   printf("\n");
 
   printf("Size of operand classes:\n");
@@ -79,12 +84,15 @@ static void printTypeSizes(void) noexcept {
   printf("\n");
 
 #if !defined(ASMJIT_NO_BUILDER)
+  constexpr uint32_t kBaseOpCapacity = InstNode::kBaseOpCapacity;
+  constexpr uint32_t kFullOpCapacity = InstNode::kFullOpCapacity;
+
   printf("Size of builder classes:\n");
     DUMP_TYPE(BaseBuilder);
     DUMP_TYPE(BaseNode);
     DUMP_TYPE(InstNode);
-    DUMP_TYPE(InstNodeWithOperands<InstNode::kBaseOpCapacity>);
-    DUMP_TYPE(InstNodeWithOperands<InstNode::kFullOpCapacity>);
+    DUMP_TYPE(InstNodeWithOperands<kBaseOpCapacity>);
+    DUMP_TYPE(InstNodeWithOperands<kFullOpCapacity>);
     DUMP_TYPE(AlignNode);
     DUMP_TYPE(LabelNode);
     DUMP_TYPE(EmbedDataNode);
@@ -101,6 +109,15 @@ static void printTypeSizes(void) noexcept {
     DUMP_TYPE(FuncNode);
     DUMP_TYPE(FuncRetNode);
     DUMP_TYPE(InvokeNode);
+    DUMP_TYPE(VirtReg);
+  printf("\n");
+
+  printf("Size of compiler classes (RA):\n");
+    DUMP_TYPE(BaseRAPass);
+    DUMP_TYPE(RABlock);
+    DUMP_TYPE(RAInst);
+    DUMP_TYPE(RATiedReg);
+    DUMP_TYPE(RAWorkReg);
   printf("\n");
 #endif
 
@@ -135,10 +152,10 @@ static void printTypeSizes(void) noexcept {
 
 #undef DUMP_TYPE
 
-static void onBeforeRun(void) noexcept {
-  printBuildOptions();
-  printCpuInfo();
-  printTypeSizes();
+static void on_before_run(void) noexcept {
+  print_build_options();
+  print_cpu_info();
+  print_type_sizes();
 }
 
 int main(int argc, const char* argv[]) {
@@ -146,9 +163,9 @@ int main(int argc, const char* argv[]) {
     unsigned((ASMJIT_LIBRARY_VERSION >> 16)       ),
     unsigned((ASMJIT_LIBRARY_VERSION >>  8) & 0xFF),
     unsigned((ASMJIT_LIBRARY_VERSION      ) & 0xFF),
-    asmjitArchAsString(Arch::kHost),
-    asmjitBuildType()
+    asmjit_arch_as_string(Arch::kHost),
+    asmjit_build_type()
   );
 
-  return BrokenAPI::run(argc, argv, onBeforeRun);
+  return BrokenAPI::run(argc, argv, on_before_run);
 }

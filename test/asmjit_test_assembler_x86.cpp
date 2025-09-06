@@ -17,12 +17,12 @@
 using namespace asmjit;
 
 #define TEST_INSTRUCTION(OPCODE, ...) \
-  tester.testValidInstruction(#__VA_ARGS__, OPCODE, tester.assembler.__VA_ARGS__)
+  tester.test_valid_instruction(#__VA_ARGS__, OPCODE, tester.assembler.__VA_ARGS__)
 
 #define FAIL_INSTRUCTION(ExpectedError, ...) \
-  tester.testInvalidInstruction(#__VA_ARGS__, ExpectedError, tester.assembler.__VA_ARGS__)
+  tester.test_invalid_instruction(#__VA_ARGS__, ExpectedError, tester.assembler.__VA_ARGS__)
 
-static void ASMJIT_NOINLINE testX86AssemblerBase(AssemblerTester<x86::Assembler>& tester) noexcept {
+static void ASMJIT_NOINLINE test_x86_assembler_base(AssemblerTester<x86::Assembler>& tester) noexcept {
   using namespace x86;
 
   TEST_INSTRUCTION("37"                            , aaa(ax));
@@ -1166,7 +1166,7 @@ static void ASMJIT_NOINLINE testX86AssemblerBase(AssemblerTester<x86::Assembler>
   TEST_INSTRUCTION("338C1A80000000"                , xor_(ecx, dword_ptr(edx, ebx, 0, 128)));
 }
 
-static void ASMJIT_NOINLINE testX86AssemblerBaseExt(AssemblerTester<x86::Assembler>& tester) noexcept {
+static void ASMJIT_NOINLINE test_x86_assembler_base_ext(AssemblerTester<x86::Assembler>& tester) noexcept {
   using namespace x86;
 
   TEST_INSTRUCTION("0F38FC9C1180000000"            , aadd(ptr(ecx, edx, 0, 128), ebx));
@@ -1454,7 +1454,7 @@ static void ASMJIT_NOINLINE testX86AssemblerBaseExt(AssemblerTester<x86::Assembl
   TEST_INSTRUCTION("0F01D6"                        , xtest());
 }
 
-static void ASMJIT_NOINLINE testX86AssemblerMMX_SSE(AssemblerTester<x86::Assembler>& tester) noexcept {
+static void ASMJIT_NOINLINE test_x86_assembler_mmx_sse(AssemblerTester<x86::Assembler>& tester) noexcept {
   using namespace x86;
 
   TEST_INSTRUCTION("660F58CA"                      , addpd(xmm1, xmm2));
@@ -2578,7 +2578,7 @@ static void ASMJIT_NOINLINE testX86AssemblerMMX_SSE(AssemblerTester<x86::Assembl
   TEST_INSTRUCTION("0F578C1A80000000"              , xorps(xmm1, xmmword_ptr(edx, ebx, 0, 128)));
 }
 
-static void ASMJIT_NOINLINE testX86AssemblerAVX(AssemblerTester<x86::Assembler>& tester) noexcept {
+static void ASMJIT_NOINLINE test_x86_assembler_avx(AssemblerTester<x86::Assembler>& tester) noexcept {
   using namespace x86;
 
   TEST_INSTRUCTION("C5E958CB"                      , vaddpd(xmm1, xmm2, xmm3));
@@ -4107,7 +4107,7 @@ static void ASMJIT_NOINLINE testX86AssemblerAVX(AssemblerTester<x86::Assembler>&
   TEST_INSTRUCTION("C5F877"                        , vzeroupper());
 }
 
-static void ASMJIT_NOINLINE testX86AssemblerAVX_NE_CONVERT(AssemblerTester<x86::Assembler>& tester) noexcept {
+static void ASMJIT_NOINLINE test_x86_assembler_avx_ne_convert(AssemblerTester<x86::Assembler>& tester) noexcept {
   using namespace x86;
 
   TEST_INSTRUCTION("C4E27AB18C1A80000000"          , vbcstnebf162ps(xmm1, ptr(edx, ebx, 0, 128)));
@@ -4140,7 +4140,7 @@ static void ASMJIT_NOINLINE testX86AssemblerAVX_NE_CONVERT(AssemblerTester<x86::
   TEST_INSTRUCTION("C4E27E728C1A80000000"          , vex().vcvtneps2bf16(xmm1, ymmword_ptr(edx, ebx, 0, 128)));
 }
 
-static void ASMJIT_NOINLINE testX86AssemblerAVX_VNNI(AssemblerTester<x86::Assembler>& tester) noexcept {
+static void ASMJIT_NOINLINE test_x86_assembler_avx_vnni(AssemblerTester<x86::Assembler>& tester) noexcept {
   using namespace x86;
 
   TEST_INSTRUCTION("C4E25150F4"                    , vex().vpdpbusd(xmm6, xmm5, xmm4));
@@ -4153,7 +4153,7 @@ static void ASMJIT_NOINLINE testX86AssemblerAVX_VNNI(AssemblerTester<x86::Assemb
   TEST_INSTRUCTION("C4E25553F4"                    , vex().vpdpwssds(ymm6, ymm5, ymm4));
 }
 
-static void ASMJIT_NOINLINE testX86AssemblerAVX_VNNI_INT8(AssemblerTester<x86::Assembler>& tester) noexcept {
+static void ASMJIT_NOINLINE test_x86_assembler_avx_vnni_int8(AssemblerTester<x86::Assembler>& tester) noexcept {
   using namespace x86;
 
   TEST_INSTRUCTION("C4E26B50CB"                    , vpdpbssd(xmm1, xmm2, xmm3));
@@ -4194,7 +4194,7 @@ static void ASMJIT_NOINLINE testX86AssemblerAVX_VNNI_INT8(AssemblerTester<x86::A
   TEST_INSTRUCTION("C4E26C518C2B80000000"          , vpdpbuuds(ymm1, ymm2, ymmword_ptr(ebx, ebp, 0, 128)));
 }
 
-static void ASMJIT_NOINLINE testX86AssemblerAVX_VNNI_INT16(AssemblerTester<x86::Assembler>& tester) noexcept {
+static void ASMJIT_NOINLINE test_x86_assembler_avx_vnni_int16(AssemblerTester<x86::Assembler>& tester) noexcept {
   using namespace x86;
 
   TEST_INSTRUCTION("C4E26AD2CB"                    , vpdpwsud(xmm1, xmm2, xmm3));
@@ -4235,7 +4235,7 @@ static void ASMJIT_NOINLINE testX86AssemblerAVX_VNNI_INT16(AssemblerTester<x86::
   TEST_INSTRUCTION("C4E26CD38C2B80000000"          , vpdpwuuds(ymm1, ymm2, ymmword_ptr(ebx, ebp, 0, 128)));
 }
 
-static void ASMJIT_NOINLINE testX86AssemblerAVX_SHA512(AssemblerTester<x86::Assembler>& tester) noexcept {
+static void ASMJIT_NOINLINE test_x86_assembler_avx_sha512(AssemblerTester<x86::Assembler>& tester) noexcept {
   using namespace x86;
 
   TEST_INSTRUCTION("C4E27FCCCA"                    , vsha512msg1(ymm1, xmm2));
@@ -4243,7 +4243,7 @@ static void ASMJIT_NOINLINE testX86AssemblerAVX_SHA512(AssemblerTester<x86::Asse
   TEST_INSTRUCTION("C4E26FCBCB"                    , vsha512rnds2(ymm1, ymm2, xmm3));
 }
 
-static void ASMJIT_NOINLINE testX86AssemblerAVX_SM3(AssemblerTester<x86::Assembler>& tester) noexcept {
+static void ASMJIT_NOINLINE test_x86_assembler_avx_sm3(AssemblerTester<x86::Assembler>& tester) noexcept {
   using namespace x86;
 
   TEST_INSTRUCTION("C4E268DACB"                    , vsm3msg1(xmm1, xmm2, xmm3));
@@ -4257,7 +4257,7 @@ static void ASMJIT_NOINLINE testX86AssemblerAVX_SM3(AssemblerTester<x86::Assembl
   TEST_INSTRUCTION("C4E369DE8C2B8000000001"        , vsm3rnds2(xmm1, xmm2, xmmword_ptr(ebx, ebp, 0, 128), 1));
 }
 
-static void ASMJIT_NOINLINE testX86AssemblerAVX_SM4(AssemblerTester<x86::Assembler>& tester) noexcept {
+static void ASMJIT_NOINLINE test_x86_assembler_avx_sm4(AssemblerTester<x86::Assembler>& tester) noexcept {
   using namespace x86;
 
   TEST_INSTRUCTION("C4E26ADACB"                    , vsm4key4(xmm1, xmm2, xmm3));
@@ -4274,7 +4274,7 @@ static void ASMJIT_NOINLINE testX86AssemblerAVX_SM4(AssemblerTester<x86::Assembl
   TEST_INSTRUCTION("C4E26FDA8C2B80000000"          , vsm4rnds4(ymm1, ymm2, ymmword_ptr(ebx, ebp, 0, 128)));
 }
 
-static void ASMJIT_NOINLINE testX86AssemblerFMA(AssemblerTester<x86::Assembler>& tester) noexcept {
+static void ASMJIT_NOINLINE test_x86_assembler_fma(AssemblerTester<x86::Assembler>& tester) noexcept {
   using namespace x86;
 
   TEST_INSTRUCTION("C4E2E998CB"                    , vfmadd132pd(xmm1, xmm2, xmm3));
@@ -4567,7 +4567,7 @@ static void ASMJIT_NOINLINE testX86AssemblerFMA(AssemblerTester<x86::Assembler>&
   TEST_INSTRUCTION("C4E269BF8C2B80000000"          , vfnmsub231ss(xmm1, xmm2, dword_ptr(ebx, ebp, 0, 128)));
 }
 
-static void ASMJIT_NOINLINE testX86AssemblerFMA4(AssemblerTester<x86::Assembler>& tester) noexcept {
+static void ASMJIT_NOINLINE test_x86_assembler_fma4(AssemblerTester<x86::Assembler>& tester) noexcept {
   using namespace x86;
 
   TEST_INSTRUCTION("C4E3E969CC30"                  , vfmaddpd(xmm1, xmm2, xmm3, xmm4));
@@ -4732,7 +4732,7 @@ static void ASMJIT_NOINLINE testX86AssemblerFMA4(AssemblerTester<x86::Assembler>
   TEST_INSTRUCTION("C4E3697E8C2B8000000060"        , vfnmsubss(xmm1, xmm2, dword_ptr(ebx, ebp, 0, 128), xmm6));
 }
 
-static void ASMJIT_NOINLINE testX86AssemblerXOP(AssemblerTester<x86::Assembler>& tester) noexcept {
+static void ASMJIT_NOINLINE test_x86_assembler_xop(AssemblerTester<x86::Assembler>& tester) noexcept {
   using namespace x86;
 
   TEST_INSTRUCTION("8FE97881CA"                    , vfrczpd(xmm1, xmm2));
@@ -4947,7 +4947,7 @@ static void ASMJIT_NOINLINE testX86AssemblerXOP(AssemblerTester<x86::Assembler>&
   TEST_INSTRUCTION("8FE958958C1A80000000"          , vpshlw(xmm1, xmmword_ptr(edx, ebx, 0, 128), xmm4));
 }
 
-static void ASMJIT_NOINLINE testX86AssemblerAVX512(AssemblerTester<x86::Assembler>& tester) noexcept {
+static void ASMJIT_NOINLINE test_x86_assembler_avx512(AssemblerTester<x86::Assembler>& tester) noexcept {
   using namespace x86;
 
   TEST_INSTRUCTION("C5ED4ACB"                      , kaddb(k1, k2, k3));
@@ -7680,7 +7680,7 @@ static void ASMJIT_NOINLINE testX86AssemblerAVX512(AssemblerTester<x86::Assemble
   TEST_INSTRUCTION("62F16C48574C2B02"              , vxorps(zmm1, zmm2, zmmword_ptr(ebx, ebp, 0, 128)));
 }
 
-static void ASMJIT_NOINLINE testX86AssemblerAVX512_FP16(AssemblerTester<x86::Assembler>& tester) noexcept {
+static void ASMJIT_NOINLINE test_x86_assembler_avx512_FP16(AssemblerTester<x86::Assembler>& tester) noexcept {
   using namespace x86;
 
   TEST_INSTRUCTION("62F5560810F4"                  , vmovsh(xmm6, xmm5, xmm4));
@@ -8324,7 +8324,7 @@ static void ASMJIT_NOINLINE testX86AssemblerAVX512_FP16(AssemblerTester<x86::Ass
   TEST_INSTRUCTION("62F6568FD77280"                , k(k7).z().vfmulcsh(xmm6, xmm5, dword_ptr(edx, -512)));
 }
 
-static void ASMJIT_NOINLINE testX86AssemblerExtras(AssemblerTester<x86::Assembler>& tester) noexcept {
+static void ASMJIT_NOINLINE test_x86_assembler_extra(AssemblerTester<x86::Assembler>& tester) noexcept {
   using namespace x86;
 
   // Extended X86 tests.
@@ -8447,7 +8447,7 @@ static void ASMJIT_NOINLINE testX86AssemblerExtras(AssemblerTester<x86::Assemble
 
 /*
 // TODO: Failures can be enabled once the assembler always validates.
-static void ASMJIT_NOINLINE testX86AssemblerFailures(AssemblerTester<x86::Assembler>& tester) noexcept {
+static void ASMJIT_NOINLINE test_x86_assembler_failures(AssemblerTester<x86::Assembler>& tester) noexcept {
   using namespace x86;
 
   FAIL_INSTRUCTION(kErrorInvalidInstruction        , movs(byte_ptr(eax), byte_ptr(esi)));
@@ -8456,34 +8456,34 @@ static void ASMJIT_NOINLINE testX86AssemblerFailures(AssemblerTester<x86::Assemb
 }
 */
 
-bool testX86Assembler(const TestSettings& settings) noexcept {
+bool test_x86_assembler(const TestSettings& settings) noexcept {
   using namespace x86;
 
   AssemblerTester<Assembler> tester(Arch::kX86, settings);
-  tester.printHeader("X86");
+  tester.print_header("X86");
 
-  testX86AssemblerBase(tester);
-  testX86AssemblerBaseExt(tester);
-  testX86AssemblerMMX_SSE(tester);
-  testX86AssemblerAVX(tester);
-  testX86AssemblerAVX_NE_CONVERT(tester);
-  testX86AssemblerAVX_VNNI(tester);
-  testX86AssemblerAVX_VNNI_INT8(tester);
-  testX86AssemblerAVX_VNNI_INT16(tester);
-  testX86AssemblerAVX_SHA512(tester);
-  testX86AssemblerAVX_SM3(tester);
-  testX86AssemblerAVX_SM4(tester);
-  testX86AssemblerFMA(tester);
-  testX86AssemblerFMA4(tester);
-  testX86AssemblerXOP(tester);
-  testX86AssemblerAVX512(tester);
-  testX86AssemblerAVX512_FP16(tester);
-  testX86AssemblerExtras(tester);
+  test_x86_assembler_base(tester);
+  test_x86_assembler_base_ext(tester);
+  test_x86_assembler_mmx_sse(tester);
+  test_x86_assembler_avx(tester);
+  test_x86_assembler_avx_ne_convert(tester);
+  test_x86_assembler_avx_vnni(tester);
+  test_x86_assembler_avx_vnni_int8(tester);
+  test_x86_assembler_avx_vnni_int16(tester);
+  test_x86_assembler_avx_sha512(tester);
+  test_x86_assembler_avx_sm3(tester);
+  test_x86_assembler_avx_sm4(tester);
+  test_x86_assembler_fma(tester);
+  test_x86_assembler_fma4(tester);
+  test_x86_assembler_xop(tester);
+  test_x86_assembler_avx512(tester);
+  test_x86_assembler_avx512_FP16(tester);
+  test_x86_assembler_extra(tester);
 
-  // testX86AssemblerFailures(tester);
+  // test_x86_assembler_failures(tester);
 
-  tester.printSummary();
-  return tester.didPass();
+  tester.print_summary();
+  return tester.did_pass();
 }
 
 #undef FAIL_INSTRUCTION

@@ -10,6 +10,7 @@
 #ifndef ASMJIT_NO_LOGGING
 
 #include "../core/formatter.h"
+#include "../core/span.h"
 #include "../core/string.h"
 #include "../arm/armformatter_p.h"
 #include "../arm/a64globals.h"
@@ -24,12 +25,12 @@ namespace FormatterInternal {
 
 using namespace arm::FormatterInternal;
 
-Error ASMJIT_CDECL formatInstruction(
+Error ASMJIT_CDECL format_instruction(
   String& sb,
   FormatFlags flags,
   const BaseEmitter* emitter,
   Arch arch,
-  const BaseInst& inst, const Operand_* operands, size_t opCount) noexcept;
+  const BaseInst& inst, Span<const Operand_> operands) noexcept;
 
 } // {FormatterInternal}
 

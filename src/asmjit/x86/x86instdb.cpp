@@ -30,17 +30,17 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 #define O_FPU(PREFIX, OPCODE, ModO) (Opcode::kFPU_##PREFIX | (0x##OPCODE & 0xFFu) | ((0x##OPCODE >> 8) << Opcode::kFPU_2B_Shift) | Opcode::kModO_##ModO)
 
 // Defines an X86 instruction.
-#define INST(id, encoding, opcode0, opcode1, mainOpcodeIndex, altOpcodeIndex, commomInfoIndex, additionalInfoIndex) { \
+#define INST(id, encoding, opcode0, opcode1, main_opcode_index, alt_opcode_index, common_info_index, additional_info_index) { \
   uint32_t(0),                              \
-  uint32_t(commomInfoIndex),                \
-  uint32_t(additionalInfoIndex),            \
+  uint32_t(common_info_index),              \
+  uint32_t(additional_info_index),          \
   uint8_t(InstDB::kEncoding##encoding),     \
   uint8_t((opcode0) & 0xFFu),               \
-  uint8_t(mainOpcodeIndex),                 \
-  uint8_t(altOpcodeIndex)                   \
+  uint8_t(main_opcode_index),               \
+  uint8_t(alt_opcode_index)                 \
 }
 
-const InstDB::InstInfo InstDB::_instInfoTable[] = {
+const InstDB::InstInfo InstDB::_inst_info_table[] = {
   /*--------------------+--------------------+------------------+--------+------------------+--------+----+----+----+----+
   |    Instruction      |    Instruction     |    Main Opcode   |  EVEX  |Alternative Opcode|  EVEX  |Op0X|Op1X|IdxA|IdxB|
   |     Id & Name       |      Encoding      |  (pp+mmm|op/o|L|w|W|N|TT.)|--(pp+mmm|op/o|L|w|W|N|TT.)| (auto-generated)  |
@@ -1704,7 +1704,7 @@ const InstDB::InstInfo InstDB::_instInfoTable[] = {
 
 // ${MainOpcodeTable:Begin}
 // ------------------- Automatically generated, do not edit -------------------
-const uint32_t InstDB::_mainOpcodeTable[] = {
+const uint32_t InstDB::main_opcode_table[] = {
   O(000000,00,0,0,0,0,0,0   ), // #0 [ref=56x]
   O(000F38,00,0,0,0,0,0,0   ), // #1 [ref=25x]
   O(660F38,00,0,0,0,0,0,0   ), // #2 [ref=44x]
@@ -1945,7 +1945,7 @@ const uint32_t InstDB::_mainOpcodeTable[] = {
 
 // ${AltOpcodeTable:Begin}
 // ------------------- Automatically generated, do not edit -------------------
-const uint32_t InstDB::_altOpcodeTable[] = {
+const uint32_t InstDB::alt_opcode_table[] = {
   O(000000,00,0,0,0,0,0,0   ), // #0 [ref=1512x]
   O(660F00,1B,0,0,0,0,0,0   ), // #1 [ref=1x]
   O(000F00,BA,4,0,0,0,0,0   ), // #2 [ref=1x]
@@ -2099,7 +2099,7 @@ const uint32_t InstDB::_altOpcodeTable[] = {
 #define X(VAL) uint32_t(InstDB::Avx512Flags::k##VAL)
 #define CONTROL_FLOW(VAL) uint8_t(InstControlFlow::k##VAL)
 #define SAME_REG_HINT(VAL) uint8_t(InstSameRegHint::k##VAL)
-const InstDB::CommonInfo InstDB::_commonInfoTable[] = {
+const InstDB::CommonInfo InstDB::_inst_common_info_table[] = {
   { 0                                                 , 0                             , 0  , 0 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #0 [ref=1x]
   { 0                                                 , 0                             , 487, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #1 [ref=4x]
   { 0                                                 , 0                             , 488, 1 , CONTROL_FLOW(Regular), SAME_REG_HINT(None)}, // #2 [ref=2x]
@@ -2563,7 +2563,7 @@ const InstDB::CommonInfo InstDB::_commonInfoTable[] = {
 // ${AdditionalInfoTable:Begin}
 // ------------------- Automatically generated, do not edit -------------------
 #define EXT(VAL) uint32_t(CpuFeatures::X86::k##VAL)
-const InstDB::AdditionalInfo InstDB::_additionalInfoTable[] = {
+const InstDB::AdditionalInfo InstDB::additional_info_table[] = {
   { 0, 0, { 0 } }, // #0 [ref=68x]
   { 0, 1, { 0 } }, // #1 [ref=31x]
   { 0, 0, { EXT(RAO_INT) } }, // #2 [ref=4x]
@@ -2767,7 +2767,7 @@ const InstDB::AdditionalInfo InstDB::_additionalInfoTable[] = {
 #undef EXT
 
 #define FLAG(VAL) uint32_t(CpuRWFlags::kX86_##VAL)
-const InstDB::RWFlagsInfoTable InstDB::_rwFlagsInfoTable[] = {
+const InstDB::RWFlagsInfoTable InstDB::rw_flags_info_table[] = {
   { 0, 0 }, // #0 [ref=1352x]
   { 0, FLAG(AF) | FLAG(CF) | FLAG(OF) | FLAG(PF) | FLAG(SF) | FLAG(ZF) }, // #1 [ref=103x]
   { FLAG(CF), FLAG(AF) | FLAG(CF) | FLAG(OF) | FLAG(PF) | FLAG(SF) | FLAG(ZF) }, // #2 [ref=2x]
@@ -2807,7 +2807,7 @@ const InstDB::RWFlagsInfoTable InstDB::_rwFlagsInfoTable[] = {
 #undef FLAG
 
 #define FLAG(VAL) uint32_t(InstRWFlags::k##VAL)
-const InstRWFlags InstDB::_instFlagsTable[] = {
+const InstRWFlags InstDB::inst_flags_table[] = {
   InstRWFlags(FLAG(None)), // #0 [ref=1619x]
   InstRWFlags(FLAG(MovOp))  // #1 [ref=29x]
 };
@@ -2821,7 +2821,7 @@ const InstRWFlags InstDB::_instFlagsTable[] = {
 #ifndef ASMJIT_NO_TEXT
 // ${NameData:Begin}
 // ------------------- Automatically generated, do not edit -------------------
-const InstNameIndex InstDB::instNameIndex = {{
+const InstNameIndex InstDB::_inst_name_index = {{
   { Inst::kIdAaa          , Inst::kIdAxor          + 1 },
   { Inst::kIdBextr        , Inst::kIdBzhi          + 1 },
   { Inst::kIdCall         , Inst::kIdCwde          + 1 },
@@ -2850,7 +2850,7 @@ const InstNameIndex InstDB::instNameIndex = {{
   { Inst::kIdNone         , Inst::kIdNone          + 1 }
 }, uint16_t(17)};
 
-const char InstDB::_instNameStringTable[] =
+const char InstDB::_inst_name_string_table[] =
   "\x63\x6D\x6F\x76\x62\x0C\x63\x6D\x6F\x76\x2E\x62\x7C\x6E\x61\x65\x7C\x63\x63\x6D\x6F\x76\x62\x65\x0A\x63\x6D\x6F\x76"
   "\x2E\x62\x65\x7C\x6E\x61\x63\x6D\x6F\x76\x6C\x0A\x63\x6D\x6F\x76\x2E\x6C\x7C\x6E\x67\x65\x63\x6D\x6F\x76\x6C\x65\x0A"
   "\x63\x6D\x6F\x76\x2E\x6C\x65\x7C\x6E\x67\x63\x6D\x6F\x76\x6E\x62\x0D\x63\x6D\x6F\x76\x2E\x6E\x62\x7C\x61\x65\x7C\x6E"
@@ -2941,7 +2941,7 @@ const char InstDB::_instNameStringTable[] =
   "\x6C\x6C\x76\x70\x73\x72\x61\x76\x70\x73\x72\x6C\x76\x73\x71\x72\x76\x74\x65\x73";
 
 
-const uint32_t InstDB::_instNameIndexTable[] = {
+const uint32_t InstDB::_inst_name_index_table[] = {
   0x80000000, // Small ''.
   0x80000421, // Small 'aaa'.
   0x80001021, // Small 'aad'.
@@ -4592,11 +4592,11 @@ const uint32_t InstDB::_instNameIndexTable[] = {
   0x81499698  // Small 'xtest'.
 };
 
-const char InstDB::_aliasNameStringTable[] =
+const char InstDB::alias_name_string_table[] =
   "\x63\x6D\x6F\x76\x6E\x61\x65\x67\x65";
 
 
-const uint32_t InstDB::_aliasNameIndexTable[] = {
+const uint32_t InstDB::alias_name_index_table[] = {
   0x801B3DA3, // Small 'cmova'.
   0x8A1B3DA3, // Small 'cmovae'.
   0x803B3DA3, // Small 'cmovc'.
@@ -4643,7 +4643,7 @@ const uint32_t InstDB::_aliasNameIndexTable[] = {
   0x800A2437  // Small 'wait'.
 };
 
-const uint32_t InstDB::_aliasIndexToInstId[] = {
+const uint32_t InstDB::alias_index_to_inst_id_table[] = {
   Inst::kIdCmovnbe, // #0
   Inst::kIdCmovnb, // #1
   Inst::kIdCmovb, // #2
@@ -4706,7 +4706,7 @@ const uint32_t InstDB::_aliasIndexToInstId[] = {
     0,                                                               \
     { o0, o1, o2, o3, o4, o5 }                                       \
   }
-const InstDB::InstSignature InstDB::_instSignatureTable[] = {
+const InstDB::InstSignature InstDB::_inst_signature_table[] = {
   ROW(2, 1, 1, 0, 1  , 2  , 0  , 0  , 0  , 0  ), // #0   {r8lo|r8hi|m8|mem, r8lo|r8hi}
   ROW(2, 1, 1, 0, 3  , 4  , 0  , 0  , 0  , 0  ), //      {r16|m16|mem|sreg, r16}
   ROW(2, 1, 1, 0, 5  , 6  , 0  , 0  , 0  , 0  ), //      {r32|m32|mem|sreg, r32}
@@ -5312,9 +5312,9 @@ const InstDB::InstSignature InstDB::_instSignatureTable[] = {
 };
 #undef ROW
 
-#define ROW(opFlags, regId) { opFlags, uint8_t(regId) }
+#define ROW(op_flags, reg_id) { op_flags, uint8_t(reg_id) }
 #define F(VAL) uint64_t(InstDB::OpFlags::k##VAL)
-const InstDB::OpSignature InstDB::_opSignatureTable[] = {
+const InstDB::OpSignature InstDB::_op_signature_table[] = {
   ROW(0, 0xFF),
   ROW(F(RegGpbLo) | F(RegGpbHi) | F(MemUnspecified) | F(Mem8), 0x00),
   ROW(F(RegGpbLo) | F(RegGpbHi), 0x00),
@@ -5503,7 +5503,7 @@ const InstDB::OpSignature InstDB::_opSignatureTable[] = {
 
 // ${InstRWInfoTable:Begin}
 // ------------------- Automatically generated, do not edit -------------------
-const uint8_t InstDB::rwInfoIndexA[Inst::_kIdCount] = {
+const uint8_t InstDB::rw_info_index_a_table[Inst::_kIdCount] = {
   0, 0, 1, 2, 1, 2, 0, 3, 4, 3, 5, 5, 6, 7, 5, 5, 4, 5, 5, 5, 5, 8, 0, 3, 0, 5,
   5, 5, 5, 2, 9, 2, 0, 10, 10, 10, 10, 10, 0, 0, 0, 0, 10, 10, 10, 10, 10, 11, 11,
   11, 12, 12, 13, 14, 15, 10, 10, 0, 16, 17, 17, 17, 0, 0, 0, 18, 0, 0, 0, 0,
@@ -5577,7 +5577,7 @@ const uint8_t InstDB::rwInfoIndexA[Inst::_kIdCount] = {
   0, 0, 0, 3, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
-const uint8_t InstDB::rwInfoIndexB[Inst::_kIdCount] = {
+const uint8_t InstDB::rw_info_index_b_table[Inst::_kIdCount] = {
   0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 3, 0,
   0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 5, 5, 6, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 4, 8, 1, 0, 9, 0, 0, 0, 10, 10, 10, 0, 0, 11, 0,
@@ -5657,7 +5657,7 @@ const uint8_t InstDB::rwInfoIndexB[Inst::_kIdCount] = {
   173, 173, 173, 171, 0, 0
 };
 
-const InstDB::RWInfo InstDB::rwInfoA[] = {
+const InstDB::RWInfo InstDB::rw_info_a_table[] = {
   { InstDB::RWInfo::kCategoryGeneric   , 0 , { 0 , 0 , 0 , 0 , 0 , 0  } }, // #0 [ref=999x]
   { InstDB::RWInfo::kCategoryGeneric   , 0 , { 1 , 0 , 0 , 0 , 0 , 0  } }, // #1 [ref=2x]
   { InstDB::RWInfo::kCategoryGeneric   , 0 , { 2 , 3 , 0 , 0 , 0 , 0  } }, // #2 [ref=15x]
@@ -5791,13 +5791,13 @@ const InstDB::RWInfo InstDB::rwInfoA[] = {
   { InstDB::RWInfo::kCategoryVmov1_8   , 62, { 0 , 0 , 0 , 0 , 0 , 0  } }, // #130 [ref=3x]
   { InstDB::RWInfo::kCategoryVmov8_1   , 63, { 0 , 0 , 0 , 0 , 0 , 0  } }, // #131 [ref=2x]
   { InstDB::RWInfo::kCategoryGeneric   , 14, { 11, 3 , 0 , 0 , 0 , 0  } }, // #132 [ref=2x]
-  { InstDB::RWInfo::kCategoryGeneric   , 0 , { 88, 5 , 0 , 0 , 0 , 0  } }, // #133 [ref=1x]
-  { InstDB::RWInfo::kCategoryGeneric   , 0 , { 88, 78, 0 , 0 , 0 , 0  } }, // #134 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 0 , { 87, 5 , 0 , 0 , 0 , 0  } }, // #133 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 0 , { 87, 78, 0 , 0 , 0 , 0  } }, // #134 [ref=1x]
   { InstDB::RWInfo::kCategoryGeneric   , 11, { 2 , 2 , 0 , 0 , 0 , 0  } }, // #135 [ref=1x]
   { InstDB::RWInfo::kCategoryGeneric   , 57, { 2 , 2 , 0 , 0 , 0 , 0  } }  // #136 [ref=1x]
 };
 
-const InstDB::RWInfo InstDB::rwInfoB[] = {
+const InstDB::RWInfo InstDB::rw_info_b_table[] = {
   { InstDB::RWInfo::kCategoryGeneric   , 0 , { 0 , 0 , 0 , 0 , 0 , 0  } }, // #0 [ref=758x]
   { InstDB::RWInfo::kCategoryGeneric   , 0 , { 1 , 0 , 0 , 0 , 0 , 0  } }, // #1 [ref=5x]
   { InstDB::RWInfo::kCategoryGeneric   , 3 , { 10, 5 , 0 , 0 , 0 , 0  } }, // #2 [ref=7x]
@@ -5954,7 +5954,7 @@ const InstDB::RWInfo InstDB::rwInfoB[] = {
   { InstDB::RWInfo::kCategoryGeneric   , 0 , { 10, 79, 9 , 0 , 0 , 0  } }, // #153 [ref=1x]
   { InstDB::RWInfo::kCategoryGeneric   , 12, { 35, 0 , 0 , 0 , 0 , 0  } }, // #154 [ref=1x]
   { InstDB::RWInfo::kCategoryGeneric   , 0 , { 85, 0 , 0 , 0 , 0 , 0  } }, // #155 [ref=1x]
-  { InstDB::RWInfo::kCategoryGeneric   , 59, { 86, 87, 3 , 3 , 0 , 0  } }, // #156 [ref=2x]
+  { InstDB::RWInfo::kCategoryGeneric   , 59, { 35, 86, 3 , 3 , 0 , 0  } }, // #156 [ref=2x]
   { InstDB::RWInfo::kCategoryGeneric   , 56, { 77, 78, 78, 0 , 0 , 0  } }, // #157 [ref=2x]
   { InstDB::RWInfo::kCategoryGeneric   , 22, { 11, 3 , 3 , 0 , 0 , 0  } }, // #158 [ref=4x]
   { InstDB::RWInfo::kCategoryGeneric   , 7 , { 49, 5 , 0 , 0 , 0 , 0  } }, // #159 [ref=1x]
@@ -5967,14 +5967,14 @@ const InstDB::RWInfo InstDB::rwInfoB[] = {
   { InstDB::RWInfo::kCategoryGeneric   , 68, { 11, 3 , 5 , 0 , 0 , 0  } }, // #166 [ref=3x]
   { InstDB::RWInfo::kCategoryGeneric   , 22, { 11, 3 , 5 , 0 , 0 , 0  } }, // #167 [ref=1x]
   { InstDB::RWInfo::kCategoryGenericEx , 6 , { 2 , 3 , 3 , 0 , 0 , 0  } }, // #168 [ref=2x]
-  { InstDB::RWInfo::kCategoryGeneric   , 0 , { 88, 78, 5 , 0 , 0 , 0  } }, // #169 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 0 , { 87, 78, 5 , 0 , 0 , 0  } }, // #169 [ref=1x]
   { InstDB::RWInfo::kCategoryGeneric   , 50, { 4 , 5 , 5 , 0 , 0 , 0  } }, // #170 [ref=3x]
   { InstDB::RWInfo::kCategoryGeneric   , 0 , { 55, 17, 29, 0 , 0 , 0  } }, // #171 [ref=2x]
   { InstDB::RWInfo::kCategoryGeneric   , 8 , { 3 , 55, 17, 0 , 0 , 0  } }, // #172 [ref=4x]
   { InstDB::RWInfo::kCategoryGeneric   , 8 , { 11, 55, 17, 0 , 0 , 0  } }  // #173 [ref=8x]
 };
 
-const InstDB::RWInfoOp InstDB::rwInfoOp[] = {
+const InstDB::RWInfoOp InstDB::rw_info_op_table[] = {
   { 0x0000000000000000u, 0x0000000000000000u, 0xFF, 0, { 0 }, OpRWFlags::kNone }, // #0 [ref=16348x]
   { 0x0000000000000003u, 0x0000000000000003u, 0x00, 0, { 0 }, OpRWFlags::kRW | OpRWFlags::kRegPhysId }, // #1 [ref=10x]
   { 0x0000000000000000u, 0x0000000000000000u, 0xFF, 0, { 0 }, OpRWFlags::kRW | OpRWFlags::kZExt }, // #2 [ref=267x]
@@ -6010,7 +6010,7 @@ const InstDB::RWInfoOp InstDB::rwInfoOp[] = {
   { 0x000000000000000Fu, 0x000000000000000Fu, 0x01, 0, { 0 }, OpRWFlags::kRW | OpRWFlags::kZExt | OpRWFlags::kRegPhysId }, // #32 [ref=1x]
   { 0x0000000000000000u, 0x00000000000000FFu, 0x02, 0, { 0 }, OpRWFlags::kWrite | OpRWFlags::kZExt | OpRWFlags::kRegPhysId }, // #33 [ref=1x]
   { 0x00000000000000FFu, 0x0000000000000000u, 0x00, 0, { 0 }, OpRWFlags::kRead | OpRWFlags::kRegPhysId }, // #34 [ref=1x]
-  { 0x0000000000000000u, 0x00000000000000FFu, 0xFF, 0, { 0 }, OpRWFlags::kWrite | OpRWFlags::kZExt }, // #35 [ref=82x]
+  { 0x0000000000000000u, 0x00000000000000FFu, 0xFF, 0, { 0 }, OpRWFlags::kWrite | OpRWFlags::kZExt }, // #35 [ref=84x]
   { 0x0000000000000000u, 0x00000000000000FFu, 0xFF, 0, { 0 }, OpRWFlags::kWrite }, // #36 [ref=6x]
   { 0x0000000000000000u, 0x000000000000000Fu, 0xFF, 0, { 0 }, OpRWFlags::kWrite }, // #37 [ref=6x]
   { 0x0000000000000000u, 0x0000000000000003u, 0x02, 0, { 0 }, OpRWFlags::kWrite | OpRWFlags::kRegPhysId }, // #38 [ref=1x]
@@ -6061,12 +6061,11 @@ const InstDB::RWInfoOp InstDB::rwInfoOp[] = {
   { 0x000000000000FFFFu, 0x000000000000FFFFu, 0xFF, 0, { 0 }, OpRWFlags::kRW | OpRWFlags::kUnique | OpRWFlags::kZExt }, // #83 [ref=1x]
   { 0x000000000000FFFCu, 0x0000000000000000u, 0xFF, 0, { 0 }, OpRWFlags::kRead }, // #84 [ref=8x]
   { 0x0000000000000000u, 0x0000000000000000u, 0x00, 0, { 0 }, OpRWFlags::kRW | OpRWFlags::kZExt | OpRWFlags::kRegPhysId }, // #85 [ref=1x]
-  { 0x0000000000000000u, 0x00000000000000FFu, 0xFF, 2, { 0 }, OpRWFlags::kWrite | OpRWFlags::kZExt }, // #86 [ref=2x]
-  { 0x0000000000000000u, 0x0000000000000000u, 0xFF, 0, { 0 }, OpRWFlags::kWrite | OpRWFlags::kZExt | OpRWFlags::kConsecutive }, // #87 [ref=2x]
-  { 0x00000000FFFFFFFFu, 0x00000000FFFFFFFFu, 0xFF, 0, { 0 }, OpRWFlags::kRW | OpRWFlags::kZExt }  // #88 [ref=3x]
+  { 0x0000000000000000u, 0x0000000000000000u, 0xFF, 0, { 0 }, OpRWFlags::kWrite | OpRWFlags::kZExt | OpRWFlags::kConsecutive }, // #86 [ref=2x]
+  { 0x00000000FFFFFFFFu, 0x00000000FFFFFFFFu, 0xFF, 0, { 0 }, OpRWFlags::kRW | OpRWFlags::kZExt }  // #87 [ref=3x]
 };
 
-const InstDB::RWInfoRm InstDB::rwInfoRm[] = {
+const InstDB::RWInfoRm InstDB::rw_info_rm_table[] = {
   { InstDB::RWInfoRm::kCategoryNone      , 0x00, 0 , 0, 0 }, // #0 [ref=1996x]
   { InstDB::RWInfoRm::kCategoryConsistent, 0x03, 0 , InstDB::RWInfoRm::kFlagAmbiguous, 0 }, // #1 [ref=8x]
   { InstDB::RWInfoRm::kCategoryConsistent, 0x02, 0 , 0, 0 }, // #2 [ref=190x]

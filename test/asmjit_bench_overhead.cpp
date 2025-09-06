@@ -7,13 +7,13 @@
 
 using namespace asmjit;
 
-static void printAppInfo(size_t n) noexcept {
+static void print_app_info(size_t n) noexcept {
   printf("AsmJit Benchmark Overhead v%u.%u.%u [Arch=%s] [Mode=%s]\n\n",
     unsigned((ASMJIT_LIBRARY_VERSION >> 16)       ),
     unsigned((ASMJIT_LIBRARY_VERSION >>  8) & 0xFF),
     unsigned((ASMJIT_LIBRARY_VERSION      ) & 0xFF),
-    asmjitArchAsString(Arch::kHost),
-    asmjitBuildType()
+    asmjit_arch_as_string(Arch::kHost),
+    asmjit_build_type()
   );
 
   printf("This benchmark was designed to benchmark the cost of initialization and\n"
@@ -40,8 +40,8 @@ static void printAppInfo(size_t n) noexcept {
 
 class MyErrorHandler : public ErrorHandler {
 public:
-  void handleError(asmjit::Error err, const char* message, asmjit::BaseEmitter* origin) override {
-    DebugUtils::unused(err, origin);
+  void handle_error(asmjit::Error err, const char* message, asmjit::BaseEmitter* origin) override {
+    Support::maybe_unused(err, origin);
     fprintf(stderr, "AsmJit error: %s\n", message);
   }
 };
@@ -78,7 +78,7 @@ static ASMJIT_INLINE void emit_raw_func(EmitterT& emitter) {
 
 template<typename CompilerT>
 static ASMJIT_INLINE void compile_raw_func(CompilerT& cc) {
-  x86::Gp r = cc.newGp32();
+  x86::Gp r = cc.new_gp32();
   cc.mov(r, 0);
   cc.ret(r);
 }
@@ -93,7 +93,7 @@ static ASMJIT_INLINE void emit_raw_func(EmitterT& emitter) {
 
 template<typename CompilerT>
 static ASMJIT_INLINE void compile_raw_func(CompilerT& cc) {
-  a64::Gp gp = cc.newGp32();
+  a64::Gp gp = cc.new_gp32();
   cc.mov(gp, 0);
   cc.ret(gp);
 }
@@ -110,14 +110,14 @@ static inline void bench_assembler(InitStrategy strategy, size_t count) {
   if (strategy == InitStrategy::kInitReset) {
     for (size_t i = 0; i < count; i++) {
       code.init(rt.environment());
-      code.setErrorHandler(&eh);
+      code.set_error_handler(&eh);
       code.attach(&a);
       code.reset();
     }
   }
   else {
     code.init(rt.environment());
-    code.setErrorHandler(&eh);
+    code.set_error_handler(&eh);
     code.attach(&a);
 
     for (size_t i = 0; i < count; i++) {
@@ -136,7 +136,7 @@ static inline void bench_assembler_func(InitStrategy strategy, size_t count) {
   if (strategy == InitStrategy::kInitReset) {
     for (size_t i = 0; i < count; i++) {
       code.init(rt.environment());
-      code.setErrorHandler(&eh);
+      code.set_error_handler(&eh);
       code.attach(&a);
       emit_raw_func(a);
       code.reset();
@@ -144,7 +144,7 @@ static inline void bench_assembler_func(InitStrategy strategy, size_t count) {
   }
   else {
     code.init(rt.environment());
-    code.setErrorHandler(&eh);
+    code.set_error_handler(&eh);
     code.attach(&a);
 
     for (size_t i = 0; i < count; i++) {
@@ -166,7 +166,7 @@ static inline void bench_assembler_func_rt(InitStrategy strategy, size_t count) 
   if (strategy == InitStrategy::kInitReset) {
     for (size_t i = 0; i < count; i++) {
       code.init(rt.environment());
-      code.setErrorHandler(&eh);
+      code.set_error_handler(&eh);
       code.attach(&a);
       emit_raw_func(a);
 
@@ -179,7 +179,7 @@ static inline void bench_assembler_func_rt(InitStrategy strategy, size_t count) 
   }
   else {
     code.init(rt.environment());
-    code.setErrorHandler(&eh);
+    code.set_error_handler(&eh);
     code.attach(&a);
 
     for (size_t i = 0; i < count; i++) {
@@ -205,14 +205,14 @@ static inline void bench_builder(InitStrategy strategy, size_t count) {
   if (strategy == InitStrategy::kInitReset) {
     for (size_t i = 0; i < count; i++) {
       code.init(rt.environment());
-      code.setErrorHandler(&eh);
+      code.set_error_handler(&eh);
       code.attach(&b);
       code.reset();
     }
   }
   else {
     code.init(rt.environment());
-    code.setErrorHandler(&eh);
+    code.set_error_handler(&eh);
     code.attach(&b);
 
     for (size_t i = 0; i < count; i++) {
@@ -231,7 +231,7 @@ static inline void bench_builder_func(InitStrategy strategy, size_t count, bool 
   if (strategy == InitStrategy::kInitReset) {
     for (size_t i = 0; i < count; i++) {
       code.init(rt.environment());
-      code.setErrorHandler(&eh);
+      code.set_error_handler(&eh);
       code.attach(&b);
       emit_raw_func(b);
 
@@ -243,7 +243,7 @@ static inline void bench_builder_func(InitStrategy strategy, size_t count, bool 
   }
   else {
     code.init(rt.environment());
-    code.setErrorHandler(&eh);
+    code.set_error_handler(&eh);
     code.attach(&b);
 
     for (size_t i = 0; i < count; i++) {
@@ -269,7 +269,7 @@ static inline void bench_builder_func_finalize_rt(InitStrategy strategy, size_t 
   if (strategy == InitStrategy::kInitReset) {
     for (size_t i = 0; i < count; i++) {
       code.init(rt.environment());
-      code.setErrorHandler(&eh);
+      code.set_error_handler(&eh);
       code.attach(&b);
       emit_raw_func(b);
       b.finalize();
@@ -283,7 +283,7 @@ static inline void bench_builder_func_finalize_rt(InitStrategy strategy, size_t 
   }
   else {
     code.init(rt.environment());
-    code.setErrorHandler(&eh);
+    code.set_error_handler(&eh);
     code.attach(&b);
 
     for (size_t i = 0; i < count; i++) {
@@ -310,14 +310,14 @@ static inline void bench_compiler(InitStrategy strategy, size_t count) {
   if (strategy == InitStrategy::kInitReset) {
     for (size_t i = 0; i < count; i++) {
       code.init(rt.environment());
-      code.setErrorHandler(&eh);
+      code.set_error_handler(&eh);
       code.attach(&cc);
       code.reset();
     }
   }
   else {
     code.init(rt.environment());
-    code.setErrorHandler(&eh);
+    code.set_error_handler(&eh);
     code.attach(&cc);
 
     for (size_t i = 0; i < count; i++) {
@@ -336,12 +336,12 @@ static inline void bench_compiler_func(InitStrategy strategy, size_t count, bool
   if (strategy == InitStrategy::kInitReset) {
     for (size_t i = 0; i < count; i++) {
       code.init(rt.environment());
-      code.setErrorHandler(&eh);
+      code.set_error_handler(&eh);
       code.attach(&cc);
 
-      (void)cc.addFunc(FuncSignature::build<uint32_t>());
+      (void)cc.add_func(FuncSignature::build<uint32_t>());
       compile_raw_func(cc);
-      cc.endFunc();
+      cc.end_func();
 
       if (finalize) {
         cc.finalize();
@@ -352,15 +352,15 @@ static inline void bench_compiler_func(InitStrategy strategy, size_t count, bool
   }
   else {
     code.init(rt.environment());
-    code.setErrorHandler(&eh);
+    code.set_error_handler(&eh);
     code.attach(&cc);
 
     for (size_t i = 0; i < count; i++) {
       code.reinit();
 
-      (void)cc.addFunc(FuncSignature::build<uint32_t>());
+      (void)cc.add_func(FuncSignature::build<uint32_t>());
       compile_raw_func(cc);
-      cc.endFunc();
+      cc.end_func();
 
       if (finalize) {
         cc.finalize();
@@ -381,12 +381,12 @@ static inline void bench_compiler_func_rt(InitStrategy strategy, size_t count) {
   if (strategy == InitStrategy::kInitReset) {
     for (size_t i = 0; i < count; i++) {
       code.init(rt.environment());
-      code.setErrorHandler(&eh);
+      code.set_error_handler(&eh);
       code.attach(&cc);
 
-      (void)cc.addFunc(FuncSignature::build<uint32_t>());
+      (void)cc.add_func(FuncSignature::build<uint32_t>());
       compile_raw_func(cc);
-      cc.endFunc();
+      cc.end_func();
       cc.finalize();
 
       Func fn;
@@ -398,15 +398,15 @@ static inline void bench_compiler_func_rt(InitStrategy strategy, size_t count) {
   }
   else {
     code.init(rt.environment());
-    code.setErrorHandler(&eh);
+    code.set_error_handler(&eh);
     code.attach(&cc);
 
     for (size_t i = 0; i < count; i++) {
       code.reinit();
 
-      (void)cc.addFunc(FuncSignature::build<uint32_t>());
+      (void)cc.add_func(FuncSignature::build<uint32_t>());
       compile_raw_func(cc);
-      cc.endFunc();
+      cc.end_func();
       cc.finalize();
 
       Func fn;
@@ -418,15 +418,15 @@ static inline void bench_compiler_func_rt(InitStrategy strategy, size_t count) {
 #endif // ASMJIT_HAS_HOST_BACKEND && !ASMJIT_NO_COMPILER
 
 template<typename Lambda>
-static inline void test_perf(const char* benchName, InitStrategy strategy, size_t n, Lambda&& fn) {
+static inline void test_perf(const char* bench_name, InitStrategy strategy, size_t n, Lambda&& fn) {
   PerformanceTimer timer;
-  const char* strategyName = strategy == InitStrategy::kInitReset ? "init/reset" : "reinit    ";
+  const char* strategy_name = strategy == InitStrategy::kInitReset ? "init/reset" : "reinit    ";
 
   timer.start();
   fn(strategy, n);
   timer.stop();
 
-  printf("%-31s [%s]: %8.3f [ms]\n", benchName, strategyName, timer.duration());
+  printf("%-31s [%s]: %8.3f [ms]\n", bench_name, strategy_name, timer.duration());
 }
 
 static inline void test_perf_all(InitStrategy strategy, size_t n) {
@@ -448,18 +448,20 @@ static inline void test_perf_all(InitStrategy strategy, size_t n) {
 #endif
 
 #if defined(ASMJIT_HAS_HOST_BACKEND) && !defined(ASMJIT_NO_COMPILER)
+
   test_perf("Compiler"                       , strategy, n, [](IS s, size_t n) { bench_compiler<host::Compiler>(s, n); });
   test_perf("Compiler + Func"                , strategy, n, [](IS s, size_t n) { bench_compiler_func<host::Compiler>(s, n, false); });
   test_perf("Compiler + Func + Finalize"     , strategy, n, [](IS s, size_t n) { bench_compiler_func<host::Compiler>(s, n, true); });
+
   test_perf("Compiler + Func + Finalize + RT", strategy, n, [](IS s, size_t n) { bench_compiler_func_rt<host::Compiler>(s, n); });
 #endif
 }
 
 int main(int argc, char* argv[]) {
-  CmdLine cmdLine(argc, argv);
-  size_t n = cmdLine.valueAsUInt("--count", 1000000);
+  CmdLine cmd_line(argc, argv);
+  size_t n = cmd_line.value_as_uint("--count", 1000000);
 
-  printAppInfo(n);
+  print_app_info(n);
 
   test_perf_all(InitStrategy::kInitReset, n);
   printf("\n");
@@ -471,7 +473,7 @@ int main(int argc, char* argv[]) {
 #else
 
 int main() {
-  printAppInfo(0);
+  print_app_info(0);
   printf("!!AsmJit Benchmark Reuse is currently disabled: <ASMJIT_NO_JIT> or unsuitable target architecture !!\n");
   return 0;
 }

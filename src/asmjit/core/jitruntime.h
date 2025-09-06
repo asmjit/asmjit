@@ -51,11 +51,11 @@ public:
 
   //! Resets the \ref JitRuntime, freeing everything that was allocated by it.
   //!
-  //! Depending on `resetPolicy` the currently held memory can be either freed entirely when ResetPolicy::kHard is used,
+  //! Depending on `reset_policy` the currently held memory can be either freed entirely when ResetPolicy::kHard is used,
   //! or the allocator can keep some of it for next allocations when ResetPolicy::kSoft is used, which is the default
   //! behavior.
-  ASMJIT_INLINE_NODEBUG void reset(ResetPolicy resetPolicy = ResetPolicy::kSoft) noexcept {
-    _allocator.reset(resetPolicy);
+  ASMJIT_INLINE_NODEBUG void reset(ResetPolicy reset_policy = ResetPolicy::kSoft) noexcept {
+    _allocator.reset(reset_policy);
   }
 
   //! \}
@@ -65,7 +65,7 @@ public:
 
   //! Returns the associated `JitAllocator`.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG JitAllocator* allocator() const noexcept { return const_cast<JitAllocator*>(&_allocator); }
+  ASMJIT_INLINE_NODEBUG JitAllocator& allocator() const noexcept { return const_cast<JitAllocator&>(_allocator); }
 
   //! \}
 

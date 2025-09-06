@@ -18,64 +18,64 @@ ASMJIT_BEGIN_NAMESPACE
 // ==========================
 
 //! Encodes a MOD byte.
-static inline uint32_t x86EncodeMod(uint32_t m, uint32_t o, uint32_t rm) noexcept {
+static inline uint32_t x86_encode_mod(uint32_t m, uint32_t o, uint32_t rm) noexcept {
   return (m << 6) | (o << 3) | rm;
 }
 
 // CodeHolder - LabelEntry Globals & Utilities
 // ===========================================
 
-static constexpr LabelEntry::ExtraData _makeSharedLabelExtraData() noexcept {
-  LabelEntry::ExtraData extraData {};
-  extraData._sectionId = Globals::kInvalidId;
-  extraData._parentId = Globals::kInvalidId;
-  return extraData;
+static constexpr LabelEntry::ExtraData CodeHolder_make_shared_label_extra_data() noexcept {
+  LabelEntry::ExtraData extra_data {};
+  extra_data._section_id = Globals::kInvalidId;
+  extra_data._parent_id = Globals::kInvalidId;
+  return extra_data;
 }
 
-static constexpr LabelEntry::ExtraData CodeHolder_sharedLabelExtraData = _makeSharedLabelExtraData();
+static constexpr LabelEntry::ExtraData CodeHolder_sharedLabelExtraData = CodeHolder_make_shared_label_extra_data();
 
 class ResolveFixupIterator {
 public:
   Fixup* _fixup {};
-  Fixup** _pPrev {};
-  size_t _resolvedCount {};
-  size_t _unresolvedCount {};
+  Fixup** _prev {};
+  size_t _resolved_count {};
+  size_t _unresolved_count {};
 
-  ASMJIT_INLINE_NODEBUG explicit ResolveFixupIterator(Fixup** ppFixup) noexcept { reset(ppFixup); }
-  ASMJIT_INLINE_NODEBUG bool isValid() const noexcept { return _fixup != nullptr; }
+  ASMJIT_INLINE_NODEBUG explicit ResolveFixupIterator(Fixup** prev_fixup_ptr) noexcept { reset(prev_fixup_ptr); }
+  ASMJIT_INLINE_NODEBUG bool is_valid() const noexcept { return _fixup != nullptr; }
   ASMJIT_INLINE_NODEBUG Fixup* fixup() const noexcept { return _fixup; }
 
-  ASMJIT_INLINE void reset(Fixup** ppFixup) noexcept {
-    _pPrev = ppFixup;
-    _fixup = *_pPrev;
+  ASMJIT_INLINE void reset(Fixup** prev_fixup_ptr) noexcept {
+    _prev = prev_fixup_ptr;
+    _fixup = *_prev;
   }
 
   ASMJIT_INLINE void next() noexcept {
-    _pPrev = &_fixup->next;
-    _fixup = *_pPrev;
-    _unresolvedCount++;
+    _prev = &_fixup->next;
+    _fixup = *_prev;
+    _unresolved_count++;
   }
 
-  ASMJIT_INLINE void resolveAndNext(CodeHolder* code) noexcept {
-    Fixup* fixupToDelete = _fixup;
+  ASMJIT_INLINE void resolve_and_next(CodeHolder* code) noexcept {
+    Fixup* fixup_to_delete = _fixup;
 
     _fixup = _fixup->next;
-    *_pPrev = _fixup;
+    *_prev = _fixup;
 
-    _resolvedCount++;
-    code->_fixupDataPool.release(fixupToDelete);
+    _resolved_count++;
+    code->_fixup_data_pool.release(fixup_to_delete);
   }
 
-  ASMJIT_INLINE_NODEBUG size_t resolvedCount() const noexcept { return _resolvedCount; }
-  ASMJIT_INLINE_NODEBUG size_t unresolvedCount() const noexcept { return _unresolvedCount; }
+  ASMJIT_INLINE_NODEBUG size_t resolved_count() const noexcept { return _resolved_count; }
+  ASMJIT_INLINE_NODEBUG size_t unresolved_count() const noexcept { return _unresolved_count; }
 };
 
 // CodeHolder - Section Globals & Utilities
 // ========================================
 
-static const char CodeHolder_addrTabName[] = ".addrtab";
+static const char Section_address_table_name[] = ".addrtab";
 
-static ASMJIT_INLINE void Section_initName(
+static ASMJIT_INLINE void Section_init_name(
   Section* section,
   char c0 = 0, char c1 = 0, char c2 = 0, char c3 = 0,
   char c4 = 0, char c5 = 0, char c6 = 0, char c7 = 0) noexcept {
@@ -86,26 +86,26 @@ static ASMJIT_INLINE void Section_initName(
   section->_name.u32[3] = 0u;
 }
 
-static ASMJIT_INLINE void Section_initData(Section* section, uint32_t sectionId, SectionFlags flags, uint32_t alignment, int order) noexcept {
-  section->_sectionId = sectionId;
+static ASMJIT_INLINE void Section_init_data(Section* section, uint32_t section_id, SectionFlags flags, uint32_t alignment, int order) noexcept {
+  section->_section_id = section_id;
 
   // These two fields are not used by sections (see \ref LabelEntry for more details about why).
-  section->_internalLabelType = LabelType::kAnonymous;
-  section->_internalLabelFlags = LabelFlags::kNone;
+  section->_internal_label_type = LabelType::kAnonymous;
+  section->_internal_label_flags = LabelFlags::kNone;
 
-  section->assignFlags(flags);
+  section->assign_flags(flags);
   section->_alignment = alignment;
   section->_order = order;
   section->_offset = 0;
-  section->_virtualSize = 0;
+  section->_virtual_size = 0;
 }
 
-static ASMJIT_INLINE void Section_initBuffer(Section* section) noexcept {
+static ASMJIT_INLINE void Section_init_buffer(Section* section) noexcept {
   section->_buffer = CodeBuffer{};
 }
 
-static ASMJIT_INLINE void Section_releaseBuffer(Section* section) noexcept {
-  if (Support::bool_and(section->_buffer.data() != nullptr, !section->_buffer.isExternal())) {
+static ASMJIT_INLINE void Section_release_buffer(Section* section) noexcept {
+  if (Support::bool_and(section->_buffer.data() != nullptr, !section->_buffer.is_external())) {
     ::free(section->_buffer._data);
   }
 }
@@ -113,191 +113,187 @@ static ASMJIT_INLINE void Section_releaseBuffer(Section* section) noexcept {
 // CodeHolder - Utilities
 // ======================
 
-static ASMJIT_INLINE Error CodeHolder_initSectionStorage(CodeHolder* self) noexcept {
-  Error err1 = self->_sections.willGrow(&self->_allocator);
-  Error err2 = self->_sectionsByOrder.willGrow(&self->_allocator);
+static ASMJIT_INLINE Error CodeHolder_init_section_storage(CodeHolder* self) noexcept {
+  Error err1 = self->_sections.reserve_additional(self->_arena);
+  Error err2 = self->_sections_by_order.reserve_additional(self->_arena);
 
-  return err1 | err2;
+  return Error(uint32_t(err1) | uint32_t(err2));
 }
 
-static ASMJIT_INLINE void CodeHolder_addTextSection(CodeHolder* self) noexcept {
-  Section* textSection = &self->_textSection;
+static ASMJIT_INLINE void CodeHolder_add_text_section(CodeHolder* self) noexcept {
+  Section* text_section = &self->_text_section;
 
-  Section_initData(textSection, 0u, SectionFlags::kExecutable | SectionFlags::kReadOnly | SectionFlags::kBuiltIn, 0u, 0);
-  Section_initName(textSection, '.', 't', 'e', 'x', 't');
+  Section_init_data(text_section, 0u, SectionFlags::kExecutable | SectionFlags::kReadOnly | SectionFlags::kBuiltIn, 0u, 0);
+  Section_init_name(text_section, '.', 't', 'e', 'x', 't');
 
-  self->_sections.appendUnsafe(textSection);
-  self->_sectionsByOrder.appendUnsafe(textSection);
+  self->_sections.append_unchecked(text_section);
+  self->_sections_by_order.append_unchecked(text_section);
 }
 
-static ASMJIT_NOINLINE void CodeHolder_detachEmitters(CodeHolder* self) noexcept {
-  BaseEmitter* emitter = self->_attachedFirst;
+static ASMJIT_NOINLINE void CodeHolder_detach_emitters(CodeHolder* self) noexcept {
+  BaseEmitter* emitter = self->_attached_first;
 
   while (emitter) {
-    BaseEmitter* next = emitter->_attachedNext;
+    BaseEmitter* next = emitter->_attached_next;
 
-    emitter->_attachedPrev = nullptr;
-    (void)emitter->onDetach(*self);
-    emitter->_attachedNext = nullptr;
+    emitter->_attached_prev = nullptr;
+    (void)emitter->on_detach(*self);
+    emitter->_attached_next = nullptr;
     emitter->_code = nullptr;
 
     emitter = next;
-    self->_attachedFirst = next;
+    self->_attached_first = next;
   }
 
-  self->_attachedLast = nullptr;
+  self->_attached_last = nullptr;
 }
 
-static ASMJIT_INLINE void CodeHolder_resetEnvAndAttachedLogAndEH(CodeHolder* self) noexcept {
+static ASMJIT_INLINE void CodeHolder_reset_env_and_attached_logger_and_eh(CodeHolder* self) noexcept {
   self->_environment.reset();
-  self->_cpuFeatures.reset();
-  self->_baseAddress = Globals::kNoBaseAddress;
+  self->_cpu_features.reset();
+  self->_base_address = Globals::kNoBaseAddress;
   self->_logger = nullptr;
-  self->_errorHandler = nullptr;
+  self->_error_handler = nullptr;
 }
 
-// Reset zone allocator and all containers using it.
-static ASMJIT_INLINE void CodeHolder_resetSections(CodeHolder* self, ResetPolicy resetPolicy) noexcept {
+// Reset sections.
+static ASMJIT_INLINE void CodeHolder_reset_sections(CodeHolder* self, ResetPolicy reset_policy) noexcept {
   // Reset all sections except the first one (.text section).
-  uint32_t fromSection = resetPolicy == ResetPolicy::kHard ? 0u : 1u;
-  uint32_t sectionCount = self->_sections.size();
+  uint32_t from_section = reset_policy == ResetPolicy::kHard ? 0u : 1u;
+  uint32_t section_count = self->_sections._size;
 
-  for (uint32_t i = fromSection; i < sectionCount; i++) {
+  for (uint32_t i = from_section; i < section_count; i++) {
     Section* section = self->_sections[i];
 
-    Section_releaseBuffer(section);
+    Section_release_buffer(section);
     section->_buffer._data = nullptr;
     section->_buffer._capacity = 0;
   }
 }
 
-// Reset zone allocator and all containers using it.
-static ASMJIT_INLINE void CodeHolder_resetContainers(CodeHolder* self, ResetPolicy resetPolicy) noexcept {
+// Reset arena and all containers using it.
+static ASMJIT_INLINE void CodeHolder_reset_containers(CodeHolder* self, ResetPolicy reset_policy) noexcept {
   // Soft reset won't wipe out the .text section, so set its size to 0 for future reuse.
-  self->_textSection._buffer._size = 0;
+  self->_text_section._buffer._size = 0;
 
-  ZoneAllocator* allocator = self->allocator();
-
-  self->_namedLabels.reset();
+  self->_named_labels.reset();
   self->_relocations.reset();
-  self->_labelEntries.reset();
+  self->_label_entries.reset();
 
   self->_fixups = nullptr;
-  self->_fixupDataPool.reset();
-  self->_unresolvedFixupCount = 0;
+  self->_fixup_data_pool.reset();
+  self->_unresolved_fixup_count = 0;
 
   self->_sections.reset();
-  self->_sectionsByOrder.reset();
+  self->_sections_by_order.reset();
 
-  self->_addressTableSection = nullptr;
-  self->_addressTableEntries.reset();
+  self->_address_table_section = nullptr;
+  self->_address_table_entries.reset();
 
-  allocator->reset(&self->_zone);
-  self->_zone.reset(resetPolicy);
+  self->_arena.reset(reset_policy);
 }
 
-// Reset zone allocator and all containers using it.
-static ASMJIT_NOINLINE void CodeHolder_resetSectionsAndContainers(CodeHolder* self, ResetPolicy resetPolicy) noexcept {
-  CodeHolder_resetSections(self, resetPolicy);
-  CodeHolder_resetContainers(self, resetPolicy);
+// Reset sections and containers.
+static ASMJIT_NOINLINE void CodeHolder_reset_sections_and_containers(CodeHolder* self, ResetPolicy reset_policy) noexcept {
+  CodeHolder_reset_sections(self, reset_policy);
+  CodeHolder_reset_containers(self, reset_policy);
 }
 
-static ASMJIT_INLINE void CodeHolder_onSettingsUpdated(CodeHolder* self) noexcept {
+static ASMJIT_INLINE void CodeHolder_on_settings_updated(CodeHolder* self) noexcept {
   // Notify all attached emitters about a settings update.
-  BaseEmitter* emitter = self->_attachedFirst;
+  BaseEmitter* emitter = self->_attached_first;
   while (emitter) {
-    emitter->onSettingsUpdated();
-    emitter = emitter->_attachedNext;
+    emitter->on_settings_updated();
+    emitter = emitter->_attached_next;
   }
 }
 
 // CodeHolder - Construction & Destruction
 // =======================================
 
-CodeHolder::CodeHolder(const Support::Temporary* temporary) noexcept
+CodeHolder::CodeHolder(Span<uint8_t> static_arena_memory) noexcept
   : _environment(),
-    _cpuFeatures{},
-    _baseAddress(Globals::kNoBaseAddress),
+    _cpu_features{},
+    _base_address(Globals::kNoBaseAddress),
     _logger(nullptr),
-    _errorHandler(nullptr),
-    _zone(16u * 1024u, temporary),
-    _allocator(&_zone),
-    _attachedFirst(nullptr),
-    _attachedLast(nullptr),
+    _error_handler(nullptr),
+    _arena(16u * 1024u, static_arena_memory),
+    _attached_first(nullptr),
+    _attached_last(nullptr),
     _fixups(nullptr),
-    _unresolvedFixupCount(0),
-    _textSection{},
-    _addressTableSection(nullptr) {}
+    _unresolved_fixup_count(0),
+    _text_section{},
+    _address_table_section(nullptr) {}
 
 CodeHolder::~CodeHolder() noexcept {
-  if (isInitialized()) {
-    CodeHolder_detachEmitters(this);
-    CodeHolder_resetSections(this, ResetPolicy::kHard);
+  if (is_initialized()) {
+    CodeHolder_detach_emitters(this);
+    CodeHolder_reset_sections(this, ResetPolicy::kHard);
   }
   else {
-    Section_releaseBuffer(&_textSection);
+    Section_release_buffer(&_text_section);
   }
 }
 
 // CodeHolder - Initialization & Reset
 // ===================================
 
-Error CodeHolder::init(const Environment& environment, uint64_t baseAddress) noexcept {
-  return init(environment, CpuFeatures{}, baseAddress);
+Error CodeHolder::init(const Environment& environment, uint64_t base_address) noexcept {
+  return init(environment, CpuFeatures{}, base_address);
 }
 
-Error CodeHolder::init(const Environment& environment, const CpuFeatures& cpuFeatures, uint64_t baseAddress) noexcept {
+Error CodeHolder::init(const Environment& environment, const CpuFeatures& cpu_features, uint64_t base_address) noexcept {
   // Cannot initialize if it's already initialized or the environment passed is invalid.
-  if (ASMJIT_UNLIKELY(Support::bool_or(isInitialized(), !environment.isInitialized()))) {
-    Error err = isInitialized() ? kErrorAlreadyInitialized : kErrorInvalidArgument;
-    return DebugUtils::errored(err);
+  if (ASMJIT_UNLIKELY(Support::bool_or(is_initialized(), !environment.is_initialized()))) {
+    Error err = is_initialized() ? Error::kAlreadyInitialized : Error::kInvalidArgument;
+    return make_error(err);
   }
 
   // If we are just initializing there should be no emitters attached.
-  ASMJIT_ASSERT(_attachedFirst == nullptr);
-  ASMJIT_ASSERT(_attachedLast == nullptr);
+  ASMJIT_ASSERT(_attached_first == nullptr);
+  ASMJIT_ASSERT(_attached_last == nullptr);
 
   // Create a default section and insert it to the `_sections` array.
-  Error err = CodeHolder_initSectionStorage(this);
-  if (ASMJIT_UNLIKELY(err)) {
-    _zone.reset();
-    return DebugUtils::errored(kErrorOutOfMemory);
+  Error err = CodeHolder_init_section_storage(this);
+  if (ASMJIT_UNLIKELY(err != Error::kOk)) {
+    _arena.reset();
+    return make_error(Error::kOutOfMemory);
   }
 
   _environment = environment;
-  _cpuFeatures = cpuFeatures;
-  _baseAddress = baseAddress;
+  _cpu_features = cpu_features;
+  _base_address = base_address;
 
-  CodeHolder_addTextSection(this);
-  return kErrorOk;
+  CodeHolder_add_text_section(this);
+  return Error::kOk;
 }
 
 Error CodeHolder::reinit() noexcept {
   // Cannot reinitialize if it's not initialized.
-  if (ASMJIT_UNLIKELY(!isInitialized())) {
-    return DebugUtils::errored(kErrorNotInitialized);
+  if (ASMJIT_UNLIKELY(!is_initialized())) {
+    return make_error(Error::kNotInitialized);
   }
 
-  CodeHolder_resetSectionsAndContainers(this, ResetPolicy::kSoft);
+  CodeHolder_reset_sections_and_containers(this, ResetPolicy::kSoft);
 
   // Create a default section and insert it to the `_sections` array.
-  (void)CodeHolder_initSectionStorage(this);
-  CodeHolder_addTextSection(this);
+  (void)CodeHolder_init_section_storage(this);
+  CodeHolder_add_text_section(this);
 
-  BaseEmitter* emitter = _attachedFirst;
+  BaseEmitter* emitter = _attached_first;
   while (emitter) {
-    emitter->onReinit(*this);
-    emitter = emitter->_attachedNext;
+    emitter->on_reinit(*this);
+    emitter = emitter->_attached_next;
   }
 
-  return kErrorOk;
+  return Error::kOk;
 }
 
-void CodeHolder::reset(ResetPolicy resetPolicy) noexcept {
-  if (isInitialized()) {
-    CodeHolder_detachEmitters(this);
-    CodeHolder_resetEnvAndAttachedLogAndEH(this);
-    CodeHolder_resetSectionsAndContainers(this, resetPolicy);
+void CodeHolder::reset(ResetPolicy reset_policy) noexcept {
+  if (is_initialized()) {
+    CodeHolder_detach_emitters(this);
+    CodeHolder_reset_env_and_attached_logger_and_eh(this);
+    CodeHolder_reset_sections_and_containers(this, reset_policy);
   }
 }
 
@@ -307,81 +303,81 @@ void CodeHolder::reset(ResetPolicy resetPolicy) noexcept {
 Error CodeHolder::attach(BaseEmitter* emitter) noexcept {
   // Catch a possible misuse of the API.
   if (ASMJIT_UNLIKELY(!emitter)) {
-    return DebugUtils::errored(kErrorInvalidArgument);
+    return make_error(Error::kInvalidArgument);
   }
 
   // Invalid emitter, this should not be possible.
-  EmitterType type = emitter->emitterType();
+  EmitterType type = emitter->emitter_type();
   if (ASMJIT_UNLIKELY(type == EmitterType::kNone || uint32_t(type) > uint32_t(EmitterType::kMaxValue))) {
-    return DebugUtils::errored(kErrorInvalidState);
+    return make_error(Error::kInvalidState);
   }
 
-  uint64_t archMask = emitter->_archMask;
-  if (ASMJIT_UNLIKELY(!(archMask & (uint64_t(1) << uint32_t(arch()))))) {
-    return DebugUtils::errored(kErrorInvalidArch);
+  uint64_t arch_mask = emitter->_arch_mask;
+  if (ASMJIT_UNLIKELY(!(arch_mask & (uint64_t(1) << uint32_t(arch()))))) {
+    return make_error(Error::kInvalidArch);
   }
 
   // This is suspicious, but don't fail if `emitter` is already attached
   // to this code holder. This is not error, but it's not recommended.
   if (emitter->_code != nullptr) {
     if (emitter->_code == this) {
-      return kErrorOk;
+      return Error::kOk;
     }
-    return DebugUtils::errored(kErrorInvalidState);
+    return make_error(Error::kInvalidState);
   }
 
-  // Reserve the space now as we cannot fail after `onAttach()` succeeded.
-  ASMJIT_PROPAGATE(emitter->onAttach(*this));
+  // Reserve the space now as we cannot fail after `on_attach()` succeeded.
+  ASMJIT_PROPAGATE(emitter->on_attach(*this));
 
   // Make sure CodeHolder <-> BaseEmitter are connected.
   ASMJIT_ASSERT(emitter->_code == this);
 
   // Add `emitter` to a double linked-list.
   {
-    BaseEmitter* last = _attachedLast;
+    BaseEmitter* last = _attached_last;
 
-    emitter->_attachedPrev = last;
-    _attachedLast = emitter;
+    emitter->_attached_prev = last;
+    _attached_last = emitter;
 
     if (last) {
-      last->_attachedNext = emitter;
+      last->_attached_next = emitter;
     }
     else {
-      _attachedFirst = emitter;
+      _attached_first = emitter;
     }
   }
 
-  return kErrorOk;
+  return Error::kOk;
 }
 
 Error CodeHolder::detach(BaseEmitter* emitter) noexcept {
   if (ASMJIT_UNLIKELY(!emitter)) {
-    return DebugUtils::errored(kErrorInvalidArgument);
+    return make_error(Error::kInvalidArgument);
   }
 
   if (ASMJIT_UNLIKELY(emitter->_code != this)) {
-    return DebugUtils::errored(kErrorInvalidState);
+    return make_error(Error::kInvalidState);
   }
 
   // NOTE: We always detach if we were asked to, if error happens during
-  // `emitter->onDetach()` we just propagate it, but the BaseEmitter will
+  // `emitter->on_detach()` we just propagate it, but the BaseEmitter will
   // be detached.
-  Error err = kErrorOk;
-  if (!emitter->isDestroyed()) {
-    err = emitter->onDetach(*this);
+  Error err = Error::kOk;
+  if (!emitter->is_destroyed()) {
+    err = emitter->on_detach(*this);
   }
 
   // Remove `emitter` from a double linked-list.
   {
-    BaseEmitter* prev = emitter->_attachedPrev;
-    BaseEmitter* next = emitter->_attachedNext;
+    BaseEmitter* prev = emitter->_attached_prev;
+    BaseEmitter* next = emitter->_attached_next;
 
-    if (prev) { prev->_attachedNext = next; } else { _attachedFirst = next; }
-    if (next) { next->_attachedPrev = prev; } else { _attachedLast = prev; }
+    if (prev) { prev->_attached_next = next; } else { _attached_first = next; }
+    if (next) { next->_attached_prev = prev; } else { _attached_last = prev; }
 
     emitter->_code = nullptr;
-    emitter->_attachedPrev = nullptr;
-    emitter->_attachedNext = nullptr;
+    emitter->_attached_prev = nullptr;
+    emitter->_attached_next = nullptr;
   }
 
   return err;
@@ -390,68 +386,68 @@ Error CodeHolder::detach(BaseEmitter* emitter) noexcept {
 // CodeHolder - Logging
 // ====================
 
-void CodeHolder::setLogger(Logger* logger) noexcept {
+void CodeHolder::set_logger(Logger* logger) noexcept {
 #ifndef ASMJIT_NO_LOGGING
   _logger = logger;
-  CodeHolder_onSettingsUpdated(this);
+  CodeHolder_on_settings_updated(this);
 #else
-  DebugUtils::unused(logger);
+  Support::maybe_unused(logger);
 #endif
 }
 
 // CodeHolder - Error Handling
 // ===========================
 
-void CodeHolder::setErrorHandler(ErrorHandler* errorHandler) noexcept {
-  _errorHandler = errorHandler;
-  CodeHolder_onSettingsUpdated(this);
+void CodeHolder::set_error_handler(ErrorHandler* error_handler) noexcept {
+  _error_handler = error_handler;
+  CodeHolder_on_settings_updated(this);
 }
 
 // CodeHolder - Code Buffer
 // ========================
 
-static Error CodeHolder_reserveInternal(CodeHolder* self, CodeBuffer* cb, size_t n) noexcept {
-  uint8_t* oldData = cb->_data;
-  uint8_t* newData;
+static Error CodeHolder_reserve_internal(CodeHolder* self, CodeBuffer* cb, size_t n) noexcept {
+  uint8_t* old_data = cb->_data;
+  uint8_t* new_data;
 
-  if (oldData && !cb->isExternal()) {
-    newData = static_cast<uint8_t*>(::realloc(oldData, n));
+  if (old_data && !cb->is_external()) {
+    new_data = static_cast<uint8_t*>(::realloc(old_data, n));
   }
   else {
-    newData = static_cast<uint8_t*>(::malloc(n));
+    new_data = static_cast<uint8_t*>(::malloc(n));
   }
 
-  if (ASMJIT_UNLIKELY(!newData)) {
-    return DebugUtils::errored(kErrorOutOfMemory);
+  if (ASMJIT_UNLIKELY(!new_data)) {
+    return make_error(Error::kOutOfMemory);
   }
 
-  cb->_data = newData;
+  cb->_data = new_data;
   cb->_capacity = n;
 
   // Update pointers used by assemblers, if attached.
-  BaseEmitter* emitter = self->_attachedFirst;
+  BaseEmitter* emitter = self->_attached_first;
   while (emitter) {
-    if (emitter->isAssembler()) {
+    if (emitter->is_assembler()) {
       BaseAssembler* a = static_cast<BaseAssembler*>(emitter);
       if (&a->_section->_buffer == cb) {
         size_t offset = a->offset();
 
-        a->_bufferData = newData;
-        a->_bufferEnd  = newData + n;
-        a->_bufferPtr  = newData + offset;
+        a->_buffer_data = new_data;
+        a->_buffer_end  = new_data + n;
+        a->_buffer_ptr  = new_data + offset;
       }
     }
-    emitter = emitter->_attachedNext;
+    emitter = emitter->_attached_next;
   }
 
-  return kErrorOk;
+  return Error::kOk;
 }
 
-Error CodeHolder::growBuffer(CodeBuffer* cb, size_t n) noexcept {
+Error CodeHolder::grow_buffer(CodeBuffer* cb, size_t n) noexcept {
   // The size of the section must be valid.
   size_t size = cb->size();
   if (ASMJIT_UNLIKELY(n > std::numeric_limits<uintptr_t>::max() - size)) {
-    return DebugUtils::errored(kErrorOutOfMemory);
+    return make_error(Error::kOutOfMemory);
   }
 
   // We can now check if growing the buffer is really necessary. It's unlikely
@@ -460,11 +456,11 @@ Error CodeHolder::growBuffer(CodeBuffer* cb, size_t n) noexcept {
   size_t required = cb->size() + n;
 
   if (ASMJIT_UNLIKELY(required <= capacity)) {
-    return kErrorOk;
+    return Error::kOk;
   }
 
-  if (cb->isFixed()) {
-    return DebugUtils::errored(kErrorTooLarge);
+  if (cb->is_fixed()) {
+    return make_error(Error::kTooLarge);
   }
 
   size_t kInitialCapacity = 8192u - Globals::kAllocOverhead;
@@ -477,94 +473,93 @@ Error CodeHolder::growBuffer(CodeBuffer* cb, size_t n) noexcept {
 
   do {
     size_t old = capacity;
-    size_t capacityIncrease = capacity < Globals::kGrowThreshold ? capacity : Globals::kGrowThreshold;
+    size_t capacity_increase = capacity < Globals::kGrowThreshold ? capacity : Globals::kGrowThreshold;
 
-    capacity += capacityIncrease;
+    capacity += capacity_increase;
 
     // Overflow.
     if (ASMJIT_UNLIKELY(old > capacity)) {
-      return DebugUtils::errored(kErrorOutOfMemory);
+      return make_error(Error::kOutOfMemory);
     }
   } while (capacity - Globals::kAllocOverhead < required);
 
-  return CodeHolder_reserveInternal(this, cb, capacity - Globals::kAllocOverhead);
+  return CodeHolder_reserve_internal(this, cb, capacity - Globals::kAllocOverhead);
 }
 
-Error CodeHolder::reserveBuffer(CodeBuffer* cb, size_t n) noexcept {
+Error CodeHolder::reserve_buffer(CodeBuffer* cb, size_t n) noexcept {
   size_t capacity = cb->capacity();
 
   if (n <= capacity) {
-    return kErrorOk;
+    return Error::kOk;
   }
 
-  if (cb->isFixed()) {
-    return DebugUtils::errored(kErrorTooLarge);
+  if (cb->is_fixed()) {
+    return make_error(Error::kTooLarge);
   }
 
-  return CodeHolder_reserveInternal(this, cb, n);
+  return CodeHolder_reserve_internal(this, cb, n);
 }
 
 // CodeHolder - Sections
 // =====================
 
-Error CodeHolder::newSection(Section** sectionOut, const char* name, size_t nameSize, SectionFlags flags, uint32_t alignment, int32_t order) noexcept {
-  *sectionOut = nullptr;
+Error CodeHolder::new_section(Out<Section*> section_out, const char* name, size_t name_size, SectionFlags flags, uint32_t alignment, int32_t order) noexcept {
+  *section_out = nullptr;
 
-
-  if (ASMJIT_UNLIKELY(!Support::isZeroOrPowerOf2(alignment))) {
-    return DebugUtils::errored(kErrorInvalidArgument);
+  if (ASMJIT_UNLIKELY(!Support::is_zero_or_power_of_2(alignment))) {
+    return make_error(Error::kInvalidArgument);
   }
 
-  if (nameSize == SIZE_MAX) {
-    nameSize = strlen(name);
+  if (name_size == SIZE_MAX) {
+    name_size = strlen(name);
   }
 
-  if (ASMJIT_UNLIKELY(nameSize > Globals::kMaxSectionNameSize)) {
-    return DebugUtils::errored(kErrorInvalidSectionName);
+  if (ASMJIT_UNLIKELY(name_size > Globals::kMaxSectionNameSize)) {
+    return make_error(Error::kInvalidSectionName);
   }
 
-  uint32_t sectionId = _sections.size();
-  if (ASMJIT_UNLIKELY(sectionId == Globals::kInvalidId)) {
-    return DebugUtils::errored(kErrorTooManySections);
+  uint32_t section_id = _sections._size;
+  if (ASMJIT_UNLIKELY(section_id == Globals::kInvalidId)) {
+    return make_error(Error::kTooManySections);
   }
 
-  ASMJIT_PROPAGATE(_sections.willGrow(&_allocator));
-  ASMJIT_PROPAGATE(_sectionsByOrder.willGrow(&_allocator));
+  ASMJIT_PROPAGATE(_sections.reserve_additional(_arena));
+  ASMJIT_PROPAGATE(_sections_by_order.reserve_additional(_arena));
 
-  Section* section = _zone.alloc<Section>();
+  Section* section = _arena.alloc_oneshot<Section>();
   if (ASMJIT_UNLIKELY(!section)) {
-    return DebugUtils::errored(kErrorOutOfMemory);
+    return make_error(Error::kOutOfMemory);
   }
 
   if (alignment == 0u) {
     alignment = 1u;
   }
 
-  Section_initData(section, sectionId, flags, alignment, order);
-  Section_initBuffer(section);
-  memcpy(section->_name.str, name, nameSize);
+  Section_init_data(section, section_id, flags, alignment, order);
+  Section_init_buffer(section);
+  memcpy(section->_name.str, name, name_size);
 
-  Section** insertPosition = std::lower_bound(_sectionsByOrder.begin(), _sectionsByOrder.end(), section, [](const Section* a, const Section* b) {
-    return std::make_tuple(a->order(), a->sectionId()) < std::make_tuple(b->order(), b->sectionId());
+  Section** insert_position = std::lower_bound(_sections_by_order.begin(), _sections_by_order.end(), section, [](const Section* a, const Section* b) {
+    return std::make_tuple(a->order(), a->section_id()) < std::make_tuple(b->order(), b->section_id());
   });
 
-  _sections.appendUnsafe(section);
-  _sectionsByOrder.insertUnsafe((size_t)(insertPosition - _sectionsByOrder.data()), section);
+  _sections.append_unchecked(section);
+  _sections_by_order.insert_unchecked((size_t)(insert_position - _sections_by_order.data()), section);
 
-  *sectionOut = section;
-  return kErrorOk;
+  *section_out = section;
+  return Error::kOk;
 }
 
-Section* CodeHolder::sectionByName(const char* name, size_t nameSize) const noexcept {
-  if (nameSize == SIZE_MAX) {
-    nameSize = strlen(name);
+Section* CodeHolder::section_by_name(const char* name, size_t name_size) const noexcept {
+  if (name_size == SIZE_MAX) {
+    name_size = strlen(name);
   }
 
   // This could be also put in a hash-table similarly like we do with labels, however it's questionable as
   // the number of sections should be pretty low in general. Create an issue if this becomes a problem.
-  if (nameSize <= Globals::kMaxSectionNameSize) {
+  if (name_size <= Globals::kMaxSectionNameSize) {
     for (Section* section : _sections) {
-      if (memcmp(section->_name.str, name, nameSize) == 0 && section->_name.str[nameSize] == '\0') {
+      if (memcmp(section->_name.str, name, name_size) == 0 && section->_name.str[name_size] == '\0') {
         return section;
       }
     }
@@ -573,297 +568,298 @@ Section* CodeHolder::sectionByName(const char* name, size_t nameSize) const noex
   return nullptr;
 }
 
-Section* CodeHolder::ensureAddressTableSection() noexcept {
-  if (_addressTableSection) {
-    return _addressTableSection;
+Section* CodeHolder::ensure_address_table_section() noexcept {
+  if (_address_table_section) {
+    return _address_table_section;
   }
 
-  newSection(&_addressTableSection,
-             CodeHolder_addrTabName,
-             sizeof(CodeHolder_addrTabName) - 1,
+  new_section(Out(_address_table_section),
+             Section_address_table_name,
+             sizeof(Section_address_table_name) - 1,
              SectionFlags::kNone,
-             _environment.registerSize(),
+             _environment.register_size(),
              std::numeric_limits<int32_t>::max());
-  return _addressTableSection;
+  return _address_table_section;
 }
 
-Error CodeHolder::addAddressToAddressTable(uint64_t address) noexcept {
-  AddressTableEntry* entry = _addressTableEntries.get(address);
+Error CodeHolder::add_address_to_address_table(uint64_t address) noexcept {
+  AddressTableEntry* entry = _address_table_entries.get(address);
   if (entry) {
-    return kErrorOk;
+    return Error::kOk;
   }
 
-  Section* section = ensureAddressTableSection();
+  Section* section = ensure_address_table_section();
   if (ASMJIT_UNLIKELY(!section)) {
-    return DebugUtils::errored(kErrorOutOfMemory);
+    return make_error(Error::kOutOfMemory);
   }
 
-  entry = _zone.newT<AddressTableEntry>(address);
+  entry = _arena.new_oneshot<AddressTableEntry>(address);
   if (ASMJIT_UNLIKELY(!entry)) {
-    return DebugUtils::errored(kErrorOutOfMemory);
+    return make_error(Error::kOutOfMemory);
   }
 
-  _addressTableEntries.insert(entry);
-  section->_virtualSize += _environment.registerSize();
+  _address_table_entries.insert(entry);
+  section->_virtual_size += _environment.register_size();
 
-  return kErrorOk;
+  return Error::kOk;
 }
 
 // CodeHolder - Labels & Symbols
 // =============================
 
-//! Only used to lookup a label from `_namedLabels`.
+//! Only used to lookup a label from `_named_labels`.
 class LabelByName {
 public:
   const char* _key {};
-  uint32_t _keySize {};
-  uint32_t _hashCode {};
-  uint32_t _parentId {};
+  uint32_t _key_size {};
+  uint32_t _hash_code {};
+  uint32_t _parent_id {};
 
-  inline LabelByName(const char* key, size_t keySize, uint32_t hashCode, uint32_t parentId) noexcept
+  inline LabelByName(const char* key, size_t key_size, uint32_t hash_code, uint32_t parent_id) noexcept
     : _key(key),
-      _keySize(uint32_t(keySize)),
-      _hashCode(hashCode),
-      _parentId(parentId) {}
+      _key_size(uint32_t(key_size)),
+      _hash_code(hash_code),
+      _parent_id(parent_id) {}
 
   [[nodiscard]]
-  inline uint32_t hashCode() const noexcept { return _hashCode; }
+  inline uint32_t hash_code() const noexcept { return _hash_code; }
 
   [[nodiscard]]
   inline bool matches(const CodeHolder::NamedLabelExtraData* node) const noexcept {
-    return Support::bool_and(node->extraData._nameSize == _keySize,
-                             node->extraData._parentId == _parentId) &&
-           ::memcmp(node->extraData.name(), _key, _keySize) == 0;
+    return Support::bool_and(node->extra_data._name_size == _key_size,
+                             node->extra_data._parent_id == _parent_id) &&
+           ::memcmp(node->extra_data.name(), _key, _key_size) == 0;
   }
 };
 
-// Returns a hash of `name` and fixes `nameSize` if it's `SIZE_MAX`.
-static uint32_t CodeHolder_hashNameAndGetSize(const char* name, size_t& nameSize) noexcept {
-  uint32_t hashCode = 0;
-  if (nameSize == SIZE_MAX) {
+// Returns a hash of `name` and fixes `name_size` if it's `SIZE_MAX`.
+static uint32_t CodeHolder_hash_name_and_get_size(const char* name, size_t& name_size) noexcept {
+  uint32_t hash_code = 0;
+  if (name_size == SIZE_MAX) {
     size_t i = 0;
     for (;;) {
       uint8_t c = uint8_t(name[i]);
       if (!c) {
         break;
       }
-      hashCode = Support::hashRound(hashCode, c);
+      hash_code = Support::hash_char(hash_code, c);
       i++;
     }
-    nameSize = i;
+    name_size = i;
   }
   else {
-    for (size_t i = 0; i < nameSize; i++) {
+    for (size_t i = 0; i < name_size; i++) {
       uint8_t c = uint8_t(name[i]);
       if (ASMJIT_UNLIKELY(!c)) {
-        return DebugUtils::errored(kErrorInvalidLabelName);
+        name_size = i;
+        break;
       }
-      hashCode = Support::hashRound(hashCode, c);
+      hash_code = Support::hash_char(hash_code, c);
     }
   }
-  return hashCode;
+  return hash_code;
 }
 
-Fixup* CodeHolder::newFixup(LabelEntry& le, uint32_t sectionId, size_t offset, intptr_t rel, const OffsetFormat& format) noexcept {
+Fixup* CodeHolder::new_fixup(LabelEntry& le, uint32_t section_id, size_t offset, intptr_t rel, const OffsetFormat& format) noexcept {
   // Cannot be bound if we are creating a link.
-  ASMJIT_ASSERT(!le.isBound());
+  ASMJIT_ASSERT(!le.is_bound());
 
-  Fixup* link = _fixupDataPool.alloc(_zone);
+  Fixup* link = _fixup_data_pool.alloc(_arena);
   if (ASMJIT_UNLIKELY(!link)) {
     return nullptr;
   }
 
-  link->next = le._getFixups();
-  link->sectionId = sectionId;
-  link->labelOrRelocId = Globals::kInvalidId;
+  link->next = le._get_fixups();
+  link->section_id = section_id;
+  link->label_or_reloc_id = Globals::kInvalidId;
   link->offset = offset;
   link->rel = rel;
   link->format = format;
 
-  le._setFixups(link);
-  _unresolvedFixupCount++;
+  le._set_fixups(link);
+  _unresolved_fixup_count++;
 
   return link;
 }
 
-Error CodeHolder::newLabelId(uint32_t* labelIdOut) noexcept {
-  uint32_t labelId = _labelEntries.size();
-  Error err = _labelEntries.willGrow(&_allocator);
+Error CodeHolder::new_label_id(Out<uint32_t> label_id_out) noexcept {
+  uint32_t label_id = _label_entries._size;
+  Error err = _label_entries.reserve_additional(_arena);
 
-  if (ASMJIT_UNLIKELY(err != kErrorOk)) {
-    *labelIdOut = Globals::kInvalidId;
+  if (ASMJIT_UNLIKELY(err != Error::kOk)) {
+    label_id_out = Globals::kInvalidId;
     return err;
   }
   else {
-    *labelIdOut = labelId;
-    _labelEntries.appendUnsafe(LabelEntry{const_cast<LabelEntry::ExtraData*>(&CodeHolder_sharedLabelExtraData), uint64_t(0)});
-    return kErrorOk;
+    label_id_out = label_id;
+    _label_entries.append_unchecked(LabelEntry{const_cast<LabelEntry::ExtraData*>(&CodeHolder_sharedLabelExtraData), uint64_t(0)});
+    return Error::kOk;
   }
 }
 
-Error CodeHolder::newNamedLabelId(uint32_t* labelIdOut, const char* name, size_t nameSize, LabelType type, uint32_t parentId) noexcept {
-  uint32_t labelId = _labelEntries.size();
-  uint32_t hashCode = CodeHolder_hashNameAndGetSize(name, nameSize);
+Error CodeHolder::new_named_label_id(Out<uint32_t> label_id_out, const char* name, size_t name_size, LabelType type, uint32_t parent_id) noexcept {
+  uint32_t label_id = _label_entries._size;
+  uint32_t hash_code = CodeHolder_hash_name_and_get_size(name, name_size);
 
-  *labelIdOut = Globals::kInvalidId;
-  ASMJIT_PROPAGATE(_labelEntries.willGrow(&_allocator));
+  label_id_out = Globals::kInvalidId;
+  ASMJIT_PROPAGATE(_label_entries.reserve_additional(_arena));
 
-  if (nameSize == 0) {
+  if (name_size == 0) {
     if (type != LabelType::kAnonymous) {
-      return DebugUtils::errored(kErrorInvalidLabelName);
+      return make_error(Error::kInvalidLabelName);
     }
 
-    *labelIdOut = labelId;
-    _labelEntries.appendUnsafe(LabelEntry{const_cast<LabelEntry::ExtraData*>(&CodeHolder_sharedLabelExtraData), uint64_t(0)});
-    return kErrorOk;
+    label_id_out = label_id;
+    _label_entries.append_unchecked(LabelEntry{const_cast<LabelEntry::ExtraData*>(&CodeHolder_sharedLabelExtraData), uint64_t(0)});
+    return Error::kOk;
   }
 
-  if (ASMJIT_UNLIKELY(nameSize > Globals::kMaxLabelNameSize)) {
-    return DebugUtils::errored(kErrorLabelNameTooLong);
+  if (ASMJIT_UNLIKELY(name_size > Globals::kMaxLabelNameSize)) {
+    return make_error(Error::kLabelNameTooLong);
   }
 
-  size_t extraDataSize = sizeof(LabelEntry::ExtraData) + nameSize + 1u;
+  size_t extra_data_size = sizeof(LabelEntry::ExtraData) + name_size + 1u;
 
   switch (type) {
     case LabelType::kAnonymous: {
       // Anonymous labels cannot have a parent (or more specifically, parent is useless here).
-      if (ASMJIT_UNLIKELY(parentId != Globals::kInvalidId)) {
-        return DebugUtils::errored(kErrorInvalidParentLabel);
+      if (ASMJIT_UNLIKELY(parent_id != Globals::kInvalidId)) {
+        return make_error(Error::kInvalidParentLabel);
       }
 
-      LabelEntry::ExtraData* extraData = _zone.alloc<LabelEntry::ExtraData>(Support::alignUp(extraDataSize, Globals::kZoneAlignment));
-      if (ASMJIT_UNLIKELY(!extraData)) {
-        return DebugUtils::errored(kErrorOutOfMemory);
+      LabelEntry::ExtraData* extra_data = _arena.alloc_oneshot<LabelEntry::ExtraData>(Arena::aligned_size(extra_data_size));
+      if (ASMJIT_UNLIKELY(!extra_data)) {
+        return make_error(Error::kOutOfMemory);
       }
 
-      char* namePtr = reinterpret_cast<char*>(extraData) + sizeof(LabelEntry::ExtraData);
-      extraData->_sectionId = Globals::kInvalidId;
-      extraData->_internalLabelType = type;
-      extraData->_internalLabelFlags = LabelFlags::kHasOwnExtraData | LabelFlags::kHasName;
-      extraData->_internalUInt16Data = 0;
-      extraData->_parentId = Globals::kInvalidId;
-      extraData->_nameSize = uint32_t(nameSize);
-      memcpy(namePtr, name, nameSize);
-      namePtr[nameSize] = '\0';
+      char* name_ptr = reinterpret_cast<char*>(extra_data) + sizeof(LabelEntry::ExtraData);
+      extra_data->_section_id = Globals::kInvalidId;
+      extra_data->_internal_label_type = type;
+      extra_data->_internal_label_flags = LabelFlags::kHasOwnExtraData | LabelFlags::kHasName;
+      extra_data->_internal_uint16_data = 0;
+      extra_data->_parent_id = Globals::kInvalidId;
+      extra_data->_name_size = uint32_t(name_size);
+      memcpy(name_ptr, name, name_size);
+      name_ptr[name_size] = '\0';
 
-      *labelIdOut = labelId;
-      _labelEntries.appendUnsafe(LabelEntry{extraData, uint64_t(0)});
-      return kErrorOk;
+      label_id_out = label_id;
+      _label_entries.append_unchecked(LabelEntry{extra_data, uint64_t(0)});
+      return Error::kOk;
     }
 
     case LabelType::kLocal: {
-      if (ASMJIT_UNLIKELY(parentId >= _labelEntries.size())) {
-        return DebugUtils::errored(kErrorInvalidParentLabel);
+      if (ASMJIT_UNLIKELY(parent_id >= _label_entries.size())) {
+        return make_error(Error::kInvalidParentLabel);
       }
 
-      hashCode ^= parentId;
+      hash_code ^= parent_id;
       break;
     }
 
     case LabelType::kGlobal:
     case LabelType::kExternal: {
-      if (ASMJIT_UNLIKELY(parentId != Globals::kInvalidId)) {
-        return DebugUtils::errored(kErrorInvalidParentLabel);
+      if (ASMJIT_UNLIKELY(parent_id != Globals::kInvalidId)) {
+        return make_error(Error::kInvalidParentLabel);
       }
       break;
     }
 
     default: {
-      return DebugUtils::errored(kErrorInvalidArgument);
+      return make_error(Error::kInvalidArgument);
     }
   }
 
-  extraDataSize += sizeof(ZoneHashNode);
+  extra_data_size += sizeof(ArenaHashNode);
 
   // Don't allow to insert duplicates. Local labels allow duplicates that have different ids, however, this is
   // already accomplished by having a different hashes between the same label names having different parent labels.
-  NamedLabelExtraData* namedNode = _namedLabels.get(LabelByName(name, nameSize, hashCode, parentId));
-  if (ASMJIT_UNLIKELY(namedNode)) {
-    return DebugUtils::errored(kErrorLabelAlreadyDefined);
+  NamedLabelExtraData* named_node = _named_labels.get(LabelByName(name, name_size, hash_code, parent_id));
+  if (ASMJIT_UNLIKELY(named_node)) {
+    return make_error(Error::kLabelAlreadyDefined);
   }
 
-  namedNode = _zone.alloc<NamedLabelExtraData>(Support::alignUp(extraDataSize, Globals::kZoneAlignment));
-  if (ASMJIT_UNLIKELY(!namedNode)) {
-    return DebugUtils::errored(kErrorOutOfMemory);
+  named_node = _arena.alloc_oneshot<NamedLabelExtraData>(Arena::aligned_size(extra_data_size));
+  if (ASMJIT_UNLIKELY(!named_node)) {
+    return make_error(Error::kOutOfMemory);
   }
 
-  LabelFlags labelFlags =
-    (parentId == Globals::kInvalidId)
+  LabelFlags label_flags =
+    (parent_id == Globals::kInvalidId)
       ? LabelFlags::kHasOwnExtraData | LabelFlags::kHasName
       : LabelFlags::kHasOwnExtraData | LabelFlags::kHasName | LabelFlags::kHasParent;
 
-  namedNode->_hashNext = nullptr;
-  namedNode->_hashCode = hashCode;
-  namedNode->_customData = labelId;
-  namedNode->extraData._sectionId = Globals::kInvalidId;
-  namedNode->extraData._internalLabelType = type;
-  namedNode->extraData._internalLabelFlags = labelFlags;
-  namedNode->extraData._internalUInt16Data = 0;
-  namedNode->extraData._parentId = parentId;
-  namedNode->extraData._nameSize = uint32_t(nameSize);
+  named_node->_hash_next = nullptr;
+  named_node->_hash_code = hash_code;
+  named_node->_custom_data = label_id;
+  named_node->extra_data._section_id = Globals::kInvalidId;
+  named_node->extra_data._internal_label_type = type;
+  named_node->extra_data._internal_label_flags = label_flags;
+  named_node->extra_data._internal_uint16_data = 0;
+  named_node->extra_data._parent_id = parent_id;
+  named_node->extra_data._name_size = uint32_t(name_size);
 
-  char* namePtr = reinterpret_cast<char*>(&namedNode->extraData) + sizeof(LabelEntry::ExtraData);
-  memcpy(namePtr, name, nameSize);
-  namePtr[nameSize] = '\0';
+  char* name_ptr = reinterpret_cast<char*>(&named_node->extra_data) + sizeof(LabelEntry::ExtraData);
+  memcpy(name_ptr, name, name_size);
+  name_ptr[name_size] = '\0';
 
-  *labelIdOut = labelId;
-  _labelEntries.appendUnsafe(LabelEntry{&namedNode->extraData, uint64_t(0)});
-  _namedLabels.insert(allocator(), namedNode);
+  label_id_out = label_id;
+  _label_entries.append_unchecked(LabelEntry{&named_node->extra_data, uint64_t(0)});
+  _named_labels.insert(_arena, named_node);
 
-  return kErrorOk;
+  return Error::kOk;
 }
 
-uint32_t CodeHolder::labelIdByName(const char* name, size_t nameSize, uint32_t parentId) noexcept {
-  uint32_t hashCode = CodeHolder_hashNameAndGetSize(name, nameSize);
-  if (ASMJIT_UNLIKELY(!nameSize)) {
+uint32_t CodeHolder::label_id_by_name(const char* name, size_t name_size, uint32_t parent_id) noexcept {
+  uint32_t hash_code = CodeHolder_hash_name_and_get_size(name, name_size);
+  if (ASMJIT_UNLIKELY(!name_size)) {
     return 0;
   }
 
-  if (parentId != Globals::kInvalidId) {
-    hashCode ^= parentId;
+  if (parent_id != Globals::kInvalidId) {
+    hash_code ^= parent_id;
   }
 
-  NamedLabelExtraData* namedNode = _namedLabels.get(LabelByName(name, nameSize, hashCode, parentId));
-  return namedNode ? namedNode->labelId() : uint32_t(Globals::kInvalidId);
+  NamedLabelExtraData* named_node = _named_labels.get(LabelByName(name, name_size, hash_code, parent_id));
+  return named_node ? named_node->label_id() : uint32_t(Globals::kInvalidId);
 }
 
 
-ASMJIT_API Error CodeHolder::resolveCrossSectionFixups() noexcept {
-  if (!hasUnresolvedFixups()) {
-    return kErrorOk;
+ASMJIT_API Error CodeHolder::resolve_cross_section_fixups() noexcept {
+  if (!has_unresolved_fixups()) {
+    return Error::kOk;
   }
 
-  Error err = kErrorOk;
+  Error err = Error::kOk;
   ResolveFixupIterator it(&_fixups);
 
-  while (it.isValid()) {
+  while (it.is_valid()) {
     Fixup* fixup = it.fixup();
-    LabelEntry& le = labelEntry(fixup->labelOrRelocId);
+    LabelEntry& le = label_entry_of(fixup->label_or_reloc_id);
 
     Support::FastUInt8 of{};
-    Section* toSection = _sections[le.sectionId()];
-    uint64_t toOffset = Support::addOverflow(toSection->offset(), le.offset(), &of);
+    Section* to_section = _sections[le.section_id()];
+    uint64_t to_offset = Support::add_overflow(to_section->offset(), le.offset(), &of);
 
-    Section* fromSection = sectionById(fixup->sectionId);
-    size_t fixupOffset = fixup->offset;
+    Section* from_section = section_by_id(fixup->section_id);
+    size_t fixup_offset = fixup->offset;
 
-    CodeBuffer& buf = fromSection->buffer();
-    ASMJIT_ASSERT(fixupOffset < buf.size());
+    CodeBuffer& buf = from_section->buffer();
+    ASMJIT_ASSERT(fixup_offset < buf.size());
 
     // Calculate the offset relative to the start of the virtual base.
-    uint64_t fromOffset = Support::addOverflow<uint64_t>(fromSection->offset(), fixupOffset, &of);
-    int64_t displacement = int64_t(toOffset - fromOffset + uint64_t(int64_t(fixup->rel)));
+    uint64_t from_offset = Support::add_overflow<uint64_t>(from_section->offset(), fixup_offset, &of);
+    int64_t displacement = int64_t(to_offset - from_offset + uint64_t(int64_t(fixup->rel)));
 
     if (ASMJIT_UNLIKELY(of)) {
-      err = DebugUtils::errored(kErrorInvalidDisplacement);
+      err = make_error(Error::kInvalidDisplacement);
     }
     else {
-      ASMJIT_ASSERT(size_t(fixupOffset) < buf.size());
-      ASMJIT_ASSERT(buf.size() - size_t(fixupOffset) >= fixup->format.valueSize());
+      ASMJIT_ASSERT(size_t(fixup_offset) < buf.size());
+      ASMJIT_ASSERT(buf.size() - size_t(fixup_offset) >= fixup->format.value_size());
 
       // Overwrite a real displacement in the CodeBuffer.
-      if (CodeWriterUtils::writeOffset(buf._data + fixupOffset, displacement, fixup->format)) {
-        it.resolveAndNext(this);
+      if (CodeWriterUtils::write_offset(buf._data + fixup_offset, displacement, fixup->format)) {
+        it.resolve_and_next(this);
         continue;
       }
     }
@@ -871,140 +867,140 @@ ASMJIT_API Error CodeHolder::resolveCrossSectionFixups() noexcept {
     it.next();
   }
 
-  _unresolvedFixupCount -= it.resolvedCount();
+  _unresolved_fixup_count -= it.resolved_count();
   return err;
 }
 
-ASMJIT_API Error CodeHolder::bindLabel(const Label& label, uint32_t toSectionId, uint64_t toOffset) noexcept {
-  uint32_t labelId = label.id();
+ASMJIT_API Error CodeHolder::bind_label(const Label& label, uint32_t to_section_id, uint64_t to_offset) noexcept {
+  uint32_t label_id = label.id();
 
-  if (ASMJIT_UNLIKELY(labelId >= _labelEntries.size())) {
-    return DebugUtils::errored(kErrorInvalidLabel);
+  if (ASMJIT_UNLIKELY(label_id >= _label_entries.size())) {
+    return make_error(Error::kInvalidLabel);
   }
 
-  if (ASMJIT_UNLIKELY(toSectionId >= _sections.size())) {
-    return DebugUtils::errored(kErrorInvalidSection);
+  if (ASMJIT_UNLIKELY(to_section_id >= _sections.size())) {
+    return make_error(Error::kInvalidSection);
   }
 
-  LabelEntry& le = _labelEntries[labelId];
+  LabelEntry& le = _label_entries[label_id];
 
   // Label can be bound only once.
-  if (ASMJIT_UNLIKELY(le.isBound())) {
-    return DebugUtils::errored(kErrorLabelAlreadyBound);
+  if (ASMJIT_UNLIKELY(le.is_bound())) {
+    return make_error(Error::kLabelAlreadyBound);
   }
 
-  Section* section = _sections[toSectionId];
+  Section* section = _sections[to_section_id];
   CodeBuffer& buf = section->buffer();
 
-  // Bind the label - this either assigns a section to LabelEntry's `_objectData` or `_sectionId` in own `ExtraData`.
+  // Bind the label - this either assigns a section to LabelEntry's `_object_data` or `_section_id` in own `ExtraData`.
   // This is basically how this works - when the ExtraData is shared, we replace it by section as the section header
   // is compatible with ExtraData header, and when the LabelEntry has its own ExtraData, the section identifier must
   // be assigned.
-  if (le._hasOwnExtraData()) {
-    le._ownExtraData()->_sectionId = toSectionId;
+  if (le._has_own_extra_data()) {
+    le._own_extra_data()->_section_id = to_section_id;
   }
   else {
-    le._objectData = section;
+    le._object_data = section;
   }
 
-  // It must be in this order as _offsetsOrFixups as basically a union.
-  Fixup* labelFixups = le._getFixups();
-  le._offsetOrFixups = toOffset;
+  // It must be in this order as _offset_or_fixups as basically a union.
+  Fixup* label_fixups = le._get_fixups();
+  le._offset_or_fixups = to_offset;
 
-  if (!labelFixups) {
-    return kErrorOk;
+  if (!label_fixups) {
+    return Error::kOk;
   }
 
   // Fix all fixups of this label we have collected so far if they are within the same
   // section. We ignore any cross-section fixups as these have to be fixed later.
-  Error err = kErrorOk;
+  Error err = Error::kOk;
 
-  ResolveFixupIterator it(&labelFixups);
-  ASMJIT_ASSERT(it.isValid());
+  ResolveFixupIterator it(&label_fixups);
+  ASMJIT_ASSERT(it.is_valid());
 
   do {
     Fixup* fixup = it.fixup();
 
-    uint32_t relocId = fixup->labelOrRelocId;
-    uint32_t fromSectionId = fixup->sectionId;
-    size_t fromOffset = fixup->offset;
+    uint32_t reloc_id = fixup->label_or_reloc_id;
+    uint32_t from_section_id = fixup->section_id;
+    size_t from_offset = fixup->offset;
 
-    if (relocId != Globals::kInvalidId) {
+    if (reloc_id != Globals::kInvalidId) {
       // Adjust the relocation payload.
-      RelocEntry* re = _relocations[relocId];
-      re->_payload += toOffset;
-      re->_targetSectionId = toSectionId;
+      RelocEntry* re = _relocations[reloc_id];
+      re->_payload += to_offset;
+      re->_target_section_id = to_section_id;
     }
-    else if (fromSectionId != toSectionId) {
-      fixup->labelOrRelocId = labelId;
+    else if (from_section_id != to_section_id) {
+      fixup->label_or_reloc_id = label_id;
       it.next();
       continue;
     }
     else {
-      ASMJIT_ASSERT(fromOffset < buf.size());
-      int64_t displacement = int64_t(toOffset - uint64_t(fromOffset) + uint64_t(int64_t(fixup->rel)));
+      ASMJIT_ASSERT(from_offset < buf.size());
+      int64_t displacement = int64_t(to_offset - uint64_t(from_offset) + uint64_t(int64_t(fixup->rel)));
 
       // Size of the value we are going to patch.
-      ASMJIT_ASSERT(buf.size() - size_t(fromOffset) >= fixup->format.regionSize());
+      ASMJIT_ASSERT(buf.size() - size_t(from_offset) >= fixup->format.region_size());
 
       // Overwrite a real displacement in the CodeBuffer.
-      if (!CodeWriterUtils::writeOffset(buf._data + fromOffset, displacement, fixup->format)) {
-        err = DebugUtils::errored(kErrorInvalidDisplacement);
-        fixup->labelOrRelocId = labelId;
+      if (!CodeWriterUtils::write_offset(buf._data + from_offset, displacement, fixup->format)) {
+        err = make_error(Error::kInvalidDisplacement);
+        fixup->label_or_reloc_id = label_id;
         it.next();
         continue;
       }
     }
 
-    it.resolveAndNext(this);
-  } while (it.isValid());
+    it.resolve_and_next(this);
+  } while (it.is_valid());
 
-  if (it.unresolvedCount()) {
-    *it._pPrev = _fixups;
-    _fixups = labelFixups;
+  if (it.unresolved_count()) {
+    *it._prev = _fixups;
+    _fixups = label_fixups;
   }
 
-  _unresolvedFixupCount -= it.resolvedCount();
+  _unresolved_fixup_count -= it.resolved_count();
   return err;
 }
 
 // CodeHolder - Relocations
 // ========================
 
-Error CodeHolder::newRelocEntry(RelocEntry** dst, RelocType relocType) noexcept {
-  ASMJIT_PROPAGATE(_relocations.willGrow(&_allocator));
+Error CodeHolder::new_reloc_entry(Out<RelocEntry*> dst, RelocType reloc_type) noexcept {
+  ASMJIT_PROPAGATE(_relocations.reserve_additional(_arena));
 
-  uint32_t relocId = _relocations.size();
-  if (ASMJIT_UNLIKELY(relocId == Globals::kInvalidId)) {
-    return DebugUtils::errored(kErrorTooManyRelocations);
+  uint32_t reloc_id = _relocations._size;
+  if (ASMJIT_UNLIKELY(reloc_id == Globals::kInvalidId)) {
+    return make_error(Error::kTooManyRelocations);
   }
 
-  RelocEntry* re = _zone.alloc<RelocEntry>();
+  RelocEntry* re = _arena.alloc_oneshot<RelocEntry>();
   if (ASMJIT_UNLIKELY(!re)) {
-    return DebugUtils::errored(kErrorOutOfMemory);
+    return make_error(Error::kOutOfMemory);
   }
 
-  re->_id = relocId;
-  re->_relocType = relocType;
+  re->_id = reloc_id;
+  re->_reloc_type = reloc_type;
   re->_format = OffsetFormat{};
-  re->_sourceSectionId = Globals::kInvalidId;
-  re->_targetSectionId = Globals::kInvalidId;
-  re->_sourceOffset = 0;
+  re->_source_section_id = Globals::kInvalidId;
+  re->_target_section_id = Globals::kInvalidId;
+  re->_source_offset = 0;
   re->_payload = 0;
-  _relocations.appendUnsafe(re);
+  _relocations.append_unchecked(re);
 
-  *dst = re;
-  return kErrorOk;
+  dst = re;
+  return Error::kOk;
 }
 
 // CodeHolder - Expression Evaluation
 // ==================================
 
-static Error CodeHolder_evaluateExpression(CodeHolder* self, Expression* exp, uint64_t* out) noexcept {
+static Error CodeHolder_evaluate_expression(CodeHolder* self, Expression* exp, uint64_t* out) noexcept {
   uint64_t value[2];
   for (size_t i = 0; i < 2; i++) {
     uint64_t v;
-    switch (exp->valueType[i]) {
+    switch (exp->value_type[i]) {
       case ExpressionValueType::kNone: {
         v = 0;
         break;
@@ -1016,28 +1012,28 @@ static Error CodeHolder_evaluateExpression(CodeHolder* self, Expression* exp, ui
       }
 
       case ExpressionValueType::kLabel: {
-        uint32_t labelId = exp->value[i].labelId;
-        if (ASMJIT_UNLIKELY(labelId >= self->labelCount())) {
-          return DebugUtils::errored(kErrorInvalidLabel);
+        uint32_t label_id = exp->value[i].label_id;
+        if (ASMJIT_UNLIKELY(label_id >= self->label_count())) {
+          return make_error(Error::kInvalidLabel);
         }
 
-        LabelEntry& le = self->_labelEntries[labelId];
-        if (!le.isBound()) {
-          return DebugUtils::errored(kErrorExpressionLabelNotBound);
+        LabelEntry& le = self->_label_entries[label_id];
+        if (!le.is_bound()) {
+          return make_error(Error::kExpressionLabelNotBound);
         }
 
-        v = self->_sections[le.sectionId()]->offset() + le.offset();
+        v = self->_sections[le.section_id()]->offset() + le.offset();
         break;
       }
 
       case ExpressionValueType::kExpression: {
         Expression* nested = exp->value[i].expression;
-        ASMJIT_PROPAGATE(CodeHolder_evaluateExpression(self, nested, &v));
+        ASMJIT_PROPAGATE(CodeHolder_evaluate_expression(self, nested, &v));
         break;
       }
 
       default:
-        return DebugUtils::errored(kErrorInvalidState);
+        return make_error(Error::kInvalidState);
     }
 
     value[i] = v;
@@ -1047,7 +1043,7 @@ static Error CodeHolder_evaluateExpression(CodeHolder* self, Expression* exp, ui
   uint64_t& a = value[0];
   uint64_t& b = value[1];
 
-  switch (exp->opType) {
+  switch (exp->op_type) {
     case ExpressionOpType::kAdd:
       result = a + b;
       break;
@@ -1073,11 +1069,11 @@ static Error CodeHolder_evaluateExpression(CodeHolder* self, Expression* exp, ui
       break;
 
     default:
-      return DebugUtils::errored(kErrorInvalidState);
+      return make_error(Error::kInvalidState);
   }
 
   *out = result;
-  return kErrorOk;
+  return Error::kOk;
 }
 
 // CodeHolder - Utilities
@@ -1085,19 +1081,19 @@ static Error CodeHolder_evaluateExpression(CodeHolder* self, Expression* exp, ui
 
 Error CodeHolder::flatten() noexcept {
   uint64_t offset = 0;
-  for (Section* section : _sectionsByOrder) {
-    uint64_t realSize = section->realSize();
-    if (realSize) {
-      uint64_t alignedOffset = Support::alignUp(offset, section->alignment());
-      if (ASMJIT_UNLIKELY(alignedOffset < offset)) {
-        return DebugUtils::errored(kErrorTooLarge);
+  for (Section* section : _sections_by_order) {
+    uint64_t real_size = section->real_size();
+    if (real_size) {
+      uint64_t aligned_offset = Support::align_up(offset, section->alignment());
+      if (ASMJIT_UNLIKELY(aligned_offset < offset)) {
+        return make_error(Error::kTooLarge);
       }
 
       Support::FastUInt8 of = 0;
-      offset = Support::addOverflow(alignedOffset, realSize, &of);
+      offset = Support::add_overflow(aligned_offset, real_size, &of);
 
       if (ASMJIT_UNLIKELY(of)) {
-        return DebugUtils::errored(kErrorTooLarge);
+        return make_error(Error::kTooLarge);
       }
     }
   }
@@ -1105,36 +1101,36 @@ Error CodeHolder::flatten() noexcept {
   // Now we know that we can assign offsets of all sections properly.
   Section* prev = nullptr;
   offset = 0;
-  for (Section* section : _sectionsByOrder) {
-    uint64_t realSize = section->realSize();
-    if (realSize) {
-      offset = Support::alignUp(offset, section->alignment());
+  for (Section* section : _sections_by_order) {
+    uint64_t real_size = section->real_size();
+    if (real_size) {
+      offset = Support::align_up(offset, section->alignment());
     }
     section->_offset = offset;
 
     // Make sure the previous section extends a bit to cover the alignment.
     if (prev) {
-      prev->_virtualSize = offset - prev->_offset;
+      prev->_virtual_size = offset - prev->_offset;
     }
 
     prev = section;
-    offset += realSize;
+    offset += real_size;
   }
 
-  return kErrorOk;
+  return Error::kOk;
 }
 
-size_t CodeHolder::codeSize() const noexcept {
+size_t CodeHolder::code_size() const noexcept {
   Support::FastUInt8 of = 0;
   uint64_t offset = 0;
 
-  for (Section* section : _sectionsByOrder) {
-    uint64_t realSize = section->realSize();
+  for (Section* section : _sections_by_order) {
+    uint64_t real_size = section->real_size();
 
-    if (realSize) {
-      uint64_t alignedOffset = Support::alignUp(offset, section->alignment());
-      ASMJIT_ASSERT(alignedOffset >= offset);
-      offset = Support::addOverflow(alignedOffset, realSize, &of);
+    if (real_size) {
+      uint64_t aligned_offset = Support::align_up(offset, section->alignment());
+      ASMJIT_ASSERT(aligned_offset >= offset);
+      offset = Support::add_overflow(aligned_offset, real_size, &of);
     }
   }
 
@@ -1145,64 +1141,64 @@ size_t CodeHolder::codeSize() const noexcept {
   return size_t(offset);
 }
 
-Error CodeHolder::relocateToBase(uint64_t baseAddress, RelocationSummary* summaryOut) noexcept {
-  // Make sure `summaryOut` pointer is always valid as we want to fill it.
-  RelocationSummary summaryTmp;
-  if (summaryOut == nullptr) {
-    summaryOut = &summaryTmp;
+Error CodeHolder::relocate_to_base(uint64_t base_address, RelocationSummary* summary_out) noexcept {
+  // Make sure `summary_out` pointer is always valid as we want to fill it.
+  RelocationSummary summary_tmp;
+  if (summary_out == nullptr) {
+    summary_out = &summary_tmp;
   }
 
-  // Fill `summaryOut` defaults.
-  summaryOut->codeSizeReduction = 0u;
+  // Fill `summary_out` defaults.
+  summary_out->code_size_reduction = 0u;
 
   // Base address must be provided.
-  if (ASMJIT_UNLIKELY(baseAddress == Globals::kNoBaseAddress)) {
-    return DebugUtils::errored(kErrorInvalidArgument);
+  if (ASMJIT_UNLIKELY(base_address == Globals::kNoBaseAddress)) {
+    return make_error(Error::kInvalidArgument);
   }
 
-  _baseAddress = baseAddress;
-  uint32_t addressSize = _environment.registerSize();
+  _base_address = base_address;
+  uint32_t address_size = _environment.register_size();
 
-  Section* addressTableSection = _addressTableSection;
-  uint32_t addressTableEntryCount = 0;
-  uint8_t* addressTableEntryData = nullptr;
+  Section* address_table_section = _address_table_section;
+  uint32_t address_table_entry_size = 0;
+  uint8_t* address_table_entry_data = nullptr;
 
-  if (addressTableSection) {
-    ASMJIT_PROPAGATE(reserveBuffer(&addressTableSection->_buffer, size_t(addressTableSection->virtualSize())));
-    addressTableEntryData = addressTableSection->_buffer.data();
+  if (address_table_section) {
+    ASMJIT_PROPAGATE(reserve_buffer(&address_table_section->_buffer, size_t(address_table_section->virtual_size())));
+    address_table_entry_data = address_table_section->_buffer.data();
   }
 
   // Relocate all recorded locations.
   for (const RelocEntry* re : _relocations) {
     // Possibly deleted or optimized-out entry.
-    if (re->relocType() == RelocType::kNone) {
+    if (re->reloc_type() == RelocType::kNone) {
       continue;
     }
 
-    Section* sourceSection = sectionById(re->sourceSectionId());
-    Section* targetSection = nullptr;
+    Section* source_section = section_by_id(re->source_section_id());
+    Section* target_section = nullptr;
 
-    if (re->targetSectionId() != Globals::kInvalidId) {
-      targetSection = sectionById(re->targetSectionId());
+    if (re->target_section_id() != Globals::kInvalidId) {
+      target_section = section_by_id(re->target_section_id());
     }
 
     uint64_t value = re->payload();
-    uint64_t sectionOffset = sourceSection->offset();
-    uint64_t sourceOffset = re->sourceOffset();
+    uint64_t section_offset = source_section->offset();
+    uint64_t source_offset = re->source_offset();
 
     // Make sure that the `RelocEntry` doesn't go out of bounds.
-    size_t regionSize = re->format().regionSize();
-    if (ASMJIT_UNLIKELY(re->sourceOffset() >= sourceSection->bufferSize() ||
-                        sourceSection->bufferSize() - size_t(re->sourceOffset()) < regionSize)) {
-      return DebugUtils::errored(kErrorInvalidRelocEntry);
+    size_t region_size = re->format().region_size();
+    if (ASMJIT_UNLIKELY(re->source_offset() >= source_section->buffer_size() ||
+                        source_section->buffer_size() - size_t(re->source_offset()) < region_size)) {
+      return make_error(Error::kInvalidRelocEntry);
     }
 
-    uint8_t* buffer = sourceSection->data();
+    uint8_t* buffer = source_section->data();
 
-    switch (re->relocType()) {
+    switch (re->reloc_type()) {
       case RelocType::kExpression: {
         Expression* expression = (Expression*)(uintptr_t(value));
-        ASMJIT_PROPAGATE(CodeHolder_evaluateExpression(this, expression, &value));
+        ASMJIT_PROPAGATE(CodeHolder_evaluate_expression(this, expression, &value));
         break;
       }
 
@@ -1213,166 +1209,166 @@ Error CodeHolder::relocateToBase(uint64_t baseAddress, RelocationSummary* summar
       case RelocType::kRelToAbs: {
         // Value is currently a relative offset from the start of its section.
         // We have to convert it to an absolute offset (including base address).
-        if (ASMJIT_UNLIKELY(!targetSection)) {
-          return DebugUtils::errored(kErrorInvalidRelocEntry);
+        if (ASMJIT_UNLIKELY(!target_section)) {
+          return make_error(Error::kInvalidRelocEntry);
         }
 
-        //value += baseAddress + sectionOffset + sourceOffset + regionSize;
-        value += baseAddress + targetSection->offset();
+        //value += base_address + section_offset + source_offset + region_size;
+        value += base_address + target_section->offset();
         break;
       }
 
       case RelocType::kAbsToRel: {
-        value -= baseAddress + sectionOffset + sourceOffset + regionSize;
+        value -= base_address + section_offset + source_offset + region_size;
 
         // Sign extend as we are not interested in the high 32-bit word in a 32-bit address space.
-        if (addressSize <= 4) {
+        if (address_size <= 4) {
           value = uint64_t(int64_t(int32_t(value & 0xFFFFFFFFu)));
         }
-        else if (!Support::isInt32(int64_t(value))) {
-          return DebugUtils::errored(kErrorRelocOffsetOutOfRange);
+        else if (!Support::is_int_n<32>(int64_t(value))) {
+          return make_error(Error::kRelocOffsetOutOfRange);
         }
 
         break;
       }
 
       case RelocType::kX64AddressEntry: {
-        size_t valueOffset = size_t(re->sourceOffset()) + re->format().valueOffset();
-        if (re->format().valueSize() != 4 || valueOffset < 2) {
-          return DebugUtils::errored(kErrorInvalidRelocEntry);
+        size_t value_offset = size_t(re->source_offset()) + re->format().value_offset();
+        if (re->format().value_size() != 4 || value_offset < 2) {
+          return make_error(Error::kInvalidRelocEntry);
         }
 
         // First try whether a relative 32-bit displacement would work.
-        value -= baseAddress + sectionOffset + sourceOffset + regionSize;
-        if (!Support::isInt32(int64_t(value))) {
+        value -= base_address + section_offset + source_offset + region_size;
+        if (!Support::is_int_n<32>(int64_t(value))) {
           // Relative 32-bit displacement is not possible, use '.addrtab' section.
-          AddressTableEntry* atEntry = _addressTableEntries.get(re->payload());
-          if (ASMJIT_UNLIKELY(!atEntry)) {
-            return DebugUtils::errored(kErrorInvalidRelocEntry);
+          AddressTableEntry* at_entry = _address_table_entries.get(re->payload());
+          if (ASMJIT_UNLIKELY(!at_entry)) {
+            return make_error(Error::kInvalidRelocEntry);
           }
 
           // Cannot be null as we have just matched the `AddressTableEntry`.
-          ASMJIT_ASSERT(addressTableSection != nullptr);
+          ASMJIT_ASSERT(address_table_section != nullptr);
 
-          if (!atEntry->hasAssignedSlot()) {
-            atEntry->_slot = addressTableEntryCount++;
+          if (!at_entry->has_assigned_slot()) {
+            at_entry->_slot = address_table_entry_size++;
           }
 
-          size_t atEntryIndex = size_t(atEntry->slot()) * addressSize;
-          uint64_t addrSrc = sectionOffset + sourceOffset + regionSize;
-          uint64_t addrDst = addressTableSection->offset() + uint64_t(atEntryIndex);
+          size_t at_entry_index = size_t(at_entry->slot()) * address_size;
+          uint64_t addr_src = section_offset + source_offset + region_size;
+          uint64_t addr_dst = address_table_section->offset() + uint64_t(at_entry_index);
 
-          value = addrDst - addrSrc;
-          if (!Support::isInt32(int64_t(value))) {
-            return DebugUtils::errored(kErrorRelocOffsetOutOfRange);
+          value = addr_dst - addr_src;
+          if (!Support::is_int_n<32>(int64_t(value))) {
+            return make_error(Error::kRelocOffsetOutOfRange);
           }
 
           // Bytes that replace [REX, OPCODE] bytes.
           uint32_t byte0 = 0xFF;
-          uint32_t byte1 = buffer[valueOffset - 1];
+          uint32_t byte1 = buffer[value_offset - 1];
 
           if (byte1 == 0xE8) {
             // Patch CALL/MOD byte to FF /2 (-> 0x15).
-            byte1 = x86EncodeMod(0, 2, 5);
+            byte1 = x86_encode_mod(0, 2, 5);
           }
           else if (byte1 == 0xE9) {
             // Patch JMP/MOD byte to FF /4 (-> 0x25).
-            byte1 = x86EncodeMod(0, 4, 5);
+            byte1 = x86_encode_mod(0, 4, 5);
           }
           else {
-            return DebugUtils::errored(kErrorInvalidRelocEntry);
+            return make_error(Error::kInvalidRelocEntry);
           }
 
           // Patch `jmp/call` instruction.
-          buffer[valueOffset - 2] = uint8_t(byte0);
-          buffer[valueOffset - 1] = uint8_t(byte1);
+          buffer[value_offset - 2] = uint8_t(byte0);
+          buffer[value_offset - 1] = uint8_t(byte1);
 
-          Support::storeu_u64_le(addressTableEntryData + atEntryIndex, re->payload());
+          Support::storeu_u64_le(address_table_entry_data + at_entry_index, re->payload());
         }
         break;
       }
 
       default:
-        return DebugUtils::errored(kErrorInvalidRelocEntry);
+        return make_error(Error::kInvalidRelocEntry);
     }
 
-    if (!CodeWriterUtils::writeOffset(buffer + re->sourceOffset(), int64_t(value), re->format())) {
-      return DebugUtils::errored(kErrorInvalidRelocEntry);
+    if (!CodeWriterUtils::write_offset(buffer + re->source_offset(), int64_t(value), re->format())) {
+      return make_error(Error::kInvalidRelocEntry);
     }
   }
 
   // Fixup the virtual size of the address table if it's the last section.
-  if (_sectionsByOrder.last() == addressTableSection) {
-    ASMJIT_ASSERT(addressTableSection != nullptr);
+  if (_sections_by_order.last() == address_table_section) {
+    ASMJIT_ASSERT(address_table_section != nullptr);
 
-    size_t reservedSize = size_t(addressTableSection->_virtualSize);
-    size_t addressTableSize = addressTableEntryCount * addressSize;
+    size_t reserved_size = size_t(address_table_section->_virtual_size);
+    size_t address_table_size = address_table_entry_size * address_size;
 
-    addressTableSection->_buffer._size = addressTableSize;
-    addressTableSection->_virtualSize = addressTableSize;
+    address_table_section->_buffer._size = address_table_size;
+    address_table_section->_virtual_size = address_table_size;
 
-    ASMJIT_ASSERT(reservedSize >= addressTableSize);
-    size_t codeSizeReduction = reservedSize - addressTableSize;
+    ASMJIT_ASSERT(reserved_size >= address_table_size);
+    size_t code_size_reduction = reserved_size - address_table_size;
 
-    summaryOut->codeSizeReduction = codeSizeReduction;
+    summary_out->code_size_reduction = code_size_reduction;
   }
 
-  return kErrorOk;
+  return Error::kOk;
 }
 
-Error CodeHolder::copySectionData(void* dst, size_t dstSize, uint32_t sectionId, CopySectionFlags copyFlags) noexcept {
-  if (ASMJIT_UNLIKELY(!isSectionValid(sectionId))) {
-    return DebugUtils::errored(kErrorInvalidSection);
+Error CodeHolder::copy_section_data(void* dst, size_t dst_size, uint32_t section_id, CopySectionFlags copy_flags) noexcept {
+  if (ASMJIT_UNLIKELY(!is_section_valid(section_id))) {
+    return make_error(Error::kInvalidSection);
   }
 
-  Section* section = sectionById(sectionId);
-  size_t bufferSize = section->bufferSize();
+  Section* section = section_by_id(section_id);
+  size_t buffer_size = section->buffer_size();
 
-  if (ASMJIT_UNLIKELY(dstSize < bufferSize)) {
-    return DebugUtils::errored(kErrorInvalidArgument);
+  if (ASMJIT_UNLIKELY(dst_size < buffer_size)) {
+    return make_error(Error::kInvalidArgument);
   }
 
-  memcpy(dst, section->data(), bufferSize);
+  memcpy(dst, section->data(), buffer_size);
 
-  if (bufferSize < dstSize && Support::test(copyFlags, CopySectionFlags::kPadSectionBuffer)) {
-    size_t paddingSize = dstSize - bufferSize;
-    memset(static_cast<uint8_t*>(dst) + bufferSize, 0, paddingSize);
+  if (buffer_size < dst_size && Support::test(copy_flags, CopySectionFlags::kPadSectionBuffer)) {
+    size_t padding_size = dst_size - buffer_size;
+    memset(static_cast<uint8_t*>(dst) + buffer_size, 0, padding_size);
   }
 
-  return kErrorOk;
+  return Error::kOk;
 }
 
-Error CodeHolder::copyFlattenedData(void* dst, size_t dstSize, CopySectionFlags copyFlags) noexcept {
+Error CodeHolder::copy_flattened_data(void* dst, size_t dst_size, CopySectionFlags copy_flags) noexcept {
   size_t end = 0;
-  for (Section* section : _sectionsByOrder) {
-    if (section->offset() > dstSize) {
-      return DebugUtils::errored(kErrorInvalidArgument);
+  for (Section* section : _sections_by_order) {
+    if (section->offset() > dst_size) {
+      return make_error(Error::kInvalidArgument);
     }
 
-    size_t bufferSize = section->bufferSize();
+    size_t buffer_size = section->buffer_size();
     size_t offset = size_t(section->offset());
 
-    if (ASMJIT_UNLIKELY(dstSize - offset < bufferSize)) {
-      return DebugUtils::errored(kErrorInvalidArgument);
+    if (ASMJIT_UNLIKELY(dst_size - offset < buffer_size)) {
+      return make_error(Error::kInvalidArgument);
     }
 
-    uint8_t* dstTarget = static_cast<uint8_t*>(dst) + offset;
-    size_t paddingSize = 0;
-    memcpy(dstTarget, section->data(), bufferSize);
+    uint8_t* dst_target = static_cast<uint8_t*>(dst) + offset;
+    size_t padding_size = 0;
+    memcpy(dst_target, section->data(), buffer_size);
 
-    if (Support::test(copyFlags, CopySectionFlags::kPadSectionBuffer) && bufferSize < section->virtualSize()) {
-      paddingSize = Support::min<size_t>(dstSize - offset, size_t(section->virtualSize())) - bufferSize;
-      memset(dstTarget + bufferSize, 0, paddingSize);
+    if (Support::test(copy_flags, CopySectionFlags::kPadSectionBuffer) && buffer_size < section->virtual_size()) {
+      padding_size = Support::min<size_t>(dst_size - offset, size_t(section->virtual_size())) - buffer_size;
+      memset(dst_target + buffer_size, 0, padding_size);
     }
 
-    end = Support::max(end, offset + bufferSize + paddingSize);
+    end = Support::max(end, offset + buffer_size + padding_size);
   }
 
-  if (end < dstSize && Support::test(copyFlags, CopySectionFlags::kPadTargetBuffer)) {
-    memset(static_cast<uint8_t*>(dst) + end, 0, dstSize - end);
+  if (end < dst_size && Support::test(copy_flags, CopySectionFlags::kPadTargetBuffer)) {
+    memset(static_cast<uint8_t*>(dst) + end, 0, dst_size - end);
   }
 
-  return kErrorOk;
+  return Error::kOk;
 }
 
 // CodeHolder - Tests
@@ -1390,47 +1386,47 @@ UNIT(code_holder) {
   EXPECT_EQ(code.arch(), Arch::kX86);
 
   INFO("Verifying named labels");
-  uint32_t dummyId;
-  uint32_t labelId1;
-  uint32_t labelId2;
+  uint32_t dummy_id;
+  uint32_t label_id1;
+  uint32_t label_id2;
 
-  // Anonymous labels can have no-name (this is basically like calling `code.newLabelId()`).
-  EXPECT_EQ(code.newNamedLabelId(&dummyId, "", SIZE_MAX, LabelType::kAnonymous), kErrorOk);
+  // Anonymous labels can have no-name (this is basically like calling `code.new_label_id()`).
+  EXPECT_EQ(code.new_named_label_id(Out(dummy_id), "", SIZE_MAX, LabelType::kAnonymous), Error::kOk);
 
   // Global labels must have a name - not providing one is an error.
-  EXPECT_EQ(code.newNamedLabelId(&dummyId, "", SIZE_MAX, LabelType::kGlobal), kErrorInvalidLabelName);
+  EXPECT_EQ(code.new_named_label_id(Out(dummy_id), "", SIZE_MAX, LabelType::kGlobal), Error::kInvalidLabelName);
 
   // A name of a global label cannot repeat.
-  EXPECT_EQ(code.newNamedLabelId(&labelId1, "NamedLabel1", SIZE_MAX, LabelType::kGlobal), kErrorOk);
-  EXPECT_EQ(code.newNamedLabelId(&dummyId, "NamedLabel1", SIZE_MAX, LabelType::kGlobal), kErrorLabelAlreadyDefined);
-  EXPECT_TRUE(code.isLabelValid(labelId1));
-  EXPECT_EQ(code.labelEntry(labelId1).nameSize(), 11u);
-  EXPECT_EQ(strcmp(code.labelEntry(labelId1).name(), "NamedLabel1"), 0);
-  EXPECT_EQ(code.labelIdByName("NamedLabel1"), labelId1);
+  EXPECT_EQ(code.new_named_label_id(Out(label_id1), "NamedLabel1", SIZE_MAX, LabelType::kGlobal), Error::kOk);
+  EXPECT_EQ(code.new_named_label_id(Out(dummy_id), "NamedLabel1", SIZE_MAX, LabelType::kGlobal), Error::kLabelAlreadyDefined);
+  EXPECT_TRUE(code.is_label_valid(label_id1));
+  EXPECT_EQ(code.label_entry_of(label_id1).name_size(), 11u);
+  EXPECT_EQ(strcmp(code.label_entry_of(label_id1).name(), "NamedLabel1"), 0);
+  EXPECT_EQ(code.label_id_by_name("NamedLabel1"), label_id1);
 
-  EXPECT_EQ(code.newNamedLabelId(&labelId2, "NamedLabel2", SIZE_MAX, LabelType::kGlobal), kErrorOk);
-  EXPECT_EQ(code.newNamedLabelId(&dummyId, "NamedLabel2", SIZE_MAX, LabelType::kGlobal), kErrorLabelAlreadyDefined);
-  EXPECT_TRUE(code.isLabelValid(labelId2));
-  EXPECT_EQ(code.labelEntry(labelId2).nameSize(), 11u);
-  EXPECT_EQ(strcmp(code.labelEntry(labelId2).name(), "NamedLabel2"), 0);
-  EXPECT_EQ(code.labelIdByName("NamedLabel2"), labelId2);
+  EXPECT_EQ(code.new_named_label_id(Out(label_id2), "NamedLabel2", SIZE_MAX, LabelType::kGlobal), Error::kOk);
+  EXPECT_EQ(code.new_named_label_id(Out(dummy_id), "NamedLabel2", SIZE_MAX, LabelType::kGlobal), Error::kLabelAlreadyDefined);
+  EXPECT_TRUE(code.is_label_valid(label_id2));
+  EXPECT_EQ(code.label_entry_of(label_id2).name_size(), 11u);
+  EXPECT_EQ(strcmp(code.label_entry_of(label_id2).name(), "NamedLabel2"), 0);
+  EXPECT_EQ(code.label_id_by_name("NamedLabel2"), label_id2);
 
   INFO("Verifying section ordering");
   Section* section1;
-  EXPECT_EQ(code.newSection(&section1, "high-priority", SIZE_MAX, SectionFlags::kNone, 1, -1), kErrorOk);
+  EXPECT_EQ(code.new_section(Out(section1), "high-priority", SIZE_MAX, SectionFlags::kNone, 1, -1), Error::kOk);
   EXPECT_EQ(code.sections()[1], section1);
-  EXPECT_EQ(code.sectionsByOrder()[0], section1);
+  EXPECT_EQ(code.sections_by_order()[0], section1);
 
   Section* section0;
-  EXPECT_EQ(code.newSection(&section0, "higher-priority", SIZE_MAX, SectionFlags::kNone, 1, -2), kErrorOk);
+  EXPECT_EQ(code.new_section(Out(section0), "higher-priority", SIZE_MAX, SectionFlags::kNone, 1, -2), Error::kOk);
   EXPECT_EQ(code.sections()[2], section0);
-  EXPECT_EQ(code.sectionsByOrder()[0], section0);
-  EXPECT_EQ(code.sectionsByOrder()[1], section1);
+  EXPECT_EQ(code.sections_by_order()[0], section0);
+  EXPECT_EQ(code.sections_by_order()[1], section1);
 
   Section* section3;
-  EXPECT_EQ(code.newSection(&section3, "low-priority", SIZE_MAX, SectionFlags::kNone, 1, 2), kErrorOk);
+  EXPECT_EQ(code.new_section(Out(section3), "low-priority", SIZE_MAX, SectionFlags::kNone, 1, 2), Error::kOk);
   EXPECT_EQ(code.sections()[3], section3);
-  EXPECT_EQ(code.sectionsByOrder()[3], section3);
+  EXPECT_EQ(code.sections_by_order()[3], section3);
 }
 #endif
 

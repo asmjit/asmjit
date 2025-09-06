@@ -27,7 +27,7 @@ public:
 
   //! \cond INTERNAL
   static inline constexpr uint32_t kMaxFeatures = 256;
-  static inline constexpr uint32_t kNumBitWords = kMaxFeatures / Support::kBitWordSizeInBits;
+  static inline constexpr uint32_t kNumBitWords = kMaxFeatures / Support::bit_size_of<Support::BitWord>;
   //! \endcond
 
   //! \}
@@ -73,7 +73,7 @@ public:
 
     //! Returns true if there are no features set.
     [[nodiscard]]
-    ASMJIT_INLINE_NODEBUG bool empty() const noexcept { return _bits.aggregate<Support::Or>(0) == 0; }
+    ASMJIT_INLINE_NODEBUG bool is_empty() const noexcept { return _bits.aggregate<Support::Or>(0) == 0; }
 
     //! Returns all features as array of bitwords (see \ref Support::BitWord).
     [[nodiscard]]
@@ -85,20 +85,20 @@ public:
 
     //! Returns the number of BitWords returned by \ref bits().
     [[nodiscard]]
-    ASMJIT_INLINE_NODEBUG size_t bitWordCount() const noexcept { return kNumBitWords; }
+    ASMJIT_INLINE_NODEBUG size_t bit_word_count() const noexcept { return kNumBitWords; }
 
     //! Returns \ref Support::BitVectorIterator, that can be used to iterate over all features efficiently.
     [[nodiscard]]
-    ASMJIT_INLINE_NODEBUG Iterator iterator() const noexcept { return Iterator(_bits.data(), kNumBitWords); }
+    ASMJIT_INLINE_NODEBUG Iterator iterator() const noexcept { return Iterator(_bits.as_span()); }
 
-    //! Tests whether the feature `featureId` is present.
+    //! Tests whether the feature `feature_id` is present.
     template<typename FeatureId>
     [[nodiscard]]
-    ASMJIT_INLINE_NODEBUG bool has(const FeatureId& featureId) const noexcept {
-      ASMJIT_ASSERT(uint32_t(featureId) < kMaxFeatures);
+    ASMJIT_INLINE_NODEBUG bool has(const FeatureId& feature_id) const noexcept {
+      ASMJIT_ASSERT(uint32_t(feature_id) < kMaxFeatures);
 
-      uint32_t idx = uint32_t(featureId) / Support::kBitWordSizeInBits;
-      uint32_t bit = uint32_t(featureId) % Support::kBitWordSizeInBits;
+      uint32_t idx = uint32_t(feature_id) / Support::bit_size_of<BitWord>;
+      uint32_t bit = uint32_t(feature_id) % Support::bit_size_of<BitWord>;
 
       return bool((_bits[idx] >> bit) & 0x1);
     }
@@ -106,8 +106,8 @@ public:
     //! \cond NONE
     template<typename FeatureId>
     [[nodiscard]]
-    ASMJIT_INLINE_NODEBUG bool hasAny(const FeatureId& featureId) const noexcept {
-      return has(featureId);
+    ASMJIT_INLINE_NODEBUG bool has_any(const FeatureId& feature_id) const noexcept {
+      return has(feature_id);
     }
     //! \endcond
 
@@ -116,13 +116,13 @@ public:
     //! \note This is a variadic function template that can be used with multiple features.
     template<typename FeatureId, typename... Args>
     [[nodiscard]]
-    ASMJIT_INLINE_NODEBUG bool hasAny(const FeatureId& featureId, Args&&... otherFeatureIds) const noexcept {
-      return bool(unsigned(has(featureId)) | unsigned(hasAny(std::forward<Args>(otherFeatureIds)...)));
+    ASMJIT_INLINE_NODEBUG bool has_any(const FeatureId& feature_id, Args&&... other_feature_ids) const noexcept {
+      return bool(unsigned(has(feature_id)) | unsigned(has_any(std::forward<Args>(other_feature_ids)...)));
     }
 
     //! Tests whether all features as defined by `other` are present.
     [[nodiscard]]
-    ASMJIT_INLINE_NODEBUG bool hasAll(const Data& other) const noexcept {
+    ASMJIT_INLINE_NODEBUG bool has_all(const Data& other) const noexcept {
       uint32_t result = 1;
       for (uint32_t i = 0; i < kNumBitWords; i++)
         result &= uint32_t((_bits[i] & other._bits[i]) == other._bits[i]);
@@ -137,54 +137,54 @@ public:
     //! Clears all features set.
     ASMJIT_INLINE_NODEBUG void reset() noexcept { _bits.fill(0); }
 
-    //! Adds the given CPU `featureId` to the list of features.
+    //! Adds the given CPU `feature_id` to the list of features.
     template<typename FeatureId>
-    inline void add(const FeatureId& featureId) noexcept {
-      ASMJIT_ASSERT(uint32_t(featureId) < kMaxFeatures);
+    inline void add(const FeatureId& feature_id) noexcept {
+      ASMJIT_ASSERT(uint32_t(feature_id) < kMaxFeatures);
 
-      uint32_t idx = uint32_t(featureId) / Support::kBitWordSizeInBits;
-      uint32_t bit = uint32_t(featureId) % Support::kBitWordSizeInBits;
+      uint32_t idx = uint32_t(feature_id) / Support::bit_size_of<BitWord>;
+      uint32_t bit = uint32_t(feature_id) % Support::bit_size_of<BitWord>;
 
       _bits[idx] |= BitWord(1) << bit;
     }
 
     template<typename FeatureId, typename... Args>
-    inline void add(const FeatureId& featureId, Args&&... otherFeatureIds) noexcept {
-      add(featureId);
-      add(std::forward<Args>(otherFeatureIds)...);
+    inline void add(const FeatureId& feature_id, Args&&... other_feature_ids) noexcept {
+      add(feature_id);
+      add(std::forward<Args>(other_feature_ids)...);
     }
 
     template<typename FeatureId>
-    inline void addIf(bool condition, const FeatureId& featureId) noexcept {
-      ASMJIT_ASSERT(uint32_t(featureId) < kMaxFeatures);
+    inline void add_if(bool condition, const FeatureId& feature_id) noexcept {
+      ASMJIT_ASSERT(uint32_t(feature_id) < kMaxFeatures);
 
-      uint32_t idx = uint32_t(featureId) / Support::kBitWordSizeInBits;
-      uint32_t bit = uint32_t(featureId) % Support::kBitWordSizeInBits;
+      uint32_t idx = uint32_t(feature_id) / Support::bit_size_of<BitWord>;
+      uint32_t bit = uint32_t(feature_id) % Support::bit_size_of<BitWord>;
 
       _bits[idx] |= BitWord(condition) << bit;
     }
 
     template<typename FeatureId, typename... Args>
-    inline void addIf(bool condition, const FeatureId& featureId, Args&&... otherFeatureIds) noexcept {
-      addIf(condition, featureId);
-      addIf(condition, std::forward<Args>(otherFeatureIds)...);
+    inline void add_if(bool condition, const FeatureId& feature_id, Args&&... other_feature_ids) noexcept {
+      add_if(condition, feature_id);
+      add_if(condition, std::forward<Args>(other_feature_ids)...);
     }
 
-    //! Removes the given CPU `featureId` from the list of features.
+    //! Removes the given CPU `feature_id` from the list of features.
     template<typename FeatureId>
-    inline void remove(const FeatureId& featureId) noexcept {
-      ASMJIT_ASSERT(uint32_t(featureId) < kMaxFeatures);
+    inline void remove(const FeatureId& feature_id) noexcept {
+      ASMJIT_ASSERT(uint32_t(feature_id) < kMaxFeatures);
 
-      uint32_t idx = uint32_t(featureId) / Support::kBitWordSizeInBits;
-      uint32_t bit = uint32_t(featureId) % Support::kBitWordSizeInBits;
+      uint32_t idx = uint32_t(feature_id) / Support::bit_size_of<BitWord>;
+      uint32_t bit = uint32_t(feature_id) % Support::bit_size_of<BitWord>;
 
       _bits[idx] &= ~(BitWord(1) << bit);
     }
 
     template<typename FeatureId, typename... Args>
-    inline void remove(const FeatureId& featureId, Args&&... otherFeatureIds) noexcept {
-      remove(featureId);
-      remove(std::forward<Args>(otherFeatureIds)...);
+    inline void remove(const FeatureId& feature_id, Args&&... other_feature_ids) noexcept {
+      remove(feature_id);
+      remove(std::forward<Args>(other_feature_ids)...);
     }
 
     //! Tests whether this CPU features data matches `other`.
@@ -363,166 +363,166 @@ public:
       kMaxValue = kAMX_TILE
     };
 
-    #define ASMJIT_X86_FEATURE(FEATURE) \
-      /*! Tests whether FEATURE is present. */ \
-      ASMJIT_INLINE_NODEBUG bool has##FEATURE() const noexcept { return has(X86::k##FEATURE); }
+    #define ASMJIT_X86_FEATURE(accessor, feature) \
+      /*! Tests whether feature is present. */ \
+      ASMJIT_INLINE_NODEBUG bool accessor() const noexcept { return has(X86::feature); }
 
-    ASMJIT_X86_FEATURE(MT)
-    ASMJIT_X86_FEATURE(NX)
-    ASMJIT_X86_FEATURE(ADX)
-    ASMJIT_X86_FEATURE(ALTMOVCR8)
-    ASMJIT_X86_FEATURE(APX_F)
-    ASMJIT_X86_FEATURE(BMI)
-    ASMJIT_X86_FEATURE(BMI2)
-    ASMJIT_X86_FEATURE(CET_IBT)
-    ASMJIT_X86_FEATURE(CET_SS)
-    ASMJIT_X86_FEATURE(CET_SSS)
-    ASMJIT_X86_FEATURE(CLDEMOTE)
-    ASMJIT_X86_FEATURE(CLFLUSH)
-    ASMJIT_X86_FEATURE(CLFLUSHOPT)
-    ASMJIT_X86_FEATURE(CLWB)
-    ASMJIT_X86_FEATURE(CLZERO)
-    ASMJIT_X86_FEATURE(CMOV)
-    ASMJIT_X86_FEATURE(CMPXCHG16B)
-    ASMJIT_X86_FEATURE(CMPXCHG8B)
-    ASMJIT_X86_FEATURE(ENCLV)
-    ASMJIT_X86_FEATURE(ENQCMD)
-    ASMJIT_X86_FEATURE(ERMS)
-    ASMJIT_X86_FEATURE(FSGSBASE)
-    ASMJIT_X86_FEATURE(FSRM)
-    ASMJIT_X86_FEATURE(FSRC)
-    ASMJIT_X86_FEATURE(FSRS)
-    ASMJIT_X86_FEATURE(FXSR)
-    ASMJIT_X86_FEATURE(FXSROPT)
-    ASMJIT_X86_FEATURE(FZRM)
-    ASMJIT_X86_FEATURE(HRESET)
-    ASMJIT_X86_FEATURE(I486)
-    ASMJIT_X86_FEATURE(INVLPGB)
-    ASMJIT_X86_FEATURE(LAHFSAHF)
-    ASMJIT_X86_FEATURE(LAM)
-    ASMJIT_X86_FEATURE(LWP)
-    ASMJIT_X86_FEATURE(LZCNT)
-    ASMJIT_X86_FEATURE(MCOMMIT)
-    ASMJIT_X86_FEATURE(MONITOR)
-    ASMJIT_X86_FEATURE(MONITORX)
-    ASMJIT_X86_FEATURE(MOVBE)
-    ASMJIT_X86_FEATURE(MOVDIR64B)
-    ASMJIT_X86_FEATURE(MOVDIRI)
-    ASMJIT_X86_FEATURE(MOVRS)
-    ASMJIT_X86_FEATURE(MPX)
-    ASMJIT_X86_FEATURE(MSR)
-    ASMJIT_X86_FEATURE(MSRLIST)
-    ASMJIT_X86_FEATURE(MSR_IMM)
-    ASMJIT_X86_FEATURE(MSSE)
-    ASMJIT_X86_FEATURE(OSXSAVE)
-    ASMJIT_X86_FEATURE(OSPKE)
-    ASMJIT_X86_FEATURE(PCONFIG)
-    ASMJIT_X86_FEATURE(POPCNT)
-    ASMJIT_X86_FEATURE(PREFETCHI)
-    ASMJIT_X86_FEATURE(PREFETCHW)
-    ASMJIT_X86_FEATURE(PREFETCHWT1)
-    ASMJIT_X86_FEATURE(PTWRITE)
-    ASMJIT_X86_FEATURE(RAO_INT)
-    ASMJIT_X86_FEATURE(RMPQUERY)
-    ASMJIT_X86_FEATURE(RDPID)
-    ASMJIT_X86_FEATURE(RDPRU)
-    ASMJIT_X86_FEATURE(RDRAND)
-    ASMJIT_X86_FEATURE(RDSEED)
-    ASMJIT_X86_FEATURE(RDTSC)
-    ASMJIT_X86_FEATURE(RDTSCP)
-    ASMJIT_X86_FEATURE(RTM)
-    ASMJIT_X86_FEATURE(SEAM)
-    ASMJIT_X86_FEATURE(SERIALIZE)
-    ASMJIT_X86_FEATURE(SEV)
-    ASMJIT_X86_FEATURE(SEV_ES)
-    ASMJIT_X86_FEATURE(SEV_SNP)
-    ASMJIT_X86_FEATURE(SKINIT)
-    ASMJIT_X86_FEATURE(SMAP)
-    ASMJIT_X86_FEATURE(SMEP)
-    ASMJIT_X86_FEATURE(SMX)
-    ASMJIT_X86_FEATURE(SVM)
-    ASMJIT_X86_FEATURE(TBM)
-    ASMJIT_X86_FEATURE(TSE)
-    ASMJIT_X86_FEATURE(TSXLDTRK)
-    ASMJIT_X86_FEATURE(UINTR)
-    ASMJIT_X86_FEATURE(VMX)
-    ASMJIT_X86_FEATURE(WAITPKG)
-    ASMJIT_X86_FEATURE(WBNOINVD)
-    ASMJIT_X86_FEATURE(WRMSRNS)
-    ASMJIT_X86_FEATURE(XSAVE)
-    ASMJIT_X86_FEATURE(XSAVEC)
-    ASMJIT_X86_FEATURE(XSAVEOPT)
-    ASMJIT_X86_FEATURE(XSAVES)
+    ASMJIT_X86_FEATURE(has_mt, kMT)
+    ASMJIT_X86_FEATURE(has_nx, kNX)
+    ASMJIT_X86_FEATURE(has_adx, kADX)
+    ASMJIT_X86_FEATURE(has_altmovcr8, kALTMOVCR8)
+    ASMJIT_X86_FEATURE(has_apx_f, kAPX_F)
+    ASMJIT_X86_FEATURE(has_bmi, kBMI)
+    ASMJIT_X86_FEATURE(has_bmi2, kBMI2)
+    ASMJIT_X86_FEATURE(has_cet_ibt, kCET_IBT)
+    ASMJIT_X86_FEATURE(has_cet_ss, kCET_SS)
+    ASMJIT_X86_FEATURE(has_cet_sss, kCET_SSS)
+    ASMJIT_X86_FEATURE(has_cldemote, kCLDEMOTE)
+    ASMJIT_X86_FEATURE(has_clflush, kCLFLUSH)
+    ASMJIT_X86_FEATURE(has_clflushopt, kCLFLUSHOPT)
+    ASMJIT_X86_FEATURE(has_clwb, kCLWB)
+    ASMJIT_X86_FEATURE(has_clzero, kCLZERO)
+    ASMJIT_X86_FEATURE(has_cmov, kCMOV)
+    ASMJIT_X86_FEATURE(has_cmpxchg16b, kCMPXCHG16B)
+    ASMJIT_X86_FEATURE(has_cmpxchg8b, kCMPXCHG8B)
+    ASMJIT_X86_FEATURE(has_enclv, kENCLV)
+    ASMJIT_X86_FEATURE(has_enqcmd, kENQCMD)
+    ASMJIT_X86_FEATURE(has_erms, kERMS)
+    ASMJIT_X86_FEATURE(has_fsgsbase, kFSGSBASE)
+    ASMJIT_X86_FEATURE(has_fsrm, kFSRM)
+    ASMJIT_X86_FEATURE(has_fsrc, kFSRC)
+    ASMJIT_X86_FEATURE(has_fsrs, kFSRS)
+    ASMJIT_X86_FEATURE(has_fxsr, kFXSR)
+    ASMJIT_X86_FEATURE(has_fxsropt, kFXSROPT)
+    ASMJIT_X86_FEATURE(has_fzrm, kFZRM)
+    ASMJIT_X86_FEATURE(has_hreset, kHRESET)
+    ASMJIT_X86_FEATURE(has_i486, kI486)
+    ASMJIT_X86_FEATURE(has_invlpgb, kINVLPGB)
+    ASMJIT_X86_FEATURE(has_lahfsahf, kLAHFSAHF)
+    ASMJIT_X86_FEATURE(has_lam, kLAM)
+    ASMJIT_X86_FEATURE(has_lwp, kLWP)
+    ASMJIT_X86_FEATURE(has_lzcnt, kLZCNT)
+    ASMJIT_X86_FEATURE(has_mcommit, kMCOMMIT)
+    ASMJIT_X86_FEATURE(has_monitor, kMONITOR)
+    ASMJIT_X86_FEATURE(has_monitorx, kMONITORX)
+    ASMJIT_X86_FEATURE(has_movbe, kMOVBE)
+    ASMJIT_X86_FEATURE(has_movdir64b, kMOVDIR64B)
+    ASMJIT_X86_FEATURE(has_movdiri, kMOVDIRI)
+    ASMJIT_X86_FEATURE(has_movrs, kMOVRS)
+    ASMJIT_X86_FEATURE(has_mpx, kMPX)
+    ASMJIT_X86_FEATURE(has_msr, kMSR)
+    ASMJIT_X86_FEATURE(has_msrlist, kMSRLIST)
+    ASMJIT_X86_FEATURE(has_msr_imm, kMSR_IMM)
+    ASMJIT_X86_FEATURE(has_msse, kMSSE)
+    ASMJIT_X86_FEATURE(has_osxsave, kOSXSAVE)
+    ASMJIT_X86_FEATURE(has_ospke, kOSPKE)
+    ASMJIT_X86_FEATURE(has_pconfig, kPCONFIG)
+    ASMJIT_X86_FEATURE(has_popcnt, kPOPCNT)
+    ASMJIT_X86_FEATURE(has_prefetchi, kPREFETCHI)
+    ASMJIT_X86_FEATURE(has_prefetchw, kPREFETCHW)
+    ASMJIT_X86_FEATURE(has_prefetchwt1, kPREFETCHWT1)
+    ASMJIT_X86_FEATURE(has_ptwrite, kPTWRITE)
+    ASMJIT_X86_FEATURE(has_rao_int, kRAO_INT)
+    ASMJIT_X86_FEATURE(has_rmpquery, kRMPQUERY)
+    ASMJIT_X86_FEATURE(has_rdpid, kRDPID)
+    ASMJIT_X86_FEATURE(has_rdpru, kRDPRU)
+    ASMJIT_X86_FEATURE(has_rdrand, kRDRAND)
+    ASMJIT_X86_FEATURE(has_rdseed, kRDSEED)
+    ASMJIT_X86_FEATURE(has_rdtsc, kRDTSC)
+    ASMJIT_X86_FEATURE(has_rdtscp, kRDTSCP)
+    ASMJIT_X86_FEATURE(has_rtm, kRTM)
+    ASMJIT_X86_FEATURE(has_seam, kSEAM)
+    ASMJIT_X86_FEATURE(has_serialize, kSERIALIZE)
+    ASMJIT_X86_FEATURE(has_sev, kSEV)
+    ASMJIT_X86_FEATURE(has_sev_es, kSEV_ES)
+    ASMJIT_X86_FEATURE(has_sev_snp, kSEV_SNP)
+    ASMJIT_X86_FEATURE(has_skinit, kSKINIT)
+    ASMJIT_X86_FEATURE(has_smap, kSMAP)
+    ASMJIT_X86_FEATURE(has_smep, kSMEP)
+    ASMJIT_X86_FEATURE(has_smx, kSMX)
+    ASMJIT_X86_FEATURE(has_svm, kSVM)
+    ASMJIT_X86_FEATURE(has_tbm, kTBM)
+    ASMJIT_X86_FEATURE(has_tse, kTSE)
+    ASMJIT_X86_FEATURE(has_tsxldtrk, kTSXLDTRK)
+    ASMJIT_X86_FEATURE(has_uintr, kUINTR)
+    ASMJIT_X86_FEATURE(has_vmx, kVMX)
+    ASMJIT_X86_FEATURE(has_waitpkg, kWAITPKG)
+    ASMJIT_X86_FEATURE(has_wbnoinvd, kWBNOINVD)
+    ASMJIT_X86_FEATURE(has_wrmsrns, kWRMSRNS)
+    ASMJIT_X86_FEATURE(has_xsave, kXSAVE)
+    ASMJIT_X86_FEATURE(has_xsavec, kXSAVEC)
+    ASMJIT_X86_FEATURE(has_xsaveopt, kXSAVEOPT)
+    ASMJIT_X86_FEATURE(has_xsaves, kXSAVES)
 
-    ASMJIT_X86_FEATURE(FPU)
-    ASMJIT_X86_FEATURE(MMX)
-    ASMJIT_X86_FEATURE(MMX2)
-    ASMJIT_X86_FEATURE(3DNOW)
-    ASMJIT_X86_FEATURE(3DNOW2)
-    ASMJIT_X86_FEATURE(GEODE)
+    ASMJIT_X86_FEATURE(has_fpu, kFPU)
+    ASMJIT_X86_FEATURE(has_mmx, kMMX)
+    ASMJIT_X86_FEATURE(has_mmx2, kMMX2)
+    ASMJIT_X86_FEATURE(has_3dnow, k3DNOW)
+    ASMJIT_X86_FEATURE(has_3dnow2, k3DNOW2)
+    ASMJIT_X86_FEATURE(has_geode, kGEODE)
 
-    ASMJIT_X86_FEATURE(SSE)
-    ASMJIT_X86_FEATURE(SSE2)
-    ASMJIT_X86_FEATURE(SSE3)
-    ASMJIT_X86_FEATURE(SSSE3)
-    ASMJIT_X86_FEATURE(SSE4_1)
-    ASMJIT_X86_FEATURE(SSE4_2)
-    ASMJIT_X86_FEATURE(SSE4A)
-    ASMJIT_X86_FEATURE(PCLMULQDQ)
+    ASMJIT_X86_FEATURE(has_sse, kSSE)
+    ASMJIT_X86_FEATURE(has_sse2, kSSE2)
+    ASMJIT_X86_FEATURE(has_sse3, kSSE3)
+    ASMJIT_X86_FEATURE(has_ssse3, kSSSE3)
+    ASMJIT_X86_FEATURE(has_sse4_1, kSSE4_1)
+    ASMJIT_X86_FEATURE(has_sse4_2, kSSE4_2)
+    ASMJIT_X86_FEATURE(has_sse4a, kSSE4A)
+    ASMJIT_X86_FEATURE(has_pclmulqdq, kPCLMULQDQ)
 
-    ASMJIT_X86_FEATURE(AVX)
-    ASMJIT_X86_FEATURE(AVX2)
-    ASMJIT_X86_FEATURE(AVX_IFMA)
-    ASMJIT_X86_FEATURE(AVX_NE_CONVERT)
-    ASMJIT_X86_FEATURE(AVX_VNNI)
-    ASMJIT_X86_FEATURE(AVX_VNNI_INT16)
-    ASMJIT_X86_FEATURE(AVX_VNNI_INT8)
-    ASMJIT_X86_FEATURE(F16C)
-    ASMJIT_X86_FEATURE(FMA)
-    ASMJIT_X86_FEATURE(FMA4)
-    ASMJIT_X86_FEATURE(XOP)
+    ASMJIT_X86_FEATURE(has_avx, kAVX)
+    ASMJIT_X86_FEATURE(has_avx2, kAVX2)
+    ASMJIT_X86_FEATURE(has_avx_ifma, kAVX_IFMA)
+    ASMJIT_X86_FEATURE(has_avx_ne_convert, kAVX_NE_CONVERT)
+    ASMJIT_X86_FEATURE(has_avx_vnni, kAVX_VNNI)
+    ASMJIT_X86_FEATURE(has_avx_vnni_int16, kAVX_VNNI_INT16)
+    ASMJIT_X86_FEATURE(has_avx_vnni_int8, kAVX_VNNI_INT8)
+    ASMJIT_X86_FEATURE(has_f16c, kF16C)
+    ASMJIT_X86_FEATURE(has_fma, kFMA)
+    ASMJIT_X86_FEATURE(has_fma4, kFMA4)
+    ASMJIT_X86_FEATURE(has_xop, kXOP)
 
-    ASMJIT_X86_FEATURE(AVX512_BF16)
-    ASMJIT_X86_FEATURE(AVX512_BITALG)
-    ASMJIT_X86_FEATURE(AVX512_BW)
-    ASMJIT_X86_FEATURE(AVX512_CD)
-    ASMJIT_X86_FEATURE(AVX512_DQ)
-    ASMJIT_X86_FEATURE(AVX512_F)
-    ASMJIT_X86_FEATURE(AVX512_FP16)
-    ASMJIT_X86_FEATURE(AVX512_IFMA)
-    ASMJIT_X86_FEATURE(AVX512_VBMI)
-    ASMJIT_X86_FEATURE(AVX512_VBMI2)
-    ASMJIT_X86_FEATURE(AVX512_VL)
-    ASMJIT_X86_FEATURE(AVX512_VNNI)
-    ASMJIT_X86_FEATURE(AVX512_VP2INTERSECT)
-    ASMJIT_X86_FEATURE(AVX512_VPOPCNTDQ)
+    ASMJIT_X86_FEATURE(has_avx512_bf16, kAVX512_BF16)
+    ASMJIT_X86_FEATURE(has_avx512_bitalg, kAVX512_BITALG)
+    ASMJIT_X86_FEATURE(has_avx512_bw, kAVX512_BW)
+    ASMJIT_X86_FEATURE(has_avx512_cd, kAVX512_CD)
+    ASMJIT_X86_FEATURE(has_avx512_dq, kAVX512_DQ)
+    ASMJIT_X86_FEATURE(has_avx512_f, kAVX512_F)
+    ASMJIT_X86_FEATURE(has_avx512_fp16, kAVX512_FP16)
+    ASMJIT_X86_FEATURE(has_avx512_ifma, kAVX512_IFMA)
+    ASMJIT_X86_FEATURE(has_avx512_vbmi, kAVX512_VBMI)
+    ASMJIT_X86_FEATURE(has_avx512_vbmi2, kAVX512_VBMI2)
+    ASMJIT_X86_FEATURE(has_avx512_vl, kAVX512_VL)
+    ASMJIT_X86_FEATURE(has_avx512_vnni, kAVX512_VNNI)
+    ASMJIT_X86_FEATURE(has_avx512_vp2intersect, kAVX512_VP2INTERSECT)
+    ASMJIT_X86_FEATURE(has_avx512_vpopcntdq, kAVX512_VPOPCNTDQ)
 
-    ASMJIT_X86_FEATURE(AESNI)
-    ASMJIT_X86_FEATURE(GFNI)
-    ASMJIT_X86_FEATURE(SHA)
-    ASMJIT_X86_FEATURE(SHA512)
-    ASMJIT_X86_FEATURE(SM3)
-    ASMJIT_X86_FEATURE(SM4)
-    ASMJIT_X86_FEATURE(VAES)
-    ASMJIT_X86_FEATURE(VPCLMULQDQ)
+    ASMJIT_X86_FEATURE(has_aesni, kAESNI)
+    ASMJIT_X86_FEATURE(has_gfni, kGFNI)
+    ASMJIT_X86_FEATURE(has_sha, kSHA)
+    ASMJIT_X86_FEATURE(has_sha512, kSHA512)
+    ASMJIT_X86_FEATURE(has_sm3, kSM3)
+    ASMJIT_X86_FEATURE(has_sm4, kSM4)
+    ASMJIT_X86_FEATURE(has_vaes, kVAES)
+    ASMJIT_X86_FEATURE(has_vpclmulqdq, kVPCLMULQDQ)
 
-    ASMJIT_X86_FEATURE(KL)
-    ASMJIT_X86_FEATURE(AESKLE)
-    ASMJIT_X86_FEATURE(AESKLEWIDE_KL)
+    ASMJIT_X86_FEATURE(has_kl, kKL)
+    ASMJIT_X86_FEATURE(has_aeskle, kAESKLE)
+    ASMJIT_X86_FEATURE(has_aesklewide_kl, kAESKLEWIDE_KL)
 
-    ASMJIT_X86_FEATURE(AVX10_1)
-    ASMJIT_X86_FEATURE(AVX10_2)
+    ASMJIT_X86_FEATURE(has_avx10_1, kAVX10_1)
+    ASMJIT_X86_FEATURE(has_avx10_2, kAVX10_2)
 
-    ASMJIT_X86_FEATURE(AMX_AVX512)
-    ASMJIT_X86_FEATURE(AMX_BF16)
-    ASMJIT_X86_FEATURE(AMX_COMPLEX)
-    ASMJIT_X86_FEATURE(AMX_FP16)
-    ASMJIT_X86_FEATURE(AMX_FP8)
-    ASMJIT_X86_FEATURE(AMX_INT8)
-    ASMJIT_X86_FEATURE(AMX_MOVRS)
-    ASMJIT_X86_FEATURE(AMX_TF32)
-    ASMJIT_X86_FEATURE(AMX_TILE)
-    ASMJIT_X86_FEATURE(AMX_TRANSPOSE)
+    ASMJIT_X86_FEATURE(has_amx_avx512, kAMX_AVX512)
+    ASMJIT_X86_FEATURE(has_amx_bf16, kAMX_BF16)
+    ASMJIT_X86_FEATURE(has_amx_complex, kAMX_COMPLEX)
+    ASMJIT_X86_FEATURE(has_amx_fp16, kAMX_FP16)
+    ASMJIT_X86_FEATURE(has_amx_fp8, kAMX_FP8)
+    ASMJIT_X86_FEATURE(has_amx_int8, kAMX_INT8)
+    ASMJIT_X86_FEATURE(has_amx_movrs, kAMX_MOVRS)
+    ASMJIT_X86_FEATURE(has_amx_tf32, kAMX_TF32)
+    ASMJIT_X86_FEATURE(has_amx_tile, kAMX_TILE)
+    ASMJIT_X86_FEATURE(has_amx_transpose, kAMX_TRANSPOSE)
 
     #undef ASMJIT_X86_FEATURE
   };
@@ -767,236 +767,236 @@ public:
       kMaxValue = kXS
     };
 
-    #define ASMJIT_ARM_FEATURE(FEATURE) \
-      /*! Tests whether FEATURE is present. */ \
-      ASMJIT_INLINE_NODEBUG bool has##FEATURE() const noexcept { return has(ARM::k##FEATURE); }
+    #define ASMJIT_ARM_FEATURE(accessor, feature) \
+      /*! Tests whether feature is present. */ \
+      ASMJIT_INLINE_NODEBUG bool accessor() const noexcept { return has(ARM::feature); }
 
-    ASMJIT_ARM_FEATURE(THUMB)
-    ASMJIT_ARM_FEATURE(THUMBv2)
+    ASMJIT_ARM_FEATURE(has_thumb, kTHUMB)
+    ASMJIT_ARM_FEATURE(has_thumb_v2, kTHUMBv2)
 
-    ASMJIT_ARM_FEATURE(ARMv6)
-    ASMJIT_ARM_FEATURE(ARMv7)
-    ASMJIT_ARM_FEATURE(ARMv8a)
+    ASMJIT_ARM_FEATURE(has_armv6, kARMv6)
+    ASMJIT_ARM_FEATURE(has_armv7, kARMv7)
+    ASMJIT_ARM_FEATURE(has_armv8a, kARMv8a)
 
-    ASMJIT_ARM_FEATURE(ABLE)
-    ASMJIT_ARM_FEATURE(ADERR)
-    ASMJIT_ARM_FEATURE(AES)
-    ASMJIT_ARM_FEATURE(AFP)
-    ASMJIT_ARM_FEATURE(AIE)
-    ASMJIT_ARM_FEATURE(AMU1)
-    ASMJIT_ARM_FEATURE(AMU1_1)
-    ASMJIT_ARM_FEATURE(ANERR)
-    ASMJIT_ARM_FEATURE(ASIMD)
-    ASMJIT_ARM_FEATURE(BF16)
-    ASMJIT_ARM_FEATURE(BRBE)
-    ASMJIT_ARM_FEATURE(BTI)
-    ASMJIT_ARM_FEATURE(BWE)
-    ASMJIT_ARM_FEATURE(CCIDX)
-    ASMJIT_ARM_FEATURE(CHK)
-    ASMJIT_ARM_FEATURE(CLRBHB)
-    ASMJIT_ARM_FEATURE(CMOW)
-    ASMJIT_ARM_FEATURE(CMPBR)
-    ASMJIT_ARM_FEATURE(CONSTPACFIELD)
-    ASMJIT_ARM_FEATURE(CPA)
-    ASMJIT_ARM_FEATURE(CPA2)
-    ASMJIT_ARM_FEATURE(CPUID)
-    ASMJIT_ARM_FEATURE(CRC32)
-    ASMJIT_ARM_FEATURE(CSSC)
-    ASMJIT_ARM_FEATURE(CSV2)
-    ASMJIT_ARM_FEATURE(CSV2_3)
-    ASMJIT_ARM_FEATURE(CSV3)
-    ASMJIT_ARM_FEATURE(D128)
-    ASMJIT_ARM_FEATURE(DGH)
-    ASMJIT_ARM_FEATURE(DIT)
-    ASMJIT_ARM_FEATURE(DOTPROD)
-    ASMJIT_ARM_FEATURE(DPB)
-    ASMJIT_ARM_FEATURE(DPB2)
-    ASMJIT_ARM_FEATURE(EBEP)
-    ASMJIT_ARM_FEATURE(EBF16)
-    ASMJIT_ARM_FEATURE(ECBHB)
-    ASMJIT_ARM_FEATURE(ECV)
-    ASMJIT_ARM_FEATURE(EDHSR)
-    ASMJIT_ARM_FEATURE(EDSP)
-    ASMJIT_ARM_FEATURE(F8E4M3)
-    ASMJIT_ARM_FEATURE(F8E5M2)
-    ASMJIT_ARM_FEATURE(F8F16MM)
-    ASMJIT_ARM_FEATURE(F8F32MM)
-    ASMJIT_ARM_FEATURE(FAMINMAX)
-    ASMJIT_ARM_FEATURE(FCMA)
-    ASMJIT_ARM_FEATURE(FGT)
-    ASMJIT_ARM_FEATURE(FGT2)
-    ASMJIT_ARM_FEATURE(FHM)
-    ASMJIT_ARM_FEATURE(FLAGM)
-    ASMJIT_ARM_FEATURE(FLAGM2)
-    ASMJIT_ARM_FEATURE(FMAC)
-    ASMJIT_ARM_FEATURE(FP)
-    ASMJIT_ARM_FEATURE(FP16)
-    ASMJIT_ARM_FEATURE(FP16CONV)
-    ASMJIT_ARM_FEATURE(FP8)
-    ASMJIT_ARM_FEATURE(FP8DOT2)
-    ASMJIT_ARM_FEATURE(FP8DOT4)
-    ASMJIT_ARM_FEATURE(FP8FMA)
-    ASMJIT_ARM_FEATURE(FPMR)
-    ASMJIT_ARM_FEATURE(FPRCVT)
-    ASMJIT_ARM_FEATURE(FRINTTS)
-    ASMJIT_ARM_FEATURE(GCS)
-    ASMJIT_ARM_FEATURE(HACDBS)
-    ASMJIT_ARM_FEATURE(HAFDBS)
-    ASMJIT_ARM_FEATURE(HAFT)
-    ASMJIT_ARM_FEATURE(HDBSS)
-    ASMJIT_ARM_FEATURE(HBC)
-    ASMJIT_ARM_FEATURE(HCX)
-    ASMJIT_ARM_FEATURE(HPDS)
-    ASMJIT_ARM_FEATURE(HPDS2)
-    ASMJIT_ARM_FEATURE(I8MM)
-    ASMJIT_ARM_FEATURE(IDIVA)
-    ASMJIT_ARM_FEATURE(IDIVT)
-    ASMJIT_ARM_FEATURE(ITE)
-    ASMJIT_ARM_FEATURE(JSCVT)
-    ASMJIT_ARM_FEATURE(LOR)
-    ASMJIT_ARM_FEATURE(LRCPC)
-    ASMJIT_ARM_FEATURE(LRCPC2)
-    ASMJIT_ARM_FEATURE(LRCPC3)
-    ASMJIT_ARM_FEATURE(LS64)
-    ASMJIT_ARM_FEATURE(LS64_ACCDATA)
-    ASMJIT_ARM_FEATURE(LS64_V)
-    ASMJIT_ARM_FEATURE(LS64WB)
-    ASMJIT_ARM_FEATURE(LSE)
-    ASMJIT_ARM_FEATURE(LSE128)
-    ASMJIT_ARM_FEATURE(LSE2)
-    ASMJIT_ARM_FEATURE(LSFE)
-    ASMJIT_ARM_FEATURE(LSUI)
-    ASMJIT_ARM_FEATURE(LUT)
-    ASMJIT_ARM_FEATURE(LVA)
-    ASMJIT_ARM_FEATURE(LVA3)
-    ASMJIT_ARM_FEATURE(MEC)
-    ASMJIT_ARM_FEATURE(MOPS)
-    ASMJIT_ARM_FEATURE(MPAM)
-    ASMJIT_ARM_FEATURE(MTE)
-    ASMJIT_ARM_FEATURE(MTE2)
-    ASMJIT_ARM_FEATURE(MTE3)
-    ASMJIT_ARM_FEATURE(MTE4)
-    ASMJIT_ARM_FEATURE(MTE_ASYM_FAULT)
-    ASMJIT_ARM_FEATURE(MTE_ASYNC)
-    ASMJIT_ARM_FEATURE(MTE_CANONICAL_TAGS)
-    ASMJIT_ARM_FEATURE(MTE_NO_ADDRESS_TAGS)
-    ASMJIT_ARM_FEATURE(MTE_PERM_S1)
-    ASMJIT_ARM_FEATURE(MTE_STORE_ONLY)
-    ASMJIT_ARM_FEATURE(MTE_TAGGED_FAR)
-    ASMJIT_ARM_FEATURE(MTPMU)
-    ASMJIT_ARM_FEATURE(NMI)
-    ASMJIT_ARM_FEATURE(NV)
-    ASMJIT_ARM_FEATURE(NV2)
-    ASMJIT_ARM_FEATURE(OCCMO)
-    ASMJIT_ARM_FEATURE(PAN)
-    ASMJIT_ARM_FEATURE(PAN2)
-    ASMJIT_ARM_FEATURE(PAN3)
-    ASMJIT_ARM_FEATURE(PAUTH)
-    ASMJIT_ARM_FEATURE(PFAR)
-    ASMJIT_ARM_FEATURE(PMU)
-    ASMJIT_ARM_FEATURE(PMULL)
-    ASMJIT_ARM_FEATURE(PRFMSLC)
-    ASMJIT_ARM_FEATURE(RAS)
-    ASMJIT_ARM_FEATURE(RAS1_1)
-    ASMJIT_ARM_FEATURE(RAS2)
-    ASMJIT_ARM_FEATURE(RASSA2)
-    ASMJIT_ARM_FEATURE(RDM)
-    ASMJIT_ARM_FEATURE(RME)
-    ASMJIT_ARM_FEATURE(RNG)
-    ASMJIT_ARM_FEATURE(RNG_TRAP)
-    ASMJIT_ARM_FEATURE(RPRES)
-    ASMJIT_ARM_FEATURE(RPRFM)
-    ASMJIT_ARM_FEATURE(S1PIE)
-    ASMJIT_ARM_FEATURE(S1POE)
-    ASMJIT_ARM_FEATURE(S2PIE)
-    ASMJIT_ARM_FEATURE(S2POE)
-    ASMJIT_ARM_FEATURE(SB)
-    ASMJIT_ARM_FEATURE(SCTLR2)
-    ASMJIT_ARM_FEATURE(SEBEP)
-    ASMJIT_ARM_FEATURE(SEL2)
-    ASMJIT_ARM_FEATURE(SHA1)
-    ASMJIT_ARM_FEATURE(SHA256)
-    ASMJIT_ARM_FEATURE(SHA3)
-    ASMJIT_ARM_FEATURE(SHA512)
-    ASMJIT_ARM_FEATURE(SM3)
-    ASMJIT_ARM_FEATURE(SM4)
-    ASMJIT_ARM_FEATURE(SME)
-    ASMJIT_ARM_FEATURE(SME2)
-    ASMJIT_ARM_FEATURE(SME2_1)
-    ASMJIT_ARM_FEATURE(SME2_2)
-    ASMJIT_ARM_FEATURE(SME_AES)
-    ASMJIT_ARM_FEATURE(SME_B16B16)
-    ASMJIT_ARM_FEATURE(SME_B16F32)
-    ASMJIT_ARM_FEATURE(SME_BI32I32)
-    ASMJIT_ARM_FEATURE(SME_F16F16)
-    ASMJIT_ARM_FEATURE(SME_F16F32)
-    ASMJIT_ARM_FEATURE(SME_F32F32)
-    ASMJIT_ARM_FEATURE(SME_F64F64)
-    ASMJIT_ARM_FEATURE(SME_F8F16)
-    ASMJIT_ARM_FEATURE(SME_F8F32)
-    ASMJIT_ARM_FEATURE(SME_FA64)
-    ASMJIT_ARM_FEATURE(SME_I16I32)
-    ASMJIT_ARM_FEATURE(SME_I16I64)
-    ASMJIT_ARM_FEATURE(SME_I8I32)
-    ASMJIT_ARM_FEATURE(SME_LUTv2)
-    ASMJIT_ARM_FEATURE(SME_MOP4)
-    ASMJIT_ARM_FEATURE(SME_TMOP)
-    ASMJIT_ARM_FEATURE(SPE)
-    ASMJIT_ARM_FEATURE(SPE1_1)
-    ASMJIT_ARM_FEATURE(SPE1_2)
-    ASMJIT_ARM_FEATURE(SPE1_3)
-    ASMJIT_ARM_FEATURE(SPE1_4)
-    ASMJIT_ARM_FEATURE(SPE_ALTCLK)
-    ASMJIT_ARM_FEATURE(SPE_CRR)
-    ASMJIT_ARM_FEATURE(SPE_EFT)
-    ASMJIT_ARM_FEATURE(SPE_FDS)
-    ASMJIT_ARM_FEATURE(SPE_FPF)
-    ASMJIT_ARM_FEATURE(SPE_SME)
-    ASMJIT_ARM_FEATURE(SPECRES)
-    ASMJIT_ARM_FEATURE(SPECRES2)
-    ASMJIT_ARM_FEATURE(SPMU)
-    ASMJIT_ARM_FEATURE(SSBS)
-    ASMJIT_ARM_FEATURE(SSBS2)
-    ASMJIT_ARM_FEATURE(SSVE_AES)
-    ASMJIT_ARM_FEATURE(SSVE_BITPERM)
-    ASMJIT_ARM_FEATURE(SSVE_FEXPA)
-    ASMJIT_ARM_FEATURE(SSVE_FP8DOT2)
-    ASMJIT_ARM_FEATURE(SSVE_FP8DOT4)
-    ASMJIT_ARM_FEATURE(SSVE_FP8FMA)
-    ASMJIT_ARM_FEATURE(SVE)
-    ASMJIT_ARM_FEATURE(SVE2)
-    ASMJIT_ARM_FEATURE(SVE2_1)
-    ASMJIT_ARM_FEATURE(SVE2_2)
-    ASMJIT_ARM_FEATURE(SVE_AES)
-    ASMJIT_ARM_FEATURE(SVE_AES2)
-    ASMJIT_ARM_FEATURE(SVE_B16B16)
-    ASMJIT_ARM_FEATURE(SVE_BF16)
-    ASMJIT_ARM_FEATURE(SVE_BFSCALE)
-    ASMJIT_ARM_FEATURE(SVE_BITPERM)
-    ASMJIT_ARM_FEATURE(SVE_EBF16)
-    ASMJIT_ARM_FEATURE(SVE_ELTPERM)
-    ASMJIT_ARM_FEATURE(SVE_F16MM)
-    ASMJIT_ARM_FEATURE(SVE_F32MM)
-    ASMJIT_ARM_FEATURE(SVE_F64MM)
-    ASMJIT_ARM_FEATURE(SVE_I8MM)
-    ASMJIT_ARM_FEATURE(SVE_PMULL128)
-    ASMJIT_ARM_FEATURE(SVE_SHA3)
-    ASMJIT_ARM_FEATURE(SVE_SM4)
-    ASMJIT_ARM_FEATURE(SYSINSTR128)
-    ASMJIT_ARM_FEATURE(SYSREG128)
-    ASMJIT_ARM_FEATURE(THE)
-    ASMJIT_ARM_FEATURE(TLBIOS)
-    ASMJIT_ARM_FEATURE(TLBIRANGE)
-    ASMJIT_ARM_FEATURE(TLBIW)
-    ASMJIT_ARM_FEATURE(TME)
-    ASMJIT_ARM_FEATURE(TRF)
-    ASMJIT_ARM_FEATURE(UAO)
-    ASMJIT_ARM_FEATURE(VFP_D32)
-    ASMJIT_ARM_FEATURE(VHE)
-    ASMJIT_ARM_FEATURE(VMID16)
-    ASMJIT_ARM_FEATURE(WFXT)
-    ASMJIT_ARM_FEATURE(XNX)
-    ASMJIT_ARM_FEATURE(XS)
+    ASMJIT_ARM_FEATURE(has_able, kABLE)
+    ASMJIT_ARM_FEATURE(has_aderr, kADERR)
+    ASMJIT_ARM_FEATURE(has_aes, kAES)
+    ASMJIT_ARM_FEATURE(has_afp, kAFP)
+    ASMJIT_ARM_FEATURE(has_aie, kAIE)
+    ASMJIT_ARM_FEATURE(has_amu1, kAMU1)
+    ASMJIT_ARM_FEATURE(has_amu1_1, kAMU1_1)
+    ASMJIT_ARM_FEATURE(has_anerr, kANERR)
+    ASMJIT_ARM_FEATURE(has_asimd, kASIMD)
+    ASMJIT_ARM_FEATURE(has_bf16, kBF16)
+    ASMJIT_ARM_FEATURE(has_brbe, kBRBE)
+    ASMJIT_ARM_FEATURE(has_bti, kBTI)
+    ASMJIT_ARM_FEATURE(has_bwe, kBWE)
+    ASMJIT_ARM_FEATURE(has_ccidx, kCCIDX)
+    ASMJIT_ARM_FEATURE(has_chk, kCHK)
+    ASMJIT_ARM_FEATURE(has_clrbhb, kCLRBHB)
+    ASMJIT_ARM_FEATURE(has_cmow, kCMOW)
+    ASMJIT_ARM_FEATURE(has_cmpbr, kCMPBR)
+    ASMJIT_ARM_FEATURE(has_constpacfield, kCONSTPACFIELD)
+    ASMJIT_ARM_FEATURE(has_cpa, kCPA)
+    ASMJIT_ARM_FEATURE(has_cpa2, kCPA2)
+    ASMJIT_ARM_FEATURE(has_cpuid, kCPUID)
+    ASMJIT_ARM_FEATURE(has_crc32, kCRC32)
+    ASMJIT_ARM_FEATURE(has_cssc, kCSSC)
+    ASMJIT_ARM_FEATURE(has_csv2, kCSV2)
+    ASMJIT_ARM_FEATURE(has_csv2_3, kCSV2_3)
+    ASMJIT_ARM_FEATURE(has_csv3, kCSV3)
+    ASMJIT_ARM_FEATURE(has_d128, kD128)
+    ASMJIT_ARM_FEATURE(has_dgh, kDGH)
+    ASMJIT_ARM_FEATURE(has_dit, kDIT)
+    ASMJIT_ARM_FEATURE(has_dotprod, kDOTPROD)
+    ASMJIT_ARM_FEATURE(has_dpb, kDPB)
+    ASMJIT_ARM_FEATURE(has_dpb2, kDPB2)
+    ASMJIT_ARM_FEATURE(has_ebep, kEBEP)
+    ASMJIT_ARM_FEATURE(has_ebf16, kEBF16)
+    ASMJIT_ARM_FEATURE(has_ecbhb, kECBHB)
+    ASMJIT_ARM_FEATURE(has_ecv, kECV)
+    ASMJIT_ARM_FEATURE(has_edhsr, kEDHSR)
+    ASMJIT_ARM_FEATURE(has_edsp, kEDSP)
+    ASMJIT_ARM_FEATURE(has_f8e4m3, kF8E4M3)
+    ASMJIT_ARM_FEATURE(has_f8e5m2, kF8E5M2)
+    ASMJIT_ARM_FEATURE(has_f8f16mm, kF8F16MM)
+    ASMJIT_ARM_FEATURE(has_f8f32mm, kF8F32MM)
+    ASMJIT_ARM_FEATURE(has_faminmax, kFAMINMAX)
+    ASMJIT_ARM_FEATURE(has_fcma, kFCMA)
+    ASMJIT_ARM_FEATURE(has_fgt, kFGT)
+    ASMJIT_ARM_FEATURE(has_fgt2, kFGT2)
+    ASMJIT_ARM_FEATURE(has_fhm, kFHM)
+    ASMJIT_ARM_FEATURE(has_flagm, kFLAGM)
+    ASMJIT_ARM_FEATURE(has_flagm2, kFLAGM2)
+    ASMJIT_ARM_FEATURE(has_fmac, kFMAC)
+    ASMJIT_ARM_FEATURE(has_fp, kFP)
+    ASMJIT_ARM_FEATURE(has_fp16, kFP16)
+    ASMJIT_ARM_FEATURE(has_fp16conv, kFP16CONV)
+    ASMJIT_ARM_FEATURE(has_fp8, kFP8)
+    ASMJIT_ARM_FEATURE(has_fp8dot2, kFP8DOT2)
+    ASMJIT_ARM_FEATURE(has_fp8dot4, kFP8DOT4)
+    ASMJIT_ARM_FEATURE(has_fp8fma, kFP8FMA)
+    ASMJIT_ARM_FEATURE(has_fpmr, kFPMR)
+    ASMJIT_ARM_FEATURE(has_fprcvt, kFPRCVT)
+    ASMJIT_ARM_FEATURE(has_frintts, kFRINTTS)
+    ASMJIT_ARM_FEATURE(has_gcs, kGCS)
+    ASMJIT_ARM_FEATURE(has_hacdbs, kHACDBS)
+    ASMJIT_ARM_FEATURE(has_hafdbs, kHAFDBS)
+    ASMJIT_ARM_FEATURE(has_haft, kHAFT)
+    ASMJIT_ARM_FEATURE(has_hdbss, kHDBSS)
+    ASMJIT_ARM_FEATURE(has_hbc, kHBC)
+    ASMJIT_ARM_FEATURE(has_hcx, kHCX)
+    ASMJIT_ARM_FEATURE(has_hpds, kHPDS)
+    ASMJIT_ARM_FEATURE(has_hpds2, kHPDS2)
+    ASMJIT_ARM_FEATURE(has_i8mm, kI8MM)
+    ASMJIT_ARM_FEATURE(has_idiva, kIDIVA)
+    ASMJIT_ARM_FEATURE(has_idivt, kIDIVT)
+    ASMJIT_ARM_FEATURE(has_ite, kITE)
+    ASMJIT_ARM_FEATURE(has_jscvt, kJSCVT)
+    ASMJIT_ARM_FEATURE(has_lor, kLOR)
+    ASMJIT_ARM_FEATURE(has_lrcpc, kLRCPC)
+    ASMJIT_ARM_FEATURE(has_lrcpc2, kLRCPC2)
+    ASMJIT_ARM_FEATURE(has_lrcpc3, kLRCPC3)
+    ASMJIT_ARM_FEATURE(has_ls64, kLS64)
+    ASMJIT_ARM_FEATURE(has_ls64_accdata, kLS64_ACCDATA)
+    ASMJIT_ARM_FEATURE(has_ls64_v, kLS64_V)
+    ASMJIT_ARM_FEATURE(has_ls64wb, kLS64WB)
+    ASMJIT_ARM_FEATURE(has_lse, kLSE)
+    ASMJIT_ARM_FEATURE(has_lse128, kLSE128)
+    ASMJIT_ARM_FEATURE(has_lse2, kLSE2)
+    ASMJIT_ARM_FEATURE(has_lsfe, kLSFE)
+    ASMJIT_ARM_FEATURE(has_lsui, kLSUI)
+    ASMJIT_ARM_FEATURE(has_lut, kLUT)
+    ASMJIT_ARM_FEATURE(has_lva, kLVA)
+    ASMJIT_ARM_FEATURE(has_lva3, kLVA3)
+    ASMJIT_ARM_FEATURE(has_mec, kMEC)
+    ASMJIT_ARM_FEATURE(has_mops, kMOPS)
+    ASMJIT_ARM_FEATURE(has_mpam, kMPAM)
+    ASMJIT_ARM_FEATURE(has_mte, kMTE)
+    ASMJIT_ARM_FEATURE(has_mte2, kMTE2)
+    ASMJIT_ARM_FEATURE(has_mte3, kMTE3)
+    ASMJIT_ARM_FEATURE(has_mte4, kMTE4)
+    ASMJIT_ARM_FEATURE(has_mte_asym_fault, kMTE_ASYM_FAULT)
+    ASMJIT_ARM_FEATURE(has_mte_async, kMTE_ASYNC)
+    ASMJIT_ARM_FEATURE(has_mte_canonical_tags, kMTE_CANONICAL_TAGS)
+    ASMJIT_ARM_FEATURE(has_mte_no_address_tags, kMTE_NO_ADDRESS_TAGS)
+    ASMJIT_ARM_FEATURE(has_mte_perm_s1, kMTE_PERM_S1)
+    ASMJIT_ARM_FEATURE(has_mte_store_only, kMTE_STORE_ONLY)
+    ASMJIT_ARM_FEATURE(has_mte_tagged_far, kMTE_TAGGED_FAR)
+    ASMJIT_ARM_FEATURE(has_mtpmu, kMTPMU)
+    ASMJIT_ARM_FEATURE(has_nmi, kNMI)
+    ASMJIT_ARM_FEATURE(has_nv, kNV)
+    ASMJIT_ARM_FEATURE(has_nv2, kNV2)
+    ASMJIT_ARM_FEATURE(has_occmo, kOCCMO)
+    ASMJIT_ARM_FEATURE(has_pan, kPAN)
+    ASMJIT_ARM_FEATURE(has_pan2, kPAN2)
+    ASMJIT_ARM_FEATURE(has_pan3, kPAN3)
+    ASMJIT_ARM_FEATURE(has_pauth, kPAUTH)
+    ASMJIT_ARM_FEATURE(has_pfar, kPFAR)
+    ASMJIT_ARM_FEATURE(has_pmu, kPMU)
+    ASMJIT_ARM_FEATURE(has_pmull, kPMULL)
+    ASMJIT_ARM_FEATURE(has_prfmslc, kPRFMSLC)
+    ASMJIT_ARM_FEATURE(has_ras, kRAS)
+    ASMJIT_ARM_FEATURE(has_ras1_1, kRAS1_1)
+    ASMJIT_ARM_FEATURE(has_ras2, kRAS2)
+    ASMJIT_ARM_FEATURE(has_rassa2, kRASSA2)
+    ASMJIT_ARM_FEATURE(has_rdm, kRDM)
+    ASMJIT_ARM_FEATURE(has_rme, kRME)
+    ASMJIT_ARM_FEATURE(has_rng, kRNG)
+    ASMJIT_ARM_FEATURE(has_rng_trap, kRNG_TRAP)
+    ASMJIT_ARM_FEATURE(has_rpres, kRPRES)
+    ASMJIT_ARM_FEATURE(has_rprfm, kRPRFM)
+    ASMJIT_ARM_FEATURE(has_s1pie, kS1PIE)
+    ASMJIT_ARM_FEATURE(has_s1poe, kS1POE)
+    ASMJIT_ARM_FEATURE(has_s2pie, kS2PIE)
+    ASMJIT_ARM_FEATURE(has_s2poe, kS2POE)
+    ASMJIT_ARM_FEATURE(has_sb, kSB)
+    ASMJIT_ARM_FEATURE(has_sctlr2, kSCTLR2)
+    ASMJIT_ARM_FEATURE(has_sebep, kSEBEP)
+    ASMJIT_ARM_FEATURE(has_sel2, kSEL2)
+    ASMJIT_ARM_FEATURE(has_sha1, kSHA1)
+    ASMJIT_ARM_FEATURE(has_sha256, kSHA256)
+    ASMJIT_ARM_FEATURE(has_sha3, kSHA3)
+    ASMJIT_ARM_FEATURE(has_sha512, kSHA512)
+    ASMJIT_ARM_FEATURE(has_sm3, kSM3)
+    ASMJIT_ARM_FEATURE(has_sm4, kSM4)
+    ASMJIT_ARM_FEATURE(has_sme, kSME)
+    ASMJIT_ARM_FEATURE(has_sme2, kSME2)
+    ASMJIT_ARM_FEATURE(has_sme2_1, kSME2_1)
+    ASMJIT_ARM_FEATURE(has_sme2_2, kSME2_2)
+    ASMJIT_ARM_FEATURE(has_sme_aes, kSME_AES)
+    ASMJIT_ARM_FEATURE(has_sme_b16b16, kSME_B16B16)
+    ASMJIT_ARM_FEATURE(has_sme_b16f32, kSME_B16F32)
+    ASMJIT_ARM_FEATURE(has_sme_bi32i32, kSME_BI32I32)
+    ASMJIT_ARM_FEATURE(has_sme_f16f16, kSME_F16F16)
+    ASMJIT_ARM_FEATURE(has_sme_f16f32, kSME_F16F32)
+    ASMJIT_ARM_FEATURE(has_sme_f32f32, kSME_F32F32)
+    ASMJIT_ARM_FEATURE(has_sme_f64f64, kSME_F64F64)
+    ASMJIT_ARM_FEATURE(has_sme_f8f16, kSME_F8F16)
+    ASMJIT_ARM_FEATURE(has_sme_f8f32, kSME_F8F32)
+    ASMJIT_ARM_FEATURE(has_sme_fa64, kSME_FA64)
+    ASMJIT_ARM_FEATURE(has_sme_i16i32, kSME_I16I32)
+    ASMJIT_ARM_FEATURE(has_sme_i16i64, kSME_I16I64)
+    ASMJIT_ARM_FEATURE(has_sme_i8i32, kSME_I8I32)
+    ASMJIT_ARM_FEATURE(has_sme_lutv2, kSME_LUTv2)
+    ASMJIT_ARM_FEATURE(has_sme_mop4, kSME_MOP4)
+    ASMJIT_ARM_FEATURE(has_sme_tmop, kSME_TMOP)
+    ASMJIT_ARM_FEATURE(has_spe, kSPE)
+    ASMJIT_ARM_FEATURE(has_spe1_1, kSPE1_1)
+    ASMJIT_ARM_FEATURE(has_spe1_2, kSPE1_2)
+    ASMJIT_ARM_FEATURE(has_spe1_3, kSPE1_3)
+    ASMJIT_ARM_FEATURE(has_spe1_4, kSPE1_4)
+    ASMJIT_ARM_FEATURE(has_spe_altclk, kSPE_ALTCLK)
+    ASMJIT_ARM_FEATURE(has_spe_crr, kSPE_CRR)
+    ASMJIT_ARM_FEATURE(has_spe_eft, kSPE_EFT)
+    ASMJIT_ARM_FEATURE(has_spe_fds, kSPE_FDS)
+    ASMJIT_ARM_FEATURE(has_spe_fpf, kSPE_FPF)
+    ASMJIT_ARM_FEATURE(has_spe_sme, kSPE_SME)
+    ASMJIT_ARM_FEATURE(has_specres, kSPECRES)
+    ASMJIT_ARM_FEATURE(has_specres2, kSPECRES2)
+    ASMJIT_ARM_FEATURE(has_spmu, kSPMU)
+    ASMJIT_ARM_FEATURE(has_ssbs, kSSBS)
+    ASMJIT_ARM_FEATURE(has_ssbs2, kSSBS2)
+    ASMJIT_ARM_FEATURE(has_ssve_aes, kSSVE_AES)
+    ASMJIT_ARM_FEATURE(has_ssve_bitperm, kSSVE_BITPERM)
+    ASMJIT_ARM_FEATURE(has_ssve_fexpa, kSSVE_FEXPA)
+    ASMJIT_ARM_FEATURE(has_ssve_fp8dot2, kSSVE_FP8DOT2)
+    ASMJIT_ARM_FEATURE(has_ssve_fp8dot4, kSSVE_FP8DOT4)
+    ASMJIT_ARM_FEATURE(has_ssve_fp8fma, kSSVE_FP8FMA)
+    ASMJIT_ARM_FEATURE(has_sve, kSVE)
+    ASMJIT_ARM_FEATURE(has_sve2, kSVE2)
+    ASMJIT_ARM_FEATURE(has_sve2_1, kSVE2_1)
+    ASMJIT_ARM_FEATURE(has_sve2_2, kSVE2_2)
+    ASMJIT_ARM_FEATURE(has_sve_aes, kSVE_AES)
+    ASMJIT_ARM_FEATURE(has_sve_aes2, kSVE_AES2)
+    ASMJIT_ARM_FEATURE(has_sve_b16b16, kSVE_B16B16)
+    ASMJIT_ARM_FEATURE(has_sve_bf16, kSVE_BF16)
+    ASMJIT_ARM_FEATURE(has_sve_bfscale, kSVE_BFSCALE)
+    ASMJIT_ARM_FEATURE(has_sve_bitperm, kSVE_BITPERM)
+    ASMJIT_ARM_FEATURE(has_sve_ebf16, kSVE_EBF16)
+    ASMJIT_ARM_FEATURE(has_sve_eltperm, kSVE_ELTPERM)
+    ASMJIT_ARM_FEATURE(has_sve_f16mm, kSVE_F16MM)
+    ASMJIT_ARM_FEATURE(has_sve_f32mm, kSVE_F32MM)
+    ASMJIT_ARM_FEATURE(has_sve_f64mm, kSVE_F64MM)
+    ASMJIT_ARM_FEATURE(has_sve_i8mm, kSVE_I8MM)
+    ASMJIT_ARM_FEATURE(has_sve_pmull128, kSVE_PMULL128)
+    ASMJIT_ARM_FEATURE(has_sve_sha3, kSVE_SHA3)
+    ASMJIT_ARM_FEATURE(has_sve_sm4, kSVE_SM4)
+    ASMJIT_ARM_FEATURE(has_sysinstr128, kSYSINSTR128)
+    ASMJIT_ARM_FEATURE(has_sysreg128, kSYSREG128)
+    ASMJIT_ARM_FEATURE(has_the, kTHE)
+    ASMJIT_ARM_FEATURE(has_tlbios, kTLBIOS)
+    ASMJIT_ARM_FEATURE(has_tlbirange, kTLBIRANGE)
+    ASMJIT_ARM_FEATURE(has_tlbiw, kTLBIW)
+    ASMJIT_ARM_FEATURE(has_tme, kTME)
+    ASMJIT_ARM_FEATURE(has_trf, kTRF)
+    ASMJIT_ARM_FEATURE(has_uao, kUAO)
+    ASMJIT_ARM_FEATURE(has_vfp_d32, kVFP_D32)
+    ASMJIT_ARM_FEATURE(has_vhe, kVHE)
+    ASMJIT_ARM_FEATURE(has_vmid16, kVMID16)
+    ASMJIT_ARM_FEATURE(has_wfxt, kWFXT)
+    ASMJIT_ARM_FEATURE(has_xnx, kXNX)
+    ASMJIT_ARM_FEATURE(has_xs, kXS)
 
     #undef ASMJIT_ARM_FEATURE
   };
@@ -1037,7 +1037,7 @@ public:
   //! \{
 
   //! Returns true if there are no features set.
-  ASMJIT_INLINE_NODEBUG bool empty() const noexcept { return _data.empty(); }
+  ASMJIT_INLINE_NODEBUG bool is_empty() const noexcept { return _data.is_empty(); }
 
   //! Casts this base class into a derived type `T`.
   template<typename T = Data>
@@ -1062,21 +1062,21 @@ public:
   //! Returns all features as array of bitwords (const).
   ASMJIT_INLINE_NODEBUG const BitWord* bits() const noexcept { return _data.bits(); }
   //! Returns the number of BitWords returned by \ref bits().
-  ASMJIT_INLINE_NODEBUG size_t bitWordCount() const noexcept { return _data.bitWordCount(); }
+  ASMJIT_INLINE_NODEBUG size_t bit_word_count() const noexcept { return _data.bit_word_count(); }
 
   //! Returns \ref Support::BitVectorIterator, that can be used to iterate over all features efficiently.
   ASMJIT_INLINE_NODEBUG Iterator iterator() const noexcept { return _data.iterator(); }
 
-  //! Tests whether the feature `featureId` is present.
+  //! Tests whether the feature `feature_id` is present.
   template<typename FeatureId>
-  ASMJIT_INLINE_NODEBUG bool has(const FeatureId& featureId) const noexcept { return _data.has(featureId); }
+  ASMJIT_INLINE_NODEBUG bool has(const FeatureId& feature_id) const noexcept { return _data.has(feature_id); }
 
   //! Tests whether any of the features is present.
   template<typename... Args>
-  ASMJIT_INLINE_NODEBUG bool hasAny(Args&&... args) const noexcept { return _data.hasAny(std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG bool has_any(Args&&... args) const noexcept { return _data.has_any(std::forward<Args>(args)...); }
 
   //! Tests whether all features as defined by `other` are present.
-  ASMJIT_INLINE_NODEBUG bool hasAll(const CpuFeatures& other) const noexcept { return _data.hasAll(other._data); }
+  ASMJIT_INLINE_NODEBUG bool has_all(const CpuFeatures& other) const noexcept { return _data.has_all(other._data); }
 
   //! \}
 
@@ -1086,15 +1086,15 @@ public:
   //! Clears all features set.
   ASMJIT_INLINE_NODEBUG void reset() noexcept { _data.reset(); }
 
-  //! Adds the given CPU `featureId` to the list of features.
+  //! Adds the given CPU `feature_id` to the list of features.
   template<typename... Args>
   ASMJIT_INLINE_NODEBUG void add(Args&&... args) noexcept { return _data.add(std::forward<Args>(args)...); }
 
-  //! Adds the given CPU `featureId` to the list of features if `condition` is true.
+  //! Adds the given CPU `feature_id` to the list of features if `condition` is true.
   template<typename... Args>
-  ASMJIT_INLINE_NODEBUG void addIf(bool condition, Args&&... args) noexcept { return _data.addIf(condition, std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG void add_if(bool condition, Args&&... args) noexcept { return _data.add_if(condition, std::forward<Args>(args)...); }
 
-  //! Removes the given CPU `featureId` from the list of features.
+  //! Removes the given CPU `feature_id` from the list of features.
   template<typename... Args>
   ASMJIT_INLINE_NODEBUG void remove(Args&&... args) noexcept { return _data.remove(std::forward<Args>(args)...); }
 
@@ -1113,27 +1113,27 @@ public:
   //! Architecture.
   Arch _arch {};
   //! Sub-architecture.
-  SubArch _subArch {};
+  SubArch _sub_arch {};
   //! True if the CPU was detected, false if the detection failed or it's not available.
-  bool _wasDetected {};
+  bool _was_detected {};
   //! Reserved for future use.
   uint8_t _reserved {};
   //! CPU family ID.
-  uint32_t _familyId {};
+  uint32_t _family_id {};
   //! CPU model ID.
-  uint32_t _modelId {};
+  uint32_t _model_id {};
   //! CPU brand ID.
-  uint32_t _brandId {};
+  uint32_t _brand_id {};
   //! CPU stepping.
   uint32_t _stepping {};
   //! Processor type.
-  uint32_t _processorType {};
+  uint32_t _processor_type {};
   //! Maximum number of addressable IDs for logical processors.
-  uint32_t _maxLogicalProcessors {};
+  uint32_t _max_logical_processors {};
   //! Cache line size (in bytes).
-  uint32_t _cacheLineSize {};
+  uint32_t _cache_line_size {};
   //! Number of hardware threads.
-  uint32_t _hwThreadCount {};
+  uint32_t _hw_thread_count {};
 
   //! CPU vendor string.
   FixedString<16> _vendor {};
@@ -1180,10 +1180,10 @@ public:
   //! \name Initialization & Reset
   //! \{
 
-  //! Initializes CpuInfo architecture and sub-architecture members to `arch` and `subArch`, respectively.
-  ASMJIT_INLINE_NODEBUG void initArch(Arch arch, SubArch subArch = SubArch::kUnknown) noexcept {
+  //! Initializes CpuInfo architecture and sub-architecture members to `arch` and `sub_arch`, respectively.
+  ASMJIT_INLINE_NODEBUG void init_arch(Arch arch, SubArch sub_arch = SubArch::kUnknown) noexcept {
     _arch = arch;
-    _subArch = subArch;
+    _sub_arch = sub_arch;
   }
 
   //! Resets this \ref CpuInfo to a default constructed state.
@@ -1200,14 +1200,14 @@ public:
 
   //! Returns the CPU sub-architecture this information relates to.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG SubArch subArch() const noexcept { return _subArch; }
+  ASMJIT_INLINE_NODEBUG SubArch sub_arch() const noexcept { return _sub_arch; }
 
   //! Returns whether the CPU was detected successfully.
   //!
   //! If the returned value is false it means that AsmJit either failed to detect the CPU or it doesn't have
   //! implementation targeting the host architecture and operating system.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool wasDetected() const noexcept { return _wasDetected; }
+  ASMJIT_INLINE_NODEBUG bool was_detected() const noexcept { return _was_detected; }
 
   //! Returns the CPU family ID.
   //!
@@ -1217,7 +1217,7 @@ public:
   //!   - ARM:
   //!     - Apple - returns Apple Family identifier returned by sysctlbyname("hw.cpufamily").
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t familyId() const noexcept { return _familyId; }
+  ASMJIT_INLINE_NODEBUG uint32_t family_id() const noexcept { return _family_id; }
 
   //! Returns the CPU model ID.
   //!
@@ -1225,7 +1225,7 @@ public:
   //!   - X86:
   //!     - Model identifier matches the ModelId read by using CPUID.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t modelId() const noexcept { return _modelId; }
+  ASMJIT_INLINE_NODEBUG uint32_t model_id() const noexcept { return _model_id; }
 
   //! Returns the CPU brand id.
   //!
@@ -1233,7 +1233,7 @@ public:
   //!   - X86:
   //!     - Brand identifier matches the BrandId read by using CPUID.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t brandId() const noexcept { return _brandId; }
+  ASMJIT_INLINE_NODEBUG uint32_t brand_id() const noexcept { return _brand_id; }
 
   //! Returns the CPU stepping.
   //!
@@ -1249,21 +1249,21 @@ public:
   //!   - X86:
   //!     - Processor type identifier matches the ProcessorType read by using CPUID.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t processorType() const noexcept { return _processorType; }
+  ASMJIT_INLINE_NODEBUG uint32_t processor_type() const noexcept { return _processor_type; }
 
   //! Returns the maximum number of logical processors.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t maxLogicalProcessors() const noexcept { return _maxLogicalProcessors; }
+  ASMJIT_INLINE_NODEBUG uint32_t max_logical_processors() const noexcept { return _max_logical_processors; }
 
   //! Returns the size of a CPU cache line.
   //!
   //! On a multi-architecture system this should return the smallest cache line of all CPUs.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t cacheLineSize() const noexcept { return _cacheLineSize; }
+  ASMJIT_INLINE_NODEBUG uint32_t cache_line_size() const noexcept { return _cache_line_size; }
 
   //! Returns number of hardware threads available.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t hwThreadCount() const noexcept { return _hwThreadCount; }
+  ASMJIT_INLINE_NODEBUG uint32_t hw_thread_count() const noexcept { return _hw_thread_count; }
 
   //! Returns a CPU vendor string.
   [[nodiscard]]
@@ -1271,7 +1271,7 @@ public:
 
   //! Tests whether the CPU vendor string is equal to `s`.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool isVendor(const char* s) const noexcept { return _vendor.equals(s); }
+  ASMJIT_INLINE_NODEBUG bool is_vendor(const char* s) const noexcept { return _vendor.equals(s); }
 
   //! Returns a CPU brand string.
   [[nodiscard]]
@@ -1288,15 +1288,15 @@ public:
   //! Tests whether the CPU has the given `feature`.
   template<typename FeatureId>
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool hasFeature(const FeatureId& featureId) const noexcept { return _features.has(featureId); }
+  ASMJIT_INLINE_NODEBUG bool has_feature(const FeatureId& feature_id) const noexcept { return _features.has(feature_id); }
 
-  //! Adds the given CPU `featureId` to the list of features.
+  //! Adds the given CPU `feature_id` to the list of features.
   template<typename... Args>
-  ASMJIT_INLINE_NODEBUG void addFeature(Args&&... args) noexcept { return _features.add(std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG void add_feature(Args&&... args) noexcept { return _features.add(std::forward<Args>(args)...); }
 
-  //! Removes the given CPU `featureId` from the list of features.
+  //! Removes the given CPU `feature_id` from the list of features.
   template<typename... Args>
-  ASMJIT_INLINE_NODEBUG void removeFeature(Args&&... args) noexcept { return _features.remove(std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG void remove_feature(Args&&... args) noexcept { return _features.remove(std::forward<Args>(args)...); }
 
   //! \}
 };

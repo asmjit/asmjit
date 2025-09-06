@@ -96,18 +96,18 @@ ASMJIT_BEGIN_NAMESPACE
 // ==================================
 
 #if defined(_WIN32)
-static inline uint32_t detectHWThreadCount() noexcept {
+static inline uint32_t detect_hw_thread_count() noexcept {
   SYSTEM_INFO info;
   ::GetSystemInfo(&info);
   return info.dwNumberOfProcessors;
 }
 #elif defined(_SC_NPROCESSORS_ONLN)
-static inline uint32_t detectHWThreadCount() noexcept {
+static inline uint32_t detect_hw_thread_count() noexcept {
   long res = ::sysconf(_SC_NPROCESSORS_ONLN);
   return res <= 0 ? uint32_t(1) : uint32_t(res);
 }
 #else
-static inline uint32_t detectHWThreadCount() noexcept {
+static inline uint32_t detect_hw_thread_count() noexcept {
   return 1;
 }
 #endif
@@ -127,40 +127,40 @@ struct cpuid_t { uint32_t eax, ebx, ecx, edx; };
 struct xgetbv_t { uint32_t eax, edx; };
 
 // Executes `cpuid` instruction.
-static inline void cpuidQuery(cpuid_t* out, uint32_t inEax, uint32_t inEcx = 0) noexcept {
+static inline void cpuid_query(cpuid_t* out, uint32_t in_eax, uint32_t in_ecx = 0) noexcept {
 #if defined(_MSC_VER)
-  __cpuidex(reinterpret_cast<int*>(out), inEax, inEcx);
+  __cpuidex(reinterpret_cast<int*>(out), in_eax, in_ecx);
 #elif defined(__GNUC__) && ASMJIT_ARCH_X86 == 32
   __asm__ __volatile__(
     "mov %%ebx, %%edi\n"
     "cpuid\n"
-    "xchg %%edi, %%ebx\n" : "=a"(out->eax), "=D"(out->ebx), "=c"(out->ecx), "=d"(out->edx) : "a"(inEax), "c"(inEcx));
+    "xchg %%edi, %%ebx\n" : "=a"(out->eax), "=D"(out->ebx), "=c"(out->ecx), "=d"(out->edx) : "a"(in_eax), "c"(in_ecx));
 #elif defined(__GNUC__) && ASMJIT_ARCH_X86 == 64
   __asm__ __volatile__(
     "mov %%rbx, %%rdi\n"
     "cpuid\n"
-    "xchg %%rdi, %%rbx\n" : "=a"(out->eax), "=D"(out->ebx), "=c"(out->ecx), "=d"(out->edx) : "a"(inEax), "c"(inEcx));
+    "xchg %%rdi, %%rbx\n" : "=a"(out->eax), "=D"(out->ebx), "=c"(out->ecx), "=d"(out->edx) : "a"(in_eax), "c"(in_ecx));
 #else
-  #error "[asmjit] x86::cpuidQuery() - Unsupported compiler."
+  #error "[asmjit] x86::cpuid_query() - Unsupported compiler."
 #endif
 }
 
 // Executes 'xgetbv' instruction.
-static inline void xgetbvQuery(xgetbv_t* out, uint32_t inEcx) noexcept {
+static inline void xgetbv_query(xgetbv_t* out, uint32_t in_ecx) noexcept {
 #if defined(_MSC_VER)
-  uint64_t value = _xgetbv(inEcx);
+  uint64_t value = _xgetbv(in_ecx);
   out->eax = uint32_t(value & 0xFFFFFFFFu);
   out->edx = uint32_t(value >> 32);
 #elif defined(__GNUC__)
-  uint32_t outEax;
-  uint32_t outEdx;
+  uint32_t out_eax;
+  uint32_t out_edx;
 
   // Replaced, because the world is not perfect:
-  //   __asm__ __volatile__("xgetbv" : "=a"(outEax), "=d"(outEdx) : "c"(inEcx));
-  __asm__ __volatile__(".byte 0x0F, 0x01, 0xD0" : "=a"(outEax), "=d"(outEdx) : "c"(inEcx));
+  //   __asm__ __volatile__("xgetbv" : "=a"(out_eax), "=d"(out_edx) : "c"(in_ecx));
+  __asm__ __volatile__(".byte 0x0F, 0x01, 0xD0" : "=a"(out_eax), "=d"(out_edx) : "c"(in_ecx));
 
-  out->eax = outEax;
-  out->edx = outEdx;
+  out->eax = out_eax;
+  out->edx = out_edx;
 #else
   out->eax = 0;
   out->edx = 0;
@@ -168,7 +168,7 @@ static inline void xgetbvQuery(xgetbv_t* out, uint32_t inEcx) noexcept {
 }
 
 // Map a 12-byte vendor string returned by `cpuid` into a `CpuInfo::Vendor` ID.
-static inline void simplifyCpuVendor(CpuInfo& cpu, uint32_t d0, uint32_t d1, uint32_t d2) noexcept {
+static inline void simplify_cpu_vendor(CpuInfo& cpu, uint32_t d0, uint32_t d1, uint32_t d2) noexcept {
   struct Vendor {
     char normalized[8];
     union { char text[12]; uint32_t d[3]; };
@@ -191,7 +191,7 @@ static inline void simplifyCpuVendor(CpuInfo& cpu, uint32_t d0, uint32_t d1, uin
   memcpy(cpu._vendor.str, table[i].normalized, 8);
 }
 
-static ASMJIT_FAVOR_SIZE void simplifyCpuBrand(char* s) noexcept {
+static ASMJIT_FAVOR_SIZE void simplify_cpu_brand(char* s) noexcept {
   char* d = s;
 
   char c = s[0];
@@ -218,15 +218,15 @@ static ASMJIT_FAVOR_SIZE void simplifyCpuBrand(char* s) noexcept {
   d[0] = '\0';
 }
 
-static ASMJIT_FAVOR_SIZE void detectX86Cpu(CpuInfo& cpu) noexcept {
-  using Support::bitTest;
+static ASMJIT_FAVOR_SIZE void detect_x86_cpu(CpuInfo& cpu) noexcept {
+  using Support::bit_test;
 
   cpuid_t regs;
   xgetbv_t xcr0 { 0, 0 };
   CpuFeatures::X86& features = cpu.features().x86();
 
-  cpu._wasDetected = true;
-  cpu._maxLogicalProcessors = 1;
+  cpu._was_detected = true;
+  cpu._max_logical_processors = 1;
 
   // We are gonna execute CPUID, which was introduced by I486, so it's the requirement.
   features.add(Ext::kI486);
@@ -235,283 +235,283 @@ static ASMJIT_FAVOR_SIZE void detectX86Cpu(CpuInfo& cpu) noexcept {
   // ----------------------------------------
 
   // Get vendor string/id.
-  cpuidQuery(&regs, 0x0);
+  cpuid_query(&regs, 0x0);
 
-  uint32_t maxId = regs.eax;
-  uint32_t maxSubLeafId_0x7 = 0;
+  uint32_t max_id = regs.eax;
+  uint32_t max_sub_leaf_id_0x7 = 0;
 
-  simplifyCpuVendor(cpu, regs.ebx, regs.edx, regs.ecx);
+  simplify_cpu_vendor(cpu, regs.ebx, regs.edx, regs.ecx);
 
   // CPUID EAX=0x01 (Basic CPUID Information)
   // ----------------------------------------
 
-  if (maxId >= 0x01u) {
+  if (max_id >= 0x01u) {
     // Get feature flags in ECX/EDX and family/model in EAX.
-    cpuidQuery(&regs, 0x1);
+    cpuid_query(&regs, 0x1);
 
     // Fill family and model fields.
-    uint32_t modelId  = (regs.eax >> 4) & 0x0F;
-    uint32_t familyId = (regs.eax >> 8) & 0x0F;
+    uint32_t model_id  = (regs.eax >> 4) & 0x0F;
+    uint32_t family_id = (regs.eax >> 8) & 0x0F;
 
     // Use extended family and model fields.
-    if (familyId == 0x06u || familyId == 0x0Fu) {
-      modelId += (((regs.eax >> 16) & 0x0Fu) << 4);
+    if (family_id == 0x06u || family_id == 0x0Fu) {
+      model_id += (((regs.eax >> 16) & 0x0Fu) << 4);
     }
 
-    if (familyId == 0x0Fu) {
-      familyId += ((regs.eax >> 20) & 0xFFu);
+    if (family_id == 0x0Fu) {
+      family_id += ((regs.eax >> 20) & 0xFFu);
     }
 
-    cpu._modelId = modelId;
-    cpu._familyId = familyId;
-    cpu._brandId = (regs.ebx) & 0xFF;
-    cpu._processorType = (regs.eax >> 12) & 0x03;
-    cpu._maxLogicalProcessors = (regs.ebx >> 16) & 0xFF;
+    cpu._model_id = model_id;
+    cpu._family_id = family_id;
+    cpu._brand_id = (regs.ebx) & 0xFF;
+    cpu._processor_type = (regs.eax >> 12) & 0x03;
+    cpu._max_logical_processors = (regs.ebx >> 16) & 0xFF;
     cpu._stepping = (regs.eax) & 0x0F;
-    cpu._cacheLineSize  = ((regs.ebx >> 8) & 0xFF) * 8;
+    cpu._cache_line_size  = ((regs.ebx >> 8) & 0xFF) * 8;
 
-    features.addIf(bitTest(regs.ecx,  0), Ext::kSSE3);
-    features.addIf(bitTest(regs.ecx,  1), Ext::kPCLMULQDQ);
-    features.addIf(bitTest(regs.ecx,  3), Ext::kMONITOR);
-    features.addIf(bitTest(regs.ecx,  5), Ext::kVMX);
-    features.addIf(bitTest(regs.ecx,  6), Ext::kSMX);
-    features.addIf(bitTest(regs.ecx,  9), Ext::kSSSE3);
-    features.addIf(bitTest(regs.ecx, 13), Ext::kCMPXCHG16B);
-    features.addIf(bitTest(regs.ecx, 19), Ext::kSSE4_1);
-    features.addIf(bitTest(regs.ecx, 20), Ext::kSSE4_2);
-    features.addIf(bitTest(regs.ecx, 22), Ext::kMOVBE);
-    features.addIf(bitTest(regs.ecx, 23), Ext::kPOPCNT);
-    features.addIf(bitTest(regs.ecx, 25), Ext::kAESNI);
-    features.addIf(bitTest(regs.ecx, 26), Ext::kXSAVE);
-    features.addIf(bitTest(regs.ecx, 27), Ext::kOSXSAVE);
-    features.addIf(bitTest(regs.ecx, 30), Ext::kRDRAND);
-    features.addIf(bitTest(regs.edx,  0), Ext::kFPU);
-    features.addIf(bitTest(regs.edx,  4), Ext::kRDTSC);
-    features.addIf(bitTest(regs.edx,  5), Ext::kMSR);
-    features.addIf(bitTest(regs.edx,  8), Ext::kCMPXCHG8B);
-    features.addIf(bitTest(regs.edx, 15), Ext::kCMOV);
-    features.addIf(bitTest(regs.edx, 19), Ext::kCLFLUSH);
-    features.addIf(bitTest(regs.edx, 23), Ext::kMMX);
-    features.addIf(bitTest(regs.edx, 24), Ext::kFXSR);
-    features.addIf(bitTest(regs.edx, 25), Ext::kSSE, Ext::kMMX2);
-    features.addIf(bitTest(regs.edx, 26), Ext::kSSE2, Ext::kSSE);
-    features.addIf(bitTest(regs.edx, 28), Ext::kMT);
+    features.add_if(bit_test(regs.ecx,  0), Ext::kSSE3);
+    features.add_if(bit_test(regs.ecx,  1), Ext::kPCLMULQDQ);
+    features.add_if(bit_test(regs.ecx,  3), Ext::kMONITOR);
+    features.add_if(bit_test(regs.ecx,  5), Ext::kVMX);
+    features.add_if(bit_test(regs.ecx,  6), Ext::kSMX);
+    features.add_if(bit_test(regs.ecx,  9), Ext::kSSSE3);
+    features.add_if(bit_test(regs.ecx, 13), Ext::kCMPXCHG16B);
+    features.add_if(bit_test(regs.ecx, 19), Ext::kSSE4_1);
+    features.add_if(bit_test(regs.ecx, 20), Ext::kSSE4_2);
+    features.add_if(bit_test(regs.ecx, 22), Ext::kMOVBE);
+    features.add_if(bit_test(regs.ecx, 23), Ext::kPOPCNT);
+    features.add_if(bit_test(regs.ecx, 25), Ext::kAESNI);
+    features.add_if(bit_test(regs.ecx, 26), Ext::kXSAVE);
+    features.add_if(bit_test(regs.ecx, 27), Ext::kOSXSAVE);
+    features.add_if(bit_test(regs.ecx, 30), Ext::kRDRAND);
+    features.add_if(bit_test(regs.edx,  0), Ext::kFPU);
+    features.add_if(bit_test(regs.edx,  4), Ext::kRDTSC);
+    features.add_if(bit_test(regs.edx,  5), Ext::kMSR);
+    features.add_if(bit_test(regs.edx,  8), Ext::kCMPXCHG8B);
+    features.add_if(bit_test(regs.edx, 15), Ext::kCMOV);
+    features.add_if(bit_test(regs.edx, 19), Ext::kCLFLUSH);
+    features.add_if(bit_test(regs.edx, 23), Ext::kMMX);
+    features.add_if(bit_test(regs.edx, 24), Ext::kFXSR);
+    features.add_if(bit_test(regs.edx, 25), Ext::kSSE, Ext::kMMX2);
+    features.add_if(bit_test(regs.edx, 26), Ext::kSSE2, Ext::kSSE);
+    features.add_if(bit_test(regs.edx, 28), Ext::kMT);
 
     // Get the content of XCR0 if supported by the CPU and enabled by the OS.
-    if (features.hasXSAVE() && features.hasOSXSAVE()) {
-      xgetbvQuery(&xcr0, 0);
+    if (features.has_xsave() && features.has_osxsave()) {
+      xgetbv_query(&xcr0, 0);
     }
 
     // Detect AVX+.
-    if (bitTest(regs.ecx, 28)) {
+    if (bit_test(regs.ecx, 28)) {
       // - XCR0[2:1] == 11b
       //   XMM & YMM states need to be enabled by OS.
       if ((xcr0.eax & 0x00000006u) == 0x00000006u) {
         features.add(Ext::kAVX);
-        features.addIf(bitTest(regs.ecx, 12), Ext::kFMA);
-        features.addIf(bitTest(regs.ecx, 29), Ext::kF16C);
+        features.add_if(bit_test(regs.ecx, 12), Ext::kFMA);
+        features.add_if(bit_test(regs.ecx, 29), Ext::kF16C);
       }
     }
   }
 
   constexpr uint32_t kXCR0_AMX_Bits = 0x3u << 17;
-  bool amxEnabled = (xcr0.eax & kXCR0_AMX_Bits) == kXCR0_AMX_Bits;
+  bool amx_enabled = (xcr0.eax & kXCR0_AMX_Bits) == kXCR0_AMX_Bits;
 
 #if defined(__APPLE__)
   // Apple platform provides on-demand AVX512 support. When an AVX512 instruction is used the first time it results
   // in #UD, which would cause the thread being promoted to use AVX512 support by the OS in addition to enabling the
   // necessary bits in XCR0 register.
-  bool avx512Enabled = true;
+  bool avx512_enabled = true;
 #else
   // - XCR0[2:1] ==  11b - XMM/YMM states need to be enabled by OS.
   // - XCR0[7:5] == 111b - Upper 256-bit of ZMM0-XMM15 and ZMM16-ZMM31 need to be enabled by OS.
   constexpr uint32_t kXCR0_AVX512_Bits = (0x3u << 1) | (0x7u << 5);
-  bool avx512Enabled = (xcr0.eax & kXCR0_AVX512_Bits) == kXCR0_AVX512_Bits;
+  bool avx512_enabled = (xcr0.eax & kXCR0_AVX512_Bits) == kXCR0_AVX512_Bits;
 #endif
 
-  bool avx10Enabled = false;
+  bool avx10_enabled = false;
 
   // CPUID EAX=0x07 ECX=0 (Structured Extended Feature Flags Enumeration Leaf)
   // -------------------------------------------------------------------------
 
-  if (maxId >= 0x07u) {
-    cpuidQuery(&regs, 0x7);
+  if (max_id >= 0x07u) {
+    cpuid_query(&regs, 0x7);
 
-    maxSubLeafId_0x7 = regs.eax;
+    max_sub_leaf_id_0x7 = regs.eax;
 
-    features.addIf(bitTest(regs.ebx,  0), Ext::kFSGSBASE);
-    features.addIf(bitTest(regs.ebx,  3), Ext::kBMI);
-    features.addIf(bitTest(regs.ebx,  7), Ext::kSMEP);
-    features.addIf(bitTest(regs.ebx,  8), Ext::kBMI2);
-    features.addIf(bitTest(regs.ebx,  9), Ext::kERMS);
-    features.addIf(bitTest(regs.ebx, 18), Ext::kRDSEED);
-    features.addIf(bitTest(regs.ebx, 19), Ext::kADX);
-    features.addIf(bitTest(regs.ebx, 20), Ext::kSMAP);
-    features.addIf(bitTest(regs.ebx, 23), Ext::kCLFLUSHOPT);
-    features.addIf(bitTest(regs.ebx, 24), Ext::kCLWB);
-    features.addIf(bitTest(regs.ebx, 29), Ext::kSHA);
-    features.addIf(bitTest(regs.ecx,  0), Ext::kPREFETCHWT1);
-    features.addIf(bitTest(regs.ecx,  4), Ext::kOSPKE);
-    features.addIf(bitTest(regs.ecx,  5), Ext::kWAITPKG);
-    features.addIf(bitTest(regs.ecx,  7), Ext::kCET_SS);
-    features.addIf(bitTest(regs.ecx,  8), Ext::kGFNI);
-    features.addIf(bitTest(regs.ecx,  9), Ext::kVAES);
-    features.addIf(bitTest(regs.ecx, 10), Ext::kVPCLMULQDQ);
-    features.addIf(bitTest(regs.ecx, 22), Ext::kRDPID);
-    features.addIf(bitTest(regs.ecx, 23), Ext::kKL);
-    features.addIf(bitTest(regs.ecx, 25), Ext::kCLDEMOTE);
-    features.addIf(bitTest(regs.ecx, 27), Ext::kMOVDIRI);
-    features.addIf(bitTest(regs.ecx, 28), Ext::kMOVDIR64B);
-    features.addIf(bitTest(regs.ecx, 29), Ext::kENQCMD);
-    features.addIf(bitTest(regs.edx,  4), Ext::kFSRM);
-    features.addIf(bitTest(regs.edx,  5), Ext::kUINTR);
-    features.addIf(bitTest(regs.edx, 14), Ext::kSERIALIZE);
-    features.addIf(bitTest(regs.edx, 16), Ext::kTSXLDTRK);
-    features.addIf(bitTest(regs.edx, 18), Ext::kPCONFIG);
-    features.addIf(bitTest(regs.edx, 20), Ext::kCET_IBT);
+    features.add_if(bit_test(regs.ebx,  0), Ext::kFSGSBASE);
+    features.add_if(bit_test(regs.ebx,  3), Ext::kBMI);
+    features.add_if(bit_test(regs.ebx,  7), Ext::kSMEP);
+    features.add_if(bit_test(regs.ebx,  8), Ext::kBMI2);
+    features.add_if(bit_test(regs.ebx,  9), Ext::kERMS);
+    features.add_if(bit_test(regs.ebx, 18), Ext::kRDSEED);
+    features.add_if(bit_test(regs.ebx, 19), Ext::kADX);
+    features.add_if(bit_test(regs.ebx, 20), Ext::kSMAP);
+    features.add_if(bit_test(regs.ebx, 23), Ext::kCLFLUSHOPT);
+    features.add_if(bit_test(regs.ebx, 24), Ext::kCLWB);
+    features.add_if(bit_test(regs.ebx, 29), Ext::kSHA);
+    features.add_if(bit_test(regs.ecx,  0), Ext::kPREFETCHWT1);
+    features.add_if(bit_test(regs.ecx,  4), Ext::kOSPKE);
+    features.add_if(bit_test(regs.ecx,  5), Ext::kWAITPKG);
+    features.add_if(bit_test(regs.ecx,  7), Ext::kCET_SS);
+    features.add_if(bit_test(regs.ecx,  8), Ext::kGFNI);
+    features.add_if(bit_test(regs.ecx,  9), Ext::kVAES);
+    features.add_if(bit_test(regs.ecx, 10), Ext::kVPCLMULQDQ);
+    features.add_if(bit_test(regs.ecx, 22), Ext::kRDPID);
+    features.add_if(bit_test(regs.ecx, 23), Ext::kKL);
+    features.add_if(bit_test(regs.ecx, 25), Ext::kCLDEMOTE);
+    features.add_if(bit_test(regs.ecx, 27), Ext::kMOVDIRI);
+    features.add_if(bit_test(regs.ecx, 28), Ext::kMOVDIR64B);
+    features.add_if(bit_test(regs.ecx, 29), Ext::kENQCMD);
+    features.add_if(bit_test(regs.edx,  4), Ext::kFSRM);
+    features.add_if(bit_test(regs.edx,  5), Ext::kUINTR);
+    features.add_if(bit_test(regs.edx, 14), Ext::kSERIALIZE);
+    features.add_if(bit_test(regs.edx, 16), Ext::kTSXLDTRK);
+    features.add_if(bit_test(regs.edx, 18), Ext::kPCONFIG);
+    features.add_if(bit_test(regs.edx, 20), Ext::kCET_IBT);
 
-    if (bitTest(regs.ebx, 5) && features.hasAVX()) {
+    if (bit_test(regs.ebx, 5) && features.has_avx()) {
       features.add(Ext::kAVX2);
     }
 
-    if (avx512Enabled && bitTest(regs.ebx, 16)) {
+    if (avx512_enabled && bit_test(regs.ebx, 16)) {
       features.add(Ext::kAVX512_F);
 
-      features.addIf(bitTest(regs.ebx, 17), Ext::kAVX512_DQ);
-      features.addIf(bitTest(regs.ebx, 21), Ext::kAVX512_IFMA);
-      features.addIf(bitTest(regs.ebx, 28), Ext::kAVX512_CD);
-      features.addIf(bitTest(regs.ebx, 30), Ext::kAVX512_BW);
-      features.addIf(bitTest(regs.ebx, 31), Ext::kAVX512_VL);
-      features.addIf(bitTest(regs.ecx,  1), Ext::kAVX512_VBMI);
-      features.addIf(bitTest(regs.ecx,  6), Ext::kAVX512_VBMI2);
-      features.addIf(bitTest(regs.ecx, 11), Ext::kAVX512_VNNI);
-      features.addIf(bitTest(regs.ecx, 12), Ext::kAVX512_BITALG);
-      features.addIf(bitTest(regs.ecx, 14), Ext::kAVX512_VPOPCNTDQ);
-      features.addIf(bitTest(regs.edx,  8), Ext::kAVX512_VP2INTERSECT);
-      features.addIf(bitTest(regs.edx, 23), Ext::kAVX512_FP16);
+      features.add_if(bit_test(regs.ebx, 17), Ext::kAVX512_DQ);
+      features.add_if(bit_test(regs.ebx, 21), Ext::kAVX512_IFMA);
+      features.add_if(bit_test(regs.ebx, 28), Ext::kAVX512_CD);
+      features.add_if(bit_test(regs.ebx, 30), Ext::kAVX512_BW);
+      features.add_if(bit_test(regs.ebx, 31), Ext::kAVX512_VL);
+      features.add_if(bit_test(regs.ecx,  1), Ext::kAVX512_VBMI);
+      features.add_if(bit_test(regs.ecx,  6), Ext::kAVX512_VBMI2);
+      features.add_if(bit_test(regs.ecx, 11), Ext::kAVX512_VNNI);
+      features.add_if(bit_test(regs.ecx, 12), Ext::kAVX512_BITALG);
+      features.add_if(bit_test(regs.ecx, 14), Ext::kAVX512_VPOPCNTDQ);
+      features.add_if(bit_test(regs.edx,  8), Ext::kAVX512_VP2INTERSECT);
+      features.add_if(bit_test(regs.edx, 23), Ext::kAVX512_FP16);
     }
 
-    if (amxEnabled) {
-      features.addIf(bitTest(regs.edx, 22), Ext::kAMX_BF16);
-      features.addIf(bitTest(regs.edx, 24), Ext::kAMX_TILE);
-      features.addIf(bitTest(regs.edx, 25), Ext::kAMX_INT8);
+    if (amx_enabled) {
+      features.add_if(bit_test(regs.edx, 22), Ext::kAMX_BF16);
+      features.add_if(bit_test(regs.edx, 24), Ext::kAMX_TILE);
+      features.add_if(bit_test(regs.edx, 25), Ext::kAMX_INT8);
     }
   }
 
   // CPUID EAX=0x07 ECX=1 (Structured Extended Feature Enumeration Sub-leaf)
   // -----------------------------------------------------------------------
 
-  if (maxSubLeafId_0x7 >= 1) {
-    cpuidQuery(&regs, 0x7, 1);
+  if (max_sub_leaf_id_0x7 >= 1) {
+    cpuid_query(&regs, 0x7, 1);
 
-    features.addIf(bitTest(regs.eax,  0), Ext::kSHA512);
-    features.addIf(bitTest(regs.eax,  1), Ext::kSM3);
-    features.addIf(bitTest(regs.eax,  2), Ext::kSM4);
-    features.addIf(bitTest(regs.eax,  3), Ext::kRAO_INT);
-    features.addIf(bitTest(regs.eax,  7), Ext::kCMPCCXADD);
-    features.addIf(bitTest(regs.eax, 10), Ext::kFZRM);
-    features.addIf(bitTest(regs.eax, 11), Ext::kFSRS);
-    features.addIf(bitTest(regs.eax, 12), Ext::kFSRC);
-    features.addIf(bitTest(regs.eax, 19), Ext::kWRMSRNS);
-    features.addIf(bitTest(regs.eax, 22), Ext::kHRESET);
-    features.addIf(bitTest(regs.eax, 26), Ext::kLAM);
-    features.addIf(bitTest(regs.eax, 27), Ext::kMSRLIST);
-    features.addIf(bitTest(regs.eax, 31), Ext::kMOVRS);
-    features.addIf(bitTest(regs.ecx,  5), Ext::kMSR_IMM);
-    features.addIf(bitTest(regs.ebx,  1), Ext::kTSE);
-    features.addIf(bitTest(regs.edx, 14), Ext::kPREFETCHI);
-    features.addIf(bitTest(regs.edx, 18), Ext::kCET_SSS);
-    features.addIf(bitTest(regs.edx, 21), Ext::kAPX_F);
+    features.add_if(bit_test(regs.eax,  0), Ext::kSHA512);
+    features.add_if(bit_test(regs.eax,  1), Ext::kSM3);
+    features.add_if(bit_test(regs.eax,  2), Ext::kSM4);
+    features.add_if(bit_test(regs.eax,  3), Ext::kRAO_INT);
+    features.add_if(bit_test(regs.eax,  7), Ext::kCMPCCXADD);
+    features.add_if(bit_test(regs.eax, 10), Ext::kFZRM);
+    features.add_if(bit_test(regs.eax, 11), Ext::kFSRS);
+    features.add_if(bit_test(regs.eax, 12), Ext::kFSRC);
+    features.add_if(bit_test(regs.eax, 19), Ext::kWRMSRNS);
+    features.add_if(bit_test(regs.eax, 22), Ext::kHRESET);
+    features.add_if(bit_test(regs.eax, 26), Ext::kLAM);
+    features.add_if(bit_test(regs.eax, 27), Ext::kMSRLIST);
+    features.add_if(bit_test(regs.eax, 31), Ext::kMOVRS);
+    features.add_if(bit_test(regs.ecx,  5), Ext::kMSR_IMM);
+    features.add_if(bit_test(regs.ebx,  1), Ext::kTSE);
+    features.add_if(bit_test(regs.edx, 14), Ext::kPREFETCHI);
+    features.add_if(bit_test(regs.edx, 18), Ext::kCET_SSS);
+    features.add_if(bit_test(regs.edx, 21), Ext::kAPX_F);
 
-    if (features.hasAVX2()) {
-      features.addIf(bitTest(regs.eax,  4), Ext::kAVX_VNNI);
-      features.addIf(bitTest(regs.eax, 23), Ext::kAVX_IFMA);
-      features.addIf(bitTest(regs.edx,  4), Ext::kAVX_VNNI_INT8);
-      features.addIf(bitTest(regs.edx,  5), Ext::kAVX_NE_CONVERT);
-      features.addIf(bitTest(regs.edx, 10), Ext::kAVX_VNNI_INT16);
+    if (features.has_avx2()) {
+      features.add_if(bit_test(regs.eax,  4), Ext::kAVX_VNNI);
+      features.add_if(bit_test(regs.eax, 23), Ext::kAVX_IFMA);
+      features.add_if(bit_test(regs.edx,  4), Ext::kAVX_VNNI_INT8);
+      features.add_if(bit_test(regs.edx,  5), Ext::kAVX_NE_CONVERT);
+      features.add_if(bit_test(regs.edx, 10), Ext::kAVX_VNNI_INT16);
     }
 
-    if (features.hasAVX512_F()) {
-      features.addIf(bitTest(regs.eax,  5), Ext::kAVX512_BF16);
+    if (features.has_avx512_f()) {
+      features.add_if(bit_test(regs.eax,  5), Ext::kAVX512_BF16);
     }
 
-    if (features.hasAVX512_F()) {
-      avx10Enabled = Support::bitTest(regs.edx, 19);
+    if (features.has_avx512_f()) {
+      avx10_enabled = Support::bit_test(regs.edx, 19);
     }
 
-    if (amxEnabled) {
-      features.addIf(bitTest(regs.eax, 21), Ext::kAMX_FP16);
-      features.addIf(bitTest(regs.edx,  8), Ext::kAMX_COMPLEX);
+    if (amx_enabled) {
+      features.add_if(bit_test(regs.eax, 21), Ext::kAMX_FP16);
+      features.add_if(bit_test(regs.edx,  8), Ext::kAMX_COMPLEX);
     }
   }
 
   // CPUID EAX=0x0D ECX=1 (Processor Extended State Enumeration Sub-leaf)
   // --------------------------------------------------------------------
 
-  if (maxId >= 0x0Du) {
-    cpuidQuery(&regs, 0xD, 1);
+  if (max_id >= 0x0Du) {
+    cpuid_query(&regs, 0xD, 1);
 
-    features.addIf(bitTest(regs.eax, 0), Ext::kXSAVEOPT);
-    features.addIf(bitTest(regs.eax, 1), Ext::kXSAVEC);
-    features.addIf(bitTest(regs.eax, 3), Ext::kXSAVES);
+    features.add_if(bit_test(regs.eax, 0), Ext::kXSAVEOPT);
+    features.add_if(bit_test(regs.eax, 1), Ext::kXSAVEC);
+    features.add_if(bit_test(regs.eax, 3), Ext::kXSAVES);
   }
 
   // CPUID EAX=0x0E ECX=0 (Processor Trace Enumeration Main Leaf)
   // ------------------------------------------------------------
 
-  if (maxId >= 0x0Eu) {
-    cpuidQuery(&regs, 0x0E, 0);
+  if (max_id >= 0x0Eu) {
+    cpuid_query(&regs, 0x0E, 0);
 
-    features.addIf(bitTest(regs.ebx, 4), Ext::kPTWRITE);
+    features.add_if(bit_test(regs.ebx, 4), Ext::kPTWRITE);
   }
 
   // CPUID EAX=0x19 ECX=0 (Key Locker Leaf)
   // --------------------------------------
 
-  if (maxId >= 0x19u && features.hasKL()) {
-    cpuidQuery(&regs, 0x19, 0);
+  if (max_id >= 0x19u && features.has_kl()) {
+    cpuid_query(&regs, 0x19, 0);
 
-    features.addIf(bitTest(regs.ebx, 0), Ext::kAESKLE);
-    features.addIf(bitTest(regs.ebx, 0) && bitTest(regs.ebx, 2), Ext::kAESKLEWIDE_KL);
+    features.add_if(bit_test(regs.ebx, 0), Ext::kAESKLE);
+    features.add_if(bit_test(regs.ebx, 0) && bit_test(regs.ebx, 2), Ext::kAESKLEWIDE_KL);
   }
 
   // CPUID EAX=0x1E ECX=1 (TMUL Information Sub-leaf)
   // ------------------------------------------------
 
-  if (maxId >= 0x1Eu && features.hasAMX_TILE()) {
-    cpuidQuery(&regs, 0x1E, 1);
+  if (max_id >= 0x1Eu && features.has_amx_tile()) {
+    cpuid_query(&regs, 0x1E, 1);
 
     // NOTE: Some AMX flags are mirrored here from CPUID[0x07, 0x00].
-    features.addIf(bitTest(regs.eax, 0), Ext::kAMX_INT8);
-    features.addIf(bitTest(regs.eax, 1), Ext::kAMX_BF16);
-    features.addIf(bitTest(regs.eax, 2), Ext::kAMX_COMPLEX);
-    features.addIf(bitTest(regs.eax, 3), Ext::kAMX_FP16);
-    features.addIf(bitTest(regs.eax, 4), Ext::kAMX_FP8);
-    features.addIf(bitTest(regs.eax, 5), Ext::kAMX_TRANSPOSE);
-    features.addIf(bitTest(regs.eax, 6), Ext::kAMX_TF32);
-    features.addIf(bitTest(regs.eax, 7), Ext::kAMX_AVX512);
-    features.addIf(bitTest(regs.eax, 8), Ext::kAMX_MOVRS);
+    features.add_if(bit_test(regs.eax, 0), Ext::kAMX_INT8);
+    features.add_if(bit_test(regs.eax, 1), Ext::kAMX_BF16);
+    features.add_if(bit_test(regs.eax, 2), Ext::kAMX_COMPLEX);
+    features.add_if(bit_test(regs.eax, 3), Ext::kAMX_FP16);
+    features.add_if(bit_test(regs.eax, 4), Ext::kAMX_FP8);
+    features.add_if(bit_test(regs.eax, 5), Ext::kAMX_TRANSPOSE);
+    features.add_if(bit_test(regs.eax, 6), Ext::kAMX_TF32);
+    features.add_if(bit_test(regs.eax, 7), Ext::kAMX_AVX512);
+    features.add_if(bit_test(regs.eax, 8), Ext::kAMX_MOVRS);
   }
 
   // CPUID EAX=0x24 ECX=0 (AVX10 Information)
   // ----------------------------------------
 
-  if (maxId >= 0x24u && avx10Enabled) {
+  if (max_id >= 0x24u && avx10_enabled) {
     // EAX output is the maximum supported sub-leaf.
-    cpuidQuery(&regs, 0x24, 0);
+    cpuid_query(&regs, 0x24, 0);
 
     // AVX10 Converged Vector ISA version.
     uint32_t ver = regs.ebx & 0xFFu;
 
-    features.addIf(ver >= 1u, Ext::kAVX10_1);
-    features.addIf(ver >= 2u, Ext::kAVX10_2);
+    features.add_if(ver >= 1u, Ext::kAVX10_1);
+    features.add_if(ver >= 2u, Ext::kAVX10_2);
   }
 
-  // CPUID EAX=0x80000000...maxId
+  // CPUID EAX=0x80000000...max_id
   // ----------------------------
 
-  maxId = 0x80000000u;
-  uint32_t i = maxId;
+  max_id = 0x80000000u;
+  uint32_t i = max_id;
 
   // The highest EAX that we understand.
   constexpr uint32_t kHighestProcessedEAX = 0x8000001Fu;
@@ -520,39 +520,39 @@ static ASMJIT_FAVOR_SIZE void detectX86Cpu(CpuInfo& cpu) noexcept {
   // to copy one DWORD at a time instead of copying the string a byte by byte.
   uint32_t* brand = cpu._brand.u32;
   do {
-    cpuidQuery(&regs, i);
+    cpuid_query(&regs, i);
     switch (i) {
       case 0x80000000u:
-        maxId = Support::min<uint32_t>(regs.eax, kHighestProcessedEAX);
+        max_id = Support::min<uint32_t>(regs.eax, kHighestProcessedEAX);
         break;
 
       case 0x80000001u:
-        features.addIf(bitTest(regs.ecx,  0), Ext::kLAHFSAHF);
-        features.addIf(bitTest(regs.ecx,  2), Ext::kSVM);
-        features.addIf(bitTest(regs.ecx,  5), Ext::kLZCNT);
-        features.addIf(bitTest(regs.ecx,  6), Ext::kSSE4A);
-        features.addIf(bitTest(regs.ecx,  7), Ext::kMSSE);
-        features.addIf(bitTest(regs.ecx,  8), Ext::kPREFETCHW);
-        features.addIf(bitTest(regs.ecx, 12), Ext::kSKINIT);
-        features.addIf(bitTest(regs.ecx, 15), Ext::kLWP);
-        features.addIf(bitTest(regs.ecx, 21), Ext::kTBM);
-        features.addIf(bitTest(regs.ecx, 29), Ext::kMONITORX);
-        features.addIf(bitTest(regs.edx, 20), Ext::kNX);
-        features.addIf(bitTest(regs.edx, 21), Ext::kFXSROPT);
-        features.addIf(bitTest(regs.edx, 22), Ext::kMMX2);
-        features.addIf(bitTest(regs.edx, 27), Ext::kRDTSCP);
-        features.addIf(bitTest(regs.edx, 29), Ext::kPREFETCHW);
-        features.addIf(bitTest(regs.edx, 30), Ext::k3DNOW2, Ext::kMMX2);
-        features.addIf(bitTest(regs.edx, 31), Ext::kPREFETCHW);
+        features.add_if(bit_test(regs.ecx,  0), Ext::kLAHFSAHF);
+        features.add_if(bit_test(regs.ecx,  2), Ext::kSVM);
+        features.add_if(bit_test(regs.ecx,  5), Ext::kLZCNT);
+        features.add_if(bit_test(regs.ecx,  6), Ext::kSSE4A);
+        features.add_if(bit_test(regs.ecx,  7), Ext::kMSSE);
+        features.add_if(bit_test(regs.ecx,  8), Ext::kPREFETCHW);
+        features.add_if(bit_test(regs.ecx, 12), Ext::kSKINIT);
+        features.add_if(bit_test(regs.ecx, 15), Ext::kLWP);
+        features.add_if(bit_test(regs.ecx, 21), Ext::kTBM);
+        features.add_if(bit_test(regs.ecx, 29), Ext::kMONITORX);
+        features.add_if(bit_test(regs.edx, 20), Ext::kNX);
+        features.add_if(bit_test(regs.edx, 21), Ext::kFXSROPT);
+        features.add_if(bit_test(regs.edx, 22), Ext::kMMX2);
+        features.add_if(bit_test(regs.edx, 27), Ext::kRDTSCP);
+        features.add_if(bit_test(regs.edx, 29), Ext::kPREFETCHW);
+        features.add_if(bit_test(regs.edx, 30), Ext::k3DNOW2, Ext::kMMX2);
+        features.add_if(bit_test(regs.edx, 31), Ext::kPREFETCHW);
 
-        if (features.hasAVX()) {
-          features.addIf(bitTest(regs.ecx, 11), Ext::kXOP);
-          features.addIf(bitTest(regs.ecx, 16), Ext::kFMA4);
+        if (features.has_avx()) {
+          features.add_if(bit_test(regs.ecx, 11), Ext::kXOP);
+          features.add_if(bit_test(regs.ecx, 16), Ext::kFMA4);
         }
 
         // This feature seems to be only supported by AMD.
-        if (cpu.isVendor("AMD")) {
-          features.addIf(bitTest(regs.ecx,  4), Ext::kALTMOVCR8);
+        if (cpu.is_vendor("AMD")) {
+          features.add_if(bit_test(regs.ecx,  4), Ext::kALTMOVCR8);
         }
         break;
 
@@ -570,27 +570,27 @@ static ASMJIT_FAVOR_SIZE void detectX86Cpu(CpuInfo& cpu) noexcept {
         break;
 
       case 0x80000008u:
-        features.addIf(bitTest(regs.ebx,  0), Ext::kCLZERO);
-        features.addIf(bitTest(regs.ebx,  0), Ext::kRDPRU);
-        features.addIf(bitTest(regs.ebx,  8), Ext::kMCOMMIT);
-        features.addIf(bitTest(regs.ebx,  9), Ext::kWBNOINVD);
+        features.add_if(bit_test(regs.ebx,  0), Ext::kCLZERO);
+        features.add_if(bit_test(regs.ebx,  0), Ext::kRDPRU);
+        features.add_if(bit_test(regs.ebx,  8), Ext::kMCOMMIT);
+        features.add_if(bit_test(regs.ebx,  9), Ext::kWBNOINVD);
 
         // Go directly to the next one we are interested in.
         i = 0x8000001Fu - 1;
         break;
 
       case 0x8000001Fu:
-        features.addIf(bitTest(regs.eax,  0), Ext::kSME);
-        features.addIf(bitTest(regs.eax,  1), Ext::kSEV);
-        features.addIf(bitTest(regs.eax,  3), Ext::kSEV_ES);
-        features.addIf(bitTest(regs.eax,  4), Ext::kSEV_SNP);
-        features.addIf(bitTest(regs.eax,  6), Ext::kRMPQUERY);
+        features.add_if(bit_test(regs.eax,  0), Ext::kSME);
+        features.add_if(bit_test(regs.eax,  1), Ext::kSEV);
+        features.add_if(bit_test(regs.eax,  3), Ext::kSEV_ES);
+        features.add_if(bit_test(regs.eax,  4), Ext::kSEV_SNP);
+        features.add_if(bit_test(regs.eax,  6), Ext::kRMPQUERY);
         break;
     }
-  } while (++i <= maxId);
+  } while (++i <= max_id);
 
   // Simplify CPU brand string a bit by removing some unnecessary spaces.
-  simplifyCpuBrand(cpu._brand.str);
+  simplify_cpu_brand(cpu._brand.str);
 }
 
 } // {x86}
@@ -628,7 +628,7 @@ using Ext = CpuFeatures::ARM;
 struct UNameKernelVersion {
   int parts[3];
 
-  inline bool atLeast(int major, int minor, int patch = 0) const noexcept {
+  inline bool at_least(int major, int minor, int patch = 0) const noexcept {
     if (parts[0] >= major) {
       if (parts[0] > major) {
         return true;
@@ -644,7 +644,7 @@ struct UNameKernelVersion {
 };
 
 [[maybe_unused]]
-static UNameKernelVersion getUNameKernelVersion() noexcept {
+static UNameKernelVersion get_kernel_version_via_uname() noexcept {
   UNameKernelVersion ver{};
   ver.parts[0] = -1;
 
@@ -679,13 +679,13 @@ static UNameKernelVersion getUNameKernelVersion() noexcept {
 // ===============================================================
 
 [[maybe_unused]]
-static inline void populateBaseAArch32Features(CpuFeatures::ARM& features) noexcept {
+static inline void populate_base_aarch32_features(CpuFeatures::ARM& features) noexcept {
   // No baseline flags at the moment.
-  DebugUtils::unused(features);
+  Support::maybe_unused(features);
 }
 
 [[maybe_unused]]
-static inline void populateBaseAArch64Features(CpuFeatures::ARM& features) noexcept {
+static inline void populate_base_aarch64_features(CpuFeatures::ARM& features) noexcept {
   // AArch64 is based on ARMv8.0 and later.
   features.add(Ext::kARMv6);
   features.add(Ext::kARMv7);
@@ -697,11 +697,11 @@ static inline void populateBaseAArch64Features(CpuFeatures::ARM& features) noexc
   features.add(Ext::kIDIVA);
 }
 
-static inline void populateBaseARMFeatures(CpuInfo& cpu) noexcept {
+static inline void populate_base_arm_features(CpuInfo& cpu) noexcept {
 #if ASMJIT_ARCH_ARM == 32
-  populateBaseAArch32Features(cpu.features().arm());
+  populate_base_aarch32_features(cpu.features().arm());
 #else
-  populateBaseAArch64Features(cpu.features().arm());
+  populate_base_aarch64_features(cpu.features().arm());
 #endif
 }
 
@@ -710,7 +710,7 @@ static inline void populateBaseARMFeatures(CpuInfo& cpu) noexcept {
 
 // Populates mandatory ARMv8.[v]A features.
 [[maybe_unused]]
-static ASMJIT_NOINLINE void populateARMv8AFeatures(CpuFeatures::ARM& features, uint32_t v) noexcept {
+static ASMJIT_NOINLINE void populate_armv8a_features(CpuFeatures::ARM& features, uint32_t v) noexcept {
   switch (v) {
     default:
       [[fallthrough]];
@@ -751,8 +751,8 @@ static ASMJIT_NOINLINE void populateARMv8AFeatures(CpuFeatures::ARM& features, u
 
 // Populates mandatory ARMv9.[v] features.
 [[maybe_unused]]
-static ASMJIT_FAVOR_SIZE void populateARMv9AFeatures(CpuFeatures::ARM& features, uint32_t v) noexcept {
-  populateARMv8AFeatures(features, v <= 4u ? 5u + v : 9u);
+static ASMJIT_FAVOR_SIZE void populate_armv9a_features(CpuFeatures::ARM& features, uint32_t v) noexcept {
+  populate_armv8a_features(features, v <= 4u ? 5u + v : 9u);
 
   switch (v) {
     default:
@@ -779,73 +779,73 @@ static ASMJIT_FAVOR_SIZE void populateARMv9AFeatures(CpuFeatures::ARM& features,
 
 // Merges a feature that contains 0b1111 when it doesn't exist and starts at 0b0000 when it does.
 [[maybe_unused]]
-static ASMJIT_INLINE void mergeAArch64CPUIDFeatureNA(
-  CpuFeatures::ARM& features, uint64_t regBits, uint32_t offset,
+static ASMJIT_INLINE void merge_aarch64_cpuid_feature_na(
+  CpuFeatures::ARM& features, uint64_t reg_bits, uint32_t offset,
   Ext::Id f0,
   Ext::Id f1 = Ext::kNone,
   Ext::Id f2 = Ext::kNone,
   Ext::Id f3 = Ext::kNone) noexcept {
 
-  uint32_t val = uint32_t((regBits >> offset) & 0xFu);
+  uint32_t val = uint32_t((reg_bits >> offset) & 0xFu);
   if (val == 0xFu) {
     // If val == 0b1111 then the feature is not implemented in this case (some early extensions).
     return;
   }
 
-  features.addIf(f0 != Ext::kNone, f0);
-  features.addIf(f1 != Ext::kNone && val >= 1, f1);
-  features.addIf(f2 != Ext::kNone && val >= 2, f2);
-  features.addIf(f3 != Ext::kNone && val >= 3, f3);
+  features.add_if(f0 != Ext::kNone, f0);
+  features.add_if(f1 != Ext::kNone && val >= 1, f1);
+  features.add_if(f2 != Ext::kNone && val >= 2, f2);
+  features.add_if(f3 != Ext::kNone && val >= 3, f3);
 }
 
 // Merges a feature identified by a single bit at `offset`.
 [[maybe_unused]]
-static ASMJIT_INLINE void mergeAArch64CPUIDFeature1B(CpuFeatures::ARM& features, uint64_t regBits, uint32_t offset, Ext::Id f1) noexcept {
-  features.addIf((regBits & (uint64_t(1) << offset)) != 0, f1);
+static ASMJIT_INLINE void merge_aarch64_cpuid_feature_1b(CpuFeatures::ARM& features, uint64_t reg_bits, uint32_t offset, Ext::Id f1) noexcept {
+  features.add_if((reg_bits & (uint64_t(1) << offset)) != 0, f1);
 }
 
 // Merges a feature-list starting from 0b01 when it does (0b00 means feature not supported).
 [[maybe_unused]]
-static ASMJIT_INLINE void mergeAArch64CPUIDFeature2B(CpuFeatures::ARM& features, uint64_t regBits, uint32_t offset, Ext::Id f1, Ext::Id f2, Ext::Id f3) noexcept {
-  uint32_t val = uint32_t((regBits >> offset) & 0x3u);
+static ASMJIT_INLINE void merge_aarch64_cpuid_feature_2b(CpuFeatures::ARM& features, uint64_t reg_bits, uint32_t offset, Ext::Id f1, Ext::Id f2, Ext::Id f3) noexcept {
+  uint32_t val = uint32_t((reg_bits >> offset) & 0x3u);
 
-  features.addIf(f1 != Ext::kNone && val >= 1, f1);
-  features.addIf(f2 != Ext::kNone && val >= 2, f2);
-  features.addIf(f3 != Ext::kNone && val == 3, f3);
+  features.add_if(f1 != Ext::kNone && val >= 1, f1);
+  features.add_if(f2 != Ext::kNone && val >= 2, f2);
+  features.add_if(f3 != Ext::kNone && val == 3, f3);
 }
 
 // Merges a feature-list starting from 0b0001 when it does (0b0000 means feature not supported).
 [[maybe_unused]]
-static ASMJIT_INLINE void mergeAArch64CPUIDFeature4B(CpuFeatures::ARM& features, uint64_t regBits, uint32_t offset,
+static ASMJIT_INLINE void merge_aarch64_cpuid_feature_4b(CpuFeatures::ARM& features, uint64_t reg_bits, uint32_t offset,
   Ext::Id f1,
   Ext::Id f2 = Ext::kNone,
   Ext::Id f3 = Ext::kNone,
   Ext::Id f4 = Ext::kNone) noexcept {
 
-  uint32_t val = uint32_t((regBits >> offset) & 0xFu);
+  uint32_t val = uint32_t((reg_bits >> offset) & 0xFu);
 
   // if val == 0 it means that this feature is not supported.
-  features.addIf(f1 != Ext::kNone && val >= 1, f1);
-  features.addIf(f2 != Ext::kNone && val >= 2, f2);
-  features.addIf(f3 != Ext::kNone && val >= 3, f3);
-  features.addIf(f4 != Ext::kNone && val >= 4, f4);
+  features.add_if(f1 != Ext::kNone && val >= 1, f1);
+  features.add_if(f2 != Ext::kNone && val >= 2, f2);
+  features.add_if(f3 != Ext::kNone && val >= 3, f3);
+  features.add_if(f4 != Ext::kNone && val >= 4, f4);
 }
 
 // Merges a feature that is identified by an exact bit-combination of 4 bits.
 [[maybe_unused]]
-static ASMJIT_INLINE void mergeAArch64CPUIDFeature4S(CpuFeatures::ARM& features, uint64_t regBits, uint32_t offset, uint32_t value, Ext::Id f1) noexcept {
-  features.addIf(uint32_t((regBits >> offset) & 0xFu) == value, f1);
+static ASMJIT_INLINE void merge_aarch64_cpuid_feature_4s(CpuFeatures::ARM& features, uint64_t reg_bits, uint32_t offset, uint32_t value, Ext::Id f1) noexcept {
+  features.add_if(uint32_t((reg_bits >> offset) & 0xFu) == value, f1);
 }
 
-#define MERGE_FEATURE_NA(identifier, reg, offset, ...) mergeAArch64CPUIDFeatureNA(cpu.features().arm(), reg, offset, __VA_ARGS__)
-#define MERGE_FEATURE_1B(identifier, reg, offset, ...) mergeAArch64CPUIDFeature1B(cpu.features().arm(), reg, offset, __VA_ARGS__)
-#define MERGE_FEATURE_2B(identifier, reg, offset, ...) mergeAArch64CPUIDFeature2B(cpu.features().arm(), reg, offset, __VA_ARGS__)
-#define MERGE_FEATURE_4B(identifier, reg, offset, ...) mergeAArch64CPUIDFeature4B(cpu.features().arm(), reg, offset, __VA_ARGS__)
-#define MERGE_FEATURE_4S(identifier, reg, offset, ...) mergeAArch64CPUIDFeature4S(cpu.features().arm(), reg, offset, __VA_ARGS__)
+#define MERGE_FEATURE_NA(identifier, reg, offset, ...) merge_aarch64_cpuid_feature_na(cpu.features().arm(), reg, offset, __VA_ARGS__)
+#define MERGE_FEATURE_1B(identifier, reg, offset, ...) merge_aarch64_cpuid_feature_1b(cpu.features().arm(), reg, offset, __VA_ARGS__)
+#define MERGE_FEATURE_2B(identifier, reg, offset, ...) merge_aarch64_cpuid_feature_2b(cpu.features().arm(), reg, offset, __VA_ARGS__)
+#define MERGE_FEATURE_4B(identifier, reg, offset, ...) merge_aarch64_cpuid_feature_4b(cpu.features().arm(), reg, offset, __VA_ARGS__)
+#define MERGE_FEATURE_4S(identifier, reg, offset, ...) merge_aarch64_cpuid_feature_4s(cpu.features().arm(), reg, offset, __VA_ARGS__)
 
 // Detects features based on the content of ID_AA64PFR0_EL1 and ID_AA64PFR1_EL1 registers.
 [[maybe_unused]]
-static inline void detectAArch64FeaturesViaCPUID_AA64PFR0_AA64PFR1(CpuInfo& cpu, uint64_t fpr0, uint64_t fpr1) noexcept {
+static inline void detect_aarch64_features_via_cpuid_aa64pfr0_aa64pfr1(CpuInfo& cpu, uint64_t fpr0, uint64_t fpr1) noexcept {
   // ID_AA64PFR0_EL1
   // ===============
 
@@ -888,7 +888,7 @@ static inline void detectAArch64FeaturesViaCPUID_AA64PFR0_AA64PFR1(CpuInfo& cpu,
   MERGE_FEATURE_4B("THE bits [51:48]"         , fpr1, 48, Ext::kTHE);
 
   // MTEX extensions are only available when MTE3 is available.
-  if (cpu.features().arm().hasMTE3())
+  if (cpu.features().arm().has_mte3())
     MERGE_FEATURE_4B("MTEX bits [55:52]"      , fpr1, 52, Ext::kMTE4);
 
   /*
@@ -899,24 +899,24 @@ static inline void detectAArch64FeaturesViaCPUID_AA64PFR0_AA64PFR1(CpuInfo& cpu,
   // ID_AA64PFR0_EL1 + ID_AA64PFR1_EL1
   // =================================
 
-  uint32_t rasMain = uint32_t((fpr0 >> 28) & 0xFu);
-  uint32_t rasFrac = uint32_t((fpr1 >> 12) & 0xFu);
+  uint32_t ras_main = uint32_t((fpr0 >> 28) & 0xFu);
+  uint32_t ras_frac = uint32_t((fpr1 >> 12) & 0xFu);
 
-  if (rasMain == 1 && rasFrac == 1) {
+  if (ras_main == 1 && ras_frac == 1) {
     cpu.features().arm().add(Ext::kRAS1_1);
   }
 
-  uint32_t mpamMain = uint32_t((fpr0 >> 40) & 0xFu);
-  uint32_t mpamFrac = uint32_t((fpr1 >> 16) & 0xFu);
+  uint32_t mpam_main = uint32_t((fpr0 >> 40) & 0xFu);
+  uint32_t mpam_frac = uint32_t((fpr1 >> 16) & 0xFu);
 
-  if (mpamMain || mpamFrac) {
+  if (mpam_main || mpam_frac) {
     cpu.features().arm().add(Ext::kMPAM);
   }
 }
 
 // Detects features based on the content of ID_AA64ISAR0_EL1 and ID_AA64ISAR1_EL1 registers.
 [[maybe_unused]]
-static inline void detectAArch64FeaturesViaCPUID_AA64ISAR0_AA64ISAR1(CpuInfo& cpu, uint64_t isar0, uint64_t isar1) noexcept {
+static inline void detect_aarch64_features_via_cpuid_aa64isar0_aa64isar1(CpuInfo& cpu, uint64_t isar0, uint64_t isar1) noexcept {
   // ID_AA64ISAR0_EL1
   // ================
 
@@ -965,7 +965,7 @@ static inline void detectAArch64FeaturesViaCPUID_AA64ISAR0_AA64ISAR1(CpuInfo& cp
 
 // Detects features based on the content of ID_AA64ISAR2_EL1 register.
 [[maybe_unused]]
-static inline void detectAArch64FeaturesViaCPUID_AA64ISAR2(CpuInfo& cpu, uint64_t isar2) noexcept {
+static inline void detect_aarch64_features_via_cpuid_aa64isar2(CpuInfo& cpu, uint64_t isar2) noexcept {
   MERGE_FEATURE_4B("WFxT bits [3:0]"          , isar2,  0, Ext::kNone, Ext::kWFXT);
   MERGE_FEATURE_4B("RPRES bits [7:4]"         , isar2,  4, Ext::kRPRES);
   /*
@@ -991,7 +991,7 @@ static inline void detectAArch64FeaturesViaCPUID_AA64ISAR2(CpuInfo& cpu, uint64_
 #if 0
 // Detects features based on the content of ID_AA64ISAR3_EL1register.
 [[maybe_unused]]
-static inline void detectAArch64FeaturesViaCPUID_AA64ISAR3(CpuInfo& cpu, uint64_t isar3) noexcept {
+static inline void detect_aarch64_features_via_cpuid_aa64isar3(CpuInfo& cpu, uint64_t isar3) noexcept {
   // ID_AA64ISAR3_EL1
   // ================
 
@@ -1008,7 +1008,7 @@ static inline void detectAArch64FeaturesViaCPUID_AA64ISAR3(CpuInfo& cpu, uint64_
 #endif
 
 [[maybe_unused]]
-static inline void detectAArch64FeaturesViaCPUID_AA64MMFR0(CpuInfo& cpu, uint64_t mmfr0) noexcept {
+static inline void detect_aarch64_features_via_cpuid_aa64mmfr0(CpuInfo& cpu, uint64_t mmfr0) noexcept {
   // ID_AA64MMFR0_EL1
   // ================
 
@@ -1031,7 +1031,7 @@ static inline void detectAArch64FeaturesViaCPUID_AA64MMFR0(CpuInfo& cpu, uint64_
 }
 
 [[maybe_unused]]
-static inline void detectAArch64FeaturesViaCPUID_AA64MMFR1(CpuInfo& cpu, uint64_t mmfr1) noexcept {
+static inline void detect_aarch64_features_via_cpuid_aa64mmfr1(CpuInfo& cpu, uint64_t mmfr1) noexcept {
   // ID_AA64MMFR1_EL1
   // ================
 
@@ -1060,7 +1060,7 @@ static inline void detectAArch64FeaturesViaCPUID_AA64MMFR1(CpuInfo& cpu, uint64_
 }
 
 [[maybe_unused]]
-static inline void detectAArch64FeaturesViaCPUID_AA64MMFR2(CpuInfo& cpu, uint64_t mmfr2) noexcept {
+static inline void detect_aarch64_features_via_cpuid_aa64mmfr2(CpuInfo& cpu, uint64_t mmfr2) noexcept {
   // ID_AA64MMFR2_EL1
   // ================
 
@@ -1091,7 +1091,7 @@ static inline void detectAArch64FeaturesViaCPUID_AA64MMFR2(CpuInfo& cpu, uint64_
 
 // Detects features based on the content of ID_AA64ZFR0_EL1 (SVE Feature ID register 0).
 [[maybe_unused]]
-static inline void detectAArch64FeaturesViaCPUID_AA64ZFR0(CpuInfo& cpu, uint64_t zfr0) noexcept {
+static inline void detect_aarch64_features_via_cpuid_aa64zfr0(CpuInfo& cpu, uint64_t zfr0) noexcept {
   MERGE_FEATURE_4B("SVEver bits [3:0]"        , zfr0,  0, Ext::kSVE2, Ext::kSVE2_1, Ext::kSVE2_2);
   MERGE_FEATURE_4B("AES bits [7:4]"           , zfr0,  4, Ext::kSVE_AES, Ext::kSVE_PMULL128);
   MERGE_FEATURE_4B("EltPerm bits [15:12]"     , zfr0, 12, Ext::kSVE_ELTPERM);
@@ -1106,7 +1106,7 @@ static inline void detectAArch64FeaturesViaCPUID_AA64ZFR0(CpuInfo& cpu, uint64_t
 }
 
 [[maybe_unused]]
-static inline void detectAArch64FeaturesViaCPUID_AA64SMFR0(CpuInfo& cpu, uint64_t smfr0) noexcept {
+static inline void detect_aarch64_features_via_cpuid_aa64smfr0(CpuInfo& cpu, uint64_t smfr0) noexcept {
   MERGE_FEATURE_1B("SMOP4 bit [0]"            , smfr0,  0, Ext::kSME_MOP4);
   MERGE_FEATURE_1B("STMOP bit [16]"           , smfr0, 16, Ext::kSME_TMOP);
   MERGE_FEATURE_1B("SFEXPA bit [23]"          , smfr0, 23, Ext::kSSVE_FEXPA);
@@ -1166,16 +1166,16 @@ enum class AppleFamilyId : uint32_t {
 };
 
 [[maybe_unused]]
-static ASMJIT_FAVOR_SIZE bool detectARMFeaturesViaAppleFamilyId(CpuInfo& cpu) noexcept {
+static ASMJIT_FAVOR_SIZE bool detect_aarch64_features_via_apple_family_id(CpuInfo& cpu) noexcept {
   using Id = AppleFamilyId;
   CpuFeatures::ARM& features = cpu.features().arm();
 
-  switch (cpu.familyId()) {
+  switch (cpu.family_id()) {
     // Apple A7-A9 (ARMv8.0-A).
     case uint32_t(Id::kCYCLONE):
     case uint32_t(Id::kTYPHOON):
     case uint32_t(Id::kTWISTER):
-      populateARMv8AFeatures(features, 0);
+      populate_armv8a_features(features, 0);
       features.add(
         Ext::kPMU,
         Ext::kAES, Ext::kPMULL, Ext::kSHA1, Ext::kSHA256
@@ -1184,7 +1184,7 @@ static ASMJIT_FAVOR_SIZE bool detectARMFeaturesViaAppleFamilyId(CpuInfo& cpu) no
 
     // Apple A10 (ARMv8.0-A).
     case uint32_t(Id::kHURRICANE):
-      populateARMv8AFeatures(features, 0);
+      populate_armv8a_features(features, 0);
       features.add(
         Ext::kLOR, Ext::kPAN, Ext::kPMU, Ext::kVHE,
         Ext::kAES, Ext::kCRC32, Ext::kPMULL, Ext::kSHA1, Ext::kSHA256, Ext::kRDM
@@ -1193,7 +1193,7 @@ static ASMJIT_FAVOR_SIZE bool detectARMFeaturesViaAppleFamilyId(CpuInfo& cpu) no
 
     // Apple A11 (ARMv8.2-A).
     case uint32_t(Id::kMONSOON_MISTRAL):
-      populateARMv8AFeatures(features, 2);
+      populate_armv8a_features(features, 2);
       features.add(
         Ext::kPMU,
         Ext::kAES, Ext::kPMULL, Ext::kSHA1, Ext::kSHA256,
@@ -1203,7 +1203,7 @@ static ASMJIT_FAVOR_SIZE bool detectARMFeaturesViaAppleFamilyId(CpuInfo& cpu) no
 
     // Apple A12 (ARMv8.3-A).
     case uint32_t(Id::kVORTEX_TEMPEST):
-      populateARMv8AFeatures(features, 3);
+      populate_armv8a_features(features, 3);
       features.add(
         Ext::kPMU,
         Ext::kAES, Ext::kPMULL, Ext::kSHA1, Ext::kSHA256,
@@ -1213,7 +1213,7 @@ static ASMJIT_FAVOR_SIZE bool detectARMFeaturesViaAppleFamilyId(CpuInfo& cpu) no
 
     // Apple A13 (ARMv8.4-A).
     case uint32_t(Id::kLIGHTNING_THUNDER):
-      populateARMv8AFeatures(features, 4);
+      populate_armv8a_features(features, 4);
       features.add(
         Ext::kPMU,
         Ext::kFP16, Ext::kFP16CONV, Ext::kFHM,
@@ -1223,7 +1223,7 @@ static ASMJIT_FAVOR_SIZE bool detectARMFeaturesViaAppleFamilyId(CpuInfo& cpu) no
 
     // Apple A14/M1 (ARMv8.5-A).
     case uint32_t(Id::kFIRESTORM_ICESTORM):
-      populateARMv8AFeatures(features, 4);
+      populate_armv8a_features(features, 4);
       features.add(
         Ext::kCSV2, Ext::kCSV3, Ext::kDPB2, Ext::kECV, Ext::kFLAGM2, Ext::kPMU, Ext::kSB, Ext::kSSBS,
         Ext::kFP16, Ext::kFP16CONV, Ext::kFHM,
@@ -1233,7 +1233,7 @@ static ASMJIT_FAVOR_SIZE bool detectARMFeaturesViaAppleFamilyId(CpuInfo& cpu) no
 
     // Apple A15/M2.
     case uint32_t(Id::kAVALANCHE_BLIZZARD):
-      populateARMv8AFeatures(features, 6);
+      populate_armv8a_features(features, 6);
       features.add(
         Ext::kPMU,
         Ext::kFP16, Ext::kFP16CONV, Ext::kFHM,
@@ -1245,7 +1245,7 @@ static ASMJIT_FAVOR_SIZE bool detectARMFeaturesViaAppleFamilyId(CpuInfo& cpu) no
     case uint32_t(Id::kIBIZA):
     case uint32_t(Id::kPALMA):
     case uint32_t(Id::kLOBOS):
-      populateARMv8AFeatures(features, 6);
+      populate_armv8a_features(features, 6);
       features.add(
         Ext::kHCX, Ext::kPMU,
         Ext::kFP16, Ext::kFP16CONV, Ext::kFHM,
@@ -1257,7 +1257,7 @@ static ASMJIT_FAVOR_SIZE bool detectARMFeaturesViaAppleFamilyId(CpuInfo& cpu) no
     case uint32_t(Id::kCOLL):
     case uint32_t(Id::kDONAN):
     case uint32_t(Id::kBRAVA):
-      populateARMv8AFeatures(features, 7);
+      populate_armv8a_features(features, 7);
       features.add(
         Ext::kPMU,
         Ext::kFP16, Ext::kFP16CONV, Ext::kFHM,
@@ -1280,205 +1280,205 @@ static ASMJIT_FAVOR_SIZE bool detectARMFeaturesViaAppleFamilyId(CpuInfo& cpu) no
 
 #if ASMJIT_ARCH_ARM == 32
 [[maybe_unused]]
-static ASMJIT_FAVOR_SIZE void detectAArch32FeaturesViaCompilerFlags(CpuInfo& cpu) noexcept {
-  DebugUtils::unused(cpu);
+static ASMJIT_FAVOR_SIZE void detect_aarch32_features_via_compiler_flags(CpuInfo& cpu) noexcept {
+  Support::maybe_unused(cpu);
 
   // ARM targets have no baseline at the moment.
 #if defined(__ARM_ARCH_7A__)
-  cpu.addFeature(CpuFeatures::ARM::kARMv7);
+  cpu.add_feature(CpuFeatures::ARM::kARMv7);
 #endif
 
 #if defined(__ARM_ARCH_8A__)
-  cpu.addFeature(CpuFeatures::ARM::kARMv8a);
+  cpu.add_feature(CpuFeatures::ARM::kARMv8a);
 #endif
 
 #if defined(__TARGET_ARCH_THUMB)
-  cpu.addFeature(CpuFeatures::ARM::kTHUMB);
+  cpu.add_feature(CpuFeatures::ARM::kTHUMB);
 #if __TARGET_ARCH_THUMB >= 4
-  cpu.addFeature(CpuFeatures::ARM::kTHUMBv2);
+  cpu.add_feature(CpuFeatures::ARM::kTHUMBv2);
 #endif
 #endif
 
 #if defined(__ARM_FEATURE_FMA)
-  cpu.addFeature(Ext::kFP);
+  cpu.add_feature(Ext::kFP);
 #endif
 
 #if defined(__ARM_NEON)
-  cpu.addFeature(Ext::kASIMD);
+  cpu.add_feature(Ext::kASIMD);
 #endif
 
 #if defined(__ARM_FEATURE_IDIV) && defined(__TARGET_ARCH_THUMB)
-  cpu.addFeature(Ext::kIDIVT);
+  cpu.add_feature(Ext::kIDIVT);
 #endif
 #if defined(__ARM_FEATURE_IDIV) && !defined(__TARGET_ARCH_THUMB)
-  cpu.addFeature(Ext::kIDIVA);
+  cpu.add_feature(Ext::kIDIVA);
 #endif
 }
 #endif // ASMJIT_ARCH_ARM == 32
 
 #if ASMJIT_ARCH_ARM == 64
 [[maybe_unused]]
-static ASMJIT_FAVOR_SIZE void detectAArch64FeaturesViaCompilerFlags(CpuInfo& cpu) noexcept {
-  DebugUtils::unused(cpu);
+static ASMJIT_FAVOR_SIZE void detect_aarch64_features_via_compiler_flags(CpuInfo& cpu) noexcept {
+  Support::maybe_unused(cpu);
 
 #if defined(__ARM_ARCH_9_5A__)
-  populateARMv9AFeatures(cpu.features().arm(), 5);
+  populate_armv9a_features(cpu.features().arm(), 5);
 #elif defined(__ARM_ARCH_9_4A__)
-  populateARMv9AFeatures(cpu.features().arm(), 4);
+  populate_armv9a_features(cpu.features().arm(), 4);
 #elif defined(__ARM_ARCH_9_3A__)
-  populateARMv9AFeatures(cpu.features().arm(), 3);
+  populate_armv9a_features(cpu.features().arm(), 3);
 #elif defined(__ARM_ARCH_9_2A__)
-  populateARMv9AFeatures(cpu.features().arm(), 2);
+  populate_armv9a_features(cpu.features().arm(), 2);
 #elif defined(__ARM_ARCH_9_1A__)
-  populateARMv9AFeatures(cpu.features().arm(), 1);
+  populate_armv9a_features(cpu.features().arm(), 1);
 #elif defined(__ARM_ARCH_9A__)
-  populateARMv9AFeatures(cpu.features().arm(), 0);
+  populate_armv9a_features(cpu.features().arm(), 0);
 #elif defined(__ARM_ARCH_8_9A__)
-  populateARMv8AFeatures(cpu.features().arm(), 9);
+  populate_armv8a_features(cpu.features().arm(), 9);
 #elif defined(__ARM_ARCH_8_8A__)
-  populateARMv8AFeatures(cpu.features().arm(), 8);
+  populate_armv8a_features(cpu.features().arm(), 8);
 #elif defined(__ARM_ARCH_8_7A__)
-  populateARMv8AFeatures(cpu.features().arm(), 7);
+  populate_armv8a_features(cpu.features().arm(), 7);
 #elif defined(__ARM_ARCH_8_6A__)
-  populateARMv8AFeatures(cpu.features().arm(), 6);
+  populate_armv8a_features(cpu.features().arm(), 6);
 #elif defined(__ARM_ARCH_8_5A__)
-  populateARMv8AFeatures(cpu.features().arm(), 5);
+  populate_armv8a_features(cpu.features().arm(), 5);
 #elif defined(__ARM_ARCH_8_4A__)
-  populateARMv8AFeatures(cpu.features().arm(), 4);
+  populate_armv8a_features(cpu.features().arm(), 4);
 #elif defined(__ARM_ARCH_8_3A__)
-  populateARMv8AFeatures(cpu.features().arm(), 3);
+  populate_armv8a_features(cpu.features().arm(), 3);
 #elif defined(__ARM_ARCH_8_2A__)
-  populateARMv8AFeatures(cpu.features().arm(), 2);
+  populate_armv8a_features(cpu.features().arm(), 2);
 #elif defined(__ARM_ARCH_8_1A__)
-  populateARMv8AFeatures(cpu.features().arm(), 1);
+  populate_armv8a_features(cpu.features().arm(), 1);
 #else
-  populateARMv8AFeatures(cpu.features().arm(), 0);
+  populate_armv8a_features(cpu.features().arm(), 0);
 #endif
 
 #if defined(__ARM_FEATURE_AES)
-  cpu.addFeature(Ext::kAES);
+  cpu.add_feature(Ext::kAES);
 #endif
 
 #if defined(__ARM_FEATURE_BF16_SCALAR_ARITHMETIC) && defined(__ARM_FEATURE_BF16_VECTOR_ARITHMETIC)
-  cpu.addFeature(Ext::kBF16);
+  cpu.add_feature(Ext::kBF16);
 #endif
 
 #if defined(__ARM_FEATURE_CRC32)
-  cpu.addFeature(Ext::kCRC32);
+  cpu.add_feature(Ext::kCRC32);
 #endif
 
 #if defined(__ARM_FEATURE_CRYPTO)
-  cpu.addFeature(Ext::kAES, Ext::kSHA1, Ext::kSHA256);
+  cpu.add_feature(Ext::kAES, Ext::kSHA1, Ext::kSHA256);
 #endif
 
 #if defined(__ARM_FEATURE_DOTPROD)
-  cpu.addFeature(Ext::kDOTPROD);
+  cpu.add_feature(Ext::kDOTPROD);
 #endif
 
 #if defined(__ARM_FEATURE_FP16FML) || defined(__ARM_FEATURE_FP16_FML)
-  cpu.addFeature(Ext::kFHM);
+  cpu.add_feature(Ext::kFHM);
 #endif
 
 #if defined(__ARM_FEATURE_FP16_SCALAR_ARITHMETIC)
-  cpu.addFeature(Ext::kFP16);
+  cpu.add_feature(Ext::kFP16);
 #endif
 
 #if defined(__ARM_FEATURE_FRINT)
-  cpu.addFeature(Ext::kFRINTTS);
+  cpu.add_feature(Ext::kFRINTTS);
 #endif
 
 #if defined(__ARM_FEATURE_JCVT)
-  cpu.addFeature(Ext::kJSCVT);
+  cpu.add_feature(Ext::kJSCVT);
 #endif
 
 #if defined(__ARM_FEATURE_MATMUL_INT8)
-  cpu.addFeature(Ext::kI8MM);
+  cpu.add_feature(Ext::kI8MM);
 #endif
 
 #if defined(__ARM_FEATURE_ATOMICS)
-  cpu.addFeature(Ext::kLSE);
+  cpu.add_feature(Ext::kLSE);
 #endif
 
 #if defined(__ARM_FEATURE_MEMORY_TAGGING)
-  cpu.addFeature(Ext::kMTE);
+  cpu.add_feature(Ext::kMTE);
 #endif
 
 #if defined(__ARM_FEATURE_QRDMX)
-  cpu.addFeature(Ext::kRDM);
+  cpu.add_feature(Ext::kRDM);
 #endif
 
 #if defined(__ARM_FEATURE_RNG)
-  cpu.addFeature(Ext::kRNG);
+  cpu.add_feature(Ext::kRNG);
 #endif
 
 #if defined(__ARM_FEATURE_SHA2)
-  cpu.addFeature(Ext::kSHA256);
+  cpu.add_feature(Ext::kSHA256);
 #endif
 
 #if defined(__ARM_FEATURE_SHA3)
-  cpu.addFeature(Ext::kSHA3);
+  cpu.add_feature(Ext::kSHA3);
 #endif
 
 #if defined(__ARM_FEATURE_SHA512)
-  cpu.addFeature(Ext::kSHA512);
+  cpu.add_feature(Ext::kSHA512);
 #endif
 
 #if defined(__ARM_FEATURE_SM3)
-  cpu.addFeature(Ext::kSM3);
+  cpu.add_feature(Ext::kSM3);
 #endif
 
 #if defined(__ARM_FEATURE_SM4)
-  cpu.addFeature(Ext::kSM4);
+  cpu.add_feature(Ext::kSM4);
 #endif
 
 #if defined(__ARM_FEATURE_SVE) || defined(__ARM_FEATURE_SVE_VECTOR_OPERATORS)
-  cpu.addFeature(Ext::kSVE);
+  cpu.add_feature(Ext::kSVE);
 #endif
 
 #if defined(__ARM_FEATURE_SVE_MATMUL_INT8)
-  cpu.addFeature(Ext::kSVE_I8MM);
+  cpu.add_feature(Ext::kSVE_I8MM);
 #endif
 
 #if defined(__ARM_FEATURE_SVE_MATMUL_FP32)
-  cpu.addFeature(Ext::kSVE_F32MM);
+  cpu.add_feature(Ext::kSVE_F32MM);
 #endif
 
 #if defined(__ARM_FEATURE_SVE_MATMUL_FP64)
-  cpu.addFeature(Ext::kSVE_F64MM);
+  cpu.add_feature(Ext::kSVE_F64MM);
 #endif
 
 #if defined(__ARM_FEATURE_SVE2)
-  cpu.addFeature(Ext::kSVE2);
+  cpu.add_feature(Ext::kSVE2);
 #endif
 
 #if defined(__ARM_FEATURE_SVE2_AES)
-  cpu.addFeature(Ext::kSVE_AES);
+  cpu.add_feature(Ext::kSVE_AES);
 #endif
 
 #if defined(__ARM_FEATURE_SVE2_BITPERM)
-  cpu.addFeature(Ext::kSVE_BITPERM);
+  cpu.add_feature(Ext::kSVE_BITPERM);
 #endif
 
 #if defined(__ARM_FEATURE_SVE2_SHA3)
-  cpu.addFeature(Ext::kSVE_SHA3);
+  cpu.add_feature(Ext::kSVE_SHA3);
 #endif
 
 #if defined(__ARM_FEATURE_SVE2_SM4)
-  cpu.addFeature(Ext::kSVE_SM4);
+  cpu.add_feature(Ext::kSVE_SM4);
 #endif
 
 #if defined(__ARM_FEATURE_TME)
-  cpu.addFeature(Ext::kTME);
+  cpu.add_feature(Ext::kTME);
 #endif
 }
 #endif // ASMJIT_ARCH_ARM == 64
 
 [[maybe_unused]]
-static ASMJIT_FAVOR_SIZE void detectARMFeaturesViaCompilerFlags(CpuInfo& cpu) noexcept {
+static ASMJIT_FAVOR_SIZE void detect_arm_features_via_compiler_flags(CpuInfo& cpu) noexcept {
 #if ASMJIT_ARCH_ARM == 32
-  detectAArch32FeaturesViaCompilerFlags(cpu);
+  detect_aarch32_features_via_compiler_flags(cpu);
 #else
-  detectAArch64FeaturesViaCompilerFlags(cpu);
+  detect_aarch64_features_via_compiler_flags(cpu);
 #endif // ASMJIT_ARCH_ARM
 }
 
@@ -1487,38 +1487,38 @@ static ASMJIT_FAVOR_SIZE void detectARMFeaturesViaCompilerFlags(CpuInfo& cpu) no
 
 // Postprocesses AArch32 features.
 [[maybe_unused]]
-static ASMJIT_FAVOR_SIZE void postProcessAArch32Features(CpuFeatures::ARM& features) noexcept {
-  DebugUtils::unused(features);
+static ASMJIT_FAVOR_SIZE void post_process_aarch32_features(CpuFeatures::ARM& features) noexcept {
+  Support::maybe_unused(features);
 }
 
 // Postprocesses AArch64 features.
 //
 // The only reason to use this function is to deduce some flags from others.
 [[maybe_unused]]
-static ASMJIT_FAVOR_SIZE void postProcessAArch64Features(CpuFeatures::ARM& features) noexcept {
-  if (features.hasFP16()) {
+static ASMJIT_FAVOR_SIZE void post_process_aarch64_features(CpuFeatures::ARM& features) noexcept {
+  if (features.has_fp16()) {
     features.add(Ext::kFP16CONV);
   }
 
-  if (features.hasMTE3()) {
+  if (features.has_mte3()) {
     features.add(Ext::kMTE2);
   }
 
-  if (features.hasMTE2()) {
+  if (features.has_mte2()) {
     features.add(Ext::kMTE);
   }
 
-  if (features.hasSSBS2()) {
+  if (features.has_ssbs2()) {
     features.add(Ext::kSSBS);
   }
 }
 
 [[maybe_unused]]
-static ASMJIT_FAVOR_SIZE void postProcessARMCpuInfo(CpuInfo& cpu) noexcept {
+static ASMJIT_FAVOR_SIZE void post_process_arm_cpu_info(CpuInfo& cpu) noexcept {
 #if ASMJIT_ARCH_ARM == 32
-  postProcessAArch32Features(cpu.features().arm());
+  post_process_aarch32_features(cpu.features().arm());
 #else
-  postProcessAArch64Features(cpu.features().arm());
+  post_process_aarch64_features(cpu.features().arm());
 #endif // ASMJIT_ARCH_ARM
 }
 
@@ -1529,21 +1529,21 @@ static ASMJIT_FAVOR_SIZE void postProcessARMCpuInfo(CpuInfo& cpu) noexcept {
 #if defined(ASMJIT_ARM_DETECT_VIA_CPUID)
 
 // Since the register ID is encoded with the instruction we have to create a function for each register ID to read.
-#define ASMJIT_AARCH64_DEFINE_CPUID_READ_FN(func, regId)  \
-[[maybe_unused]]                                       \
-static inline uint64_t func() noexcept {                  \
-  uint64_t output;                                        \
-  __asm__ __volatile__("mrs %0, " #regId : "=r"(output)); \
-  return output;                                          \
+#define ASMJIT_AARCH64_DEFINE_CPUID_READ_FN(func, reg_id)  \
+[[maybe_unused]]                                           \
+static inline uint64_t func() noexcept {                   \
+  uint64_t output;                                         \
+  __asm__ __volatile__("mrs %0, " #reg_id : "=r"(output)); \
+  return output;                                           \
 }
 
 // NOTE: Older tools don't know the IDs. For example Ubuntu on RPI (GCC 9) won't compile ID_AA64ISAR2_EL1 in 2023.
-ASMJIT_AARCH64_DEFINE_CPUID_READ_FN(aarch64ReadPFR0, ID_AA64PFR0_EL1)
-ASMJIT_AARCH64_DEFINE_CPUID_READ_FN(aarch64ReadPFR1, ID_AA64PFR1_EL1)
-ASMJIT_AARCH64_DEFINE_CPUID_READ_FN(aarch64ReadISAR0, ID_AA64ISAR0_EL1)
-ASMJIT_AARCH64_DEFINE_CPUID_READ_FN(aarch64ReadISAR1, ID_AA64ISAR1_EL1)
-ASMJIT_AARCH64_DEFINE_CPUID_READ_FN(aarch64ReadISAR2, S3_0_C0_C6_2) // ID_AA64ISAR2_EL1
-ASMJIT_AARCH64_DEFINE_CPUID_READ_FN(aarch64ReadZFR0, S3_0_C0_C4_4) // ID_AA64ZFR0_EL1
+ASMJIT_AARCH64_DEFINE_CPUID_READ_FN(aarch64_read_pfr0, ID_AA64PFR0_EL1)
+ASMJIT_AARCH64_DEFINE_CPUID_READ_FN(aarch64_read_pfr1, ID_AA64PFR1_EL1)
+ASMJIT_AARCH64_DEFINE_CPUID_READ_FN(aarch64_read_isar0, ID_AA64ISAR0_EL1)
+ASMJIT_AARCH64_DEFINE_CPUID_READ_FN(aarch64_read_isar1, ID_AA64ISAR1_EL1)
+ASMJIT_AARCH64_DEFINE_CPUID_READ_FN(aarch64_read_isar2, S3_0_C0_C6_2)     // ID_AA64ISAR2_EL1
+ASMJIT_AARCH64_DEFINE_CPUID_READ_FN(aarch64_read_zfr0, S3_0_C0_C4_4)      // ID_AA64ZFR0_EL1
 
 #undef ASMJIT_AARCH64_DEFINE_CPUID_READ_FN
 
@@ -1559,26 +1559,26 @@ ASMJIT_AARCH64_DEFINE_CPUID_READ_FN(aarch64ReadZFR0, S3_0_C0_C4_4) // ID_AA64ZFR
 // References:
 //   - https://docs.kernel.org/arch/arm64/cpu-feature-registers.html
 [[maybe_unused]]
-static ASMJIT_FAVOR_SIZE void detectAArch64FeaturesViaCPUID(CpuInfo& cpu) noexcept {
-  populateBaseARMFeatures(cpu);
+static ASMJIT_FAVOR_SIZE void detect_aarch64_features_via_cpuid(CpuInfo& cpu) noexcept {
+  populate_base_arm_features(cpu);
 
-  detectAArch64FeaturesViaCPUID_AA64PFR0_AA64PFR1(cpu, aarch64ReadPFR0(), aarch64ReadPFR1());
-  detectAArch64FeaturesViaCPUID_AA64ISAR0_AA64ISAR1(cpu, aarch64ReadISAR0(), aarch64ReadISAR1());
+  detect_aarch64_features_via_cpuid_aa64pfr0_aa64pfr1(cpu, aarch64_read_pfr0(), aarch64_read_pfr1());
+  detect_aarch64_features_via_cpuid_aa64isar0_aa64isar1(cpu, aarch64_read_isar0(), aarch64_read_isar1());
 
   // TODO: Fix this on FreeBSD - I don't know what kernel version allows to access the registers below...
 
 #if defined(__linux__)
-  UNameKernelVersion kVer = getUNameKernelVersion();
+  UNameKernelVersion kVer = get_kernel_version_via_uname();
 
   // Introduced in Linux 4.19 by "arm64: add ID_AA64ISAR2_EL1 sys register"), so we want at least 4.20.
-  if (kVer.atLeast(4, 20)) {
-    detectAArch64FeaturesViaCPUID_AA64ISAR2(cpu, aarch64ReadISAR2());
+  if (kVer.at_least(4, 20)) {
+    detect_aarch64_features_via_cpuid_aa64isar2(cpu, aarch64_read_isar2());
   }
 
   // Introduced in Linux 5.10 by "arm64: Expose SVE2 features for userspace", so we want at least 5.11.
-  if (kVer.atLeast(5, 11) && cpu.features().arm().hasAny(Ext::kSVE, Ext::kSME)) {
+  if (kVer.at_least(5, 11) && cpu.features().arm().has_any(Ext::kSVE, Ext::kSME)) {
     // Only read CPU_ID_AA64ZFR0 when either SVE or SME is available.
-    detectAArch64FeaturesViaCPUID_AA64ZFR0(cpu, aarch64ReadZFR0());
+    detect_aarch64_features_via_cpuid_aa64zfr0(cpu, aarch64_read_zfr0());
   }
 #endif
 }
@@ -1590,14 +1590,14 @@ static ASMJIT_FAVOR_SIZE void detectAArch64FeaturesViaCPUID(CpuInfo& cpu) noexce
 
 #if defined(_WIN32)
 struct WinPFPMapping {
-  uint8_t featureId;
-  uint8_t pfpFeatureId;
+  uint8_t feature_id;
+  uint8_t pfp_feature_id;
 };
 
-static ASMJIT_FAVOR_SIZE void detectPFPFeatures(CpuInfo& cpu, const WinPFPMapping* mapping, size_t size) noexcept {
+static ASMJIT_FAVOR_SIZE void detect_pfp_features(CpuInfo& cpu, const WinPFPMapping* mapping, size_t size) noexcept {
   for (size_t i = 0; i < size; i++) {
-    if (::IsProcessorFeaturePresent(mapping[i].pfpFeatureId)) {
-      cpu.addFeature(mapping[i].featureId);
+    if (::IsProcessorFeaturePresent(mapping[i].pfp_feature_id)) {
+      cpu.add_feature(mapping[i].feature_id);
     }
   }
 }
@@ -1605,9 +1605,9 @@ static ASMJIT_FAVOR_SIZE void detectPFPFeatures(CpuInfo& cpu, const WinPFPMappin
 //! Detect ARM CPU features on Windows.
 //!
 //! The detection is based on `IsProcessorFeaturePresent()` API call.
-static ASMJIT_FAVOR_SIZE void detectARMCpu(CpuInfo& cpu) noexcept {
-  cpu._wasDetected = true;
-  populateBaseARMFeatures(cpu);
+static ASMJIT_FAVOR_SIZE void detect_arm_cpu(CpuInfo& cpu) noexcept {
+  cpu._was_detected = true;
+  populate_base_arm_features(cpu);
 
   CpuFeatures::ARM& features = cpu.features().arm();
 
@@ -1639,19 +1639,19 @@ static ASMJIT_FAVOR_SIZE void detectARMCpu(CpuInfo& cpu) noexcept {
     { uint8_t(Ext::kJSCVT)    , 44 }, // PF_ARM_V83_JSCVT_INSTRUCTIONS_AVAILABLE
     { uint8_t(Ext::kLRCPC)    , 45 }  // PF_ARM_V83_LRCPC_INSTRUCTIONS_AVAILABLE
   };
-  detectPFPFeatures(cpu, mapping, ASMJIT_ARRAY_SIZE(mapping));
+  detect_pfp_features(cpu, mapping, ASMJIT_ARRAY_SIZE(mapping));
 
   // Windows can only report ARMv8A at the moment.
-  if (features.hasARMv8a()) {
-    populateARMv8AFeatures(cpu.features().arm(), 0);
+  if (features.has_armv8a()) {
+    populate_armv8a_features(cpu.features().arm(), 0);
   }
 
   // Windows provides several instructions under a single flag:
-  if (features.hasAES()) {
+  if (features.has_aes()) {
     features.add(Ext::kPMULL, Ext::kSHA1, Ext::kSHA256);
   }
 
-  postProcessARMCpuInfo(cpu);
+  post_process_arm_cpu_info(cpu);
 }
 
 // CpuInfo - Detect - ARM - Detect by Reading HWCAPS
@@ -1668,13 +1668,13 @@ static ASMJIT_FAVOR_SIZE void detectARMCpu(CpuInfo& cpu) noexcept {
 #endif // !AT_HWCAP2
 
 #if defined(__linux__)
-static void getAuxValues(unsigned long* vals, const unsigned long* tags, size_t count) noexcept {
+static void get_aux_values(unsigned long* vals, const unsigned long* tags, size_t count) noexcept {
   for (size_t i = 0; i < count; i++) {
     vals[i] = getauxval(tags[i]);
   }
 }
 #elif defined(__FreeBSD__)
-static void getAuxValues(unsigned long* vals, const unsigned long* tags, size_t count) noexcept {
+static void get_aux_values(unsigned long* vals, const unsigned long* tags, size_t count) noexcept {
   for (size_t i = 0; i < count; i++) {
     unsigned long result = 0;
     if (elf_aux_info(int(tags[i]), &result, int(sizeof(unsigned long))) != 0)
@@ -1683,22 +1683,22 @@ static void getAuxValues(unsigned long* vals, const unsigned long* tags, size_t 
   }
 }
 #else
-#error "[asmjit] getAuxValues() - Unsupported OS."
+#error "[asmjit] get_aux_values() - Unsupported OS."
 #endif
 
-static const unsigned long hwCapTags[2] = { AT_HWCAP, AT_HWCAP2 };
+static const unsigned long hw_cap_tags_table[2] = { AT_HWCAP, AT_HWCAP2 };
 
-struct HWCapMapping32 { uint8_t featureId[32]; };
-struct HWCapMapping64 { uint8_t featureId[64]; };
+struct HWCapMapping32 { uint8_t feature_id[32]; };
+struct HWCapMapping64 { uint8_t feature_id[64]; };
 
 template<typename Mask, typename Map>
-static ASMJIT_FAVOR_SIZE void mergeHWCaps(CpuInfo& cpu, const Mask& mask, const Map& map) noexcept {
+static ASMJIT_FAVOR_SIZE void merge_hw_caps(CpuInfo& cpu, const Mask& mask, const Map& map) noexcept {
   static_assert(sizeof(Mask) * 8u == sizeof(Map));
 
   Support::BitWordIterator<Mask> it(mask);
-  while (it.hasNext()) {
-    uint32_t featureId = map.featureId[it.next()];
-    cpu.features().add(featureId);
+  while (it.has_next()) {
+    uint32_t feature_id = map.feature_id[it.next()];
+    cpu.features().add(feature_id);
   }
   cpu.features().remove(0xFFu);
 }
@@ -1707,7 +1707,7 @@ static ASMJIT_FAVOR_SIZE void mergeHWCaps(CpuInfo& cpu, const Mask& mask, const 
 
 // Reference:
 //   - https://github.com/torvalds/linux/blob/master/arch/arm/include/uapi/asm/hwcap.h
-static constexpr HWCapMapping32 hwCap1Mapping = {{
+static constexpr HWCapMapping32 hw_cap1_mapping_table = {{
   uint8_t(0xFF)               , // [ 0]
   uint8_t(0xFF)               , // [ 1]
   uint8_t(0xFF)               , // [ 2]
@@ -1742,7 +1742,7 @@ static constexpr HWCapMapping32 hwCap1Mapping = {{
   uint8_t(0xFF)                 // [31]
 }};
 
-static constexpr HWCapMapping32 hwCap2Mapping = {{
+static constexpr HWCapMapping32 hw_cap2_mapping_table = {{
   uint8_t(Ext::kAES)          , // [ 0] HWCAP2_AES
   uint8_t(Ext::kPMULL)        , // [ 1] HWCAP2_PMULL
   uint8_t(Ext::kSHA1)         , // [ 2] HWCAP2_SHA1
@@ -1777,29 +1777,29 @@ static constexpr HWCapMapping32 hwCap2Mapping = {{
   uint8_t(0xFF)                 // [31]
 }};
 
-static ASMJIT_FAVOR_SIZE void detectARMCpu(CpuInfo& cpu) noexcept {
-  cpu._wasDetected = true;
-  populateBaseARMFeatures(cpu);
+static ASMJIT_FAVOR_SIZE void detect_arm_cpu(CpuInfo& cpu) noexcept {
+  cpu._was_detected = true;
+  populate_base_arm_features(cpu);
 
-  unsigned long hwCapMasks[2] {};
-  getAuxValues(hwCapMasks, hwCapTags, 2u);
+  unsigned long hw_cap_masks[2] {};
+  get_aux_values(hw_cap_masks, hw_cap_tags_table, 2u);
 
-  mergeHWCaps(cpu, hwCapMasks[0], hwCap1Mapping);
-  mergeHWCaps(cpu, hwCapMasks[1], hwCap2Mapping);
+  merge_hw_caps(cpu, hw_cap_masks[0], hw_cap1_mapping_table);
+  merge_hw_caps(cpu, hw_cap_masks[1], hw_cap2_mapping_table);
 
   CpuFeatures::ARM& features = cpu.features().arm();
 
   // ARMv7 provides FP|ASIMD.
-  if (features.hasFP() || features.hasASIMD()) {
+  if (features.has_fp() || features.has_asimd()) {
     features.add(CpuFeatures::ARM::kARMv7);
   }
 
   // ARMv8 provives AES, CRC32, PMULL, SHA1, and SHA256.
-  if (features.hasAES() || features.hasCRC32() || features.hasPMULL() || features.hasSHA1() || features.hasSHA256()) {
+  if (features.has_aes() || features.has_crc32() || features.has_pmull() || features.has_sha1() || features.has_sha256()) {
     features.add(CpuFeatures::ARM::kARMv8a);
   }
 
-  postProcessARMCpuInfo(cpu);
+  post_process_arm_cpu_info(cpu);
 }
 
 #else
@@ -1807,7 +1807,7 @@ static ASMJIT_FAVOR_SIZE void detectARMCpu(CpuInfo& cpu) noexcept {
 // Reference:
 //   - https://docs.kernel.org/arch/arm64/elf_hwcaps.html
 //   - https://github.com/torvalds/linux/blob/master/arch/arm64/include/uapi/asm/hwcap.h
-static constexpr HWCapMapping64 hwCap1Mapping = {{
+static constexpr HWCapMapping64 hw_cap1_mapping_table = {{
   uint8_t(Ext::kFP)           , // [ 0] HWCAP_FP
   uint8_t(Ext::kASIMD)        , // [ 1] HWCAP_ASIMD
   uint8_t(0xFF)               , // [ 2] HWCAP_EVTSTRM
@@ -1874,7 +1874,7 @@ static constexpr HWCapMapping64 hwCap1Mapping = {{
   uint8_t(0xFF)                 // [63]
 }};
 
-static constexpr HWCapMapping64 hwCap2Mapping = {{
+static constexpr HWCapMapping64 hw_cap2_mapping_table = {{
   uint8_t(Ext::kDPB2)         , // [ 0] HWCAP2_DCPODP
   uint8_t(Ext::kSVE2)         , // [ 1] HWCAP2_SVE2
   uint8_t(Ext::kSVE_AES)      , // [ 2] HWCAP2_SVEAES
@@ -1941,24 +1941,24 @@ static constexpr HWCapMapping64 hwCap2Mapping = {{
   uint8_t(0xFF)                 // [63] HWCAP2_POE
 }};
 
-static ASMJIT_FAVOR_SIZE void detectARMCpu(CpuInfo& cpu) noexcept {
-  cpu._wasDetected = true;
-  populateBaseARMFeatures(cpu);
+static ASMJIT_FAVOR_SIZE void detect_arm_cpu(CpuInfo& cpu) noexcept {
+  cpu._was_detected = true;
+  populate_base_arm_features(cpu);
 
-  unsigned long hwCapMasks[2] {};
-  getAuxValues(hwCapMasks, hwCapTags, 2u);
+  unsigned long hw_cap_masks[2] {};
+  get_aux_values(hw_cap_masks, hw_cap_tags_table, 2u);
 
-  mergeHWCaps(cpu, hwCapMasks[0], hwCap1Mapping);
-  mergeHWCaps(cpu, hwCapMasks[1], hwCap2Mapping);
+  merge_hw_caps(cpu, hw_cap_masks[0], hw_cap1_mapping_table);
+  merge_hw_caps(cpu, hw_cap_masks[1], hw_cap2_mapping_table);
 
 #if defined(ASMJIT_ARM_DETECT_VIA_CPUID)
-  if (cpu.features().arm().hasCPUID()) {
-    detectAArch64FeaturesViaCPUID(cpu);
+  if (cpu.features().arm().has_cpuid()) {
+    detect_aarch64_features_via_cpuid(cpu);
     return;
   }
 #endif // ASMJIT_ARM_DETECT_VIA_CPUID
 
-  postProcessARMCpuInfo(cpu);
+  post_process_arm_cpu_info(cpu);
 }
 
 #endif // ASMJIT_ARCH_ARM
@@ -2010,38 +2010,38 @@ struct NetBSDAArch64Regs {
   }
 };
 
-static ASMJIT_FAVOR_SIZE void detectARMCpu(CpuInfo& cpu) noexcept {
+static ASMJIT_FAVOR_SIZE void detect_arm_cpu(CpuInfo& cpu) noexcept {
   using Regs = NetBSDAArch64Regs;
 
-  populateBaseARMFeatures(cpu);
+  populate_base_arm_features(cpu);
 
   Regs regs {};
   size_t len = sizeof(regs);
-  const char sysctlCpuPath[] = "machdep.cpu0.cpu_id";
+  const char sysctl_cpu_path[] = "machdep.cpu0.cpu_id";
 
-  if (sysctlbyname(sysctlCpuPath, &regs, &len, nullptr, 0) == 0) {
-    detectAArch64FeaturesViaCPUID_AA64PFR0_AA64PFR1(cpu, regs.r64(Regs::k64_AA64PFR0), regs.r64(Regs::k64_AA64PFR1));
-    detectAArch64FeaturesViaCPUID_AA64ISAR0_AA64ISAR1(cpu, regs.r64(Regs::k64_AA64ISAR0), regs.r64(Regs::k64_AA64ISAR1));
+  if (sysctlbyname(sysctl_cpu_path, &regs, &len, nullptr, 0) == 0) {
+    detect_aarch64_features_via_cpuid_aa64pfr0_aa64pfr1(cpu, regs.r64(Regs::k64_AA64PFR0), regs.r64(Regs::k64_AA64PFR1));
+    detect_aarch64_features_via_cpuid_aa64isar0_aa64isar1(cpu, regs.r64(Regs::k64_AA64ISAR0), regs.r64(Regs::k64_AA64ISAR1));
 
     // TODO: AA64ISAR2 should be added when it's provided by NetBSD.
-    // detectAArch64FeaturesViaCPUID_AA64ISAR2(cpu, regs.r64Regs::k64_AA64ISAR2));
+    // detect_aarch64_features_via_cpuid_aa64isar2(cpu, regs.r64(k64_AA64ISAR2)));
 
-    detectAArch64FeaturesViaCPUID_AA64MMFR0(cpu, regs.r64(Regs::k64_AA64MMFR0));
-    detectAArch64FeaturesViaCPUID_AA64MMFR1(cpu, regs.r64(Regs::k64_AA64MMFR1));
-    detectAArch64FeaturesViaCPUID_AA64MMFR2(cpu, regs.r64(Regs::k64_AA64MMFR2));
+    detect_aarch64_features_via_cpuid_aa64mmfr0(cpu, regs.r64(Regs::k64_AA64MMFR0));
+    detect_aarch64_features_via_cpuid_aa64mmfr1(cpu, regs.r64(Regs::k64_AA64MMFR1));
+    detect_aarch64_features_via_cpuid_aa64mmfr2(cpu, regs.r64(Regs::k64_AA64MMFR2));
 
     // Only read CPU_ID_AA64ZFR0 when either SVE or SME is available.
-    if (cpu.features().arm().hasAny(Ext::kSVE, Ext::kSME)) {
-      detectAArch64FeaturesViaCPUID_AA64ZFR0(cpu, regs.r64(Regs::k64_AA64ZFR0));
+    if (cpu.features().arm().has_any(Ext::kSVE, Ext::kSME)) {
+      detect_aarch64_features_via_cpuid_aa64zfr0(cpu, regs.r64(Regs::k64_AA64ZFR0));
 
       // TODO: AA64SMFR0 should be added when it's provided by NetBSD.
-      // if (cpu.features().arm().hasSME()) {
-      //   detectAArch64FeaturesViaCPUID_AA64SMFR0(cpu, regs.r64(Regs::k64_kAA64SMFR0));
+      // if (cpu.features().arm().has_sme()) {
+      //   detect_aarch64_features_via_cpuid_aa64smfr0(cpu, regs.r64(Regs::k64_kAA64SMFR0));
       // }
     }
   }
 
-  postProcessARMCpuInfo(cpu);
+  post_process_arm_cpu_info(cpu);
 }
 
 // CpuInfo - Detect - ARM - Detect by OpenBSD API That Reads CPUID
@@ -2064,7 +2064,7 @@ enum class OpenBSDAArch64CPUID {
   kAA64ZFR0 = 11
 };
 
-static uint64_t openbsdReadAArch64CPUID(OpenBSDAArch64CPUID id) noexcept {
+static uint64_t openbsd_read_aarch64_cpuid(OpenBSDAArch64CPUID id) noexcept {
   uint64_t bits = 0;
   size_t size = sizeof(bits);
   int name[2] = { CTL_MACHDEP, int(id) };
@@ -2072,28 +2072,28 @@ static uint64_t openbsdReadAArch64CPUID(OpenBSDAArch64CPUID id) noexcept {
   return (sysctl(name, 2, &bits, &size, NULL, 0) < 0) ? uint64_t(0) : bits;
 }
 
-static ASMJIT_FAVOR_SIZE void detectARMCpu(CpuInfo& cpu) noexcept {
+static ASMJIT_FAVOR_SIZE void detect_arm_cpu(CpuInfo& cpu) noexcept {
   using ID = OpenBSDAArch64CPUID;
 
-  populateBaseARMFeatures(cpu);
+  populate_base_arm_features(cpu);
 
-  detectAArch64FeaturesViaCPUID_AA64PFR0_AA64PFR1(cpu, openbsdReadAArch64CPUID(ID::kAA64PFR0), openbsdReadAArch64CPUID(ID::kAA64PFR1));
-  detectAArch64FeaturesViaCPUID_AA64ISAR0_AA64ISAR1(cpu, openbsdReadAArch64CPUID(ID::kAA64ISAR0), openbsdReadAArch64CPUID(ID::kAA64ISAR1));
-  detectAArch64FeaturesViaCPUID_AA64ISAR2(cpu, openbsdReadAArch64CPUID(ID::kAA64ISAR2));
-  detectAArch64FeaturesViaCPUID_AA64MMFR0(cpu, openbsdReadAArch64CPUID(ID::kAA64MMFR0));
-  detectAArch64FeaturesViaCPUID_AA64MMFR1(cpu, openbsdReadAArch64CPUID(ID::kAA64MMFR1));
-  detectAArch64FeaturesViaCPUID_AA64MMFR2(cpu, openbsdReadAArch64CPUID(ID::kAA64MMFR2));
+  detect_aarch64_features_via_cpuid_aa64pfr0_aa64pfr1(cpu, openbsd_read_aarch64_cpuid(ID::kAA64PFR0), openbsd_read_aarch64_cpuid(ID::kAA64PFR1));
+  detect_aarch64_features_via_cpuid_aa64isar0_aa64isar1(cpu, openbsd_read_aarch64_cpuid(ID::kAA64ISAR0), openbsd_read_aarch64_cpuid(ID::kAA64ISAR1));
+  detect_aarch64_features_via_cpuid_aa64isar2(cpu, openbsd_read_aarch64_cpuid(ID::kAA64ISAR2));
+  detect_aarch64_features_via_cpuid_aa64mmfr0(cpu, openbsd_read_aarch64_cpuid(ID::kAA64MMFR0));
+  detect_aarch64_features_via_cpuid_aa64mmfr1(cpu, openbsd_read_aarch64_cpuid(ID::kAA64MMFR1));
+  detect_aarch64_features_via_cpuid_aa64mmfr2(cpu, openbsd_read_aarch64_cpuid(ID::kAA64MMFR2));
 
   // Only read CPU_ID_AA64ZFR0 when either SVE or SME is available.
-  if (cpu.features().arm().hasAny(Ext::kSVE, Ext::kSME)) {
-    detectAArch64FeaturesViaCPUID_AA64ZFR0(cpu, openbsdReadAArch64CPUID(ID::kAA64ZFR0));
+  if (cpu.features().arm().has_any(Ext::kSVE, Ext::kSME)) {
+    detect_aarch64_features_via_cpuid_aa64zfr0(cpu, openbsd_read_aarch64_cpuid(ID::kAA64ZFR0));
 
-    if (cpu.features().arm().hasSME()) {
-      detectAArch64FeaturesViaCPUID_AA64SMFR0(cpu, openbsdReadAArch64CPUID(ID::kAA64SMFR0));
+    if (cpu.features().arm().has_sme()) {
+      detect_aarch64_features_via_cpuid_aa64smfr0(cpu, openbsd_read_aarch64_cpuid(ID::kAA64SMFR0));
     }
   }
 
-  postProcessARMCpuInfo(cpu);
+  post_process_arm_cpu_info(cpu);
 }
 
 // CpuInfo - Detect - ARM - Detect by Apple API (sysctlbyname)
@@ -2109,30 +2109,30 @@ enum class AppleFeatureType : uint8_t {
 struct AppleFeatureMapping {
   AppleFeatureType type;
   char name[18];
-  uint8_t featureId;
+  uint8_t feature_id;
 };
 
 template<typename T>
-static inline bool appleSysctlByName(const char* sysctlName, T* dst, size_t size = sizeof(T)) noexcept {
-  return sysctlbyname(sysctlName, dst, &size, nullptr, 0) == 0;
+static inline bool invoke_sysctl_by_name(const char* sysctl_name, T* dst, size_t size = sizeof(T)) noexcept {
+  return sysctlbyname(sysctl_name, dst, &size, nullptr, 0) == 0;
 }
 
-static ASMJIT_FAVOR_SIZE long appleDetectARMFeatureViaSysctl(AppleFeatureType type, const char* featureName) noexcept {
-  static const char hwOptionalPrefix[] = "hw.optional.";
-  static const char hwOptionalArmFeatPrefix[] = "hw.optional.arm.FEAT_";
+static ASMJIT_FAVOR_SIZE long apple_detect_aarch64_feature_via_sysctl(AppleFeatureType type, const char* feature_name) noexcept {
+  static const char hw_optional_prefix[] = "hw.optional.";
+  static const char hw_optional_arm_feat_prefix[] = "hw.optional.arm.FEAT_";
 
-  char sysctlName[128];
+  char sysctl_name[128];
 
-  const char* prefix = type == AppleFeatureType::kHWOptional ? hwOptionalPrefix : hwOptionalArmFeatPrefix;
-  size_t prefixSize = (type == AppleFeatureType::kHWOptional ? sizeof(hwOptionalPrefix) : sizeof(hwOptionalArmFeatPrefix)) - 1u;
-  size_t featureNameSize = strlen(featureName);
+  const char* prefix = type == AppleFeatureType::kHWOptional ? hw_optional_prefix : hw_optional_arm_feat_prefix;
+  size_t prefix_size = (type == AppleFeatureType::kHWOptional ? sizeof(hw_optional_prefix) : sizeof(hw_optional_arm_feat_prefix)) - 1u;
+  size_t feature_name_size = strlen(feature_name);
 
-  if (featureNameSize < 128 - prefixSize) {
-    memcpy(sysctlName, prefix, prefixSize);
-    memcpy(sysctlName + prefixSize, featureName, featureNameSize + 1u); // Include NULL terminator.
+  if (feature_name_size < 128 - prefix_size) {
+    memcpy(sysctl_name, prefix, prefix_size);
+    memcpy(sysctl_name + prefix_size, feature_name, feature_name_size + 1u); // Include NULL terminator.
 
     long val = 0;
-    if (appleSysctlByName<long>(sysctlName, &val)) {
+    if (invoke_sysctl_by_name<long>(sysctl_name, &val)) {
       return val;
     }
   }
@@ -2140,7 +2140,7 @@ static ASMJIT_FAVOR_SIZE long appleDetectARMFeatureViaSysctl(AppleFeatureType ty
   return 0;
 }
 
-static ASMJIT_FAVOR_SIZE void appleDetectARMFeaturesViaSysctl(CpuInfo& cpu) noexcept {
+static ASMJIT_FAVOR_SIZE void apple_detect_aarch64_features_via_sysctl(CpuInfo& cpu) noexcept {
   using FT = AppleFeatureType;
 
   // Based on:
@@ -2195,28 +2195,28 @@ static ASMJIT_FAVOR_SIZE void appleDetectARMFeaturesViaSysctl(CpuInfo& cpu) noex
 
   for (size_t i = 0; i < ASMJIT_ARRAY_SIZE(mappings); i++) {
     const AppleFeatureMapping& mapping = mappings[i];
-    if (!cpu.features().arm().has(mapping.featureId) && appleDetectARMFeatureViaSysctl(mapping.type, mapping.name)) {
-      cpu.features().arm().add(mapping.featureId);
+    if (!cpu.features().arm().has(mapping.feature_id) && apple_detect_aarch64_feature_via_sysctl(mapping.type, mapping.name)) {
+      cpu.features().arm().add(mapping.feature_id);
     }
   }
 }
 
-static ASMJIT_FAVOR_SIZE void detectARMCpu(CpuInfo& cpu) noexcept {
-  cpu._wasDetected = true;
-  populateBaseARMFeatures(cpu);
+static ASMJIT_FAVOR_SIZE void detect_arm_cpu(CpuInfo& cpu) noexcept {
+  cpu._was_detected = true;
+  populate_base_arm_features(cpu);
 
-  appleSysctlByName<uint32_t>("hw.cpufamily", &cpu._familyId);
-  appleSysctlByName<uint32_t>("hw.cachelinesize", &cpu._cacheLineSize);
-  appleSysctlByName<uint32_t>("machdep.cpu.logical_per_package", &cpu._maxLogicalProcessors);
-  appleSysctlByName<char>("machdep.cpu.brand_string", cpu._brand.str, sizeof(cpu._brand.str));
+  invoke_sysctl_by_name<uint32_t>("hw.cpufamily", &cpu._family_id);
+  invoke_sysctl_by_name<uint32_t>("hw.cachelinesize", &cpu._cache_line_size);
+  invoke_sysctl_by_name<uint32_t>("machdep.cpu.logical_per_package", &cpu._max_logical_processors);
+  invoke_sysctl_by_name<char>("machdep.cpu.brand_string", cpu._brand.str, sizeof(cpu._brand.str));
 
   memcpy(cpu._vendor.str, "APPLE", 6);
 
-  bool cpuFeaturesPopulated = detectARMFeaturesViaAppleFamilyId(cpu);
-  if (!cpuFeaturesPopulated) {
-    appleDetectARMFeaturesViaSysctl(cpu);
+  bool cpu_features_populated = detect_aarch64_features_via_apple_family_id(cpu);
+  if (!cpu_features_populated) {
+    apple_detect_aarch64_features_via_sysctl(cpu);
   }
-  postProcessARMCpuInfo(cpu);
+  post_process_arm_cpu_info(cpu);
 }
 
 // CpuInfo - Detect - ARM - Detect by Fallback (Using Compiler Flags)
@@ -2230,10 +2230,10 @@ static ASMJIT_FAVOR_SIZE void detectARMCpu(CpuInfo& cpu) noexcept {
   #pragma message("[asmjit] Disabling runtime CPU detection - unsupported OS/CPU combination (Unknown OS with AArch64 CPU)")
 #endif
 
-static ASMJIT_FAVOR_SIZE void detectARMCpu(CpuInfo& cpu) noexcept {
-  populateBaseARMFeatures(cpu);
-  detectARMFeaturesViaCompilerFlags(cpu);
-  postProcessARMCpuInfo(cpu);
+static ASMJIT_FAVOR_SIZE void detect_arm_cpu(CpuInfo& cpu) noexcept {
+  populate_base_arm_features(cpu);
+  detect_arm_features_via_compiler_flags(cpu);
+  post_process_arm_cpu_info(cpu);
 }
 #endif
 
@@ -2245,29 +2245,29 @@ static ASMJIT_FAVOR_SIZE void detectARMCpu(CpuInfo& cpu) noexcept {
 // =======================
 
 const CpuInfo& CpuInfo::host() noexcept {
-  static std::atomic<uint32_t> cpuInfoInitialized;
-  static CpuInfo cpuInfoGlobal(Globals::NoInit);
+  static std::atomic<uint32_t> cpu_info_initialized_flag;
+  static CpuInfo cpu_info_global(Globals::NoInit);
 
   // This should never cause a problem as the resulting information should always
   // be the same. In the worst case it would just be overwritten non-atomically.
-  if (!cpuInfoInitialized.load(std::memory_order_relaxed)) {
-    CpuInfo cpuInfoLocal;
+  if (!cpu_info_initialized_flag.load(std::memory_order_relaxed)) {
+    CpuInfo cpu_info_local;
 
-    cpuInfoLocal._arch = Arch::kHost;
-    cpuInfoLocal._subArch = SubArch::kHost;
+    cpu_info_local._arch = Arch::kHost;
+    cpu_info_local._sub_arch = SubArch::kHost;
 
 #if ASMJIT_ARCH_X86
-    x86::detectX86Cpu(cpuInfoLocal);
+    x86::detect_x86_cpu(cpu_info_local);
 #elif ASMJIT_ARCH_ARM
-    arm::detectARMCpu(cpuInfoLocal);
+    arm::detect_arm_cpu(cpu_info_local);
 #endif
 
-    cpuInfoLocal._hwThreadCount = detectHWThreadCount();
-    cpuInfoGlobal = cpuInfoLocal;
-    cpuInfoInitialized.store(1, std::memory_order_seq_cst);
+    cpu_info_local._hw_thread_count = detect_hw_thread_count();
+    cpu_info_global = cpu_info_local;
+    cpu_info_initialized_flag.store(1, std::memory_order_seq_cst);
   }
 
-  return cpuInfoGlobal;
+  return cpu_info_global;
 }
 
 ASMJIT_END_NAMESPACE

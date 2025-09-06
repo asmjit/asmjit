@@ -3,19 +3,19 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#ifndef ASMJIT_CORE_ZONESTRING_H_INCLUDED
-#define ASMJIT_CORE_ZONESTRING_H_INCLUDED
+#ifndef ASMJIT_CORE_ARENASTRING_H_INCLUDED
+#define ASMJIT_CORE_ARENASTRING_H_INCLUDED
 
 #include "../core/globals.h"
-#include "../core/zone.h"
+#include "../core/arena.h"
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_zone
+//! \addtogroup asmjit_support
 //! \{
 
-//! A helper class used by \ref ZoneString implementation.
-struct ZoneStringBase {
+//! A helper class used by \ref ArenaString implementation.
+struct ArenaStringBase {
   union {
     struct {
       uint32_t _size;
@@ -32,38 +32,38 @@ struct ZoneStringBase {
     _external = nullptr;
   }
 
-  Error setData(Zone* zone, uint32_t maxEmbeddedSize, const char* str, size_t size) noexcept {
+  Error set_data(Arena& arena, uint32_t max_embedded_size, const char* str, size_t size) noexcept {
     if (size == SIZE_MAX)
       size = strlen(str);
 
-    if (size <= maxEmbeddedSize) {
+    if (size <= max_embedded_size) {
       memcpy(_embedded, str, size);
       _embedded[size] = '\0';
     }
     else {
-      char* external = static_cast<char*>(zone->dup(str, size, true));
+      char* external = static_cast<char*>(arena.dup(str, size, true));
       if (ASMJIT_UNLIKELY(!external))
-        return DebugUtils::errored(kErrorOutOfMemory);
+        return make_error(Error::kOutOfMemory);
       _external = external;
     }
 
     _size = uint32_t(size);
-    return kErrorOk;
+    return Error::kOk;
   }
 };
 
-//! A string template that can be zone allocated.
+//! A string template that can be arena-allocated.
 //!
 //! Helps with creating strings that can be either statically allocated if they are small, or externally allocated
-//! in case their size exceeds the limit. The `N` represents the size of the whole `ZoneString` structure, based on
+//! in case their size exceeds the limit. The `N` represents the size of the whole `ArenaString` structure, based on
 //! that size the maximum size of the internal buffer is determined.
 template<size_t N>
-class ZoneString {
+class ArenaString {
 public:
   //! \name Constants
   //! \{
 
-  static inline constexpr uint32_t kWholeSize = (N > sizeof(ZoneStringBase)) ? uint32_t(N) : uint32_t(sizeof(ZoneStringBase));
+  static inline constexpr uint32_t kWholeSize = (N > sizeof(ArenaStringBase)) ? uint32_t(N) : uint32_t(sizeof(ArenaStringBase));
   static inline constexpr uint32_t kMaxEmbeddedSize = kWholeSize - 5;
 
   //! \}
@@ -72,8 +72,8 @@ public:
   //! \{
 
   union {
-    ZoneStringBase _base;
-    char _wholeData[kWholeSize];
+    ArenaStringBase _base;
+    char _whole_data[kWholeSize];
   };
 
   //! \}
@@ -81,7 +81,7 @@ public:
   //! \name Construction & Destruction
   //! \{
 
-  ASMJIT_INLINE_NODEBUG ZoneString() noexcept { reset(); }
+  ASMJIT_INLINE_NODEBUG ArenaString() noexcept { reset(); }
   ASMJIT_INLINE_NODEBUG void reset() noexcept { _base.reset(); }
 
   //! \}
@@ -91,7 +91,7 @@ public:
 
   //! Tests whether the string is empty.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool empty() const noexcept { return _base._size == 0; }
+  ASMJIT_INLINE_NODEBUG bool is_empty() const noexcept { return _base._size == 0; }
 
   //! Returns the string data.
   [[nodiscard]]
@@ -103,14 +103,14 @@ public:
 
   //! Tests whether the string is embedded (e.g. no dynamically allocated).
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool isEmbedded() const noexcept { return _base._size <= kMaxEmbeddedSize; }
+  ASMJIT_INLINE_NODEBUG bool is_embedded() const noexcept { return _base._size <= kMaxEmbeddedSize; }
 
   //! Copies a new `data` of the given `size` to the string.
   //!
-  //! If the `size` exceeds the internal buffer the given `zone` will be used to duplicate the data, otherwise
+  //! If the `size` exceeds the internal buffer the given `arena` will be used to duplicate the data, otherwise
   //! the internal buffer will be used as a storage.
-  ASMJIT_INLINE_NODEBUG Error setData(Zone* zone, const char* data, size_t size) noexcept {
-    return _base.setData(zone, kMaxEmbeddedSize, data, size);
+  ASMJIT_INLINE_NODEBUG Error set_data(Arena& arena, const char* data, size_t size) noexcept {
+    return _base.set_data(arena, kMaxEmbeddedSize, data, size);
   }
 
   //! \}
@@ -120,4 +120,4 @@ public:
 
 ASMJIT_END_NAMESPACE
 
-#endif // ASMJIT_CORE_ZONESTRING_H_INCLUDED
+#endif // ASMJIT_CORE_ARENASTRING_H_INCLUDED

@@ -15,14 +15,6 @@ const base = $scope[$as] = Object.create(null);
 
 base.exp = exp;
 
-// Import.
-const hasOwnProperty = Object.prototype.hasOwnProperty;
-
-function hasOwn(object, key) {
-  return hasOwnProperty.call(object, key);
-}
-base.hasOwn = hasOwn;
-
 function dict(src) {
   const dst = Object.create(null);
   if (src)
@@ -657,7 +649,7 @@ class ISA {
   _addInstruction(instruction) {
     let group;
 
-    if (hasOwn(this._instructionMap, instruction.name)) {
+    if (Object.hasOwn(this._instructionMap, instruction.name)) {
       group = this._instructionMap[instruction.name];
     }
     else {

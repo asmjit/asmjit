@@ -21,32 +21,32 @@ ASMJIT_BEGIN_NAMESPACE
 // ===========================
 
 #ifndef ASMJIT_NO_TEXT
-Error InstAPI::instIdToString(Arch arch, InstId instId, InstStringifyOptions options, String& output) noexcept {
+Error InstAPI::inst_id_to_string(Arch arch, InstId inst_id, InstStringifyOptions options, String& output) noexcept {
 #if !defined(ASMJIT_NO_X86)
-  if (Environment::isFamilyX86(arch)) {
-    return x86::InstInternal::instIdToString(instId, options, output);
+  if (Environment::is_family_x86(arch)) {
+    return x86::InstInternal::inst_id_to_string(inst_id, options, output);
   }
 #endif
 
 #if !defined(ASMJIT_NO_AARCH64)
-  if (Environment::isFamilyAArch64(arch)) {
-    return a64::InstInternal::instIdToString(instId, options, output);
+  if (Environment::is_family_aarch64(arch)) {
+    return a64::InstInternal::inst_id_to_string(inst_id, options, output);
   }
 #endif
 
-  return DebugUtils::errored(kErrorInvalidArch);
+  return make_error(Error::kInvalidArch);
 }
 
-InstId InstAPI::stringToInstId(Arch arch, const char* s, size_t len) noexcept {
+InstId InstAPI::string_to_inst_id(Arch arch, const char* s, size_t len) noexcept {
 #if !defined(ASMJIT_NO_X86)
-  if (Environment::isFamilyX86(arch)) {
-    return x86::InstInternal::stringToInstId(s, len);
+  if (Environment::is_family_x86(arch)) {
+    return x86::InstInternal::string_to_inst_id(s, len);
   }
 #endif
 
 #if !defined(ASMJIT_NO_AARCH64)
-  if (Environment::isFamilyAArch64(arch)) {
-    return a64::InstInternal::stringToInstId(s, len);
+  if (Environment::is_family_aarch64(arch)) {
+    return a64::InstInternal::string_to_inst_id(s, len);
   }
 #endif
 
@@ -58,25 +58,25 @@ InstId InstAPI::stringToInstId(Arch arch, const char* s, size_t len) noexcept {
 // ==================
 
 #ifndef ASMJIT_NO_VALIDATION
-Error InstAPI::validate(Arch arch, const BaseInst& inst, const Operand_* operands, size_t opCount, ValidationFlags validationFlags) noexcept {
+Error InstAPI::validate(Arch arch, const BaseInst& inst, const Operand_* operands, size_t op_count, ValidationFlags validation_flags) noexcept {
 #if !defined(ASMJIT_NO_X86)
-  if (Environment::isFamilyX86(arch)) {
+  if (Environment::is_family_x86(arch)) {
     if (arch == Arch::kX86) {
-      return x86::InstInternal::validateX86(inst, operands, opCount, validationFlags);
+      return x86::InstInternal::validate_x86(inst, operands, op_count, validation_flags);
     }
     else {
-      return x86::InstInternal::validateX64(inst, operands, opCount, validationFlags);
+      return x86::InstInternal::validate_x64(inst, operands, op_count, validation_flags);
     }
   }
 #endif
 
 #if !defined(ASMJIT_NO_AARCH64)
-  if (Environment::isFamilyAArch64(arch)) {
-    return a64::InstInternal::validate(inst, operands, opCount, validationFlags);
+  if (Environment::is_family_aarch64(arch)) {
+    return a64::InstInternal::validate(inst, operands, op_count, validation_flags);
   }
 #endif
 
-  return DebugUtils::errored(kErrorInvalidArch);
+  return make_error(Error::kInvalidArch);
 }
 #endif // !ASMJIT_NO_VALIDATION
 
@@ -84,24 +84,24 @@ Error InstAPI::validate(Arch arch, const BaseInst& inst, const Operand_* operand
 // =====================
 
 #ifndef ASMJIT_NO_INTROSPECTION
-Error InstAPI::queryRWInfo(Arch arch, const BaseInst& inst, const Operand_* operands, size_t opCount, InstRWInfo* out) noexcept {
-  if (ASMJIT_UNLIKELY(opCount > Globals::kMaxOpCount)) {
-    return DebugUtils::errored(kErrorInvalidArgument);
+Error InstAPI::query_rw_info(Arch arch, const BaseInst& inst, const Operand_* operands, size_t op_count, InstRWInfo* out) noexcept {
+  if (ASMJIT_UNLIKELY(op_count > Globals::kMaxOpCount)) {
+    return make_error(Error::kInvalidArgument);
   }
 
 #if !defined(ASMJIT_NO_X86)
-  if (Environment::isFamilyX86(arch)) {
-    return x86::InstInternal::queryRWInfo(arch, inst, operands, opCount, out);
+  if (Environment::is_family_x86(arch)) {
+    return x86::InstInternal::query_rw_info(arch, inst, operands, op_count, out);
   }
 #endif
 
 #if !defined(ASMJIT_NO_AARCH64)
-  if (Environment::isFamilyAArch64(arch)) {
-    return a64::InstInternal::queryRWInfo(inst, operands, opCount, out);
+  if (Environment::is_family_aarch64(arch)) {
+    return a64::InstInternal::query_rw_info(inst, operands, op_count, out);
   }
 #endif
 
-  return DebugUtils::errored(kErrorInvalidArch);
+  return make_error(Error::kInvalidArch);
 }
 #endif // !ASMJIT_NO_INTROSPECTION
 
@@ -109,20 +109,20 @@ Error InstAPI::queryRWInfo(Arch arch, const BaseInst& inst, const Operand_* oper
 // =======================
 
 #ifndef ASMJIT_NO_INTROSPECTION
-Error InstAPI::queryFeatures(Arch arch, const BaseInst& inst, const Operand_* operands, size_t opCount, CpuFeatures* out) noexcept {
+Error InstAPI::query_features(Arch arch, const BaseInst& inst, const Operand_* operands, size_t op_count, CpuFeatures* out) noexcept {
 #if !defined(ASMJIT_NO_X86)
-  if (Environment::isFamilyX86(arch)) {
-    return x86::InstInternal::queryFeatures(arch, inst, operands, opCount, out);
+  if (Environment::is_family_x86(arch)) {
+    return x86::InstInternal::query_features(arch, inst, operands, op_count, out);
   }
 #endif
 
 #if !defined(ASMJIT_NO_AARCH64)
-  if (Environment::isFamilyAArch64(arch)) {
-    return a64::InstInternal::queryFeatures(inst, operands, opCount, out);
+  if (Environment::is_family_aarch64(arch)) {
+    return a64::InstInternal::query_features(inst, operands, op_count, out);
   }
 #endif
 
-  return DebugUtils::errored(kErrorInvalidArch);
+  return make_error(Error::kInvalidArch);
 }
 #endif // !ASMJIT_NO_INTROSPECTION
 

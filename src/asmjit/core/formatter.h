@@ -8,6 +8,7 @@
 
 #include "../core/globals.h"
 #include "../core/inst.h"
+#include "../core/span.h"
 #include "../core/string.h"
 #include "../core/support.h"
 
@@ -113,37 +114,37 @@ public:
 
   //! Tests whether the given `flag` is set in format flags.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool hasFlag(FormatFlags flag) const noexcept { return Support::test(_flags, flag); }
+  ASMJIT_INLINE_NODEBUG bool has_flag(FormatFlags flag) const noexcept { return Support::test(_flags, flag); }
 
   //! Resets all format flags to `flags`.
-  ASMJIT_INLINE_NODEBUG void setFlags(FormatFlags flags) noexcept { _flags = flags; }
+  ASMJIT_INLINE_NODEBUG void set_flags(FormatFlags flags) noexcept { _flags = flags; }
 
   //! Adds `flags` to format flags.
-  ASMJIT_INLINE_NODEBUG void addFlags(FormatFlags flags) noexcept { _flags |= flags; }
+  ASMJIT_INLINE_NODEBUG void add_flags(FormatFlags flags) noexcept { _flags |= flags; }
 
   //! Removes `flags` from format flags.
-  ASMJIT_INLINE_NODEBUG void clearFlags(FormatFlags flags) noexcept { _flags &= ~flags; }
+  ASMJIT_INLINE_NODEBUG void clear_flags(FormatFlags flags) noexcept { _flags &= ~flags; }
 
   //! Returns indentation for the given indentation `group`.
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint8_t indentation(FormatIndentationGroup group) const noexcept { return _indentation[group]; }
 
   //! Sets indentation for the given indentation `group`.
-  ASMJIT_INLINE_NODEBUG void setIndentation(FormatIndentationGroup group, uint32_t n) noexcept { _indentation[group] = uint8_t(n); }
+  ASMJIT_INLINE_NODEBUG void set_indentation(FormatIndentationGroup group, uint32_t n) noexcept { _indentation[group] = uint8_t(n); }
 
   //! Resets indentation for the given indentation `group` to zero.
-  ASMJIT_INLINE_NODEBUG void resetIndentation(FormatIndentationGroup group) noexcept { _indentation[group] = uint8_t(0); }
+  ASMJIT_INLINE_NODEBUG void reset_indentation(FormatIndentationGroup group) noexcept { _indentation[group] = uint8_t(0); }
 
   //! Returns padding for the given padding `group`.
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG size_t padding(FormatPaddingGroup group) const noexcept { return _padding[group]; }
 
   //! Sets padding for the given padding `group`.
-  ASMJIT_INLINE_NODEBUG void setPadding(FormatPaddingGroup group, size_t n) noexcept { _padding[group] = uint16_t(n); }
+  ASMJIT_INLINE_NODEBUG void set_padding(FormatPaddingGroup group, size_t n) noexcept { _padding[group] = uint16_t(n); }
 
   //! Resets padding for the given padding `group` to zero, which means that a default padding will be used
   //! based on the target architecture properties.
-  ASMJIT_INLINE_NODEBUG void resetPadding(FormatPaddingGroup group) noexcept { _padding[group] = uint16_t(0); }
+  ASMJIT_INLINE_NODEBUG void reset_padding(FormatPaddingGroup group) noexcept { _padding[group] = uint16_t(0); }
 
   //! \}
 };
@@ -153,102 +154,102 @@ namespace Formatter {
 
 #ifndef ASMJIT_NO_LOGGING
 
-//! Appends a formatted `typeId` to the output string `sb`.
-ASMJIT_API Error formatTypeId(
+//! Appends a formatted `type_id` to the output string `sb`.
+ASMJIT_API Error format_type_id(
   String& sb,
-  TypeId typeId) noexcept;
+  TypeId type_id) noexcept;
 
-//! Appends a formatted `featureId` to the output string `sb`.
+//! Appends a formatted `feature_id` to the output string `sb`.
 //!
 //! See \ref CpuFeatures.
-ASMJIT_API Error formatFeature(
+ASMJIT_API Error format_feature(
   String& sb,
   Arch arch,
-  uint32_t featureId) noexcept;
+  uint32_t feature_id) noexcept;
 
 //! Appends a formatted register to the output string `sb`.
 //!
 //! \note Emitter is optional, but it's required to format virtual registers, which won't be formatted properly
 //! if the `emitter` is not provided.
-ASMJIT_API Error formatRegister(
+ASMJIT_API Error format_register(
   String& sb,
-  FormatFlags formatFlags,
+  FormatFlags format_flags,
   const BaseEmitter* emitter,
   Arch arch,
-  RegType regType,
-  uint32_t regId) noexcept;
+  RegType reg_type,
+  uint32_t reg_id) noexcept;
 
 //! Appends a formatted label to the output string `sb`.
 //!
 //! \note Emitter is optional, but it's required to format named labels properly, otherwise the formatted as
 //! it is an anonymous label.
-ASMJIT_API Error formatLabel(
+ASMJIT_API Error format_label(
   String& sb,
-  FormatFlags formatFlags,
+  FormatFlags format_flags,
   const BaseEmitter* emitter,
-  uint32_t labelId) noexcept;
+  uint32_t label_id) noexcept;
 
 //! Appends a formatted operand to the output string `sb`.
 //!
 //! \note Emitter is optional, but it's required to format named labels and virtual registers. See
-//! \ref formatRegister() and \ref formatLabel() for more details.
-ASMJIT_API Error formatOperand(
+//! \ref format_register() and \ref format_label() for more details.
+ASMJIT_API Error format_operand(
   String& sb,
-  FormatFlags formatFlags,
+  FormatFlags format_flags,
   const BaseEmitter* emitter,
   Arch arch,
   const Operand_& op) noexcept;
 
 //! Appends a formatted data-type to the output string `sb`.
-ASMJIT_API Error formatDataType(
+ASMJIT_API Error format_data_type(
   String& sb,
-  FormatFlags formatFlags,
+  FormatFlags format_flags,
   Arch arch,
-  TypeId typeId) noexcept;
+  TypeId type_id) noexcept;
 
 //! Appends a formatted data to the output string `sb`.
-ASMJIT_API Error formatData(
+ASMJIT_API Error format_data(
   String& sb,
-  FormatFlags formatFlags,
+  FormatFlags format_flags,
   Arch arch,
-  TypeId typeId, const void* data, size_t itemCount, size_t repeatCount = 1) noexcept;
+  TypeId type_id, const void* data, size_t item_count, size_t repeat_count = 1) noexcept;
 
 //! Appends a formatted instruction to the output string `sb`.
 //!
 //! \note Emitter is optional, but it's required to format named labels and virtual registers. See
-//! \ref formatRegister() and \ref formatLabel() for more details.
-ASMJIT_API Error formatInstruction(
+//! \ref format_register() and \ref format_label() for more details.
+ASMJIT_API Error format_instruction(
   String& sb,
-  FormatFlags formatFlags,
+  FormatFlags format_flags,
   const BaseEmitter* emitter,
   Arch arch,
-  const BaseInst& inst, const Operand_* operands, size_t opCount) noexcept;
+  const BaseInst& inst, Span<const Operand_> operands) noexcept;
 
 #ifndef ASMJIT_NO_BUILDER
 //! Appends a formatted node to the output string `sb`.
 //!
 //! The `node` must belong to the provided `builder`.
-ASMJIT_API Error formatNode(
+ASMJIT_API Error format_node(
   String& sb,
-  const FormatOptions& formatOptions,
+  const FormatOptions& format_options,
   const BaseBuilder* builder,
   const BaseNode* node) noexcept;
 
 //! Appends formatted nodes to the output string `sb`.
 //!
 //! All nodes that are part of the given `builder` will be appended.
-ASMJIT_API Error formatNodeList(
+ASMJIT_API Error format_node_list(
   String& sb,
-  const FormatOptions& formatOptions,
+  const FormatOptions& format_options,
   const BaseBuilder* builder) noexcept;
 
 //! Appends formatted nodes to the output string `sb`.
 //!
-//! This function works the same as \ref formatNode(), but appends more nodes to the output string,
+//! This function works the same as \ref format_node(), but appends more nodes to the output string,
 //! separating each node with a newline '\n' character.
-ASMJIT_API Error formatNodeList(
+ASMJIT_API Error format_node_list(
   String& sb,
-  const FormatOptions& formatOptions,
+  const FormatOptions& format_options,
   const BaseBuilder* builder,
   const BaseNode* begin,
   const BaseNode* end) noexcept;

@@ -33,30 +33,30 @@
 
 using namespace asmjit;
 
-int TestApp::handleArgs(int argc, const char* const* argv) {
+int TestApp::handle_args(int argc, const char* const* argv) {
   CmdLine cmd(argc, argv);
-  _arch = cmd.valueOf("--arch", "all");
-  _filter = cmd.valueOf("--filter", nullptr);
+  _arch = cmd.value_of("--arch", "all");
+  _filter = cmd.value_of("--filter", nullptr);
 
-  if (cmd.hasArg("--help")) _helpOnly = true;
-  if (cmd.hasArg("--verbose")) _verbose = true;
+  if (cmd.has_arg("--help")) _help_only = true;
+  if (cmd.has_arg("--verbose")) _verbose = true;
 
 #ifndef ASMJIT_NO_LOGGING
-  if (cmd.hasArg("--dump-asm")) _dumpAsm = true;
+  if (cmd.has_arg("--dump-asm")) _dump_asm = true;
 #endif // !ASMJIT_NO_LOGGING
 
-  if (cmd.hasArg("--dump-hex")) _dumpHex = true;
+  if (cmd.has_arg("--dump-hex")) _dump_hex = true;
 
   return 0;
 }
 
-void TestApp::showInfo() {
+void TestApp::show_info() {
   printf("AsmJit Compiler Test-Suite v%u.%u.%u [Arch=%s] [Mode=%s]\n\n",
     unsigned((ASMJIT_LIBRARY_VERSION >> 16)       ),
     unsigned((ASMJIT_LIBRARY_VERSION >>  8) & 0xFF),
     unsigned((ASMJIT_LIBRARY_VERSION      ) & 0xFF),
-    asmjitArchAsString(Arch::kHost),
-    asmjitBuildType()
+    asmjit_arch_as_string(Arch::kHost),
+    asmjit_build_type()
   );
 
   printf("Usage:\n");
@@ -80,14 +80,14 @@ public:
     : _indentation(indentation) {}
 
   Error _log(const char* data, size_t size = SIZE_MAX) noexcept override {
-    asmjit::DebugUtils::unused(size);
-    printIndented(data, _indentation);
-    return kErrorOk;
+    asmjit::Support::maybe_unused(size);
+    print_indented(data, _indentation);
+    return Error::kOk;
   }
 };
 #endif // !ASMJIT_NO_LOGGING
 
-bool TestApp::shouldRun(const TestCase* tc) {
+bool TestApp::should_run(const TestCase* tc) {
   if (!_filter)
     return true;
 
@@ -96,54 +96,55 @@ bool TestApp::shouldRun(const TestCase* tc) {
 
 int TestApp::run() {
 #ifndef ASMJIT_NO_LOGGING
-  FormatOptions formatOptions;
-  formatOptions.addFlags(
+  FormatOptions format_options;
+  format_options.add_flags(
     FormatFlags::kMachineCode |
     FormatFlags::kShowAliases |
     FormatFlags::kExplainImms |
     FormatFlags::kRegCasts   );
-  formatOptions.setIndentation(FormatIndentationGroup::kCode, 2);
+  format_options.set_indentation(FormatIndentationGroup::kCode, 2);
 
-  IndentedStdoutLogger printLogger(4);
-  printLogger.setOptions(formatOptions);
+  IndentedStdoutLogger print_logger(4);
+  print_logger.set_options(format_options);
 
-  StringLogger stringLogger;
-  stringLogger.setOptions(formatOptions);
+  StringLogger string_logger;
+  string_logger.set_options(format_options);
 
-  auto printStringLoggerContent = [&]() {
+  auto print_string_logger_content = [&]() {
     if (!_verbose) {
-      printf("%s", stringLogger.data());
+      printf("%s", string_logger.data());
       fflush(stdout);
     }
   };
 #else
-  auto printStringLoggerContent = [&]() {};
+  auto print_string_logger_content = [&]() {};
 #endif // !ASMJIT_NO_LOGGING
 
   // maybe unused...
-  DebugUtils::unused(printStringLoggerContent);
+  Support::maybe_unused(print_string_logger_content);
 
 #ifndef ASMJIT_NO_JIT
   JitRuntime runtime;
 #endif // !ASMJIT_NO_JIT
 
-  PerformanceTimer compileTimer;
-  PerformanceTimer finalizeTimer;
-  double compileTime = 0;
-  double finalizeTime = 0;
+  PerformanceTimer compile_timer;
+  PerformanceTimer finalize_timer;
+
+  double compile_time = 0;
+  double finalize_time = 0;
 
   for (std::unique_ptr<TestCase>& test : _tests) {
-    if (!shouldRun(test.get()))
+    if (!should_run(test.get()))
       continue;
 
-    _numTests++;
+    _num_tests++;
 
     for (uint32_t pass = 0; pass < 2; pass++) {
       bool runnable = false;
       CodeHolder code;
-      SimpleErrorHandler errorHandler;
+      SimpleErrorHandler error_handler;
 
-      const char* statusSeparator = " ";
+      const char* status_separator = " ";
 
       // Filter architecture to run.
       if (strcmp(_arch, "all") != 0) {
@@ -168,13 +169,13 @@ int TestApp::run() {
       // Use platform environment and CPU features when the test can run on the arch.
 #ifndef ASMJIT_NO_JIT
       if (runtime.arch() == test->arch()) {
-        code.init(runtime.environment(), runtime.cpuFeatures());
+        code.init(runtime.environment(), runtime.cpu_features());
         runnable = true;
       }
 #endif // !ASMJIT_NO_JIT
 
-      if (!code.isInitialized()) {
-        Environment customEnv;
+      if (!code.is_initialized()) {
+        Environment custom_env;
         CpuFeatures features;
 
         switch (test->arch()) {
@@ -214,29 +215,29 @@ int TestApp::run() {
             break;
         }
 
-        customEnv.init(test->arch());
-        code.init(customEnv, features);
+        custom_env.init(test->arch());
+        code.init(custom_env, features);
       }
 
-      code.setErrorHandler(&errorHandler);
+      code.set_error_handler(&error_handler);
 
       if (pass != 0) {
-        printf("[Test:%s] %s", asmjitArchAsString(test->arch()), test->name());
+        printf("[Test:%s] %s", asmjit_arch_as_string(test->arch()), test->name());
         fflush(stdout);
 
 #ifndef ASMJIT_NO_LOGGING
-        if (_verbose || _dumpAsm || _dumpHex) {
+        if (_verbose || _dump_asm || _dump_hex) {
           printf("\n");
-          statusSeparator = "  ";
+          status_separator = "  ";
         }
 
         if (_verbose) {
           printf("  [Log]\n");
-          code.setLogger(&printLogger);
+          code.set_logger(&print_logger);
         }
         else {
-          stringLogger.clear();
-          code.setLogger(&stringLogger);
+          string_logger.clear();
+          code.set_logger(&string_logger);
         }
 #endif // !ASMJIT_NO_LOGGING
       }
@@ -257,48 +258,48 @@ int TestApp::run() {
         continue;
 
 #ifndef ASMJIT_NO_LOGGING
-      cc->addDiagnosticOptions(DiagnosticOptions::kRAAnnotate | DiagnosticOptions::kRADebugAll);
+      cc->add_diagnostic_options(DiagnosticOptions::kRAAnnotate | DiagnosticOptions::kRADebugAll);
 #endif // !ASMJIT_NO_LOGGING
 
-      compileTimer.start();
+      compile_timer.start();
       test->compile(*cc);
-      compileTimer.stop();
+      compile_timer.stop();
 
-      Error err = errorHandler._err;
-      if (err == kErrorOk) {
-        finalizeTimer.start();
+      Error err = error_handler._err;
+      if (err == Error::kOk) {
+        finalize_timer.start();
         err = cc->finalize();
-        finalizeTimer.stop();
+        finalize_timer.stop();
       }
 
       // The first pass is only used for timing of serialization and compilation, because otherwise it would be
       // biased by logging, which takes much more time than finalize() does. We want to benchmark Compiler the
       // way it would be used in the production.
       if (pass == 0) {
-        _outputSize += code.codeSize();
-        compileTime += compileTimer.duration();
-        finalizeTime += finalizeTimer.duration();
+        _output_size += code.code_size();
+        compile_time += compile_timer.duration();
+        finalize_time += finalize_timer.duration();
         continue;
       }
 
 #ifndef ASMJIT_NO_LOGGING
-      if (_dumpAsm) {
+      if (_dump_asm) {
         String sb;
-        Formatter::formatNodeList(sb, formatOptions, cc.get());
+        Formatter::format_node_list(sb, format_options, cc.get());
         printf("  [Assembly]\n");
-        printIndented(sb.data(), 4);
+        print_indented(sb.data(), 4);
       }
 #endif // !ASMJIT_NO_LOGGING
 
 #ifndef ASMJIT_NO_JIT
       if (runnable) {
         void* func = nullptr;
-        if (err == kErrorOk)
+        if (err == Error::kOk)
           err = runtime.add(&func, &code);
 
-        if (err == kErrorOk && _dumpHex) {
+        if (err == Error::kOk && _dump_hex) {
           String sb;
-          sb.appendHex((void*)func, code.codeSize());
+          sb.append_hex((void*)func, code.code_size());
           printf("  [Hex Dump]:\n");
           for (size_t i = 0; i < sb.size(); i += 76) {
             printf("    %.60s\n", sb.data() + i);
@@ -308,55 +309,55 @@ int TestApp::run() {
         if (_verbose)
           fflush(stdout);
 
-        if (err == kErrorOk) {
+        if (err == Error::kOk) {
           StringTmp<128> result;
           StringTmp<128> expect;
 
           if (test->run(func, result, expect)) {
             if (!_verbose)
-              printf("%s[RUN OK]\n", statusSeparator);
+              printf("%s[RUN OK]\n", status_separator);
           }
           else {
             if (!_verbose)
-              printf("%s[RUN FAILED]\n", statusSeparator);
+              printf("%s[RUN FAILED]\n", status_separator);
 
-            printStringLoggerContent();
+            print_string_logger_content();
             printf("  [Output]\n");
             printf("    Returned: %s\n", result.data());
             printf("    Expected: %s\n", expect.data());
-            _numFailed++;
+            _num_failed++;
           }
 
-          if (_dumpAsm)
+          if (_dump_asm)
             printf("\n");
 
           runtime.release(func);
         }
         else {
           if (!_verbose)
-            printf("%s[COMPILE FAILED]\n", statusSeparator);
+            printf("%s[COMPILE FAILED]\n", status_separator);
 
-          printStringLoggerContent();
+          print_string_logger_content();
           printf("  [Status]\n");
-          printf("    ERROR 0x%08X: %s\n", unsigned(err), errorHandler._message.data());
-          _numFailed++;
+          printf("    ERROR 0x%08X: %s\n", unsigned(err), error_handler._message.data());
+          _num_failed++;
         }
       }
 #endif // !ASMJIT_NO_JIT
 
       if (!runnable) {
-        if (err) {
+        if (err != Error::kOk) {
           printf("  [Status]\n");
-          printf("    ERROR 0x%08X: %s\n", unsigned(err), errorHandler._message.data());
-          _numFailed++;
+          printf("    ERROR 0x%08X: %s\n", unsigned(err), error_handler._message.data());
+          _num_failed++;
         }
         else {
-          printf("%s[COMPILE OK]\n", statusSeparator);
+          printf("%s[COMPILE OK]\n", status_separator);
         }
       }
 
 #ifndef ASMJIT_NO_LOGGING
-      if (_verbose || _dumpAsm || _dumpHex) {
+      if (_verbose || _dump_asm || _dump_hex) {
         printf("\n");
       }
 #endif // !ASMJIT_NO_LOGGING
@@ -365,24 +366,24 @@ int TestApp::run() {
 
   printf("\n");
   printf("Summary:\n");
-  printf("  OutputSize: %zu bytes\n", _outputSize);
-  printf("  CompileTime: %.2f ms\n", compileTime);
-  printf("  FinalizeTime: %.2f ms\n", finalizeTime);
+  printf("  OutputSize: %zu bytes\n", _output_size);
+  printf("  CompileTime: %.2f ms\n", compile_time);
+  printf("  FinalizeTime: %.2f ms\n", finalize_time);
   printf("\n");
 
-  if (_numFailed == 0)
-    printf("** SUCCESS: All %u tests passed **\n", _numTests);
+  if (_num_failed == 0)
+    printf("** SUCCESS: All %u tests passed **\n", _num_tests);
   else
-    printf("** FAILURE: %u of %u tests failed **\n", _numFailed, _numTests);
+    printf("** FAILURE: %u of %u tests failed **\n", _num_failed, _num_tests);
 
-  return _numFailed == 0 ? 0 : 1;
+  return _num_failed == 0 ? 0 : 1;
 }
 
 int main(int argc, char* argv[]) {
   TestApp app;
 
-  app.handleArgs(argc, argv);
-  app.showInfo();
+  app.handle_args(argc, argv);
+  app.show_info();
 
 #if !defined(ASMJIT_NO_X86)
   compiler_add_x86_tests(app);
@@ -398,7 +399,7 @@ int main(int argc, char* argv[]) {
 #else
 
 int main(int argc, char* argv[]) {
-  DebugUtils::unused(argc, argv);
+  Support::maybe_unused(argc, argv);
 
   printf("AsmJit Compiler Test suite is disabled when compiling with ASMJIT_NO_COMPILER\n\n");
   return 0;

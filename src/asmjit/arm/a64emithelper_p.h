@@ -26,26 +26,30 @@ public:
 
   ASMJIT_INLINE_NODEBUG virtual ~EmitHelper() noexcept = default;
 
-  Error emitRegMove(
-    const Operand_& dst_,
-    const Operand_& src_, TypeId typeId, const char* comment = nullptr) override;
+  ASMJIT_INLINE void reset(BaseEmitter* emitter) noexcept {
+    _emitter = emitter;
+  }
 
-  Error emitRegSwap(
+  Error emit_reg_move(
+    const Operand_& dst_,
+    const Operand_& src_, TypeId type_id, const char* comment = nullptr) override;
+
+  Error emit_reg_swap(
     const Reg& a,
     const Reg& b, const char* comment = nullptr) override;
 
-  Error emitArgMove(
-    const Reg& dst_, TypeId dstTypeId,
-    const Operand_& src_, TypeId srcTypeId, const char* comment = nullptr) override;
+  Error emit_arg_move(
+    const Reg& dst_, TypeId dst_type_id,
+    const Operand_& src_, TypeId src_type_id, const char* comment = nullptr) override;
 
-  Error emitProlog(const FuncFrame& frame);
-  Error emitEpilog(const FuncFrame& frame);
+  Error emit_prolog(const FuncFrame& frame);
+  Error emit_epilog(const FuncFrame& frame);
 };
 
-void initEmitterFuncs(BaseEmitter* emitter);
+void init_emitter_funcs(BaseEmitter* emitter);
 
 [[maybe_unused]]
-static inline void updateEmitterFuncs(BaseEmitter* emitter) noexcept { DebugUtils::unused(emitter); }
+static inline void update_emitter_funcs(BaseEmitter* emitter) noexcept { Support::maybe_unused(emitter); }
 
 //! \}
 //! \endcond

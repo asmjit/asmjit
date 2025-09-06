@@ -18,10 +18,10 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 namespace FuncInternal {
 
 //! Initialize `CallConv` structure (X86 specific).
-Error initCallConv(CallConv& cc, CallConvId ccId, const Environment& environment) noexcept;
+Error init_call_conv(CallConv& cc, CallConvId call_conv_id, const Environment& environment) noexcept;
 
 //! Initialize `FuncDetail` (X86 specific).
-Error initFuncDetail(FuncDetail& func, const FuncSignature& signature, uint32_t registerSize) noexcept;
+Error init_func_detail(FuncDetail& func, const FuncSignature& signature, uint32_t register_size) noexcept;
 
 } // {FuncInternal}
 

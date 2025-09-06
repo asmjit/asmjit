@@ -13,29 +13,29 @@
 
 using namespace asmjit;
 
-static void printAppInfo() noexcept {
+static void print_app_info() noexcept {
   printf("AsmJit Benchmark CodeGen v%u.%u.%u [Arch=%s] [Mode=%s]\n\n",
     unsigned((ASMJIT_LIBRARY_VERSION >> 16)       ),
     unsigned((ASMJIT_LIBRARY_VERSION >>  8) & 0xFF),
     unsigned((ASMJIT_LIBRARY_VERSION      ) & 0xFF),
-    asmjitArchAsString(Arch::kHost),
-    asmjitBuildType()
+    asmjit_arch_as_string(Arch::kHost),
+    asmjit_build_type()
   );
 }
 
 #if !defined(ASMJIT_NO_X86)
-void benchmarkX86Emitters(uint32_t numIterations, bool testX86, bool testX64) noexcept;
+void benchmark_x86_emitters(uint32_t num_iterations, bool test_x86, bool test_x64) noexcept;
 #endif
 
 #if !defined(ASMJIT_NO_AARCH64)
-void benchmarkA64Emitters(uint32_t numIterations);
+void benchmark_aarch64_emitters(uint32_t num_iterations);
 #endif
 
 int main(int argc, char* argv[]) {
-  CmdLine cmdLine(argc, argv);
-  uint32_t numIterations = 100000;
+  CmdLine cmd_line(argc, argv);
+  uint32_t num_iterations = 100000;
 
-  printAppInfo();
+  print_app_info();
 
   printf("Usage:\n");
   printf("  --help         Show usage only\n");
@@ -53,27 +53,29 @@ int main(int argc, char* argv[]) {
 #endif
   printf("\n");
 
-  if (cmdLine.hasArg("--help"))
+  if (cmd_line.has_arg("--help"))
     return 0;
 
-  if (cmdLine.hasArg("--quick"))
-    numIterations = 1000;
+  if (cmd_line.has_arg("--quick"))
+    num_iterations = 1000;
 
-  const char* arch = cmdLine.valueOf("--arch", "all");
+  const char* arch = cmd_line.value_of("--arch", "all");
 
 #if !defined(ASMJIT_NO_X86)
-  bool testX86 = strcmp(arch, "all") == 0 || strcmp(arch, "x86") == 0;
-  bool testX64 = strcmp(arch, "all") == 0 || strcmp(arch, "x64") == 0;
+  bool test_x86 = strcmp(arch, "all") == 0 || strcmp(arch, "x86") == 0;
+  bool test_x64 = strcmp(arch, "all") == 0 || strcmp(arch, "x64") == 0;
 
-  if (testX86 || testX64)
-    benchmarkX86Emitters(numIterations, testX86, testX64);
+  if (test_x86 || test_x64) {
+    benchmark_x86_emitters(num_iterations, test_x86, test_x64);
+  }
 #endif
 
 #if !defined(ASMJIT_NO_AARCH64)
-  bool testAArch64 = strcmp(arch, "all") == 0 || strcmp(arch, "aarch64") == 0;
+  bool test_aarch64 = strcmp(arch, "all") == 0 || strcmp(arch, "aarch64") == 0;
 
-  if (testAArch64)
-    benchmarkA64Emitters(numIterations);
+  if (test_aarch64) {
+    benchmark_aarch64_emitters(num_iterations);
+  }
 #endif
 
   return 0;

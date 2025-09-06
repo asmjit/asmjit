@@ -18,7 +18,6 @@ const dict = base.dict;
 const NONE = base.NONE;
 const Parsing = base.Parsing;
 const MapUtils = base.MapUtils;
-const hasOwn = base.hasOwn;
 
 // Export
 // ======
@@ -324,9 +323,9 @@ class Instruction extends base.Instruction {
     super(db, data);
     // name, operands, encoding, opcode, metadata
 
-    const encoding = hasOwn(data, "a32") ? "a32" :
-                     hasOwn(data, "t32") ? "t32" :
-                     hasOwn(data, "t16") ? "t16" : "";
+    const encoding = Object.hasOwn(data, "a32") ? "a32" :
+                     Object.hasOwn(data, "t32") ? "t32" :
+                     Object.hasOwn(data, "t16") ? "t16" : "";
 
     this.name = data.name;
     this.it = dict();                // THUMB's 'it' flags.
@@ -963,9 +962,9 @@ class ISA extends base.ISA {
       const names = (sep !== -1 ? sgn.substring(0, sep) : sgn).trim().split("/");
       const operands = sep !== -1 ? sgn.substring(sep + 1) : "";
 
-      const encoding = hasOwn(obj, "a32") ? "a32" :
-                       hasOwn(obj, "t32") ? "t32" :
-                       hasOwn(obj, "t16") ? "t16" : "";
+      const encoding = Object.hasOwn(obj, "a32") ? "a32" :
+                       Object.hasOwn(obj, "t32") ? "t32" :
+                       Object.hasOwn(obj, "t16") ? "t16" : "";
 
       if (!encoding)
         FAIL(`Instruction ${names.join("/")} doesn't encoding, it must provide either a32, t32, or t16 field`);

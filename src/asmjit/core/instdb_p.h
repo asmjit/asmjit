@@ -22,14 +22,14 @@ struct InstNameIndex {
   };
 
   Span data[26];
-  uint16_t maxNameLength;
+  uint16_t max_name_length;
 };
 
 namespace InstNameUtils {
 
-Error decode(uint32_t nameValue, InstStringifyOptions options, const char* stringTable, String& output) noexcept;
-InstId findInstruction(const char* s, size_t len, const uint32_t* nameTable, const char* stringTable, const InstNameIndex& nameIndex) noexcept;
-uint32_t findAlias(const char* s, size_t len, const uint32_t* nameTable, const char* stringTable, uint32_t aliasNameCount) noexcept;
+Error decode(uint32_t name_value, InstStringifyOptions options, const char* string_table, String& output) noexcept;
+InstId find_instruction(const char* s, size_t len, const uint32_t* name_table, const char* string_table, const InstNameIndex& name_index) noexcept;
+uint32_t find_alias(const char* s, size_t len, const uint32_t* name_table, const char* string_table, uint32_t alias_name_count) noexcept;
 
 } // {InstNameUtils}
 

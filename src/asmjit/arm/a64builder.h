@@ -36,8 +36,8 @@ public:
   //! \name Events
   //! \{
 
-  ASMJIT_API Error onAttach(CodeHolder& code) noexcept override;
-  ASMJIT_API Error onDetach(CodeHolder& code) noexcept override;
+  ASMJIT_API Error on_attach(CodeHolder& code) noexcept override;
+  ASMJIT_API Error on_detach(CodeHolder& code) noexcept override;
 
   //! \}
 

@@ -55,10 +55,10 @@ public:
   ASMJIT_INLINE_NODEBUG const FormatOptions& options() const noexcept { return _options; }
 
   //! Sets formatting options of this Logger to `options`.
-  ASMJIT_INLINE_NODEBUG void setOptions(const FormatOptions& options) noexcept { _options = options; }
+  ASMJIT_INLINE_NODEBUG void set_options(const FormatOptions& options) noexcept { _options = options; }
 
   //! Resets formatting options of this Logger to defaults.
-  ASMJIT_INLINE_NODEBUG void resetOptions() noexcept { _options.reset(); }
+  ASMJIT_INLINE_NODEBUG void reset_options() noexcept { _options.reset(); }
 
   //! Returns formatting flags.
   [[nodiscard]]
@@ -66,36 +66,36 @@ public:
 
   //! Tests whether the logger has the given `flag` enabled.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool hasFlag(FormatFlags flag) const noexcept { return _options.hasFlag(flag); }
+  ASMJIT_INLINE_NODEBUG bool has_flag(FormatFlags flag) const noexcept { return _options.has_flag(flag); }
 
   //! Sets formatting flags to `flags`.
-  ASMJIT_INLINE_NODEBUG void setFlags(FormatFlags flags) noexcept { _options.setFlags(flags); }
+  ASMJIT_INLINE_NODEBUG void set_flags(FormatFlags flags) noexcept { _options.set_flags(flags); }
 
   //! Enables the given formatting `flags`.
-  ASMJIT_INLINE_NODEBUG void addFlags(FormatFlags flags) noexcept { _options.addFlags(flags); }
+  ASMJIT_INLINE_NODEBUG void add_flags(FormatFlags flags) noexcept { _options.add_flags(flags); }
 
   //! Disables the given formatting `flags`.
-  ASMJIT_INLINE_NODEBUG void clearFlags(FormatFlags flags) noexcept { _options.clearFlags(flags); }
+  ASMJIT_INLINE_NODEBUG void clear_flags(FormatFlags flags) noexcept { _options.clear_flags(flags); }
 
   //! Returns indentation of a given indentation `group`.
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t indentation(FormatIndentationGroup type) const noexcept { return _options.indentation(type); }
 
   //! Sets indentation of the given indentation `group` to `n` spaces.
-  ASMJIT_INLINE_NODEBUG void setIndentation(FormatIndentationGroup type, uint32_t n) noexcept { _options.setIndentation(type, n); }
+  ASMJIT_INLINE_NODEBUG void set_indentation(FormatIndentationGroup type, uint32_t n) noexcept { _options.set_indentation(type, n); }
 
   //! Resets indentation of the given indentation `group` to 0 spaces.
-  ASMJIT_INLINE_NODEBUG void resetIndentation(FormatIndentationGroup type) noexcept { _options.resetIndentation(type); }
+  ASMJIT_INLINE_NODEBUG void reset_indentation(FormatIndentationGroup type) noexcept { _options.reset_indentation(type); }
 
   //! Returns padding of a given padding `group`.
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG size_t padding(FormatPaddingGroup type) const noexcept { return _options.padding(type); }
 
   //! Sets padding of a given padding `group` to `n`.
-  ASMJIT_INLINE_NODEBUG void setPadding(FormatPaddingGroup type, uint32_t n) noexcept { _options.setPadding(type, n); }
+  ASMJIT_INLINE_NODEBUG void set_padding(FormatPaddingGroup type, uint32_t n) noexcept { _options.set_padding(type, n); }
 
   //! Resets padding of a given padding `group` to 0, which means that a default will be used.
-  ASMJIT_INLINE_NODEBUG void resetPadding(FormatPaddingGroup type) noexcept { _options.resetPadding(type); }
+  ASMJIT_INLINE_NODEBUG void reset_padding(FormatPaddingGroup type) noexcept { _options.reset_padding(type); }
 
   //! \}
 
@@ -152,7 +152,7 @@ public:
   //! \note If the `file` is null the logging will be disabled. When a logger is attached to `CodeHolder` or any
   //! emitter the logging API will always be called regardless of the output file. This means that if you really
   //! want to disable logging at emitter level you must not attach a logger to it.
-  ASMJIT_INLINE_NODEBUG void setFile(FILE* file) noexcept { _file = file; }
+  ASMJIT_INLINE_NODEBUG void set_file(FILE* file) noexcept { _file = file; }
 
   //! \}
 
@@ -198,7 +198,7 @@ public:
 
   //! Returns size of the data returned by `data()`.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG size_t dataSize() const noexcept { return _content.size(); }
+  ASMJIT_INLINE_NODEBUG size_t data_size() const noexcept { return _content.size(); }
 
   //! \}
 

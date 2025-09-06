@@ -37,7 +37,7 @@ struct RAStackSlot {
   //! \{
 
   //! Base register used to address the stack.
-  uint8_t _baseRegId;
+  uint8_t _base_reg_id;
   //! Minimum alignment required by the slot.
   uint8_t _alignment;
   //! Reserved for future use.
@@ -46,10 +46,10 @@ struct RAStackSlot {
   uint32_t _size;
 
   //! Usage counter (one unit equals one memory access).
-  uint32_t _useCount;
-  //! Weight of the slot, calculated by \ref RAStackAllocator::calculateStackFrame().
+  uint32_t _use_count;
+  //! Weight of the slot, calculated by \ref RAStackAllocator::calculate_stack_frame().
   uint32_t _weight;
-  //! Stack offset, calculated by \ref RAStackAllocator::calculateStackFrame().
+  //! Stack offset, calculated by \ref RAStackAllocator::calculate_stack_frame().
   int32_t _offset;
 
   //! \}
@@ -58,9 +58,9 @@ struct RAStackSlot {
   //! \{
 
   [[nodiscard]]
-  inline uint32_t baseRegId() const noexcept { return _baseRegId; }
+  inline uint32_t base_reg_id() const noexcept { return _base_reg_id; }
 
-  inline void setBaseRegId(uint32_t id) noexcept { _baseRegId = uint8_t(id); }
+  inline void set_base_reg_id(uint32_t id) noexcept { _base_reg_id = uint8_t(id); }
 
   [[nodiscard]]
   inline uint32_t size() const noexcept { return _size; }
@@ -72,35 +72,33 @@ struct RAStackSlot {
   inline uint32_t flags() const noexcept { return _flags; }
 
   [[nodiscard]]
-  inline bool hasFlag(uint32_t flag) const noexcept { return (_flags & flag) != 0; }
+  inline bool has_flag(uint32_t flag) const noexcept { return (_flags & flag) != 0; }
 
-  inline void addFlags(uint32_t flags) noexcept { _flags = uint16_t(_flags | flags); }
-
-  [[nodiscard]]
-  inline bool isRegHome() const noexcept { return hasFlag(kFlagRegHome); }
+  inline void add_flags(uint32_t flags) noexcept { _flags = uint16_t(_flags | flags); }
 
   [[nodiscard]]
-  inline bool isStackArg() const noexcept { return hasFlag(kFlagStackArg); }
+  inline bool is_reg_home() const noexcept { return has_flag(kFlagRegHome); }
 
   [[nodiscard]]
-  inline uint32_t useCount() const noexcept { return _useCount; }
+  inline bool is_stack_arg() const noexcept { return has_flag(kFlagStackArg); }
 
-  inline void addUseCount(uint32_t n = 1) noexcept { _useCount += n; }
+  [[nodiscard]]
+  inline uint32_t use_count() const noexcept { return _use_count; }
+
+  inline void add_use_count(uint32_t n = 1) noexcept { _use_count += n; }
 
   [[nodiscard]]
   inline uint32_t weight() const noexcept { return _weight; }
 
-  inline void setWeight(uint32_t weight) noexcept { _weight = weight; }
+  inline void set_weight(uint32_t weight) noexcept { _weight = weight; }
 
   [[nodiscard]]
   inline int32_t offset() const noexcept { return _offset; }
 
-  inline void setOffset(int32_t offset) noexcept { _offset = offset; }
+  inline void set_offset(int32_t offset) noexcept { _offset = offset; }
 
   //! \}
 };
-
-using RAStackSlots = ZoneVector<RAStackSlot*>;
 
 //! Stack allocator.
 class RAStackAllocator {
@@ -121,19 +119,16 @@ public:
   //! \name Members
   //! \{
 
-  //! Zone used to allocate internal data.
-  Zone* _zone {};
-  //! Container allocator used to allocate internal data.
-  ZoneAllocator* _allocator {};
-
+  //! Arena used to allocate internal data.
+  Arena* _arena {};
   //! Count of bytes used by all slots.
-  uint32_t _bytesUsed {};
-  //! Calculated stack size (can be a bit greater than `_bytesUsed`).
-  uint32_t _stackSize {};
+  uint32_t _bytes_used {};
+  //! Calculated stack size (can be a bit greater than `_bytes_used`).
+  uint32_t _stack_size {};
   //! Minimum stack alignment.
   uint32_t _alignment = 1;
   //! Stack slots vector.
-  RAStackSlots _slots;
+  ArenaVector<RAStackSlot*> _slots;
 
   //! \}
 
@@ -142,11 +137,10 @@ public:
 
   ASMJIT_INLINE_NODEBUG RAStackAllocator() noexcept {}
 
-  ASMJIT_INLINE_NODEBUG void reset(Zone* zone, ZoneAllocator* allocator) noexcept {
-    _zone = zone;
-    _allocator = allocator;
-    _bytesUsed = 0;
-    _stackSize = 0;
+  ASMJIT_INLINE_NODEBUG void reset(Arena* arena) noexcept {
+    _arena = arena;
+    _bytes_used = 0;
+    _stack_size = 0;
     _alignment = 1;
     _slots.reset();
   }
@@ -157,28 +151,22 @@ public:
   //! \{
 
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG Zone* zone() const noexcept { return _zone; }
+  ASMJIT_INLINE_NODEBUG Arena* arena() const noexcept { return _arena; }
 
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG ZoneAllocator* allocator() const noexcept { return _allocator; }
+  ASMJIT_INLINE_NODEBUG uint32_t bytes_used() const noexcept { return _bytes_used; }
 
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t bytesUsed() const noexcept { return _bytesUsed; }
-
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t stackSize() const noexcept { return _stackSize; }
+  ASMJIT_INLINE_NODEBUG uint32_t stack_size() const noexcept { return _stack_size; }
 
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t alignment() const noexcept { return _alignment; }
 
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG RAStackSlots& slots() noexcept { return _slots; }
+  ASMJIT_INLINE_NODEBUG Span<RAStackSlot*> slots() noexcept { return _slots.as_span(); }
 
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG const RAStackSlots& slots() const noexcept { return _slots; }
-
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t slotCount() const noexcept { return _slots.size(); }
+  ASMJIT_INLINE_NODEBUG size_t slot_count() const noexcept { return _slots.size(); }
 
   //! \}
 
@@ -186,13 +174,13 @@ public:
   //! \{
 
   [[nodiscard]]
-  RAStackSlot* newSlot(uint32_t baseRegId, uint32_t size, uint32_t alignment, uint32_t flags = 0) noexcept;
+  RAStackSlot* new_slot(uint32_t base_reg_id, uint32_t size, uint32_t alignment, uint32_t flags = 0) noexcept;
 
   [[nodiscard]]
-  Error calculateStackFrame() noexcept;
+  Error calculate_stack_frame() noexcept;
 
   [[nodiscard]]
-  Error adjustSlotOffsets(int32_t offset) noexcept;
+  Error adjust_slot_offsets(int32_t offset) noexcept;
 
   //! \}
 };

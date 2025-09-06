@@ -41,11 +41,11 @@ public:
     }
   }
 
-  inline uint32_t nextUInt32() noexcept {
-    return uint32_t(nextUInt64() >> 32);
+  inline uint32_t next_uint32() noexcept {
+    return uint32_t(next_uint64() >> 32);
   }
 
-  inline uint64_t nextUInt64() noexcept {
+  inline uint64_t next_uint64() noexcept {
     uint64_t x = _state[0];
     uint64_t y = _state[1];
 
@@ -59,11 +59,11 @@ public:
     return x + y;
   }
 
-  inline double nextDouble() noexcept {
+  inline double next_double() noexcept {
     constexpr uint32_t kMantissaShift = 64 - 52;
     constexpr uint64_t kExpMsk = 0x3FF0000000000000u;
 
-    uint64_t u = (nextUInt64() >> kMantissaShift) | kExpMsk;
+    uint64_t u = (next_uint64() >> kMantissaShift) | kExpMsk;
     double d = 0.0;
 
     memcpy(&d, &u, 8);

@@ -18,13 +18,13 @@ enum class OffsetType : uint8_t {
   // Common Offset Formats
   // ---------------------
 
-  //! A value having `_immBitCount` bits and shifted by `_immBitShift`.
+  //! A value having `_imm_bit_count` bits and shifted by `_imm_bit_shift`.
   //!
   //! This offset type is sufficient for many targets that store offset as a continuous set bits within an
   //! instruction word / sequence of bytes.
   kSignedOffset,
 
-  //! An unsigned value having `_immBitCount` bits and shifted by `_immBitShift`.
+  //! An unsigned value having `_imm_bit_count` bits and shifted by `_imm_bit_shift`.
   kUnsignedOffset,
 
   // AArch64 Specific Offset Formats
@@ -141,20 +141,20 @@ struct OffsetFormat {
   //! Encoding flags.
   uint8_t _flags;
   //! Size of the region (in bytes) containing the offset value, if the offset value is part of an instruction,
-  //! otherwise it would be the same as `_valueSize`.
-  uint8_t _regionSize;
+  //! otherwise it would be the same as `_value_size`.
+  uint8_t _region_size;
   //! Size of the offset value, in bytes (1, 2, 4, or 8).
-  uint8_t _valueSize;
+  uint8_t _value_size;
   //! Offset of the offset value, in bytes, relative to the start of the region or data. Value offset would be
   //! zero if both region size and value size are equal.
-  uint8_t _valueOffset;
+  uint8_t _value_offset;
   //! Size of the offset immediate value in bits.
-  uint8_t _immBitCount;
+  uint8_t _imm_bit_count;
   //! Shift of the offset immediate value in bits in the target word.
-  uint8_t _immBitShift;
+  uint8_t _imm_bit_shift;
   //! Number of least significant bits to discard before writing the immediate to the destination. All discarded
   //! bits must be zero otherwise the value is invalid.
-  uint8_t _immDiscardLsb;
+  uint8_t _imm_discard_lsb;
 
   //! \}
 
@@ -169,7 +169,7 @@ struct OffsetFormat {
   //!
   //! If true, the offset itself is always positive and a separate U/N field is used to indicate the sign of the offset
   //! (usually `U==1` means ADD, but sometimes `N==1` means negative offset, which implies SUB).
-  ASMJIT_INLINE_NODEBUG bool hasSignBit() const noexcept {
+  ASMJIT_INLINE_NODEBUG bool has_sign_bit() const noexcept {
     return _type == OffsetType::kThumb32_ADR ||
            _type == OffsetType::kAArch32_ADR ||
            _type == OffsetType::kAArch32_U23_SignedOffset ||
@@ -182,70 +182,70 @@ struct OffsetFormat {
 
   //! Returns the size of the region/instruction where the offset is encoded.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t regionSize() const noexcept { return _regionSize; }
+  ASMJIT_INLINE_NODEBUG uint32_t region_size() const noexcept { return _region_size; }
 
   //! Returns the offset of the word relative to the start of the region where the offset is.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t valueOffset() const noexcept { return _valueOffset; }
+  ASMJIT_INLINE_NODEBUG uint32_t value_offset() const noexcept { return _value_offset; }
 
   //! Returns the size of the data-type (word) that contains the offset, in bytes.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t valueSize() const noexcept { return _valueSize; }
+  ASMJIT_INLINE_NODEBUG uint32_t value_size() const noexcept { return _value_size; }
 
   //! Returns the count of bits of the offset value in the data it's stored in.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t immBitCount() const noexcept { return _immBitCount; }
+  ASMJIT_INLINE_NODEBUG uint32_t imm_bit_count() const noexcept { return _imm_bit_count; }
 
   //! Returns the bit-shift of the offset value in the data it's stored in.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t immBitShift() const noexcept { return _immBitShift; }
+  ASMJIT_INLINE_NODEBUG uint32_t imm_bit_shift() const noexcept { return _imm_bit_shift; }
 
   //! Returns the number of least significant bits of the offset value, that must be zero and that are not part of
   //! the encoded data.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t immDiscardLsb() const noexcept { return _immDiscardLsb; }
+  ASMJIT_INLINE_NODEBUG uint32_t imm_discard_lsb() const noexcept { return _imm_discard_lsb; }
 
-  //! Resets this offset format to a simple data value of `dataSize` bytes.
+  //! Resets this offset format to a simple data value of `data_size` bytes.
   //!
-  //! The region will be the same size as data and immediate bits would correspond to `dataSize * 8`. There will be
+  //! The region will be the same size as data and immediate bits would correspond to `data_size * 8`. There will be
   //! no immediate bit shift or discarded bits.
-  inline void resetToSimpleValue(OffsetType type, size_t valueSize) noexcept {
-    ASMJIT_ASSERT(valueSize <= 8u);
+  inline void reset_to_simple_value(OffsetType type, size_t value_size) noexcept {
+    ASMJIT_ASSERT(value_size <= 8u);
 
     _type = type;
     _flags = uint8_t(0);
-    _regionSize = uint8_t(valueSize);
-    _valueSize = uint8_t(valueSize);
-    _valueOffset = uint8_t(0);
-    _immBitCount = uint8_t(valueSize * 8u);
-    _immBitShift = uint8_t(0);
-    _immDiscardLsb = uint8_t(0);
+    _region_size = uint8_t(value_size);
+    _value_size = uint8_t(value_size);
+    _value_offset = uint8_t(0);
+    _imm_bit_count = uint8_t(value_size * 8u);
+    _imm_bit_shift = uint8_t(0);
+    _imm_discard_lsb = uint8_t(0);
   }
 
-  inline void resetToImmValue(OffsetType type, size_t valueSize, uint32_t immBitShift, uint32_t immBitCount, uint32_t immDiscardLsb) noexcept {
-    ASMJIT_ASSERT(valueSize <= 8u);
-    ASMJIT_ASSERT(immBitShift < valueSize * 8u);
-    ASMJIT_ASSERT(immBitCount <= 64u);
-    ASMJIT_ASSERT(immDiscardLsb <= 64u);
+  inline void reset_to_imm_value(OffsetType type, size_t value_size, uint32_t imm_bit_shift, uint32_t imm_bit_count, uint32_t imm_discard_lsb) noexcept {
+    ASMJIT_ASSERT(value_size <= 8u);
+    ASMJIT_ASSERT(imm_bit_shift < value_size * 8u);
+    ASMJIT_ASSERT(imm_bit_count <= 64u);
+    ASMJIT_ASSERT(imm_discard_lsb <= 64u);
 
     _type = type;
     _flags = uint8_t(0);
-    _regionSize = uint8_t(valueSize);
-    _valueSize = uint8_t(valueSize);
-    _valueOffset = uint8_t(0);
-    _immBitCount = uint8_t(immBitCount);
-    _immBitShift = uint8_t(immBitShift);
-    _immDiscardLsb = uint8_t(immDiscardLsb);
+    _region_size = uint8_t(value_size);
+    _value_size = uint8_t(value_size);
+    _value_offset = uint8_t(0);
+    _imm_bit_count = uint8_t(imm_bit_count);
+    _imm_bit_shift = uint8_t(imm_bit_shift);
+    _imm_discard_lsb = uint8_t(imm_discard_lsb);
   }
 
-  inline void setRegion(size_t regionSize, size_t valueOffset) noexcept {
-    _regionSize = uint8_t(regionSize);
-    _valueOffset = uint8_t(valueOffset);
+  inline void set_region(size_t region_size, size_t value_offset) noexcept {
+    _region_size = uint8_t(region_size);
+    _value_offset = uint8_t(value_offset);
   }
 
-  inline void setLeadingAndTrailingSize(size_t leadingSize, size_t trailingSize) noexcept {
-    _regionSize = uint8_t(leadingSize + trailingSize + _valueSize);
-    _valueOffset = uint8_t(leadingSize);
+  inline void set_leading_and_trailing_size(size_t leading_size, size_t trailing_size) noexcept {
+    _region_size = uint8_t(leading_size + trailing_size + _value_size);
+    _value_offset = uint8_t(leading_size);
   }
 
   //! \}
@@ -260,13 +260,13 @@ struct Fixup {
   //! Next fixup in a single-linked list.
   Fixup* next;
   //! Section where the fixup comes from.
-  uint32_t sectionId;
+  uint32_t section_id;
   //! Label id, relocation id, or \ref Globals::kInvalidId.
   //!
   //! \note Fixup that is used with a LabelEntry always uses relocation id here, however, when a fixup is turned
   //! into unresolved and generally detached from LabelEntry, this field becomes a label identifier as unresolved
   //! fixups won't reference a relocation. This is just a space optimization.
-  uint32_t labelOrRelocId;
+  uint32_t label_or_reloc_id;
   //! Label offset relative to the start of the section where the unresolved link comes from.
   size_t offset;
   //! Inlined rel8/rel32.

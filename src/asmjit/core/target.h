@@ -24,7 +24,7 @@ public:
   //! Target environment information.
   Environment _environment;
   //! Target CPU features.
-  CpuFeatures _cpuFeatures;
+  CpuFeatures _cpu_features;
 
   //! \name Construction & Destruction
   //! \{
@@ -49,11 +49,11 @@ public:
 
   //! Returns the target sub-architecture.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG SubArch subArch() const noexcept { return _environment.subArch(); }
+  ASMJIT_INLINE_NODEBUG SubArch sub_arch() const noexcept { return _environment.sub_arch(); }
 
   [[nodiscard]]
   //! Returns target CPU features.
-  ASMJIT_INLINE_NODEBUG const CpuFeatures& cpuFeatures() const noexcept { return _cpuFeatures; }
+  ASMJIT_INLINE_NODEBUG const CpuFeatures& cpu_features() const noexcept { return _cpu_features; }
 
   //! \}
 };
