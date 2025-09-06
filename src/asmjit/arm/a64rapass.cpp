@@ -685,13 +685,9 @@ Error ARMRAPass::build_cfg_nodes() noexcept {
 // ========================
 
 ASMJIT_FAVOR_SPEED Error ARMRAPass::rewrite() noexcept {
-  size_t virt_count = cc()._virt_regs.size();
-
-  for (RABlock* block : _pov.iterate_reverse()) {
-    BaseNode* node = block->first();
-    BaseNode* stop = block->last();
-
-    for (;;) {
+  const size_t virt_count = cc()._virt_regs.size();
+  return rewrite_iterate([&](BaseNode* node, BaseNode* stop, RABlock* block) noexcept -> Error {
+    while (node != stop) {
       BaseNode* next = node->next();
 
       if (node->is_inst()) {
@@ -744,7 +740,10 @@ ASMJIT_FAVOR_SPEED Error ARMRAPass::rewrite() noexcept {
 
               BaseNode* prev = node->prev();
               cc().remove_node(node);
-              block->set_last(prev);
+
+              if (block) {
+                block->set_last(prev);
+              }
             }
           }
         }
@@ -819,15 +818,11 @@ ASMJIT_FAVOR_SPEED Error ARMRAPass::rewrite() noexcept {
         }
       }
 
-      if (node == stop) {
-        break;
-      }
-
       node = next;
     }
-  }
 
-  return Error::kOk;
+    return Error::kOk;
+  });
 }
 
 // a64::ARMRAPass - Prolog & Epilog

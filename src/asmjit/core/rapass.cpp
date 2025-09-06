@@ -204,7 +204,8 @@ Error BaseRAPass::run_on_function(Arena& arena, FuncNode* func, [[maybe_unused]]
   _arena = &arena;
   _func = func;
   _stop = end->next();
-  _extra_block = end;
+  _injection_start = nullptr;
+  _injection_end = end;
 
   RAPass_prepare_for_function(this, &_func->_func_detail);
 
@@ -226,7 +227,8 @@ Error BaseRAPass::run_on_function(Arena& arena, FuncNode* func, [[maybe_unused]]
   _arena = nullptr;
   _func = nullptr;
   _stop = nullptr;
-  _extra_block = nullptr;
+  _injection_start = nullptr;
+  _injection_end = nullptr;
 
   // Reset `Arena` as nothing should persist between `run_on_function()` calls.
   arena.reset();
@@ -877,7 +879,7 @@ ASMJIT_FAVOR_SPEED Error BaseRAPass::build_reg_ids() noexcept {
 // =========================================================
 
 template<typename BitMutator>
-static ASMJIT_INLINE void BaseRAPass_calculateInitialInOut(RABlock* block, size_t live_word_count, Support::FixedStack<RABlock*>& queue, uint32_t pov_index) noexcept {
+static ASMJIT_INLINE void BaseRAPass_calculate_initial_in_out(RABlock* block, size_t live_word_count, Support::FixedStack<RABlock*>& queue, uint32_t pov_index) noexcept {
   using BitWord = Support::BitWord;
 
   // Calculate LIVE-OUT based on LIVE-IN of all successors and then recalculate LIVE-IN based on LIVE-OUT and KILL bits.
@@ -1070,7 +1072,7 @@ static ASMJIT_INLINE Error BaseRAPass_calculateInOutKill(
 
     for (size_t pov_index = 0u; pov_index < pov.size(); pov_index++) {
       RABlock* block = pov[pov_index];
-      BaseRAPass_calculateInitialInOut<BitMutator>(block, multi_work_reg_count_as_bit_words, queue, uint32_t(pov_index));
+      BaseRAPass_calculate_initial_in_out<BitMutator>(block, multi_work_reg_count_as_bit_words, queue, uint32_t(pov_index));
     }
 
     // Iteratively keep recalculating LIVE-IN and LIVE-OUT once there are no more changes to the bits. This is

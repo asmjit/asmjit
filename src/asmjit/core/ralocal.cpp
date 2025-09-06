@@ -801,6 +801,7 @@ Error RALocalAllocator::alloc_instruction(InstNode* node) noexcept {
             RegMask available_regs = _available_regs[group] & ~_cur_assignment.assigned(group);
             if (available_regs) {
               uint32_t tmp_reg_id = pick_best_suitable_register(group, available_regs);
+              ASMJIT_ASSERT(tmp_reg_id != RAAssignment::kPhysNone);
 
               ASMJIT_PROPAGATE(on_move_reg(group, this_work_reg, this_work_id, tmp_reg_id, this_phys_id));
               _clobbered_regs[group] |= Support::bit_mask<RegMask>(tmp_reg_id);
@@ -1098,7 +1099,7 @@ Error RALocalAllocator::alloc_branch(InstNode* node, RABlock* target, RABlock* c
   ASMJIT_PROPAGATE(spill_regs_before_entry(target));
 
   if (target->has_entry_assignment()) {
-    BaseNode* injection_point = _pass.extra_block()->prev();
+    BaseNode* injection_point = _pass._injection_end->prev();
     BaseNode* prev_cursor = _cc.set_cursor(injection_point);
 
     _tmp_assignment.copy_from(_cur_assignment);
@@ -1127,6 +1128,10 @@ Error RALocalAllocator::alloc_branch(InstNode* node, RABlock* target, RABlock* c
       ASMJIT_PROPAGATE(_pass.emit_jump(saved_target));
       _cc.set_cursor(injection_point);
       _cc.bind(trampoline);
+
+      if (_pass._injection_start == nullptr) {
+        _pass._injection_start = injection_point->next();
+      }
     }
 
     _cc.set_cursor(prev_cursor);

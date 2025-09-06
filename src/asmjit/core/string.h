@@ -91,6 +91,12 @@ public:
   //! External string (arena allocated or not owned by String).
   static inline constexpr uint8_t kTypeExternal = 0x20u;
 
+  [[nodiscard]]
+  static ASMJIT_INLINE_NODEBUG bool is_external(uint8_t type) noexcept { return type == kTypeExternal; }
+
+  [[nodiscard]]
+  static ASMJIT_INLINE_NODEBUG bool is_large_or_external(uint8_t type) noexcept { return type >= kTypeLarge; }
+
   union Raw {
     uint8_t u8[kLayoutSize];
     uint64_t u64[kLayoutSize / sizeof(uint64_t)];
@@ -167,10 +173,10 @@ public:
   //! \{
 
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool is_external() const noexcept { return _type == kTypeExternal; }
+  ASMJIT_INLINE_NODEBUG bool is_external() const noexcept { return is_external(_type); }
 
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool is_large_or_external() const noexcept { return _type >= kTypeLarge; }
+  ASMJIT_INLINE_NODEBUG bool is_large_or_external() const noexcept { return is_large_or_external(_type); }
 
   //! Tests whether the string is empty.
   [[nodiscard]]

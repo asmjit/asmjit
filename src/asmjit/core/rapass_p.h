@@ -64,8 +64,10 @@ public:
   FuncNode* _func = nullptr;
   //! Stop node.
   BaseNode* _stop = nullptr;
-  //! Node that is used to insert extra code after the function body.
-  BaseNode* _extra_block = nullptr;
+  //! Start of the code that was injected.
+  BaseNode* _injection_start = nullptr;
+  //! End of the code that was injected.
+  BaseNode* _injection_end = nullptr;
 
   //! Blocks (first block is the entry, always exists).
   ArenaVector<RABlock*> _blocks {};
@@ -184,13 +186,6 @@ public:
   //! Returns the stop of the current function.
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG BaseNode* stop() const noexcept { return _stop; }
-
-  //! Returns an extra block used by the current function being processed.
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG BaseNode* extra_block() const noexcept { return _extra_block; }
-
-  //! Sets an extra block, see `extra_block()`.
-  ASMJIT_INLINE_NODEBUG void set_extra_block(BaseNode* node) noexcept { _extra_block = node; }
 
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t end_position() const noexcept { return _instruction_count * 2u; }
@@ -637,6 +632,42 @@ public:
 
   //! \name Instruction Rewriter
   //! \{
+
+  template<typename Lambda>
+  ASMJIT_INLINE Error rewrite_iterate(Lambda&& fn) noexcept {
+    // First iteration is not a block - it's possible register/stack changes at the end of the function.
+    RABlock* block = nullptr;
+
+    BaseNode* first = _injection_start;
+    BaseNode* stop = _injection_end;
+
+    Span<RABlock*> pov = _pov.as_span();
+    size_t pov_index = pov.size();
+
+    // If no injection happened, just do basic blocks.
+    if (first == nullptr) {
+      // The size of POV is always greater than zero, because there is always at least one basic block.
+      ASMJIT_ASSERT(pov_index > 0u);
+
+      block = pov[--pov_index];
+      first = block->first();
+      stop = block->last()->next();
+    }
+
+    for (;;) {
+      ASMJIT_PROPAGATE(fn(first, stop, block));
+
+      if (!pov_index) {
+        break;
+      }
+
+      block = pov[--pov_index];
+      first = block->first();
+      stop = block->last()->next();
+    }
+
+    return Error::kOk;
+  }
 
   [[nodiscard]]
   virtual Error rewrite() noexcept;

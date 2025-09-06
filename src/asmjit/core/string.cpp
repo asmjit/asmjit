@@ -88,16 +88,23 @@ Error String::clear() noexcept {
 // ================
 
 char* String::prepare(ModifyOp op, size_t size) noexcept {
+  uint8_t type = _type;
+
   char* cur_data;
   size_t cur_size;
   size_t cur_capacity;
 
-  if (is_large_or_external()) {
+  if (is_large_or_external(type)) {
     cur_data = _large.data;
     cur_size = _large.size;
     cur_capacity = _large.capacity;
   }
   else {
+    // For some reason clang's static analysis flags this function having "use-after-free". The step
+    // to get to that is to execute this branch (`is_large_or_external()` returning false) and then
+    // assuming `type == kTypeLarge` in another condition, which contradicts the first condition.
+    ASMJIT_ASSERT(type < kTypeLarge);
+
     cur_data = _small.data;
     cur_size = _small.type;
     cur_capacity = kSSOCapacity;
@@ -117,7 +124,7 @@ char* String::prepare(ModifyOp op, size_t size) noexcept {
         return nullptr;
       }
 
-      if (_type == kTypeLarge) {
+      if (type == kTypeLarge) {
         ::free(cur_data);
       }
 
@@ -159,7 +166,7 @@ char* String::prepare(ModifyOp op, size_t size) noexcept {
 
       memcpy(new_data, cur_data, cur_size);
 
-      if (_type == kTypeLarge) {
+      if (type == kTypeLarge) {
         ::free(cur_data);
       }
 
@@ -183,6 +190,7 @@ char* String::prepare(ModifyOp op, size_t size) noexcept {
 // ===============
 
 Error String::assign(const char* data, size_t size) noexcept {
+  uint8_t type = _type;
   char* dst = nullptr;
 
   // Null terminated string without `size` specified.
@@ -190,7 +198,7 @@ Error String::assign(const char* data, size_t size) noexcept {
     size = data ? strlen(data) : size_t(0);
   }
 
-  if (is_large_or_external()) {
+  if (is_large_or_external(type)) {
     if (size <= _large.capacity) {
       dst = _large.data;
       _large.size = size;
@@ -206,7 +214,7 @@ Error String::assign(const char* data, size_t size) noexcept {
         return make_error(Error::kOutOfMemory);
       }
 
-      if (_type == kTypeLarge) {
+      if (type == kTypeLarge) {
         ::free(_large.data);
       }
 
