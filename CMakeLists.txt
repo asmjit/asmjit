@@ -478,6 +478,7 @@ set(ASMJIT_SRC_LIST
   asmjit/core/rapass_p.h
   asmjit/core/rastack.cpp
   asmjit/core/rastack_p.h
+  asmjit/core/span.h
   asmjit/core/string.cpp
   asmjit/core/string.h
   asmjit/core/support.cpp
