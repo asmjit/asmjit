@@ -82,7 +82,7 @@ public:
   ASMJIT_INLINE_NODEBUG explicit EmitHelper(BaseEmitter* emitter = nullptr, bool avx_enabled = false, bool avx512_enabled = false) noexcept
     : BaseEmitHelper(emitter) { reset(emitter, avx_enabled, avx512_enabled); }
 
-  ASMJIT_INLINE_NODEBUG virtual ~EmitHelper() noexcept = default;
+  ASMJIT_INLINE_NODEBUG ~EmitHelper() noexcept override = default;
 
   ASMJIT_INLINE_NODEBUG bool is_avx_enabled() const noexcept { return _avx_enabled; }
   ASMJIT_INLINE_NODEBUG bool is_avx512_enabled() const noexcept { return _avx512_enabled; }

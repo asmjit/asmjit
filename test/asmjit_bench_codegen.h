@@ -13,7 +13,7 @@
 namespace asmjit_perf_utils {
 
 class TestErrorHandler : public asmjit::ErrorHandler {
-  void handle_error(asmjit::Error err, const char* message, asmjit::BaseEmitter* origin) {
+  void handle_error(asmjit::Error err, const char* message, asmjit::BaseEmitter* origin) override {
     (void)err;
     (void)origin;
     printf("ERROR: %s\n", message);
