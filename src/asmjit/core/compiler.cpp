@@ -98,8 +98,8 @@ Error BaseCompiler::new_func_node(Out<FuncNode*> out, const FuncSignature& signa
     if (ASMJIT_UNLIKELY(!func_node->_args)) {
       return report_error(make_error(Error::kOutOfMemory));
     }
-    for (size_t i = 0; i < funcNode->argCount(); i++) {
-      new (funcNode->_args+i) FuncNode::ArgPack();
+    for (size_t i = 0; i < func_node->arg_count(); i++) {
+      new (func_node->_args+i) FuncNode::ArgPack();
     }
   }
 
@@ -205,7 +205,7 @@ Error BaseCompiler::new_invoke_node(Out<InvokeNode*> out, InstId inst_id, const 
     if (!node->_args) {
       return report_error(make_error(Error::kOutOfMemory));
     }
-    for (size_t i = 0; i < argCount; i++) {
+    for (size_t i = 0; i < arg_count; i++) {
       new (node->_args+i) InvokeNode::OperandPack();
     }
   }
