@@ -18,7 +18,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(a64)
 //! \addtogroup asmjit_a64
 //! \{
 
-static const constexpr ArchTraits a64ArchTraits = {
+static const constexpr ArchTraits a64_arch_traits = {
   // SP/FP/LR/PC.
   Gp::kIdSp, Gp::kIdFp, Gp::kIdLr, 0xFFu,
 

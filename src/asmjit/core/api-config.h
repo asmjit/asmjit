@@ -16,7 +16,7 @@
 #define ASMJIT_LIBRARY_MAKE_VERSION(major, minor, patch) ((major << 16) | (minor << 8) | (patch))
 
 //! AsmJit library version, see \ref ASMJIT_LIBRARY_MAKE_VERSION for a version format reference.
-#define ASMJIT_LIBRARY_VERSION ASMJIT_LIBRARY_MAKE_VERSION(1, 17, 0)
+#define ASMJIT_LIBRARY_VERSION ASMJIT_LIBRARY_MAKE_VERSION(1, 18, 1)
 
 //! \def ASMJIT_ABI_NAMESPACE
 //!
@@ -27,7 +27,7 @@
 //! AsmJit default, which makes it possible to use multiple AsmJit libraries within a single project, totally
 //! controlled by users. This is useful especially in cases in which some of such library comes from third party.
 #if !defined(ASMJIT_ABI_NAMESPACE)
-  #define ASMJIT_ABI_NAMESPACE v1_17
+  #define ASMJIT_ABI_NAMESPACE v1_18
 #endif // !ASMJIT_ABI_NAMESPACE
 
 //! \}
@@ -54,96 +54,129 @@
 // Build Options
 // =============
 
+#if defined(_DOXYGEN)
+
 // NOTE: Doxygen cannot document macros that are not defined, that's why we have to define them and then undefine
 // them immediately, so it won't use the macros with its own preprocessor.
-#ifdef _DOXYGEN
-namespace asmjit {
 
 //! \addtogroup asmjit_build
 //! \{
 
+//! \def ASMJIT_EMBED
+//!
 //! Asmjit is embedded, implies \ref ASMJIT_STATIC.
 #define ASMJIT_EMBED
+#undef ASMJIT_EMBED
 
+//! \def ASMJIT_STATIC
+//!
 //! Enables static-library build.
 #define ASMJIT_STATIC
+#undef ASMJIT_STATIC
 
+//! \def ASMJIT_BUILD_DEBUG
+//!
 //! Defined when AsmJit's build configuration is 'Debug'.
 //!
 //! \note Can be defined explicitly to bypass auto-detection.
 #define ASMJIT_BUILD_DEBUG
+#undef ASMJIT_BUILD_DEBUG
 
+//! \def ASMJIT_BUILD_RELEASE
+//!
 //! Defined when AsmJit's build configuration is 'Release'.
 //!
 //! \note Can be defined explicitly to bypass auto-detection.
 #define ASMJIT_BUILD_RELEASE
-
-//! Disables deprecated API at compile time (deprecated API won't be available).
-#define ASMJIT_NO_DEPRECATED
-
-//! Disables the use of an inline ABI namespace within asmjit namespace (the inline namespace is used as an ABI tag).
-#define ASMJIT_NO_ABI_NAMESPACE
-
-//! Disables X86/X64 backends.
-#define ASMJIT_NO_X86
-
-//! Disables AArch64 backend.
-#define ASMJIT_NO_AARCH64
-
-//! Disables the use of `shm_open` on all targets even when it's supported.
-#define ASMJIT_NO_SHM_OPEN
-
-//! Disables JIT memory management and \ref asmjit::JitRuntime.
-#define ASMJIT_NO_JIT
-
-//! Disables \ref asmjit::Logger and \ref asmjit::Formatter.
-#define ASMJIT_NO_LOGGING
-
-//! Disables everything that contains text.
-#define ASMJIT_NO_TEXT
-
-//! Disables instruction validation API.
-#define ASMJIT_NO_VALIDATION
-
-//! Disables instruction introspection API.
-#define ASMJIT_NO_INTROSPECTION
-
-//! Disables non-host backends entirely (useful for JIT compilers to minimize the library size).
-#define ASMJIT_NO_FOREIGN
-
-//! Disables \ref asmjit_builder functionality completely.
-#define ASMJIT_NO_BUILDER
-
-//! Disables \ref asmjit_compiler functionality completely.
-#define ASMJIT_NO_COMPILER
-
-// Avoid doxygen preprocessor using feature-selection definitions.
-#undef ASMJIT_BUILD_EMBED
-#undef ASMJIT_BUILD_STATIC
-#undef ASMJIT_BUILD_DEBUG
 #undef ASMJIT_BUILD_RELEASE
 
-// (keep ASMJIT_NO_DEPRECATED defined, we don't document deprecated APIs).
+//! \def ASMJIT_NO_DEPRECATED
+//!
+//! Disables deprecated API at compile time (deprecated API won't be available).
+#define ASMJIT_NO_DEPRECATED
+#undef ASMJIT_NO_DEPRECATED
+
+//! \def ASMJIT_NO_ABI_NAMESPACE
+//!
+//! Disables the use of an inline ABI namespace within asmjit namespace (the inline namespace is used as an ABI tag).
+#define ASMJIT_NO_ABI_NAMESPACE
 #undef ASMJIT_NO_ABI_NAMESPACE
 
+//! \def ASMJIT_NO_X86
+//!
+//! Disables X86/X64 backends.
+#define ASMJIT_NO_X86
 #undef ASMJIT_NO_X86
+
+//! \def ASMJIT_NO_AARCH64
+//!
+//! Disables AArch64 backend.
+#define ASMJIT_NO_AARCH64
 #undef ASMJIT_NO_AARCH64
+
+//! \def ASMJIT_NO_SHM_OPEN
+//!
+//! Disables the use of `shm_open` on all targets even when it's supported.
+#define ASMJIT_NO_SHM_OPEN
+#undef ASMJIT_NO_SHM_OPEN
+
+//! \def ASMJIT_NO_JIT
+//!
+//! Disables JIT memory management and \ref asmjit::JitRuntime.
+#define ASMJIT_NO_JIT
+#undef ASMJIT_NO_JIT
+
+//! \def ASMJIT_NO_LOGGING
+//!
+//! Disables \ref asmjit::Logger and \ref asmjit::Formatter.
+#define ASMJIT_NO_LOGGING
+#undef ASMJIT_NO_LOGGING
+
+//! \def ASMJIT_NO_TEXT
+//!
+//! Disables everything that contains text.
+#define ASMJIT_NO_TEXT
+#undef ASMJIT_NO_TEXT
+
+//! \def ASMJIT_NO_VALIDATION
+//!
+//! Disables instruction validation API.
+#define ASMJIT_NO_VALIDATION
+#undef ASMJIT_NO_VALIDATION
+
+//! \def ASMJIT_NO_INTROSPECTION
+//!
+//! Disables instruction introspection API.
+#define ASMJIT_NO_INTROSPECTION
+#undef ASMJIT_NO_INTROSPECTION
+
+//! \def ASMJIT_NO_FOREIGN
+//!
+//! Disables non-host backends entirely (useful for JIT compilers to minimize the library size).
+#define ASMJIT_NO_FOREIGN
 #undef ASMJIT_NO_FOREIGN
 
-#undef ASMJIT_NO_JIT
-#undef ASMJIT_NO_LOGGING
-#undef ASMJIT_NO_TEXT
-#undef ASMJIT_NO_VALIDATION
-#undef ASMJIT_NO_INTROSPECTION
+//! \def ASMJIT_NO_BUILDER
+//!
+//! Disables \ref asmjit_builder functionality completely.
+#define ASMJIT_NO_BUILDER
 #undef ASMJIT_NO_BUILDER
+
+//! \def ASMJIT_NO_COMPILER
+//!
+//! Disables \ref asmjit_compiler functionality completely.
+#define ASMJIT_NO_COMPILER
 #undef ASMJIT_NO_COMPILER
+
+//! \def ASMJIT_NO_UJIT
+//!
+//! Disables \ref asmjit_ujit functionality completely.
+#define ASMJIT_NO_UJIT
 #undef ASMJIT_NO_UJIT
 
 //! \}
 
-} // {asmjit}
-#endif // _DOXYGEN
-
+//! \cond
 // ASMJIT_NO_BUILDER implies ASMJIT_NO_COMPILER.
 #if defined(ASMJIT_NO_BUILDER) && !defined(ASMJIT_NO_COMPILER)
   #define ASMJIT_NO_COMPILER
@@ -165,9 +198,14 @@ namespace asmjit {
   #undef ASMJIT_NO_INTROSPECTION
 #endif
 
+//! \endcond
+
+#endif // _DOXYGEN
+
 // Build Mode
 // ==========
 
+//! \cond
 // Detect ASMJIT_BUILD_DEBUG and ASMJIT_BUILD_RELEASE if not defined.
 #if !defined(ASMJIT_BUILD_DEBUG) && !defined(ASMJIT_BUILD_RELEASE)
   #if !defined(NDEBUG)
@@ -176,6 +214,7 @@ namespace asmjit {
     #define ASMJIT_BUILD_RELEASE
   #endif
 #endif
+//! \endcond
 
 // Target Architecture Detection
 // =============================
@@ -183,125 +222,126 @@ namespace asmjit {
 //! \addtogroup asmjit_core
 //! \{
 
-//! \def ASMJIT_ARCH_X86
-//!
-//! Defined to either 0, 32, or 64 depending on whether the target CPU is X86 (32) or X86_64 (64).
+#if defined(_DOXYGEN)
 
-//! \def ASMJIT_ARCH_ARM
-//!
-//! Defined to either 0, 32, or 64 depending on whether the target CPU is ARM (32) or AArch64 (64).
+  //! \def ASMJIT_ARCH_X86
+  //!
+  //! Defined to either 0, 32, or 64 depending on whether the target CPU is X86 (32) or X86_64 (64).
+  #define ASMJIT_ARCH_X86 __detected_at_runtime__
 
-//! \def ASMJIT_ARCH_MIPS
-//!
-//! Defined to either 0, 32, or 64 depending on whether the target CPU is MIPS (32) or MISP64 (64).
+  //! \def ASMJIT_ARCH_ARM
+  //!
+  //! Defined to either 0, 32, or 64 depending on whether the target CPU is ARM (32) or AArch64 (64).
+  #define ASMJIT_ARCH_ARM __detected_at_runtime__
 
-//! \def ASMJIT_ARCH_RISCV
-//!
-//! Defined to either 0, 32, or 64 depending on whether the target CPU is RV32 (32) or RV64 (64).
+  //! \def ASMJIT_ARCH_MIPS
+  //!
+  //! Defined to either 0, 32, or 64 depending on whether the target CPU is MIPS (32) or MISP64 (64).
+  #define ASMJIT_ARCH_MIPS __detected_at_runtime__
 
-//! \def ASMJIT_ARCH_BITS
-//!
-//! Defined to either 32 or 64 depending on the target.
+  //! \def ASMJIT_ARCH_RISCV
+  //!
+  //! Defined to either 0, 32, or 64 depending on whether the target CPU is RV32 (32) or RV64 (64).
+  #define ASMJIT_ARCH_RISCV __detected_at_runtime__
 
-//! \def ASMJIT_ARCH_LE
-//!
-//! Defined to 1 if the target architecture is little endian.
+  //! \def ASMJIT_ARCH_LA
+  //!
+  //! Defined to either 0, 32, or 64 depending on whether the target CPU is 32-bit or 64-bit LoongArch.
+  #define ASMJIT_ARCH_LA __detected_at_runtime__
 
-//! \def ASMJIT_ARCH_BE
-//!
-//! Defined to 1 if the target architecture is big endian.
+  //! \def ASMJIT_ARCH_BITS
+  //!
+  //! Defined to either 32 or 64 depending on the target.
+  #define ASMJIT_ARCH_BITS __detected_at_runtime__(32 | 64)
 
-//! \def ASMJIT_HAS_HOST_BACKEND
-//!
-//! Defined when AsmJit is built with the target architecture backend.
-//!
-//! For example if AsmJit is building for x86 or x86_64 architectures and `ASMJIT_NO_X86` is not defined,
-//! it would define `ASMJIT_HAS_HOST_BACKEND` when `<asmjit/code.h>` or ``<asmjit/host.h>` is included.
+  //! \def ASMJIT_HAS_HOST_BACKEND
+  //!
+  //! Defined when AsmJit is built with the target architecture backend.
+  //!
+  //! For example if AsmJit is building for x86 or x86_64 architectures and `ASMJIT_NO_X86` is not defined,
+  //! it would define `ASMJIT_HAS_HOST_BACKEND` when `<asmjit/code.h>` or ``<asmjit/host.h>` is included.
+  #define ASMJIT_HAS_HOST_BACKEND __detected_at_runtime__
+
+#else
+
+  #if defined(_M_X64) || defined(__x86_64__)
+    #define ASMJIT_ARCH_X86 64
+  #elif defined(_M_IX86) || defined(__X86__) || defined(__i386__)
+    #define ASMJIT_ARCH_X86 32
+  #else
+    #define ASMJIT_ARCH_X86 0
+  #endif
+
+  #if defined(_M_ARM64) || defined(__arm64__) || defined(__aarch64__)
+  # define ASMJIT_ARCH_ARM 64
+  #elif defined(_M_ARM) || defined(_M_ARMT) || defined(__arm__) || defined(__thumb__) || defined(__thumb2__)
+    #define ASMJIT_ARCH_ARM 32
+  #else
+    #define ASMJIT_ARCH_ARM 0
+  #endif
+
+  #if defined(_MIPS_ARCH_MIPS64) || defined(__mips64)
+    #define ASMJIT_ARCH_MIPS 64
+  #elif defined(_MIPS_ARCH_MIPS32) || defined(_M_MRX000) || defined(__mips__)
+    #define ASMJIT_ARCH_MIPS 32
+  #else
+    #define ASMJIT_ARCH_MIPS 0
+  #endif
+
+  #if (defined(__riscv) || defined(__riscv__)) && defined(__riscv_xlen)
+    // NOTE `__riscv` is the correct macro in this case as specified by "RISC-V Toolchain Conventions".
+    #define ASMJIT_ARCH_RISCV __riscv_xlen
+  #else
+    #define ASMJIT_ARCH_RISCV 0
+  #endif
+
+  #if defined(__loongarch__) && defined(__loongarch_grlen)
+    #define ASMJIT_ARCH_LA __loongarch_grlen
+  #else
+    #define ASMJIT_ARCH_LA 0
+  #endif
+
+  #define ASMJIT_ARCH_BITS (ASMJIT_ARCH_X86 | ASMJIT_ARCH_ARM | ASMJIT_ARCH_MIPS | ASMJIT_ARCH_RISCV | ASMJIT_ARCH_LA)
+  #if ASMJIT_ARCH_BITS == 0 && !defined(_DOXYGEN)
+    #undef ASMJIT_ARCH_BITS
+    #if defined(__LP64__) || defined(_LP64)
+      #define ASMJIT_ARCH_BITS 64
+    #else
+      #define ASMJIT_ARCH_BITS 32
+    #endif
+  #endif
+
+  #if defined(ASMJIT_NO_FOREIGN)
+    #if !ASMJIT_ARCH_X86 && !defined(ASMJIT_NO_X86)
+      #define ASMJIT_NO_X86
+    #endif
+
+    #if ASMJIT_ARCH_ARM != 64 && !defined(ASMJIT_NO_AARCH64)
+      #define ASMJIT_NO_AARCH64
+    #endif
+  #endif
+
+  #if ASMJIT_ARCH_X86 != 0 && !defined(ASMJIT_NO_X86)
+    #define ASMJIT_HAS_HOST_BACKEND
+  #endif
+
+  #if ASMJIT_ARCH_ARM == 64 && !defined(ASMJIT_NO_AARCH64)
+    #define ASMJIT_HAS_HOST_BACKEND
+  #endif
+
+  #if !defined(ASMJIT_NO_UJIT)
+    #if !defined(ASMJIT_NO_X86) && ASMJIT_ARCH_X86 != 0
+      #define ASMJIT_UJIT_X86
+    #elif !defined(ASMJIT_NO_AARCH64) && ASMJIT_ARCH_ARM == 64
+      #define ASMJIT_UJIT_AARCH64
+    #else
+      #define ASMJIT_NO_UJIT
+    #endif
+  #endif
+
+#endif // _DOXYGEN
 
 //! \}
-
-//! \cond NONE
-
-#if defined(_M_X64) || defined(__x86_64__)
-  #define ASMJIT_ARCH_X86 64
-#elif defined(_M_IX86) || defined(__X86__) || defined(__i386__)
-  #define ASMJIT_ARCH_X86 32
-#else
-  #define ASMJIT_ARCH_X86 0
-#endif
-
-#if defined(_M_ARM64) || defined(__arm64__) || defined(__aarch64__)
-# define ASMJIT_ARCH_ARM 64
-#elif defined(_M_ARM) || defined(_M_ARMT) || defined(__arm__) || defined(__thumb__) || defined(__thumb2__)
-  #define ASMJIT_ARCH_ARM 32
-#else
-  #define ASMJIT_ARCH_ARM 0
-#endif
-
-#if defined(_MIPS_ARCH_MIPS64) || defined(__mips64)
-  #define ASMJIT_ARCH_MIPS 64
-#elif defined(_MIPS_ARCH_MIPS32) || defined(_M_MRX000) || defined(__mips__)
-  #define ASMJIT_ARCH_MIPS 32
-#else
-  #define ASMJIT_ARCH_MIPS 0
-#endif
-
-// NOTE `__riscv` is the correct macro in this case as specified by "RISC-V Toolchain Conventions".
-#if (defined(__riscv) || defined(__riscv__)) && defined(__riscv_xlen)
-  #define ASMJIT_ARCH_RISCV __riscv_xlen
-#else
-  #define ASMJIT_ARCH_RISCV 0
-#endif
-
-#define ASMJIT_ARCH_BITS (ASMJIT_ARCH_X86 | ASMJIT_ARCH_ARM | ASMJIT_ARCH_MIPS | ASMJIT_ARCH_RISCV)
-#if ASMJIT_ARCH_BITS == 0
-  #undef ASMJIT_ARCH_BITS
-  #if defined(__LP64__) || defined(_LP64)
-    #define ASMJIT_ARCH_BITS 64
-  #else
-    #define ASMJIT_ARCH_BITS 32
-  #endif
-#endif
-
-#if (defined(__ARMEB__))  || \
-    (defined(__MIPSEB__)) || \
-    (defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__))
-  #define ASMJIT_ARCH_LE 0
-  #define ASMJIT_ARCH_BE 1
-#else
-  #define ASMJIT_ARCH_LE 1
-  #define ASMJIT_ARCH_BE 0
-#endif
-
-#if defined(ASMJIT_NO_FOREIGN)
-  #if !ASMJIT_ARCH_X86 && !defined(ASMJIT_NO_X86)
-    #define ASMJIT_NO_X86
-  #endif
-
-  #if ASMJIT_ARCH_ARM != 64 && !defined(ASMJIT_NO_AARCH64)
-    #define ASMJIT_NO_AARCH64
-  #endif
-#endif
-
-#if ASMJIT_ARCH_X86 != 0 && !defined(ASMJIT_NO_X86)
-  #define ASMJIT_HAS_HOST_BACKEND
-#endif
-
-#if ASMJIT_ARCH_ARM == 64 && !defined(ASMJIT_NO_AARCH64)
-  #define ASMJIT_HAS_HOST_BACKEND
-#endif
-
-#if !defined(ASMJIT_NO_UJIT)
-  #if !defined(ASMJIT_NO_X86) && ASMJIT_ARCH_X86 != 0
-    #define ASMJIT_UJIT_X86
-  #elif !defined(ASMJIT_NO_AARCH64) && ASMJIT_ARCH_ARM == 64
-    #define ASMJIT_UJIT_AARCH64
-  #else
-    #define ASMJIT_NO_UJIT
-  #endif
-#endif
-
-//! \endcond
 
 // C++ Compiler and Features Detection
 // ===================================
@@ -318,9 +358,11 @@ namespace asmjit {
 //! \addtogroup asmjit_core
 //! \{
 
+#if defined(_DOXYGEN)
 //! \def ASMJIT_API
 //!
 //! A decorator that is used to decorate API that AsmJit exports when built as a shared library.
+#define ASMJIT_API
 
 //! \def ASMJIT_VIRTAPI
 //!
@@ -328,54 +370,89 @@ namespace asmjit {
 //! is unwanted in most projects. MSVC automatically exports typeinfo and vtable if at least one symbol of the class
 //! is exported. However, GCC has some strange behavior that even if one or more symbol is exported it doesn't export
 //! typeinfo unless the class itself is decorated with "visibility(default)" (i.e. ASMJIT_API).
+#define ASMJIT_VIRTAPI
 
 //! \def ASMJIT_INLINE
 //!
 //! Decorator to force inlining of functions, uses either `__attribute__((__always_inline__))` or __forceinline,
 //! depending on C++ compiler.
+#define ASMJIT_INLINE inline
 
 //! \def ASMJIT_INLINE_NODEBUG
 //!
 //! Like \ref ASMJIT_INLINE, but uses additionally `__nodebug__` or `__artificial__` attribute to make the
 //! debugging of some AsmJit functions easier, especially getters and one-line abstractions where usually you don't
 //! want to step in.
+#define ASMJIT_INLINE_NODEBUG inline
 
 //! \def ASMJIT_INLINE_CONSTEXPR
 //!
 //! Like \ref ASMJIT_INLINE_NODEBUG, but having an additional `constexpr` attribute.
+#define ASMJIT_INLINE_CONSTEXPR inline constexpr
 
 //! \def ASMJIT_NOINLINE
 //!
 //! Decorator to avoid inlining of functions, uses either `__attribute__((__noinline__))` or `__declspec(noinline)`
 //! depending on C++ compiler.
+#define ASMJIT_NOINLINE
 
 //! \def ASMJIT_CDECL
 //!
 //! CDECL function attribute - either `__attribute__((__cdecl__))` or `__cdecl`.
+#define ASMJIT_CDECL
 
 //! \def ASMJIT_STDCALL
 //!
 //! STDCALL function attribute - either `__attribute__((__stdcall__))` or `__stdcall`.
 //!
 //! \note This expands to nothing on non-x86 targets as STDCALL is X86 specific.
+#define ASMJIT_STDCALL
 
 //! \def ASMJIT_FASTCALL
 //!
 //! FASTCALL function attribute - either `__attribute__((__fastcall__))` or `__fastcall`.
 //!
 //! \note Expands to nothing on non-x86 targets as FASTCALL is X86 specific.
+#define ASMJIT_FASTCALL
 
 //! \def ASMJIT_REGPARM(N)
 //!
 //! Expands to `__attribute__((__regparm__(N)))` when compiled by GCC or clang, nothing otherwise.
+#define ASMJIT_REGPARM(N)
 
 //! \def ASMJIT_VECTORCALL
 //!
 //! VECTORCALL function attribute - either `__attribute__((__vectorcall__))` or `__vectorcall`.
 //!
 //! \note Expands to nothing on non-x86 targets as VECTORCALL is X86 specific.
+#define ASMJIT_VECTORCALL
 
-//! \}
+//! \def ASMJIT_MAY_ALIAS
+//!
+//! Expands to `__attribute__((__may_alias__))` if supported.
+#define ASMJIT_MAY_ALIAS
+
+//! \def ASMJIT_ASSUME(...)
+//!
+//! Macro that tells the C/C++ compiler that the expression `...` evaluates to true.
+//!
+//! This macro has two purposes:
+//!
+//!   1. Enable optimizations that would not be possible without the assumption.
+//!   2. Hint static analysis tools that a certain condition is true to prevent false positives.
+#define ASMJIT_ASSUME(...)
+
+//! \def ASMJIT_LIKELY(...)
+//!
+//! Condition is likely to be taken (mostly error handling and edge cases).
+#define ASMJIT_LIKELY(...)
+
+//! \def ASMJIT_UNLIKELY(...)
+//!
+//! Condition is unlikely to be taken (mostly error handling and edge cases).
+#define ASMJIT_UNLIKELY(...)
+
+#else
 
 // API (Export / Import).
 #if !defined(ASMJIT_STATIC)
@@ -411,18 +488,18 @@ namespace asmjit {
 #endif
 
 // Function attributes.
-#if !defined(ASMJIT_BUILD_DEBUG) && defined(__GNUC__)
+#if !defined(ASMJIT_BUILD_DEBUG) && defined(__GNUC__) && !defined(_DOXYGEN)
   #define ASMJIT_INLINE inline __attribute__((__always_inline__))
-#elif !defined(ASMJIT_BUILD_DEBUG) && defined(_MSC_VER)
+#elif !defined(ASMJIT_BUILD_DEBUG) && defined(_MSC_VER) && !defined(_DOXYGEN)
   #define ASMJIT_INLINE __forceinline
 #else
   #define ASMJIT_INLINE inline
 #endif
 
 
-#if defined(__clang__)
+#if defined(__clang__) && !defined(_DOXYGEN)
   #define ASMJIT_INLINE_NODEBUG inline __attribute__((__always_inline__, __nodebug__))
-#elif defined(__GNUC__)
+#elif defined(__GNUC__) && !defined(_DOXYGEN)
   #define ASMJIT_INLINE_NODEBUG inline __attribute__((__always_inline__, __artificial__))
 #else
   #define ASMJIT_INLINE_NODEBUG inline
@@ -464,18 +541,14 @@ namespace asmjit {
   #define ASMJIT_VECTORCALL
 #endif
 
-// Type alignment (not allowed by C++17 'alignas' keyword).
 #if defined(__GNUC__)
-  #define ASMJIT_ALIGN_TYPE(N, ...) __attribute__((__aligned__(N))) __VA_ARGS__
+  #define ASMJIT_ALIGNAS(ALIGNMENT) __attribute__((__aligned__(ALIGNMENT)))
 #elif defined(_MSC_VER)
-  #define ASMJIT_ALIGN_TYPE(N, ...) __declspec(align(N)) __VA_ARGS__
+  #define ASMJIT_ALIGNAS(ALIGNMENT) __declspec(align(ALIGNMENT))
 #else
-  #define ASMJIT_ALIGN_TYPE(N, ...) __VA_ARGS__
+  #define ASMJIT_ALIGNAS(ALIGNMENT) alignas(ALIGNMENT)
 #endif
 
-//! \def ASMJIT_MAY_ALIAS
-//!
-//! Expands to `__attribute__((__may_alias__))` if supported.
 #if defined(__GNUC__)
   #define ASMJIT_MAY_ALIAS __attribute__((__may_alias__))
 #else
@@ -491,14 +564,6 @@ namespace asmjit {
   #define ASMJIT_NONNULL(FUNCTION_ARGUMENT) FUNCTION_ARGUMENT
 #endif
 
-//! \def ASMJIT_ASSUME(...)
-//!
-//! Macro that tells the C/C++ compiler that the expression `...` evaluates to true.
-//!
-//! This macro has two purposes:
-//!
-//!   1. Enable optimizations that would not be possible without the assumption.
-//!   2. Hint static analysis tools that a certain condition is true to prevent false positives.
 #if defined(__clang__)
   #define ASMJIT_ASSUME(...) __builtin_assume(__VA_ARGS__)
 #elif defined(__GNUC__)
@@ -509,13 +574,6 @@ namespace asmjit {
   #define ASMJIT_ASSUME(...) (void)0
 #endif
 
-//! \def ASMJIT_LIKELY(...)
-//!
-//! Condition is likely to be taken (mostly error handling and edge cases).
-
-//! \def ASMJIT_UNLIKELY(...)
-//!
-//! Condition is unlikely to be taken (mostly error handling and edge cases).
 #if defined(__GNUC__)
   #define ASMJIT_LIKELY(...) __builtin_expect(!!(__VA_ARGS__), 1)
   #define ASMJIT_UNLIKELY(...) __builtin_expect(!!(__VA_ARGS__), 0)
@@ -535,6 +593,10 @@ namespace asmjit {
 #else
   #define ASMJIT_ATTRIBUTE_NO_SANITIZE_UNDEF
 #endif
+
+#endif // _DOXYGEN
+
+//! \}
 
 // Diagnostic Macros
 // ======================================
@@ -589,7 +651,7 @@ namespace asmjit {
 //! \def ASMJIT_DEFINE_ENUM_FLAGS(T)
 //!
 //! Defines bit operations for enumeration flags.
-#ifdef _DOXYGEN
+#if defined(_DOXYGEN)
   #define ASMJIT_DEFINE_ENUM_FLAGS(T)
 #else
   #define ASMJIT_DEFINE_ENUM_FLAGS(T)                                          \
@@ -624,7 +686,7 @@ namespace asmjit {
 //! \def ASMJIT_DEFINE_ENUM_COMPARE(T)
 //!
 //! Defines comparison operations for enumeration flags.
-#if defined(_DOXYGEN) || (defined(_MSC_VER) && _MSC_VER <= 1900)
+#if defined(_DOXYGEN)
   #define ASMJIT_DEFINE_ENUM_COMPARE(T)
 #else
   #define ASMJIT_DEFINE_ENUM_COMPARE(T)                                        \
@@ -641,57 +703,5 @@ namespace asmjit {
       return (std::underlying_type_t<T>)(a) >= (std::underlying_type_t<T>)(b); \
     }
 #endif
-
-//! Defines a strong type `C` that wraps a value of `T`.
-#define ASMJIT_DEFINE_STRONG_TYPE(C, T)                                                   \
-struct C {                                                                                \
-  T v;                                                                                    \
-                                                                                          \
-  ASMJIT_INLINE_NODEBUG C() = default;                                                    \
-  ASMJIT_INLINE_CONSTEXPR explicit C(T x) noexcept : v(x) {}                              \
-  ASMJIT_INLINE_CONSTEXPR C(const C& other) noexcept = default;                           \
-                                                                                          \
-  ASMJIT_INLINE_CONSTEXPR T value() const noexcept { return v; }                          \
-                                                                                          \
-  ASMJIT_INLINE_CONSTEXPR T* valuePtr() noexcept { return &v; }                           \
-  ASMJIT_INLINE_CONSTEXPR const T* valuePtr() const noexcept { return &v; }               \
-                                                                                          \
-  ASMJIT_INLINE_CONSTEXPR C& operator=(T x) noexcept { v = x; return *this; };            \
-  ASMJIT_INLINE_CONSTEXPR C& operator=(const C& x) noexcept { v = x.v; return *this; }    \
-                                                                                          \
-  ASMJIT_INLINE_CONSTEXPR C operator+(T x) const noexcept { return C(v + x); }            \
-  ASMJIT_INLINE_CONSTEXPR C operator-(T x) const noexcept { return C(v - x); }            \
-  ASMJIT_INLINE_CONSTEXPR C operator*(T x) const noexcept { return C(v * x); }            \
-  ASMJIT_INLINE_CONSTEXPR C operator/(T x) const noexcept { return C(v / x); }            \
-                                                                                          \
-  ASMJIT_INLINE_CONSTEXPR C operator+(const C& x) const noexcept { return C(v + x.v); }   \
-  ASMJIT_INLINE_CONSTEXPR C operator-(const C& x) const noexcept { return C(v - x.v); }   \
-  ASMJIT_INLINE_CONSTEXPR C operator*(const C& x) const noexcept { return C(v * x.v); }   \
-  ASMJIT_INLINE_CONSTEXPR C operator/(const C& x) const noexcept { return C(v / x.v); }   \
-                                                                                          \
-  ASMJIT_INLINE_CONSTEXPR C& operator+=(T x) noexcept { v += x; return *this; }           \
-  ASMJIT_INLINE_CONSTEXPR C& operator-=(T x) noexcept { v -= x; return *this; }           \
-  ASMJIT_INLINE_CONSTEXPR C& operator*=(T x) noexcept { v *= x; return *this; }           \
-  ASMJIT_INLINE_CONSTEXPR C& operator/=(T x) noexcept { v /= x; return *this; }           \
-                                                                                          \
-  ASMJIT_INLINE_CONSTEXPR C& operator+=(const C& x) noexcept { v += x.v; return *this; }  \
-  ASMJIT_INLINE_CONSTEXPR C& operator-=(const C& x) noexcept { v -= x.v; return *this; }  \
-  ASMJIT_INLINE_CONSTEXPR C& operator*=(const C& x) noexcept { v *= x.v; return *this; }  \
-  ASMJIT_INLINE_CONSTEXPR C& operator/=(const C& x) noexcept { v /= x.v; return *this; }  \
-                                                                                          \
-  ASMJIT_INLINE_CONSTEXPR bool operator==(T x) const noexcept { return v == x; }          \
-  ASMJIT_INLINE_CONSTEXPR bool operator!=(T x) const noexcept { return v != x; }          \
-  ASMJIT_INLINE_CONSTEXPR bool operator> (T x) const noexcept { return v >  x; }          \
-  ASMJIT_INLINE_CONSTEXPR bool operator>=(T x) const noexcept { return v >= x; }          \
-  ASMJIT_INLINE_CONSTEXPR bool operator< (T x) const noexcept { return v <  x; }          \
-  ASMJIT_INLINE_CONSTEXPR bool operator<=(T x) const noexcept { return v <= x; }          \
-                                                                                          \
-  ASMJIT_INLINE_CONSTEXPR bool operator==(const C& x) const noexcept { return v == x.v; } \
-  ASMJIT_INLINE_CONSTEXPR bool operator!=(const C& x) const noexcept { return v != x.v; } \
-  ASMJIT_INLINE_CONSTEXPR bool operator> (const C& x) const noexcept { return v >  x.v; } \
-  ASMJIT_INLINE_CONSTEXPR bool operator>=(const C& x) const noexcept { return v >= x.v; } \
-  ASMJIT_INLINE_CONSTEXPR bool operator< (const C& x) const noexcept { return v <  x.v; } \
-  ASMJIT_INLINE_CONSTEXPR bool operator<=(const C& x) const noexcept { return v <= x.v; } \
-};
 
 #endif // ASMJIT_CORE_API_CONFIG_H_INCLUDED

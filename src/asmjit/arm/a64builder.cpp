@@ -16,8 +16,8 @@ ASMJIT_BEGIN_SUB_NAMESPACE(a64)
 // =========================================
 
 Builder::Builder(CodeHolder* code) noexcept : BaseBuilder() {
-  _archMask = uint64_t(1) << uint32_t(Arch::kAArch64);
-  initEmitterFuncs(this);
+  _arch_mask = uint64_t(1) << uint32_t(Arch::kAArch64);
+  init_emitter_funcs(this);
 
   if (code) {
     code->attach(this);
@@ -28,28 +28,28 @@ Builder::~Builder() noexcept {}
 // a64::Builder - Events
 // =====================
 
-Error Builder::onAttach(CodeHolder& code) noexcept {
-  ASMJIT_PROPAGATE(Base::onAttach(code));
+Error Builder::on_attach(CodeHolder& code) noexcept {
+  ASMJIT_PROPAGATE(Base::on_attach(code));
 
-  _instructionAlignment = uint8_t(4);
-  updateEmitterFuncs(this);
+  _instruction_alignment = uint8_t(4);
+  update_emitter_funcs(this);
 
-  return kErrorOk;
+  return Error::kOk;
 }
 
-Error Builder::onDetach(CodeHolder& code) noexcept {
-  return Base::onDetach(code);
+Error Builder::on_detach(CodeHolder& code) noexcept {
+  return Base::on_detach(code);
 }
 
 // a64::Builder - Finalize
 // =======================
 
 Error Builder::finalize() {
-  ASMJIT_PROPAGATE(runPasses());
+  ASMJIT_PROPAGATE(run_passes());
   Assembler a(_code);
-  a.addEncodingOptions(encodingOptions());
-  a.addDiagnosticOptions(diagnosticOptions());
-  return serializeTo(&a);
+  a.add_encoding_options(encoding_options());
+  a.add_diagnostic_options(diagnostic_options());
+  return serialize_to(&a);
 }
 
 ASMJIT_END_SUB_NAMESPACE

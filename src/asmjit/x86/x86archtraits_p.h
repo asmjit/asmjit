@@ -17,7 +17,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //! \{
 
 //! X86 architecture traits (internal).
-static const constexpr ArchTraits x86ArchTraits = {
+static const constexpr ArchTraits x86_arch_traits = {
   // SP/FP/LR/PC.
   Gp::kIdSp, Gp::kIdBp, 0xFF, 0xFF,
 
@@ -86,7 +86,7 @@ static const constexpr ArchTraits x86ArchTraits = {
 };
 
 //! X64 architecture traits (internal).
-static const constexpr ArchTraits x64ArchTraits = {
+static const constexpr ArchTraits x64_arch_traits = {
   // SP/FP/LR/PC.
   Gp::kIdSp, Gp::kIdBp, 0xFF, 0xFF,
 

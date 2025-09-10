@@ -14,10 +14,10 @@
 class SimpleErrorHandler : public asmjit::ErrorHandler {
 public:
   SimpleErrorHandler()
-    : _err(asmjit::kErrorOk) {}
+    : _err(asmjit::Error::kOk) {}
 
-  virtual void handleError(asmjit::Error err, const char* message, asmjit::BaseEmitter* origin) {
-    asmjit::DebugUtils::unused(origin);
+  void handle_error(asmjit::Error err, const char* message, asmjit::BaseEmitter* origin) override {
+    asmjit::Support::maybe_unused(origin);
     _err = err;
     _message.assign(message);
   }
@@ -53,14 +53,14 @@ public:
 
   const char* _arch = nullptr;
   const char* _filter = nullptr;
-  bool _helpOnly = false;
+  bool _help_only = false;
   bool _verbose = false;
-  bool _dumpAsm = false;
-  bool _dumpHex = false;
+  bool _dump_asm = false;
+  bool _dump_hex = false;
 
-  unsigned _numTests = 0;
-  unsigned _numFailed = 0;
-  size_t _outputSize = 0;
+  unsigned _num_tests = 0;
+  unsigned _num_failed = 0;
+  size_t _output_size = 0;
 
   TestApp() noexcept
     : _arch("all") {}
@@ -71,12 +71,12 @@ public:
   }
 
   template<class T>
-  inline void addT() { T::add(*this); }
+  inline void add_t() { T::add(*this); }
 
-  int handleArgs(int argc, const char* const* argv);
-  void showInfo();
+  int handle_args(int argc, const char* const* argv);
+  void show_info();
 
-  bool shouldRun(const TestCase* tc);
+  bool should_run(const TestCase* tc);
   int run();
 };
 

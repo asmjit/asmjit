@@ -21,10 +21,10 @@ Logger::~Logger() noexcept {}
 
 // [[pure virtual]]
 Error Logger::_log(const char* data, size_t size) noexcept {
-  DebugUtils::unused(data, size);
+  Support::maybe_unused(data, size);
 
   // Do not error in this case - the logger would just sink to /dev/null.
-  return kErrorOk;
+  return Error::kOk;
 }
 
 Error Logger::logf(const char* fmt, ...) noexcept {
@@ -40,7 +40,7 @@ Error Logger::logf(const char* fmt, ...) noexcept {
 
 Error Logger::logv(const char* fmt, va_list ap) noexcept {
   StringTmp<2048> sb;
-  ASMJIT_PROPAGATE(sb.appendVFormat(fmt, ap));
+  ASMJIT_PROPAGATE(sb.append_vformat(fmt, ap));
   return log(sb);
 }
 
@@ -53,7 +53,7 @@ FileLogger::~FileLogger() noexcept {}
 
 Error FileLogger::_log(const char* data, size_t size) noexcept {
   if (!_file) {
-    return kErrorOk;
+    return Error::kOk;
   }
 
   if (size == SIZE_MAX) {
@@ -61,7 +61,7 @@ Error FileLogger::_log(const char* data, size_t size) noexcept {
   }
 
   fwrite(data, 1, size, _file);
-  return kErrorOk;
+  return Error::kOk;
 }
 
 // StringLogger - Implementation

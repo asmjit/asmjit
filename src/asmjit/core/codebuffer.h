@@ -69,27 +69,27 @@ struct CodeBuffer {
 
   //! Tests whether the code buffer has the given `flag` set.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool hasFlag(CodeBufferFlags flag) const noexcept { return Support::test(_flags, flag); }
+  ASMJIT_INLINE_NODEBUG bool has_flag(CodeBufferFlags flag) const noexcept { return Support::test(_flags, flag); }
 
   //! Tests whether this code buffer has a fixed size.
   //!
   //! Fixed size means that the code buffer is fixed and cannot grow.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool isFixed() const noexcept { return hasFlag(CodeBufferFlags::kIsFixed); }
+  ASMJIT_INLINE_NODEBUG bool is_fixed() const noexcept { return has_flag(CodeBufferFlags::kIsFixed); }
 
   //! Tests whether the data in this code buffer is external.
   //!
   //! External data can only be provided by users, it's never used by AsmJit.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool isExternal() const noexcept { return hasFlag(CodeBufferFlags::kIsExternal); }
+  ASMJIT_INLINE_NODEBUG bool is_external() const noexcept { return has_flag(CodeBufferFlags::kIsExternal); }
 
   //! Tests whether the data in this code buffer is allocated (non-null).
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool isAllocated() const noexcept { return _data != nullptr; }
+  ASMJIT_INLINE_NODEBUG bool is_allocated() const noexcept { return _data != nullptr; }
 
   //! Tests whether the code buffer is empty.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool empty() const noexcept { return !_size; }
+  ASMJIT_INLINE_NODEBUG bool is_empty() const noexcept { return !_size; }
 
   //! Returns the size of the data.
   [[nodiscard]]

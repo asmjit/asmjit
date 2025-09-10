@@ -25,8 +25,6 @@ const asmdb = require("../db");
 exports.asmdb = asmdb;
 exports.exp = asmdb.base.exp;
 
-const hasOwn = Object.prototype.hasOwnProperty;
-
 const FATAL = commons.FATAL;
 const StringUtils = commons.StringUtils;
 
@@ -250,7 +248,7 @@ class InstructionNameData {
     if (this.size === -1)
       FATAL(`IndexedString.getIndex(): Not indexed yet, call index()`);
 
-    if (!hasOwn.call(this.map, k))
+    if (!Object.hasOwn(this.map, k))
       FATAL(`IndexedString.getIndex(): Key '${k}' not found.`);
 
     return this.map[k];
@@ -601,7 +599,7 @@ function generateNameData(out, instructions, generateAliases) {
   }
 
   var s = "";
-  s += `const InstNameIndex InstDB::instNameIndex = {{\n`;
+  s += `const InstNameIndex InstDB::_inst_name_index = {{\n`;
   for (var i = 0; i < instFirst.length; i++) {
     const firstId = instFirst[i] || none;
     const lastId = instLast[i] || none;
@@ -613,19 +611,19 @@ function generateNameData(out, instructions, generateAliases) {
   }
   s += `}, uint16_t(${instNameData.maxNameLength})};\n`;
   s += `\n`;
-  s += instNameData.formatStringTable("InstDB::_instNameStringTable");
+  s += instNameData.formatStringTable("InstDB::_inst_name_string_table");
   s += `\n`;
-  s += instNameData.formatIndexTable("InstDB::_instNameIndexTable");
+  s += instNameData.formatIndexTable("InstDB::_inst_name_index_table");
 
   let dataSize = instNameData.getSize() + 26 * 4;
 
   if (generateAliases) {
     s += `\n`;
-    s += aliasNameData.formatStringTable("InstDB::_aliasNameStringTable");
+    s += aliasNameData.formatStringTable("InstDB::alias_name_string_table");
     s += `\n`;
-    s += aliasNameData.formatIndexTable("InstDB::_aliasNameIndexTable");
+    s += aliasNameData.formatIndexTable("InstDB::alias_name_index_table");
     s += "\n";
-    s += "const uint32_t InstDB::_aliasIndexToInstId[] = {\n" + StringUtils.format(aliasLinkData, "  ", true, null) + "\n};\n";
+    s += "const uint32_t InstDB::alias_index_to_inst_id_table[] = {\n" + StringUtils.format(aliasLinkData, "  ", true, null) + "\n};\n";
 
     dataSize += aliasNameData.getSize();
     let info = `static constexpr uint32_t kAliasTableSize = ${aliasLinkData.length};\n`;

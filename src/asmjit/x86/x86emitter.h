@@ -148,30 +148,30 @@ struct EmitterExplicitT {
   //! \{
 
   //! Returns either 32-bit or 64-bit GP register of the given `id` depending on the emitter's architecture.
-  inline Gp gpz(uint32_t id) const noexcept { return Gp(_emitter()->_gpSignature, id); }
+  inline Gp gpz(uint32_t id) const noexcept { return Gp(_emitter()->_gp_signature, id); }
   //! Clones the given `reg` to either 32-bit or 64-bit GP register depending on the emitter's architecture.
-  inline Gp gpz(const Gp& reg) const noexcept { return Gp(_emitter()->_gpSignature, reg.id()); }
+  inline Gp gpz(const Gp& reg) const noexcept { return Gp(_emitter()->_gp_signature, reg.id()); }
 
-  inline Gp zax() const noexcept { return Gp(_emitter()->_gpSignature, Gp::kIdAx); }
-  inline Gp zcx() const noexcept { return Gp(_emitter()->_gpSignature, Gp::kIdCx); }
-  inline Gp zdx() const noexcept { return Gp(_emitter()->_gpSignature, Gp::kIdDx); }
-  inline Gp zbx() const noexcept { return Gp(_emitter()->_gpSignature, Gp::kIdBx); }
-  inline Gp zsp() const noexcept { return Gp(_emitter()->_gpSignature, Gp::kIdSp); }
-  inline Gp zbp() const noexcept { return Gp(_emitter()->_gpSignature, Gp::kIdBp); }
-  inline Gp zsi() const noexcept { return Gp(_emitter()->_gpSignature, Gp::kIdSi); }
-  inline Gp zdi() const noexcept { return Gp(_emitter()->_gpSignature, Gp::kIdDi); }
+  inline Gp zax() const noexcept { return Gp(_emitter()->_gp_signature, Gp::kIdAx); }
+  inline Gp zcx() const noexcept { return Gp(_emitter()->_gp_signature, Gp::kIdCx); }
+  inline Gp zdx() const noexcept { return Gp(_emitter()->_gp_signature, Gp::kIdDx); }
+  inline Gp zbx() const noexcept { return Gp(_emitter()->_gp_signature, Gp::kIdBx); }
+  inline Gp zsp() const noexcept { return Gp(_emitter()->_gp_signature, Gp::kIdSp); }
+  inline Gp zbp() const noexcept { return Gp(_emitter()->_gp_signature, Gp::kIdBp); }
+  inline Gp zsi() const noexcept { return Gp(_emitter()->_gp_signature, Gp::kIdSi); }
+  inline Gp zdi() const noexcept { return Gp(_emitter()->_gp_signature, Gp::kIdDi); }
 
   //! \}
 
   //! \name Native Pointers
   //! \{
 
-  //! Creates a target dependent pointer of which base register's id is `baseId`.
-  inline Mem ptr_base(uint32_t baseId, int32_t off = 0, uint32_t size = 0) const noexcept {
-    return Mem(OperandSignature::fromOpType(OperandType::kMem) |
-               OperandSignature::fromMemBaseType(_emitter()->_gpSignature.regType()) |
-               OperandSignature::fromSize(size),
-               baseId, 0, off);
+  //! Creates a target dependent pointer of which base register's id is `base_id`.
+  inline Mem ptr_base(uint32_t base_id, int32_t off = 0, uint32_t size = 0) const noexcept {
+    return Mem(OperandSignature::from_op_type(OperandType::kMem) |
+               OperandSignature::from_mem_base_type(_emitter()->_gp_signature.reg_type()) |
+               OperandSignature::from_size(size),
+               base_id, 0, off);
   }
 
   inline Mem ptr_zax(int32_t off = 0, uint32_t size = 0) const noexcept { return ptr_base(Gp::kIdAx, off, size); }
@@ -185,58 +185,58 @@ struct EmitterExplicitT {
 
   //! Creates an `intptr_t` memory operand depending on the current architecture.
   inline Mem intptr_ptr(const Gp& base, int32_t offset = 0) const noexcept {
-    uint32_t nativeGpSize = _emitter()->registerSize();
-    return Mem(base, offset, nativeGpSize);
+    uint32_t reg_size = _emitter()->register_size();
+    return Mem(base, offset, reg_size);
   }
   //! \overload
   inline Mem intptr_ptr(const Gp& base, const Gp& index, uint32_t shift = 0, int32_t offset = 0) const noexcept {
-    uint32_t nativeGpSize = _emitter()->registerSize();
-    return Mem(base, index, shift, offset, nativeGpSize);
+    uint32_t reg_size = _emitter()->register_size();
+    return Mem(base, index, shift, offset, reg_size);
   }
   //! \overload
   inline Mem intptr_ptr(const Gp& base, const Vec& index, uint32_t shift = 0, int32_t offset = 0) const noexcept {
-    uint32_t nativeGpSize = _emitter()->registerSize();
-    return Mem(base, index, shift, offset, nativeGpSize);
+    uint32_t reg_size = _emitter()->register_size();
+    return Mem(base, index, shift, offset, reg_size);
   }
   //! \overload
   inline Mem intptr_ptr(const Label& base, int32_t offset = 0) const noexcept {
-    uint32_t nativeGpSize = _emitter()->registerSize();
-    return Mem(base, offset, nativeGpSize);
+    uint32_t reg_size = _emitter()->register_size();
+    return Mem(base, offset, reg_size);
   }
   //! \overload
   inline Mem intptr_ptr(const Label& base, const Gp& index, uint32_t shift, int32_t offset = 0) const noexcept {
-    uint32_t nativeGpSize = _emitter()->registerSize();
-    return Mem(base, index, shift, offset, nativeGpSize);
+    uint32_t reg_size = _emitter()->register_size();
+    return Mem(base, index, shift, offset, reg_size);
   }
   //! \overload
   inline Mem intptr_ptr(const Label& base, const Vec& index, uint32_t shift, int32_t offset = 0) const noexcept {
-    uint32_t nativeGpSize = _emitter()->registerSize();
-    return Mem(base, index, shift, offset, nativeGpSize);
+    uint32_t reg_size = _emitter()->register_size();
+    return Mem(base, index, shift, offset, reg_size);
   }
   //! \overload
   inline Mem intptr_ptr(const Rip& rip, int32_t offset = 0) const noexcept {
-    uint32_t nativeGpSize = _emitter()->registerSize();
-    return Mem(rip, offset, nativeGpSize);
+    uint32_t reg_size = _emitter()->register_size();
+    return Mem(rip, offset, reg_size);
   }
   //! \overload
   inline Mem intptr_ptr(uint64_t base) const noexcept {
-    uint32_t nativeGpSize = _emitter()->registerSize();
-    return Mem(base, nativeGpSize);
+    uint32_t reg_size = _emitter()->register_size();
+    return Mem(base, reg_size);
   }
   //! \overload
   inline Mem intptr_ptr(uint64_t base, const Gp& index, uint32_t shift = 0) const noexcept {
-    uint32_t nativeGpSize = _emitter()->registerSize();
-    return Mem(base, index, shift, nativeGpSize);
+    uint32_t reg_size = _emitter()->register_size();
+    return Mem(base, index, shift, reg_size);
   }
   //! \overload
   inline Mem intptr_ptr_abs(uint64_t base) const noexcept {
-    uint32_t nativeGpSize = _emitter()->registerSize();
-    return Mem(base, nativeGpSize, OperandSignature::fromValue<Mem::kSignatureMemAddrTypeMask>(Mem::AddrType::kAbs));
+    uint32_t reg_size = _emitter()->register_size();
+    return Mem(base, reg_size, OperandSignature::from_value<Mem::kSignatureMemAddrTypeMask>(Mem::AddrType::kAbs));
   }
   //! \overload
   inline Mem intptr_ptr_abs(uint64_t base, const Gp& index, uint32_t shift = 0) const noexcept {
-    uint32_t nativeGpSize = _emitter()->registerSize();
-    return Mem(base, index, shift, nativeGpSize, OperandSignature::fromValue<Mem::kSignatureMemAddrTypeMask>(Mem::AddrType::kRel));
+    uint32_t reg_size = _emitter()->register_size();
+    return Mem(base, index, shift, reg_size, OperandSignature::from_value<Mem::kSignatureMemAddrTypeMask>(Mem::AddrType::kRel));
   }
 
   //! \}
@@ -245,13 +245,13 @@ struct EmitterExplicitT {
   //! \{
 
   //! Embeds 8-bit integer data.
-  inline Error db(uint8_t x, size_t repeatCount = 1) { return _emitter()->embedUInt8(x, repeatCount); }
+  inline Error db(uint8_t x, size_t repeat_count = 1) { return _emitter()->embed_uint8(x, repeat_count); }
   //! Embeds 16-bit integer data.
-  inline Error dw(uint16_t x, size_t repeatCount = 1) { return _emitter()->embedUInt16(x, repeatCount); }
+  inline Error dw(uint16_t x, size_t repeat_count = 1) { return _emitter()->embed_uint16(x, repeat_count); }
   //! Embeds 32-bit integer data.
-  inline Error dd(uint32_t x, size_t repeatCount = 1) { return _emitter()->embedUInt32(x, repeatCount); }
+  inline Error dd(uint32_t x, size_t repeat_count = 1) { return _emitter()->embed_uint32(x, repeat_count); }
   //! Embeds 64-bit integer data.
-  inline Error dq(uint64_t x, size_t repeatCount = 1) { return _emitter()->embedUInt64(x, repeatCount); }
+  inline Error dq(uint64_t x, size_t repeat_count = 1) { return _emitter()->embed_uint64(x, repeat_count); }
 
   //! Adds data in a given structure instance to the CodeBuffer.
   template<typename T>
@@ -261,8 +261,8 @@ struct EmitterExplicitT {
 
 protected:
   //! \cond
-  inline This& _addInstOptions(InstOptions options) noexcept {
-    _emitter()->addInstOptions(options);
+  inline This& _add_inst_options(InstOptions options) noexcept {
+    _emitter()->add_inst_options(options);
     return *_emitter();
   }
   //! \endcond
@@ -272,9 +272,9 @@ public:
   //! \{
 
   //! Force short form of jmp/jcc instruction.
-  inline This& short_() noexcept { return _addInstOptions(InstOptions::kShortForm); }
+  inline This& short_() noexcept { return _add_inst_options(InstOptions::kShortForm); }
   //! Force long form of jmp/jcc instruction.
-  inline This& long_() noexcept { return _addInstOptions(InstOptions::kLongForm); }
+  inline This& long_() noexcept { return _add_inst_options(InstOptions::kLongForm); }
 
   //! \}
 
@@ -282,10 +282,10 @@ public:
   //! \{
 
   //! Prefer MOD/RM encoding when both MOD/RM and MOD/MR forms are applicable.
-  inline This& mod_rm() noexcept { return _addInstOptions(InstOptions::kX86_ModRM); }
+  inline This& mod_rm() noexcept { return _add_inst_options(InstOptions::kX86_ModRM); }
 
   //! Prefer MOD/MR encoding when both MOD/RM and MOD/MR forms are applicable.
-  inline This& mod_mr() noexcept { return _addInstOptions(InstOptions::kX86_ModMR); }
+  inline This& mod_mr() noexcept { return _add_inst_options(InstOptions::kX86_ModMR); }
 
   //! \}
 
@@ -293,28 +293,28 @@ public:
   //! \{
 
   //! Condition is likely to be taken (has only benefit on P4).
-  inline This& taken() noexcept { return _addInstOptions(InstOptions::kTaken); }
+  inline This& taken() noexcept { return _add_inst_options(InstOptions::kTaken); }
   //! Condition is unlikely to be taken (has only benefit on P4).
-  inline This& notTaken() noexcept { return _addInstOptions(InstOptions::kNotTaken); }
+  inline This& not_taken() noexcept { return _add_inst_options(InstOptions::kNotTaken); }
 
   //! Use LOCK prefix.
-  inline This& lock() noexcept { return _addInstOptions(InstOptions::kX86_Lock); }
+  inline This& lock() noexcept { return _add_inst_options(InstOptions::kX86_Lock); }
   //! Use XACQUIRE prefix.
-  inline This& xacquire() noexcept { return _addInstOptions(InstOptions::kX86_XAcquire); }
+  inline This& xacquire() noexcept { return _add_inst_options(InstOptions::kX86_XAcquire); }
   //! Use XRELEASE prefix.
-  inline This& xrelease() noexcept { return _addInstOptions(InstOptions::kX86_XRelease); }
+  inline This& xrelease() noexcept { return _add_inst_options(InstOptions::kX86_XRelease); }
 
   //! Use BND/REPNE prefix.
   //!
   //! \note This is the same as using `repne()` or `repnz()` prefix.
-  inline This& bnd() noexcept { return _addInstOptions(InstOptions::kX86_Repne); }
+  inline This& bnd() noexcept { return _add_inst_options(InstOptions::kX86_Repne); }
 
   //! Use REP/REPZ prefix.
   //!
   //! \note This is the same as using `repe()` or `repz()` prefix.
   inline This& rep(const Gp& zcx) noexcept {
-    _emitter()->_extraReg.init(zcx);
-    return _addInstOptions(InstOptions::kX86_Rep);
+    _emitter()->_extra_reg.init(zcx);
+    return _add_inst_options(InstOptions::kX86_Rep);
   }
 
   //! Use REP/REPE prefix.
@@ -331,8 +331,8 @@ public:
   //!
   //! \note This is the same as using `bnd()` or `repnz()` prefix.
   inline This& repne(const Gp& zcx) noexcept {
-    _emitter()->_extraReg.init(zcx);
-    return _addInstOptions(InstOptions::kX86_Repne);
+    _emitter()->_extra_reg.init(zcx);
+    return _add_inst_options(InstOptions::kX86_Repne);
   }
 
   //! Use REPNE prefix.
@@ -349,16 +349,7 @@ public:
   //!
   //! \note Don't use when using high 8-bit registers as REX prefix makes them inaccessible and `x86::Assembler`
   //! would fail to encode such instruction.
-  inline This& rex() noexcept { return _addInstOptions(InstOptions::kX86_Rex); }
-
-  //! Force REX.B prefix (X64) [It exists for special purposes only].
-  inline This& rex_b() noexcept { return _addInstOptions(InstOptions::kX86_OpCodeB); }
-  //! Force REX.X prefix (X64) [It exists for special purposes only].
-  inline This& rex_x() noexcept { return _addInstOptions(InstOptions::kX86_OpCodeX); }
-  //! Force REX.R prefix (X64) [It exists for special purposes only].
-  inline This& rex_r() noexcept { return _addInstOptions(InstOptions::kX86_OpCodeR); }
-  //! Force REX.W prefix (X64) [It exists for special purposes only].
-  inline This& rex_w() noexcept { return _addInstOptions(InstOptions::kX86_OpCodeW); }
+  inline This& rex() noexcept { return _add_inst_options(InstOptions::kX86_Rex); }
 
   //! \}
 
@@ -366,11 +357,11 @@ public:
   //! \{
 
   //! Use VEX prefix instead of EVEX prefix (useful to select AVX_VNNI instruction instead of AVX512_VNNI).
-  inline This& vex() noexcept { return _addInstOptions(InstOptions::kX86_Vex); }
+  inline This& vex() noexcept { return _add_inst_options(InstOptions::kX86_Vex); }
   //! Force 3-byte VEX prefix (AVX+).
-  inline This& vex3() noexcept { return _addInstOptions(InstOptions::kX86_Vex3); }
+  inline This& vex3() noexcept { return _add_inst_options(InstOptions::kX86_Vex3); }
   //! Force 4-byte EVEX prefix (AVX512+).
-  inline This& evex() noexcept { return _addInstOptions(InstOptions::kX86_Evex); }
+  inline This& evex() noexcept { return _add_inst_options(InstOptions::kX86_Evex); }
 
   //! \}
 
@@ -379,23 +370,23 @@ public:
 
   //! Use masking {k} (AVX512+).
   inline This& k(const KReg& kreg) noexcept {
-    _emitter()->_extraReg.init(kreg);
+    _emitter()->_extra_reg.init(kreg);
     return *_emitter();
   }
 
   //! Use zeroing instead of merging (AVX512+).
-  inline This& z() noexcept { return _addInstOptions(InstOptions::kX86_ZMask); }
+  inline This& z() noexcept { return _add_inst_options(InstOptions::kX86_ZMask); }
 
   //! Suppress all exceptions (AVX512+).
-  inline This& sae() noexcept { return _addInstOptions(InstOptions::kX86_SAE); }
+  inline This& sae() noexcept { return _add_inst_options(InstOptions::kX86_SAE); }
   //! Static rounding mode {rn} (round-to-nearest even) and {sae} (AVX512+).
-  inline This& rn_sae() noexcept { return _addInstOptions(InstOptions::kX86_ER | InstOptions::kX86_RN_SAE); }
+  inline This& rn_sae() noexcept { return _add_inst_options(InstOptions::kX86_ER | InstOptions::kX86_RN_SAE); }
   //! Static rounding mode {rd} (round-down, toward -inf) and {sae} (AVX512+).
-  inline This& rd_sae() noexcept { return _addInstOptions(InstOptions::kX86_ER | InstOptions::kX86_RD_SAE); }
+  inline This& rd_sae() noexcept { return _add_inst_options(InstOptions::kX86_ER | InstOptions::kX86_RD_SAE); }
   //! Static rounding mode {ru} (round-up, toward +inf) and {sae} (AVX512+).
-  inline This& ru_sae() noexcept { return _addInstOptions(InstOptions::kX86_ER | InstOptions::kX86_RU_SAE); }
+  inline This& ru_sae() noexcept { return _add_inst_options(InstOptions::kX86_ER | InstOptions::kX86_RU_SAE); }
   //! Static rounding mode {rz} (round-toward-zero, truncate) and {sae} (AVX512+).
-  inline This& rz_sae() noexcept { return _addInstOptions(InstOptions::kX86_ER | InstOptions::kX86_RZ_SAE); }
+  inline This& rz_sae() noexcept { return _add_inst_options(InstOptions::kX86_ER | InstOptions::kX86_RZ_SAE); }
 
   //! \}
 
@@ -449,8 +440,8 @@ public:
   ASMJIT_INST_1x(call, Call, Mem)                                      // ANY
   ASMJIT_INST_1x(call, Call, Label)                                    // ANY
   ASMJIT_INST_1x(call, Call, Imm)                                      // ANY
-  ASMJIT_INST_2c(cmov, Cmov, Inst::cmovccFromCond, Gp, Gp)             // CMOV
-  ASMJIT_INST_2c(cmov, Cmov, Inst::cmovccFromCond, Gp, Mem)            // CMOV
+  ASMJIT_INST_2c(cmov, Cmov, Inst::cmovcc_from_cond, Gp, Gp)             // CMOV
+  ASMJIT_INST_2c(cmov, Cmov, Inst::cmovcc_from_cond, Gp, Mem)            // CMOV
   ASMJIT_INST_2x(cmp, Cmp, Gp, Gp)                                     // ANY
   ASMJIT_INST_2x(cmp, Cmp, Gp, Mem)                                    // ANY
   ASMJIT_INST_2x(cmp, Cmp, Gp, Imm)                                    // ANY
@@ -479,8 +470,8 @@ public:
   ASMJIT_INST_3x(imul, Imul, Gp, Gp, Mem)                              // ANY [EXPLICIT] xDX:xAX <- xAX * m16|m32|m64
   ASMJIT_INST_1x(inc, Inc, Gp)                                         // ANY
   ASMJIT_INST_1x(inc, Inc, Mem)                                        // ANY
-  ASMJIT_INST_1c(j, J, Inst::jccFromCond, Label)                       // ANY
-  ASMJIT_INST_1c(j, J, Inst::jccFromCond, Imm)                         // ANY
+  ASMJIT_INST_1c(j, J, Inst::jcc_from_cond, Label)                       // ANY
+  ASMJIT_INST_1c(j, J, Inst::jcc_from_cond, Imm)                         // ANY
   ASMJIT_INST_2x(jecxz, Jecxz, Gp, Label)                              // ANY [EXPLICIT] Short jump if CX/ECX/RCX is zero.
   ASMJIT_INST_2x(jecxz, Jecxz, Gp, Imm)                                // ANY [EXPLICIT] Short jump if CX/ECX/RCX is zero.
   ASMJIT_INST_1x(jmp, Jmp, Gp)                                         // ANY
@@ -589,8 +580,8 @@ public:
   ASMJIT_INST_2x(sar, Sar, Gp, Imm)                                    // ANY
   ASMJIT_INST_2x(sar, Sar, Mem, Imm)                                   // ANY
   ASMJIT_INST_2x(scas, Scas, Gp_ZAX, ES_ZDI)                           // ANY [EXPLICIT]
-  ASMJIT_INST_1c(set, Set, Inst::setccFromCond, Gp)                    // ANY
-  ASMJIT_INST_1c(set, Set, Inst::setccFromCond, Mem)                   // ANY
+  ASMJIT_INST_1c(set, Set, Inst::setcc_from_cond, Gp)                    // ANY
+  ASMJIT_INST_1c(set, Set, Inst::setcc_from_cond, Mem)                   // ANY
   ASMJIT_INST_2x(shl, Shl, Gp, Gp_CL)                                  // ANY
   ASMJIT_INST_2x(shl, Shl, Mem, Gp_CL)                                 // ANY
   ASMJIT_INST_2x(shl, Shl, Gp, Imm)                                    // ANY
@@ -4040,14 +4031,14 @@ struct EmitterImplicitT : public EmitterExplicitT<This> {
   //! \{
 
   //! Use REP/REPE prefix.
-  inline This& rep() noexcept { return EmitterExplicitT<This>::_addInstOptions(InstOptions::kX86_Rep); }
+  inline This& rep() noexcept { return EmitterExplicitT<This>::_add_inst_options(InstOptions::kX86_Rep); }
   //! Use REP/REPE prefix.
   inline This& repe() noexcept { return rep(); }
   //! Use REP/REPE prefix.
   inline This& repz() noexcept { return rep(); }
 
   //! Use REPNE prefix.
-  inline This& repne() noexcept { return EmitterExplicitT<This>::_addInstOptions(InstOptions::kX86_Repne); }
+  inline This& repne() noexcept { return EmitterExplicitT<This>::_add_inst_options(InstOptions::kX86_Repne); }
   //! Use REPNE prefix.
   inline This& repnz() noexcept { return repne(); }
 

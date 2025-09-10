@@ -6,8 +6,6 @@
 (function($scope, $as) {
 "use strict";
 
-const hasOwn = Object.prototype.hasOwnProperty;
-
 // Supported Operators
 // -------------------
 
@@ -145,7 +143,7 @@ class CallNode extends ExpNode {
 
 class UnaryNode extends ExpNode {
   constructor(op, child) {
-    if (!hasOwn.call(kUnaryOperators, op))
+    if (!Object.hasOwn(kUnaryOperators, op))
       throw new Error(`Invalid unary operator '${op}`);
 
     super("unary");
@@ -182,7 +180,7 @@ class UnaryNode extends ExpNode {
 
 class BinaryNode extends ExpNode {
   constructor(op, left, right) {
-    if (!hasOwn.call(kBinaryOperators, op))
+    if (!Object.hasOwn(kBinaryOperators, op))
       throw new Error(`Invalid binary operator '${op}`);
 
     super("binary");
@@ -406,7 +404,7 @@ function tokenize(source) {
       do {
         for (j = Math.min(i - start, kMaxOperatorLen); j > 0; j--) {
           const part = source.substr(start, j);
-          if (hasOwn.call(kUnaryOperators, part) || hasOwn.call(kBinaryOperators, part) || j === 1) {
+          if (Object.hasOwn(kUnaryOperators, part) || Object.hasOwn(kBinaryOperators, part) || j === 1) {
             tokens.push(newToken(kTokenPunct, start, part, null));
             start += j;
             break;
@@ -521,7 +519,7 @@ class Parser {
 
       // Parse a possible binary operator - the loop must repeat, if present.
       token = this.peek();
-      if (token.type === kTokenPunct && hasOwn.call(kBinaryOperators, token.data)) {
+      if (token.type === kTokenPunct && Object.hasOwn(kBinaryOperators, token.data)) {
         const opName = token.data;
         if (opName === ":")
           break;
@@ -696,7 +694,7 @@ class Collector extends Visitor {
 
   visit(node) {
     if (node.type === this.nodeType) {
-      if (hasOwn.call(this.dict, node.name))
+      if (Object.hasOwn(this.dict, node.name))
         this.dict[node.name]++;
       else
         this.dict[node.name] = 1;

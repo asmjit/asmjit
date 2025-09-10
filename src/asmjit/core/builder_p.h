@@ -17,16 +17,16 @@ ASMJIT_BEGIN_NAMESPACE
 //! \addtogroup asmjit_builder
 //! \{
 
-static inline void BaseBuilder_assignInlineComment(BaseBuilder* self, BaseNode* node, const char* comment) noexcept {
+static ASMJIT_INLINE void Builder_assign_inline_comment(BaseBuilder* self, BaseNode* node, const char* comment) noexcept {
   if (comment) {
-    node->setInlineComment(static_cast<char*>(self->_codeZone.dup(comment, strlen(comment), true)));
+    node->set_inline_comment(static_cast<char*>(self->_builder_arena.dup(comment, strlen(comment), true)));
   }
 }
 
-static inline void BaseBuilder_assignInstState(BaseBuilder* self, InstNode* node, const BaseEmitter::State& state) noexcept {
-  node->setOptions(state.options);
-  node->setExtraReg(state.extraReg);
-  BaseBuilder_assignInlineComment(self, node, state.comment);
+static ASMJIT_INLINE void Builder_assign_inst_state(BaseBuilder* self, InstNode* node, const BaseEmitter::State& state) noexcept {
+  node->set_options(state.options);
+  node->set_extra_reg(state.extra_reg);
+  Builder_assign_inline_comment(self, node, state.comment);
 }
 
 //! \}

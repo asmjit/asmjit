@@ -38,34 +38,34 @@ struct InstInfo {
   //! Instruction encoding type.
   uint32_t _encoding : 8;
   //! Index to data specific to each encoding type.
-  uint32_t _encodingDataIndex : 8;
+  uint32_t _encoding_data_index : 8;
   uint32_t _reserved : 16;
 
-  uint16_t _rwInfoIndex;
+  uint16_t _rw_info_index;
   uint16_t _flags;
 
   //! \name Accessors
   //! \{
 
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t rwInfoIndex() const noexcept { return _rwInfoIndex; }
+  ASMJIT_INLINE_NODEBUG uint32_t rw_info_index() const noexcept { return _rw_info_index; }
 
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t flags() const noexcept { return _flags; }
 
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool hasFlag(uint32_t flag) const { return (_flags & flag) != 0; }
+  ASMJIT_INLINE_NODEBUG bool has_flag(uint32_t flag) const { return (_flags & flag) != 0; }
 
   //! \}
 };
 
-ASMJIT_VARAPI const InstInfo _instInfoTable[];
+ASMJIT_VARAPI const InstInfo _inst_info_table[];
 
 [[nodiscard]]
-static inline const InstInfo& infoById(InstId instId) noexcept {
-  instId &= uint32_t(InstIdParts::kRealId);
-  ASMJIT_ASSERT(Inst::isDefinedId(instId));
-  return _instInfoTable[instId];
+static ASMJIT_INLINE const InstInfo& inst_info_by_id(InstId inst_id) noexcept {
+  inst_id &= uint32_t(InstIdParts::kRealId);
+  ASMJIT_ASSERT(Inst::is_defined_id(inst_id));
+  return _inst_info_table[inst_id];
 }
 
 } // {InstDB}

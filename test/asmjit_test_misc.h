@@ -16,7 +16,7 @@ using namespace asmjit;
 // This function combines emitting instructions with control flow constructs
 // like binding Labels and jumping to them. This should be pretty representative.
 template<typename Emitter>
-static void generateSseAlphaBlendInternal(
+static void generate_sse_alpha_blend_internal(
   Emitter& cc,
   const x86::Gp& dst, const x86::Gp& src, const x86::Gp& n,
   const x86::Gp& gp0,
@@ -30,11 +30,11 @@ static void generateSseAlphaBlendInternal(
   x86::Vec v0080 = simd1;
   x86::Vec v0101 = simd2;
 
-  Label L_SmallLoop = cc.newLabel();
-  Label L_SmallEnd  = cc.newLabel();
-  Label L_LargeLoop = cc.newLabel();
-  Label L_LargeEnd  = cc.newLabel();
-  Label L_Done = cc.newLabel();
+  Label L_SmallLoop = cc.new_label();
+  Label L_SmallEnd  = cc.new_label();
+  Label L_LargeLoop = cc.new_label();
+  Label L_LargeEnd  = cc.new_label();
+  Label L_Done = cc.new_label();
 
   // Load SIMD Constants.
   cc.xorps(vzero, vzero);
@@ -42,8 +42,8 @@ static void generateSseAlphaBlendInternal(
   cc.movd(v0080, gp0.r32());
   cc.mov(gp0.r32(), 0x01010101);
   cc.movd(v0101, gp0.r32());
-  cc.pshufd(v0080, v0080, x86::shuffleImm(0, 0, 0, 0));
-  cc.pshufd(v0101, v0101, x86::shuffleImm(0, 0, 0, 0));
+  cc.pshufd(v0080, v0080, x86::shuffle_imm(0, 0, 0, 0));
+  cc.pshufd(v0101, v0101, x86::shuffle_imm(0, 0, 0, 0));
 
   // How many pixels have to be processed to make the loop aligned.
   cc.xor_(j, j);
@@ -71,7 +71,7 @@ static void generateSseAlphaBlendInternal(
     cc.psrlw(a0, 8);
     cc.punpcklbw(x0, vzero);
 
-    cc.pshuflw(a0, a0, x86::shuffleImm(1, 1, 1, 1));
+    cc.pshuflw(a0, a0, x86::shuffle_imm(1, 1, 1, 1));
     cc.punpcklbw(y0, vzero);
 
     cc.pmullw(x0, a0);
@@ -126,8 +126,8 @@ static void generateSseAlphaBlendInternal(
     cc.punpckhbw(x1, vzero);
     cc.punpckhwd(a1, a1);
 
-    cc.pshufd(a0, a0, x86::shuffleImm(3, 3, 1, 1));
-    cc.pshufd(a1, a1, x86::shuffleImm(3, 3, 1, 1));
+    cc.pshufd(a0, a0, x86::shuffle_imm(3, 3, 1, 1));
+    cc.pshufd(a1, a1, x86::shuffle_imm(3, 3, 1, 1));
 
     cc.pmullw(x0, a0);
     cc.pmullw(x1, a1);
@@ -157,42 +157,40 @@ static void generateSseAlphaBlendInternal(
   cc.bind(L_Done);
 }
 
-static void generateSseAlphaBlend(asmjit::BaseEmitter& emitter, bool emitPrologEpilog) {
+static void generate_sse_alpha_blend(asmjit::BaseEmitter& emitter, bool emit_prolog_epilog) {
   using namespace asmjit::x86;
 
-  if (emitter.isAssembler()) {
-    Assembler& cc = *emitter.as<Assembler>();
+#ifndef ASMJIT_NO_COMPILER
+  if (emitter.is_compiler()) {
+    Compiler& cc = *emitter.as<Compiler>();
 
-    x86::Gp dst = cc.zax();
-    x86::Gp src = cc.zcx();
-    x86::Gp i = cc.zdx();
-    x86::Gp j = cc.zdi();
+    Gp dst = cc.new_gp_ptr("dst");
+    Gp src = cc.new_gp_ptr("src");
+    Gp i = cc.new_gp_ptr("i");
+    Gp j = cc.new_gp_ptr("j");
 
-    if (emitPrologEpilog) {
-      FuncDetail func;
-      func.init(FuncSignature::build<void, void*, const void*, size_t>(), cc.environment());
+    Vec v0 = cc.new_xmm("v0");
+    Vec v1 = cc.new_xmm("v1");
+    Vec v2 = cc.new_xmm("v2");
+    Vec v3 = cc.new_xmm("v3");
+    Vec v4 = cc.new_xmm("v4");
+    Vec v5 = cc.new_xmm("v5");
+    Vec v6 = cc.new_xmm("v6");
+    Vec v7 = cc.new_xmm("v7");
 
-      FuncFrame frame;
-      frame.init(func);
-      frame.addDirtyRegs(dst, src, i, j);
-      frame.addDirtyRegs(xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7);
+    FuncNode* func_node = cc.add_func(FuncSignature::build<void, void*, const void*, size_t>());
+    func_node->set_arg(0, dst);
+    func_node->set_arg(1, src);
+    func_node->set_arg(2, i);
+    generate_sse_alpha_blend_internal(cc, dst, src, i, j, v0, v1, v2, v3, v4, v5, v6, v7);
+    cc.end_func();
 
-      FuncArgsAssignment args(&func);
-      args.assignAll(dst, src, i);
-      args.updateFuncFrame(frame);
-      frame.finalize();
-
-      cc.emitProlog(frame);
-      cc.emitArgsAssignment(frame, args);
-      generateSseAlphaBlendInternal(cc, dst, src, i, j, xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7);
-      cc.emitEpilog(frame);
-    }
-    else {
-      generateSseAlphaBlendInternal(cc, dst, src, i, j, xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7);
-    }
+    return;
   }
+#endif
+
 #ifndef ASMJIT_NO_BUILDER
-  else if (emitter.isBuilder()) {
+  if (emitter.is_builder()) {
     Builder& cc = *emitter.as<Builder>();
 
     x86::Gp dst = cc.zax();
@@ -200,56 +198,66 @@ static void generateSseAlphaBlend(asmjit::BaseEmitter& emitter, bool emitPrologE
     x86::Gp i = cc.zdx();
     x86::Gp j = cc.zdi();
 
-    if (emitPrologEpilog) {
+    if (emit_prolog_epilog) {
       FuncDetail func;
       func.init(FuncSignature::build<void, void*, const void*, size_t>(), cc.environment());
 
       FuncFrame frame;
       frame.init(func);
-      frame.addDirtyRegs(dst, src, i, j);
-      frame.addDirtyRegs(xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7);
+      frame.add_dirty_regs(dst, src, i, j);
+      frame.add_dirty_regs(xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7);
 
       FuncArgsAssignment args(&func);
-      args.assignAll(dst, src, i);
-      args.updateFuncFrame(frame);
+      args.assign_all(dst, src, i);
+      args.update_func_frame(frame);
       frame.finalize();
 
-      cc.emitProlog(frame);
-      cc.emitArgsAssignment(frame, args);
-      generateSseAlphaBlendInternal(cc, dst, src, i, j, xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7);
-      cc.emitEpilog(frame);
+      cc.emit_prolog(frame);
+      cc.emit_args_assignment(frame, args);
+      generate_sse_alpha_blend_internal(cc, dst, src, i, j, xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7);
+      cc.emit_epilog(frame);
     }
     else {
-      generateSseAlphaBlendInternal(cc, dst, src, i, j, xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7);
+      generate_sse_alpha_blend_internal(cc, dst, src, i, j, xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7);
     }
+
+    return;
   }
 #endif
-#ifndef ASMJIT_NO_COMPILER
-  else if (emitter.isCompiler()) {
-    Compiler& cc = *emitter.as<Compiler>();
 
-    Gp dst = cc.newIntPtr("dst");
-    Gp src = cc.newIntPtr("src");
-    Gp i = cc.newIntPtr("i");
-    Gp j = cc.newIntPtr("j");
+  if (emitter.is_assembler()) {
+    Assembler& cc = *emitter.as<Assembler>();
 
-    Vec v0 = cc.newXmm("v0");
-    Vec v1 = cc.newXmm("v1");
-    Vec v2 = cc.newXmm("v2");
-    Vec v3 = cc.newXmm("v3");
-    Vec v4 = cc.newXmm("v4");
-    Vec v5 = cc.newXmm("v5");
-    Vec v6 = cc.newXmm("v6");
-    Vec v7 = cc.newXmm("v7");
+    x86::Gp dst = cc.zax();
+    x86::Gp src = cc.zcx();
+    x86::Gp i = cc.zdx();
+    x86::Gp j = cc.zdi();
 
-    FuncNode* funcNode = cc.addFunc(FuncSignature::build<void, void*, const void*, size_t>());
-    funcNode->setArg(0, dst);
-    funcNode->setArg(1, src);
-    funcNode->setArg(2, i);
-    generateSseAlphaBlendInternal(cc, dst, src, i, j, v0, v1, v2, v3, v4, v5, v6, v7);
-    cc.endFunc();
+    if (emit_prolog_epilog) {
+      FuncDetail func;
+      func.init(FuncSignature::build<void, void*, const void*, size_t>(), cc.environment());
+
+      FuncFrame frame;
+      frame.init(func);
+      frame.add_dirty_regs(dst, src, i, j);
+      frame.add_dirty_regs(xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7);
+
+      FuncArgsAssignment args(&func);
+      args.assign_all(dst, src, i);
+      args.update_func_frame(frame);
+      frame.finalize();
+
+      cc.emit_prolog(frame);
+      cc.emit_args_assignment(frame, args);
+      generate_sse_alpha_blend_internal(cc, dst, src, i, j, xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7);
+      cc.emit_epilog(frame);
+    }
+    else {
+      generate_sse_alpha_blend_internal(cc, dst, src, i, j, xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7);
+    }
+
+    return;
   }
-#endif
 }
 
 } // {asmtest}

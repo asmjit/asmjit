@@ -19,14 +19,16 @@ public:
     : _argc(argc),
       _argv(argv) {}
 
-  bool hasArg(const char* key) const {
-    for (int i = 1; i < _argc; i++)
-      if (strcmp(key, _argv[i]) == 0)
+  bool has_arg(const char* key) const {
+    for (int i = 1; i < _argc; i++) {
+      if (strcmp(key, _argv[i]) == 0) {
         return true;
+      }
+    }
     return false;
   }
 
-  const char* valueOf(const char* key, const char* defaultValue) const {
+  const char* value_of(const char* key, const char* default_value) const {
     size_t keySize = strlen(key);
     for (int i = 1; i < _argc; i++) {
       const char* val = _argv[i];
@@ -34,25 +36,25 @@ public:
         return val + keySize + 1;
     }
 
-    return defaultValue;
+    return default_value;
   }
 
-  int valueAsInt(const char* key, int defaultValue) const {
-    const char* val = valueOf(key, nullptr);
+  int value_as_int(const char* key, int default_value) const {
+    const char* val = value_of(key, nullptr);
     if (val == nullptr || val[0] == '\0')
-      return defaultValue;
+      return default_value;
 
     return atoi(val);
   }
 
-  unsigned valueAsUInt(const char* key, unsigned defaultValue) const {
-    const char* val = valueOf(key, nullptr);
+  unsigned value_as_uint(const char* key, unsigned default_value) const {
+    const char* val = value_of(key, nullptr);
     if (val == nullptr || val[0] == '\0')
-      return defaultValue;
+      return default_value;
 
     int v = atoi(val);
     if (v < 0)
-      return defaultValue;
+      return default_value;
     else
       return unsigned(v);
   }

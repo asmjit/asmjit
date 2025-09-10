@@ -64,7 +64,7 @@ public:
 namespace OSUtils {
 
 //! Reads a file, only used on non-Windows platforms to access /sys or other files when necessary.
-Error readFile(const char* name, String& dst, size_t maxSize) noexcept;
+Error read_file(const char* name, String& dst, size_t max_size) noexcept;
 
 } // {OSUtils}
 #endif

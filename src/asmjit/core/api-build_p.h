@@ -48,7 +48,7 @@
 
 #endif
 
-#include "./api-config.h"
+#include "../core/api-config.h"
 
 #if !defined(ASMJIT_BUILD_DEBUG) && defined(__GNUC__) && !defined(__clang__)
   #define ASMJIT_FAVOR_SIZE  __attribute__((__optimize__("Os")))

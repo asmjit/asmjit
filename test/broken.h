@@ -52,7 +52,7 @@ enum Flags : unsigned {
 
 struct Unit;
 
-bool hasArg(const char* name) noexcept;
+bool has_arg(const char* name) noexcept;
 
 //! Register a new unit test (called automatically by `AutoUnit` and `UNIT`).
 void addUnit(Unit* unit) noexcept;
@@ -63,7 +63,7 @@ void setOutputFile(FILE* file) noexcept;
 //! Initialize `Broken` framework.
 //!
 //! Returns `true` if `run()` should be called.
-int run(int argc, const char* argv[], Entry onBeforeRun = nullptr, Entry onAfterRun = nullptr);
+int run(int argc, const char* argv[], Entry on_before_run = nullptr, Entry onAfterRun = nullptr);
 
 //! Log message, adds automatically new line if not present.
 void info(const char* fmt, ...) noexcept;

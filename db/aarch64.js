@@ -14,7 +14,6 @@ function FAIL(msg) { throw new Error("[AArch64] " + msg); }
 const base = $scope.base ? $scope.base : require("./base.js");
 const exp = $scope.exp ? $scope.exp : require("./exp.js")
 
-const hasOwn = Object.prototype.hasOwnProperty;
 const dict = base.dict;
 const NONE = base.NONE;
 const Parsing = base.Parsing;

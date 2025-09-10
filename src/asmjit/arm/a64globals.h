@@ -805,16 +805,16 @@ namespace Inst {
     // ${InstId:End}
   };
 
-  //! Tests whether the `instId` is defined (counts also Inst::kIdNone, which must be zero).
-  static ASMJIT_INLINE_NODEBUG bool isDefinedId(InstId instId) noexcept { return (instId & uint32_t(InstIdParts::kRealId)) < _kIdCount; }
-};
+  //! Tests whether the `inst_id` is defined (counts also Inst::kIdNone, which must be zero).
+  static ASMJIT_INLINE_NODEBUG bool is_defined_id(InstId inst_id) noexcept { return (inst_id & uint32_t(InstIdParts::kRealId)) < _kIdCount; }
+}
 
 namespace Predicate {
 
 //! Address translate options (AT).
 namespace AT {
-  static ASMJIT_INLINE_CONSTEXPR uint32_t encode(uint32_t op1, uint32_t cRn, uint32_t cRm, uint32_t op2) noexcept {
-    return (op1 << 11) | (cRn << 7) | (cRm << 3) | (op2 << 0);
+  static ASMJIT_INLINE_CONSTEXPR uint32_t encode(uint32_t op1, uint32_t crn, uint32_t crm, uint32_t op2) noexcept {
+    return (op1 << 11) | (crn << 7) | (crm << 3) | (op2 << 0);
   }
 
   enum Value : uint32_t {
@@ -882,8 +882,8 @@ namespace DB {
 
 //! Data cache maintenance options.
 namespace DC {
-  static ASMJIT_INLINE_CONSTEXPR uint32_t encode(uint32_t op1, uint32_t cRn, uint32_t cRm, uint32_t op2) noexcept {
-    return (op1 << 11) | (cRn << 7) | (cRm << 3) | (op2 << 0);
+  static ASMJIT_INLINE_CONSTEXPR uint32_t encode(uint32_t op1, uint32_t crn, uint32_t crm, uint32_t op2) noexcept {
+    return (op1 << 11) | (crn << 7) | (crm << 3) | (op2 << 0);
   }
 
   //! Data cache maintenance immediate values.
@@ -921,8 +921,8 @@ namespace DC {
 
 //! Instruction cache maintenance options.
 namespace IC {
-  static ASMJIT_INLINE_CONSTEXPR uint32_t encode(uint32_t op1, uint32_t cRn, uint32_t cRm, uint32_t op2) noexcept {
-    return (op1 << 11) | (cRn << 7) | (cRm << 3) | (op2 << 0);
+  static ASMJIT_INLINE_CONSTEXPR uint32_t encode(uint32_t op1, uint32_t crn, uint32_t crm, uint32_t op2) noexcept {
+    return (op1 << 11) | (crn << 7) | (crm << 3) | (op2 << 0);
   }
 
   //! Instruction cache maintenance immediate values.
@@ -975,8 +975,8 @@ namespace PSB {
 }
 
 namespace TLBI {
-  static ASMJIT_INLINE_CONSTEXPR uint32_t encode(uint32_t op1, uint32_t cRn, uint32_t cRm, uint32_t op2) noexcept {
-    return (op1 << 11) | (cRn << 7) | (cRm << 3) | (op2 << 0);
+  static ASMJIT_INLINE_CONSTEXPR uint32_t encode(uint32_t op1, uint32_t crn, uint32_t crm, uint32_t op2) noexcept {
+    return (op1 << 11) | (crn << 7) | (crm << 3) | (op2 << 0);
   }
 
   enum Value : uint32_t {
@@ -1089,7 +1089,7 @@ namespace PState {
     kSSBS    = encode(0b011, 0b001),
     kTCO     = encode(0b011, 0b100)
   };
-};
+}
 
 //! System register identifiers and utilities (MSR/MRS).
 namespace SysReg {
@@ -1097,19 +1097,19 @@ namespace SysReg {
   struct Fields {
     uint8_t op0;
     uint8_t op1;
-    uint8_t cRn;
-    uint8_t cRm;
+    uint8_t crn;
+    uint8_t crm;
     uint8_t op2;
   };
 
-  //! Encodes a system register from `op0`, `op1`, `cRn`, `cRm`, and `op2` fields.
-  static ASMJIT_INLINE_CONSTEXPR uint32_t encode(uint32_t op0, uint32_t op1, uint32_t cRn, uint32_t cRm, uint32_t op2) noexcept {
-    return (op0 << 14) | (op1 << 11) | (cRn << 7) | (cRm << 3) | (op2 << 0);
+  //! Encodes a system register from `op0`, `op1`, `crn`, `crm`, and `op2` fields.
+  static ASMJIT_INLINE_CONSTEXPR uint32_t encode(uint32_t op0, uint32_t op1, uint32_t crn, uint32_t crm, uint32_t op2) noexcept {
+    return (op0 << 14) | (op1 << 11) | (crn << 7) | (crm << 3) | (op2 << 0);
   }
 
   //! Encodes a system register from `fields`.
   static ASMJIT_INLINE_CONSTEXPR uint32_t encode(const Fields& fields) noexcept {
-    return encode(fields.op0, fields.op1, fields.cRn, fields.cRm, fields.op2);
+    return encode(fields.op0, fields.op1, fields.crn, fields.crm, fields.op2);
   }
 
   //! Decodes a system register to \ref Fields.
@@ -1906,7 +1906,7 @@ namespace SysReg {
     kZCR_EL2              = encode(0b11, 0b100, 0b0001, 0b0010, 0b000), // RW
     kZCR_EL3              = encode(0b11, 0b110, 0b0001, 0b0010, 0b000)  // RW
   };
-};
+}
 
 } // {Predicate}
 

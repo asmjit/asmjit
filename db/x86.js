@@ -9,7 +9,6 @@
 // Import.
 const base = $scope.base ? $scope.base : require("./base.js");
 
-const hasOwn = base.hasOwn;
 const dict = base.dict;
 const NONE = base.NONE;
 const Parsing = base.Parsing;
@@ -175,7 +174,7 @@ const CpuRegisters = buildCpuRegs({
 // X86/X64 utilities.
 class Utils {
   static groupOf(op) {
-    return hasOwn(OperandGroupInfo, op) ? OperandGroupInfo[op].group : null;
+    return Object.hasOwn(OperandGroupInfo, op) ? OperandGroupInfo[op].group : null;
   }
 
   static splitInstructionSignature(s) {
@@ -216,7 +215,7 @@ class Utils {
   }
 
   // Get whether the string `s` describes a register operand.
-  static isRegOp(s) { return s && hasOwn(CpuRegisters, s); }
+  static isRegOp(s) { return s && Object.hasOwn(CpuRegisters, s); }
   // Get whether the string `s` describes a memory operand.
   static isMemOp(s) { return s && /^(?:mem|mib|tmem|moff||(?:m(?:off)?\d+(?:dec|bcd|fp|int)?)|(?:m16_\d+)|(?:vm\d+(?:x|y|z)))$/.test(s); }
   // Get whether the string `s` describes an immediate operand.
@@ -225,12 +224,12 @@ class Utils {
   static isRelOp(s) { return s && /^rel\d+$/.test(s); }
 
   // Get a register type of a `s`, returns `null` if the register is unknown.
-  static regTypeOf(s) { return hasOwn(CpuRegisters, s) ? CpuRegisters[s].type : null; }
+  static regTypeOf(s) { return Object.hasOwn(CpuRegisters, s) ? CpuRegisters[s].type : null; }
   // Get a register kind of a `s`, returns `null` if the register is unknown.
-  static regKindOf(s) { return hasOwn(CpuRegisters, s) ? CpuRegisters[s].kind : null; }
+  static regKindOf(s) { return Object.hasOwn(CpuRegisters, s) ? CpuRegisters[s].kind : null; }
   // Get a register type of a `s`, returns `null` if the register is unknown and `-1`
   // if the given string does only represent a register type, but not a specific reg.
-  static regIndexOf(s) { return hasOwn(CpuRegisters, s) ? CpuRegisters[s].index : null; }
+  static regIndexOf(s) { return Object.hasOwn(CpuRegisters, s) ? CpuRegisters[s].index : null; }
 
   static regSize(s) {
     if (s in RegSize)
@@ -578,7 +577,7 @@ class Instruction extends base.Instruction {
   }
 
   _substituteOpcodePart(op, groupIndex) {
-    if (hasOwn(OpcodeGroupInfo, op)) {
+    if (Object.hasOwn(OpcodeGroupInfo, op)) {
       return OpcodeGroupInfo[op].subst[groupIndex];
     }
     else {
@@ -744,7 +743,7 @@ class Instruction extends base.Instruction {
         }
 
         // Process `L/LL` field.
-        if (hasOwn(OpcodeLLMapping, comp)) {
+        if (Object.hasOwn(OpcodeLLMapping, comp)) {
           this.opcode.l = OpcodeLLMapping[comp];
           continue;
         }
@@ -1027,7 +1026,7 @@ class Instruction extends base.Instruction {
     }
 
     if (consecutiveLead) {
-      consecutiveLead.consecutiveLeadCount = consecutiveLastIndex + 1;
+      consecutiveLead.consecutive_lead_count = consecutiveLastIndex + 1;
     }
   }
 

@@ -90,7 +90,7 @@ enum class CondCode : uint8_t {
 };
 
 //! \cond
-static constexpr CondCode _reverseCondTable[] = {
+static constexpr CondCode _reverse_cond_table[] = {
   CondCode::kO,  // O  <- O
   CondCode::kNO, // NO <- NO
   CondCode::kA , // A  <- B
@@ -111,9 +111,9 @@ static constexpr CondCode _reverseCondTable[] = {
 //! \endcond
 
 //! Reverses a condition code (reverses the corresponding operands of a comparison).
-static ASMJIT_INLINE_CONSTEXPR CondCode reverseCond(CondCode cond) noexcept { return _reverseCondTable[uint8_t(cond)]; }
+static ASMJIT_INLINE_CONSTEXPR CondCode reverse_cond(CondCode cond) noexcept { return _reverse_cond_table[uint8_t(cond)]; }
 //! Negates a condition code.
-static ASMJIT_INLINE_CONSTEXPR CondCode negateCond(CondCode cond) noexcept { return CondCode(uint8_t(cond) ^ 1u); }
+static ASMJIT_INLINE_CONSTEXPR CondCode negate_cond(CondCode cond) noexcept { return CondCode(uint8_t(cond) ^ 1u); }
 
 //! Instruction.
 //!
@@ -1820,8 +1820,8 @@ namespace Inst {
     // ${InstId:End}
   };
 
-  //! Tests whether the `instId` is defined.
-  static ASMJIT_INLINE_CONSTEXPR bool isDefinedId(InstId instId) noexcept { return instId < _kIdCount; }
+  //! Tests whether the `inst_id` is defined.
+  static ASMJIT_INLINE_CONSTEXPR bool is_defined_id(InstId inst_id) noexcept { return inst_id < _kIdCount; }
 
   //! \cond
   #define ASMJIT_INST_FROM_COND(ID) \
@@ -1830,19 +1830,19 @@ namespace Inst {
     ID##s, ID##ns, ID##p , ID##np , \
     ID##l, ID##nl, ID##le, ID##nle
 
-    static constexpr uint16_t _jccTable[] = { ASMJIT_INST_FROM_COND(Inst::kIdJ) };
-    static constexpr uint16_t _setccTable[] = { ASMJIT_INST_FROM_COND(Inst::kIdSet) };
-    static constexpr uint16_t _cmovccTable[] = { ASMJIT_INST_FROM_COND(Inst::kIdCmov) };
+    static constexpr uint16_t _jcc_from_cond_table[] = { ASMJIT_INST_FROM_COND(Inst::kIdJ) };
+    static constexpr uint16_t _setcc_from_cond_table[] = { ASMJIT_INST_FROM_COND(Inst::kIdSet) };
+    static constexpr uint16_t _cmovcc_from_cond_table[] = { ASMJIT_INST_FROM_COND(Inst::kIdCmov) };
 
   #undef ASMJIT_INST_FROM_COND
   //! \endcond
 
   //! Translates a condition code `cond` to a `jcc` instruction id.
-  static ASMJIT_INLINE_CONSTEXPR InstId jccFromCond(CondCode cond) noexcept { return _jccTable[uint8_t(cond)]; }
+  static ASMJIT_INLINE_CONSTEXPR InstId jcc_from_cond(CondCode cond) noexcept { return _jcc_from_cond_table[uint8_t(cond)]; }
   //! Translates a condition code `cond` to a `setcc` instruction id.
-  static ASMJIT_INLINE_CONSTEXPR InstId setccFromCond(CondCode cond) noexcept { return _setccTable[uint8_t(cond)]; }
+  static ASMJIT_INLINE_CONSTEXPR InstId setcc_from_cond(CondCode cond) noexcept { return _setcc_from_cond_table[uint8_t(cond)]; }
   //! Translates a condition code `cond` to a `cmovcc` instruction id.
-  static ASMJIT_INLINE_CONSTEXPR InstId cmovccFromCond(CondCode cond) noexcept { return _cmovccTable[uint8_t(cond)]; }
+  static ASMJIT_INLINE_CONSTEXPR InstId cmovcc_from_cond(CondCode cond) noexcept { return _cmovcc_from_cond_table[uint8_t(cond)]; }
 } // {Inst}
 
 //! FPU status word bits.
@@ -2121,9 +2121,9 @@ enum class VReduceImm : uint8_t {
 };
 ASMJIT_DEFINE_ENUM_FLAGS(VReduceImm)
 
-//! Creates a \ref VReduceImm from a combination of `flags` and `fixedPointLength`.
-static ASMJIT_INLINE_CONSTEXPR VReduceImm vReduceImm(VReduceImm flags, uint32_t fixedPointLength) noexcept {
-  return flags | VReduceImm(fixedPointLength << 4);
+//! Creates a \ref VReduceImm from a combination of `flags` and `fixed_point_length`.
+static ASMJIT_INLINE_CONSTEXPR VReduceImm vreduce_imm(VReduceImm flags, uint32_t fixed_point_length) noexcept {
+  return flags | VReduceImm(fixed_point_length << 4);
 }
 
 //! A predicate that can be used as an immediate value with VPTERNLOG[D|Q] instruction.
@@ -2132,7 +2132,7 @@ static ASMJIT_INLINE_CONSTEXPR VReduceImm vReduceImm(VReduceImm flags, uint32_t 
 //! that would be performed on these 3 inputs to get the desired output - any combination of AND, OR, XOR, NOT
 //! is possible.
 //!
-//! \sa \ref tLogFromBits and \ref fLogIfElse
+//! \sa \ref tlog_from_bits and \ref tlog_if_else
 enum class TLogImm : uint8_t {
   k0             = 0x00u,       //!< 0 value.
   k1             = 0xFFu,       //!< 1 value.
@@ -2157,7 +2157,7 @@ enum class TLogImm : uint8_t {
 ASMJIT_DEFINE_ENUM_FLAGS(TLogImm)
 
 //! Creates an immediate that can be used by VPTERNLOG[D|Q] instructions.
-static ASMJIT_INLINE_CONSTEXPR TLogImm tLogFromBits(uint8_t b000, uint8_t b001, uint8_t b010, uint8_t b011, uint8_t b100, uint8_t b101, uint8_t b110, uint8_t b111) noexcept {
+static ASMJIT_INLINE_CONSTEXPR TLogImm tlog_from_bits(uint8_t b000, uint8_t b001, uint8_t b010, uint8_t b011, uint8_t b100, uint8_t b101, uint8_t b110, uint8_t b111) noexcept {
   return TLogImm(uint8_t(b000 << 0) |
                  uint8_t(b001 << 1) |
                  uint8_t(b010 << 2) |
@@ -2169,7 +2169,7 @@ static ASMJIT_INLINE_CONSTEXPR TLogImm tLogFromBits(uint8_t b000, uint8_t b001, 
 }
 
 //! Creates an if/else logic that can be used by VPTERNLOG[D|Q] instructions.
-static ASMJIT_INLINE_CONSTEXPR TLogImm fLogIfElse(TLogImm condition, TLogImm a, TLogImm b) noexcept { return (condition & a) | (~condition & b); }
+static ASMJIT_INLINE_CONSTEXPR TLogImm tlog_if_else(TLogImm condition, TLogImm a, TLogImm b) noexcept { return (condition & a) | (~condition & b); }
 
 //! Creates a shuffle immediate value that be used with SSE/AVX/AVX-512 instructions to shuffle 2 elements in a vector.
 //!
@@ -2178,7 +2178,7 @@ static ASMJIT_INLINE_CONSTEXPR TLogImm fLogIfElse(TLogImm condition, TLogImm a, 
 //!
 //! Shuffle constants can be used to encode an immediate for these instructions:
 //!   - `shufpd|vshufpd`
-static ASMJIT_INLINE_CONSTEXPR uint32_t shuffleImm(uint32_t a, uint32_t b) noexcept {
+static ASMJIT_INLINE_CONSTEXPR uint32_t shuffle_imm(uint32_t a, uint32_t b) noexcept {
   return (a << 1) | b;
 }
 
@@ -2195,7 +2195,7 @@ static ASMJIT_INLINE_CONSTEXPR uint32_t shuffleImm(uint32_t a, uint32_t b) noexc
 //!   - `pshufhw|vpshufhw`
 //!   - `pshufd|vpshufd`
 //!   - `shufps|vshufps`
-static ASMJIT_INLINE_CONSTEXPR uint32_t shuffleImm(uint32_t a, uint32_t b, uint32_t c, uint32_t d) noexcept {
+static ASMJIT_INLINE_CONSTEXPR uint32_t shuffle_imm(uint32_t a, uint32_t b, uint32_t c, uint32_t d) noexcept {
   return (a << 6) | (b << 4) | (c << 2) | d;
 }
 

@@ -80,7 +80,7 @@ enum class CondCode : uint8_t {
 
 
 //! \cond
-static constexpr CondCode _reverseCondTable[] = {
+static constexpr CondCode _reverse_cond_table[] = {
   CondCode::kAL, // AL <- AL
   CondCode::kNA, // NA <- NA
   CondCode::kEQ, // EQ <- EQ
@@ -102,11 +102,11 @@ static constexpr CondCode _reverseCondTable[] = {
 
 //! Reverses a condition code (reverses the corresponding operands of a comparison).
 [[nodiscard]]
-static ASMJIT_INLINE_CONSTEXPR CondCode reverseCond(CondCode cond) noexcept { return _reverseCondTable[uint8_t(cond)]; }
+static ASMJIT_INLINE_CONSTEXPR CondCode reverse_cond(CondCode cond) noexcept { return _reverse_cond_table[uint8_t(cond)]; }
 
 //! Negates a condition code.
 [[nodiscard]]
-static ASMJIT_INLINE_CONSTEXPR CondCode negateCond(CondCode cond) noexcept { return CondCode(uint8_t(cond) ^ uint8_t(1)); }
+static ASMJIT_INLINE_CONSTEXPR CondCode negate_cond(CondCode cond) noexcept { return CondCode(uint8_t(cond) ^ uint8_t(1)); }
 
 //! Memory offset mode.
 //!
@@ -195,14 +195,14 @@ public:
   ASMJIT_INLINE_CONSTEXPR ShiftOp op() const noexcept { return _op; }
 
   //! Sets shift operation to `op`.
-  ASMJIT_INLINE_NODEBUG void setOp(ShiftOp op) noexcept { _op = op; }
+  ASMJIT_INLINE_NODEBUG void set_pp(ShiftOp op) noexcept { _op = op; }
 
   //! Returns the shift amount.
   [[nodiscard]]
   ASMJIT_INLINE_CONSTEXPR uint32_t value() const noexcept { return _value; }
 
   //! Sets shift amount to `value`.
-  ASMJIT_INLINE_NODEBUG void setValue(uint32_t value) noexcept { _value = value; }
+  ASMJIT_INLINE_NODEBUG void set_value(uint32_t value) noexcept { _value = value; }
 };
 
 //! \}
@@ -254,7 +254,7 @@ enum class DataType : uint32_t {
   kMaxValue = 15
 };
 
-static ASMJIT_INLINE_NODEBUG uint32_t dataTypeSize(DataType dt) noexcept {
+static ASMJIT_INLINE_NODEBUG uint32_t data_type_size(DataType dt) noexcept {
   static constexpr uint8_t table[] = { 0, 1, 2, 4, 8, 1, 2, 4, 8, 2, 4, 8, 1, 2, 8 };
   return table[size_t(dt)];
 }

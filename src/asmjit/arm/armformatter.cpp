@@ -23,9 +23,9 @@ ASMJIT_BEGIN_SUB_NAMESPACE(arm)
 // arm::FormatterInternal - Format Feature
 // =======================================
 
-Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept {
-  // @EnumStringBegin{"enum": "CpuFeatures::ARM", "output": "sFeature", "strip": "k"}@
-  static const char sFeatureString[] =
+Error FormatterInternal::format_feature(String& sb, uint32_t feature_id) noexcept {
+  // @EnumStringBegin{"enum": "CpuFeatures::ARM", "output": "feature_string", "strip": "k"}@
+  static const char feature_string_data[] =
     "None\0"
     "ARMv6\0"
     "ARMv7\0"
@@ -253,7 +253,7 @@ Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept 
     "XS\0"
     "<Unknown>\0";
 
-  static const uint16_t sFeatureIndex[] = {
+  static const uint16_t feature_string_index[] = {
     0, 5, 11, 17, 24, 30, 38, 43, 49, 53, 57, 61, 66, 73, 79, 85, 90, 95, 99,
     103, 109, 113, 120, 125, 131, 145, 149, 154, 160, 166, 171, 176, 183, 188,
     193, 197, 201, 209, 213, 218, 223, 229, 235, 239, 245, 250, 257, 264, 272,
@@ -273,25 +273,25 @@ Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept 
   };
   // @EnumStringEnd@
 
-  return sb.append(sFeatureString + sFeatureIndex[Support::min<uint32_t>(featureId, uint32_t(CpuFeatures::ARM::kMaxValue) + 1)]);
+  return sb.append(feature_string_data + feature_string_index[Support::min(feature_id, uint32_t(CpuFeatures::ARM::kMaxValue) + 1u)]);
 }
 
 // arm::FormatterInternal - Format Constants
 // =========================================
 
-ASMJIT_FAVOR_SIZE Error FormatterInternal::formatCondCode(String& sb, CondCode cc) noexcept {
-  static const char condCodeData[] =
+ASMJIT_FAVOR_SIZE Error FormatterInternal::format_cond_code(String& sb, CondCode cc) noexcept {
+  static const char cond_code_string_data[] =
     "al\0" "na\0"
     "eq\0" "ne\0"
     "hs\0" "lo\0" "mi\0" "pl\0" "vs\0" "vc\0"
     "hi\0" "ls\0" "ge\0" "lt\0" "gt\0" "le\0"
     "<Unknown>";
-  return sb.append(condCodeData + Support::min<uint32_t>(uint32_t(cc), 16u) * 3);
+  return sb.append(cond_code_string_data + Support::min<uint32_t>(uint32_t(cc), 16u) * 3);
 }
 
-ASMJIT_FAVOR_SIZE Error FormatterInternal::formatShiftOp(String& sb, ShiftOp shiftOp) noexcept {
+ASMJIT_FAVOR_SIZE Error FormatterInternal::format_shift_op(String& sb, ShiftOp shift_op) noexcept {
   const char* str = nullptr;
-  switch (shiftOp) {
+  switch (shift_op) {
     case ShiftOp::kLSL: str = "lsl"; break;
     case ShiftOp::kLSR: str = "lsr"; break;
     case ShiftOp::kASR: str = "asr"; break;
@@ -316,12 +316,12 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatShiftOp(String& sb, ShiftOp shi
 
 struct FormatElementData {
   char letter;
-  uint8_t elementCount;
-  uint8_t onlyIndex;
+  uint8_t element_count;
+  uint8_t only_index;
   uint8_t reserved;
 };
 
-static constexpr FormatElementData formatElementDataTable[9] = {
+static constexpr FormatElementData format_element_data_table[9] = {
   { '?' , 0 , 0, 0 }, // None
   { 'b' , 16, 0, 0 }, // bX or b[index]
   { 'h' , 8 , 0, 0 }, // hX or h[index]
@@ -333,63 +333,63 @@ static constexpr FormatElementData formatElementDataTable[9] = {
   { '?' , 0 , 0, 0 }  // invalid (never stored in Operand, bug...)
 };
 
-ASMJIT_FAVOR_SIZE Error FormatterInternal::formatRegister(
+ASMJIT_FAVOR_SIZE Error FormatterInternal::format_register(
   String& sb,
   FormatFlags flags,
   const BaseEmitter* emitter,
   Arch arch,
-  RegType regType,
-  uint32_t rId,
-  uint32_t elementType,
-  uint32_t elementIndex) noexcept {
+  RegType reg_type,
+  uint32_t reg_id,
+  uint32_t element_type,
+  uint32_t element_index) noexcept {
 
-  DebugUtils::unused(flags);
-  DebugUtils::unused(arch);
+  Support::maybe_unused(flags);
+  Support::maybe_unused(arch);
 
   static const char bhsdq[] = "bhsdq";
 
-  bool virtRegFormatted = false;
+  bool is_virt_reg_formatted = false;
 
 #ifndef ASMJIT_NO_COMPILER
-  if (Operand::isVirtId(rId)) {
-    if (emitter && emitter->isCompiler()) {
+  if (Operand::is_virt_id(reg_id)) {
+    if (emitter && emitter->is_compiler()) {
       const BaseCompiler* cc = static_cast<const BaseCompiler*>(emitter);
-      if (cc->isVirtIdValid(rId)) {
-        VirtReg* vReg = cc->virtRegById(rId);
-        ASMJIT_ASSERT(vReg != nullptr);
+      if (cc->is_virt_id_valid(reg_id)) {
+        VirtReg* virt_reg = cc->virt_reg_by_id(reg_id);
+        ASMJIT_ASSERT(virt_reg != nullptr);
 
-        ASMJIT_PROPAGATE(Formatter::formatVirtRegName(sb, vReg));
-        virtRegFormatted = true;
+        ASMJIT_PROPAGATE(Formatter::format_virt_reg_name(sb, virt_reg));
+        is_virt_reg_formatted = true;
       }
     }
   }
 #else
-  DebugUtils::unused(emitter, flags);
+  Support::maybe_unused(emitter, flags);
 #endif
 
-  if (!virtRegFormatted) {
+  if (!is_virt_reg_formatted) {
     char letter = '\0';
-    switch (regType) {
+    switch (reg_type) {
       case RegType::kVec8:
       case RegType::kVec16:
       case RegType::kVec32:
       case RegType::kVec64:
       case RegType::kVec128:
-        letter = bhsdq[uint32_t(regType) - uint32_t(RegType::kVec8)];
-        if (elementType) {
+        letter = bhsdq[uint32_t(reg_type) - uint32_t(RegType::kVec8)];
+        if (element_type) {
           letter = 'v';
         }
         break;
 
       case RegType::kGp32:
-        if (Environment::is64Bit(arch)) {
+        if (Environment::is_64bit(arch)) {
           letter = 'w';
 
-          if (rId == a64::Gp::kIdZr) {
+          if (reg_id == a64::Gp::kIdZr) {
             return sb.append("wzr", 3);
           }
 
-          if (rId == a64::Gp::kIdSp) {
+          if (reg_id == a64::Gp::kIdSp) {
             return sb.append("wsp", 3);
           }
         }
@@ -399,12 +399,12 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatRegister(
         break;
 
       case RegType::kGp64:
-        if (Environment::is64Bit(arch)) {
-          if (rId == a64::Gp::kIdZr) {
+        if (Environment::is_64bit(arch)) {
+          if (reg_id == a64::Gp::kIdZr) {
             return sb.append("xzr", 3);
           }
 
-          if (rId == a64::Gp::kIdSp) {
+          if (reg_id == a64::Gp::kIdSp) {
             return sb.append("sp", 2);
           }
 
@@ -416,121 +416,121 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatRegister(
         [[fallthrough]];
 
       default:
-        ASMJIT_PROPAGATE(sb.appendFormat("<Reg-%u>?%u", uint32_t(regType), rId));
+        ASMJIT_PROPAGATE(sb.append_format("<Reg-%u>?%u", uint32_t(reg_type), reg_id));
         break;
     }
 
     if (letter)
-      ASMJIT_PROPAGATE(sb.appendFormat("%c%u", letter, rId));
+      ASMJIT_PROPAGATE(sb.append_format("%c%u", letter, reg_id));
   }
 
   constexpr uint32_t kElementTypeCount = uint32_t(a64::VecElementType::kMaxValue) + 1;
-  if (elementType) {
-    elementType = Support::min(elementType, kElementTypeCount);
+  if (element_type) {
+    element_type = Support::min(element_type, kElementTypeCount);
 
-    FormatElementData elementData = formatElementDataTable[elementType];
-    uint32_t elementCount = elementData.elementCount;
+    FormatElementData element_data = format_element_data_table[element_type];
+    uint32_t element_count = element_data.element_count;
 
-    if (regType == RegType::kVec64) {
-      elementCount /= 2u;
+    if (reg_type == RegType::kVec64) {
+      element_count /= 2u;
     }
 
     ASMJIT_PROPAGATE(sb.append('.'));
-    if (elementCount) {
-      ASMJIT_PROPAGATE(sb.appendUInt(elementCount));
+    if (element_count) {
+      ASMJIT_PROPAGATE(sb.append_uint(element_count));
     }
-    ASMJIT_PROPAGATE(sb.append(elementData.letter));
+    ASMJIT_PROPAGATE(sb.append(element_data.letter));
   }
 
-  if (elementIndex != 0xFFFFFFFFu) {
-    ASMJIT_PROPAGATE(sb.appendFormat("[%u]", elementIndex));
+  if (element_index != 0xFFFFFFFFu) {
+    ASMJIT_PROPAGATE(sb.append_format("[%u]", element_index));
   }
 
-  return kErrorOk;
+  return Error::kOk;
 }
 
-ASMJIT_FAVOR_SIZE Error FormatterInternal::formatRegisterList(
+ASMJIT_FAVOR_SIZE Error FormatterInternal::format_register_list(
   String& sb,
   FormatFlags flags,
   const BaseEmitter* emitter,
   Arch arch,
-  RegType regType,
-  uint32_t rMask) noexcept {
+  RegType reg_type,
+  uint32_t reg_mask) noexcept {
 
   bool first = true;
 
   ASMJIT_PROPAGATE(sb.append('{'));
-  while (rMask != 0u) {
-    uint32_t start = Support::ctz(rMask);
+  while (reg_mask != 0u) {
+    uint32_t start = Support::ctz(reg_mask);
     uint32_t count = 0u;
 
     uint32_t mask = 1u << start;
     do {
-      rMask &= ~mask;
+      reg_mask &= ~mask;
       mask <<= 1u;
       count++;
-    } while (rMask & mask);
+    } while (reg_mask & mask);
 
     if (!first) {
       ASMJIT_PROPAGATE(sb.append(", "));
     }
 
-    ASMJIT_PROPAGATE(formatRegister(sb, flags, emitter, arch, regType, start, 0, 0xFFFFFFFFu));
+    ASMJIT_PROPAGATE(format_register(sb, flags, emitter, arch, reg_type, start, 0, 0xFFFFFFFFu));
     if (count >= 2u) {
       ASMJIT_PROPAGATE(sb.append('-'));
-      ASMJIT_PROPAGATE(formatRegister(sb, flags, emitter, arch, regType, start + count - 1, 0, 0xFFFFFFFFu));
+      ASMJIT_PROPAGATE(format_register(sb, flags, emitter, arch, reg_type, start + count - 1, 0, 0xFFFFFFFFu));
     }
 
     first = false;
   }
   ASMJIT_PROPAGATE(sb.append('}'));
 
-  return kErrorOk;
+  return Error::kOk;
 }
 
 // a64::FormatterInternal - Format Operand
 // =======================================
 
-ASMJIT_FAVOR_SIZE Error FormatterInternal::formatOperand(
+ASMJIT_FAVOR_SIZE Error FormatterInternal::format_operand(
   String& sb,
   FormatFlags flags,
   const BaseEmitter* emitter,
   Arch arch,
   const Operand_& op) noexcept {
 
-  if (op.isReg()) {
+  if (op.is_reg()) {
     const Reg& reg = op.as<Reg>();
 
-    uint32_t elementType = op._signature.getField<a64::Vec::kSignatureRegElementTypeMask>();
-    uint32_t elementIndex = op.as<a64::Vec>().elementIndex();
+    uint32_t element_type = op._signature.get_field<a64::Vec::kSignatureRegElementTypeMask>();
+    uint32_t element_index = op.as<a64::Vec>().element_index();
 
-    if (!op.as<a64::Vec>().hasElementIndex()) {
-      elementIndex = 0xFFFFFFFFu;
+    if (!op.as<a64::Vec>().has_element_index()) {
+      element_index = 0xFFFFFFFFu;
     }
 
-    return formatRegister(sb, flags, emitter, arch, reg.regType(), reg.id(), elementType, elementIndex);
+    return format_register(sb, flags, emitter, arch, reg.reg_type(), reg.id(), element_type, element_index);
   }
 
-  if (op.isMem()) {
+  if (op.is_mem()) {
     const a64::Mem& m = op.as<a64::Mem>();
     ASMJIT_PROPAGATE(sb.append('['));
 
-    if (m.hasBase()) {
-      if (m.hasBaseLabel()) {
-        ASMJIT_PROPAGATE(Formatter::formatLabel(sb, flags, emitter, m.baseId()));
+    if (m.has_base()) {
+      if (m.has_base_label()) {
+        ASMJIT_PROPAGATE(Formatter::format_label(sb, flags, emitter, m.base_id()));
       }
       else {
-        FormatFlags modifiedFlags = flags;
-        if (m.isRegHome()) {
+        FormatFlags modified_flags = flags;
+        if (m.is_reg_home()) {
           ASMJIT_PROPAGATE(sb.append('&'));
-          modifiedFlags &= ~FormatFlags::kRegCasts;
+          modified_flags &= ~FormatFlags::kRegCasts;
         }
-        ASMJIT_PROPAGATE(formatRegister(sb, modifiedFlags, emitter, arch, m.baseType(), m.baseId()));
+        ASMJIT_PROPAGATE(format_register(sb, modified_flags, emitter, arch, m.base_type(), m.base_id()));
       }
     }
     else {
       // ARM really requires base.
-      if (m.hasIndex() || m.hasOffset()) {
+      if (m.has_index() || m.has_offset()) {
         ASMJIT_PROPAGATE(sb.append("<None>"));
       }
     }
@@ -538,15 +538,15 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatOperand(
     // The post index makes it look like there was another operand, but it's
     // still the part of AsmJit's `arm::Mem` operand so it's consistent with
     // other architectures.
-    if (m.isPostIndex())
+    if (m.is_post_index())
       ASMJIT_PROPAGATE(sb.append(']'));
 
-    if (m.hasIndex()) {
+    if (m.has_index()) {
       ASMJIT_PROPAGATE(sb.append(", "));
-      ASMJIT_PROPAGATE(formatRegister(sb, flags, emitter, arch, m.indexType(), m.indexId()));
+      ASMJIT_PROPAGATE(format_register(sb, flags, emitter, arch, m.index_type(), m.index_id()));
     }
 
-    if (m.hasOffset()) {
+    if (m.has_offset()) {
       ASMJIT_PROPAGATE(sb.append(", "));
 
       int64_t off = int64_t(m.offset());
@@ -557,59 +557,59 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatOperand(
       }
 
       if (base == 10) {
-        ASMJIT_PROPAGATE(sb.appendInt(off, base));
+        ASMJIT_PROPAGATE(sb.append_int(off, base));
       }
       else {
         ASMJIT_PROPAGATE(sb.append("0x"));
-        ASMJIT_PROPAGATE(sb.appendUInt(uint64_t(off), base));
+        ASMJIT_PROPAGATE(sb.append_uint(uint64_t(off), base));
       }
     }
 
-    if (m.hasShift()) {
+    if (m.has_shift()) {
       ASMJIT_PROPAGATE(sb.append(' '));
-      if (!m.isPreOrPost()) {
-        ASMJIT_PROPAGATE(formatShiftOp(sb, m.shiftOp()));
+      if (!m.is_pre_or_post()) {
+        ASMJIT_PROPAGATE(format_shift_op(sb, m.shift_op()));
       }
-      ASMJIT_PROPAGATE(sb.appendFormat(" %u", m.shift()));
+      ASMJIT_PROPAGATE(sb.append_format(" %u", m.shift()));
     }
 
-    if (!m.isPostIndex()) {
+    if (!m.is_post_index()) {
       ASMJIT_PROPAGATE(sb.append(']'));
     }
 
-    if (m.isPreIndex()) {
+    if (m.is_pre_index()) {
       ASMJIT_PROPAGATE(sb.append('!'));
     }
 
-    return kErrorOk;
+    return Error::kOk;
   }
 
-  if (op.isImm()) {
+  if (op.is_imm()) {
     const Imm& i = op.as<Imm>();
     int64_t val = i.value();
     uint32_t predicate = i.predicate();
 
     if (predicate) {
-      ASMJIT_PROPAGATE(formatShiftOp(sb, ShiftOp(predicate)));
+      ASMJIT_PROPAGATE(format_shift_op(sb, ShiftOp(predicate)));
       ASMJIT_PROPAGATE(sb.append(' '));
     }
 
     if (Support::test(flags, FormatFlags::kHexImms) && uint64_t(val) > 9) {
       ASMJIT_PROPAGATE(sb.append("0x"));
-      return sb.appendUInt(uint64_t(val), 16);
+      return sb.append_uint(uint64_t(val), 16);
     }
     else {
-      return sb.appendInt(val, 10);
+      return sb.append_int(val, 10);
     }
   }
 
-  if (op.isLabel()) {
-    return Formatter::formatLabel(sb, flags, emitter, op.id());
+  if (op.is_label()) {
+    return Formatter::format_label(sb, flags, emitter, op.id());
   }
 
-  if (op.isRegList()) {
-    const BaseRegList& regList = op.as<BaseRegList>();
-    return formatRegisterList(sb, flags, emitter, arch, regList.regType(), regList.list());
+  if (op.is_reg_list()) {
+    const BaseRegList& reg_list = op.as<BaseRegList>();
+    return format_register_list(sb, flags, emitter, arch, reg_list.reg_type(), reg_list.list());
   }
 
   return sb.append("<None>");

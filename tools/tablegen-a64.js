@@ -7,7 +7,6 @@
 
 const core = require("./tablegen.js");
 const commons = require("./generator-commons.js");
-const hasOwn = Object.prototype.hasOwnProperty;
 
 const asmdb = core.asmdb;
 const kIndent = commons.kIndent;
@@ -258,7 +257,7 @@ class EncodingTable extends core.Task {
       const encoding = inst.encoding;
       const opcodeData = inst.opcodeData.replace(/\(/g, "{ ").replace(/\)/g, " }");
 
-      if (!hasOwn.call(map, encoding))
+      if (!Object.hasOwn(map, encoding))
         map[encoding] = [];
 
       if (inst.opcodeData === "(_)") {

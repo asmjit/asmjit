@@ -44,7 +44,7 @@ struct BrokenGlobal {
   BrokenAPI::Unit* _unitList;
   BrokenAPI::Unit* _unitRunning;
 
-  bool hasArg(const char* a) const noexcept {
+  bool has_arg(const char* a) const noexcept {
     for (int i = 1; i < _argc; i++)
       if (strcmp(_argv[i], a) == 0)
         return true;
@@ -106,13 +106,13 @@ static bool BrokenAPI_canRun(BrokenAPI::Unit* unit) noexcept {
   const char** argv = global._argv;
 
   const char* unitName = unit->name;
-  bool hasFilter = false;
+  bool has_filter = false;
 
   for (i = 1; i < argc; i++) {
     const char* arg = argv[i];
 
     if (BrokenAPI_startsWith(arg, "--run-") && strcmp(arg, "--run-all") != 0) {
-      hasFilter = true;
+      has_filter = true;
 
       if (BrokenAPI_matchesFilter(unitName, arg + 6))
         return true;
@@ -120,7 +120,7 @@ static bool BrokenAPI_canRun(BrokenAPI::Unit* unit) noexcept {
   }
 
   // If no filter has been specified the default is to run.
-  return !hasFilter;
+  return !has_filter;
 }
 
 static void BrokenAPI_runUnit(BrokenAPI::Unit* unit) noexcept {
@@ -134,7 +134,7 @@ static void BrokenAPI_runUnit(BrokenAPI::Unit* unit) noexcept {
 static void BrokenAPI_runAll() noexcept {
   BrokenAPI::Unit* unit = _brokenGlobal._unitList;
 
-  bool hasUnits = unit != NULL;
+  bool has_units = unit != NULL;
   size_t count = 0;
   int currentPriority = 0;
 
@@ -159,7 +159,7 @@ static void BrokenAPI_runAll() noexcept {
   }
   else {
     INFO("\nWarning:");
-    INFO("  No units %s!", hasUnits ? "matched the filter" : "defined");
+    INFO("  No units %s!", has_units ? "matched the filter" : "defined");
   }
 }
 
@@ -179,8 +179,8 @@ static void BrokenAPI_listAll() noexcept {
   }
 }
 
-bool BrokenAPI::hasArg(const char* name) noexcept {
-  return _brokenGlobal.hasArg(name);
+bool BrokenAPI::has_arg(const char* name) noexcept {
+  return _brokenGlobal.has_arg(name);
 }
 
 void BrokenAPI::addUnit(Unit* unit) noexcept {
@@ -207,13 +207,13 @@ void BrokenAPI::setOutputFile(FILE* file) noexcept {
   global._file = file;
 }
 
-int BrokenAPI::run(int argc, const char* argv[], Entry onBeforeRun, Entry onAfterRun) {
+int BrokenAPI::run(int argc, const char* argv[], Entry on_before_run, Entry onAfterRun) {
   BrokenGlobal& global = _brokenGlobal;
 
   global._argc = argc;
   global._argv = argv;
 
-  if (global.hasArg("--help")) {
+  if (global.has_arg("--help")) {
     INFO("Options:");
     INFO("  --help    - print this usage");
     INFO("  --list    - list all tests");
@@ -222,13 +222,13 @@ int BrokenAPI::run(int argc, const char* argv[], Entry onBeforeRun, Entry onAfte
     return 0;
   }
 
-  if (global.hasArg("--list")) {
+  if (global.has_arg("--list")) {
     BrokenAPI_listAll();
     return 0;
   }
 
-  if (onBeforeRun)
-    onBeforeRun();
+  if (on_before_run)
+    on_before_run();
 
   // We don't care about filters here, it's implemented by `runAll`.
   BrokenAPI_runAll();
@@ -253,20 +253,20 @@ static void BrokenAPI_printMessage(const char* prefix, const char* fmt, va_list 
     char staticBuffer[512];
 
     size_t fmtSize = strlen(fmt);
-    size_t prefixSize = strlen(prefix);
+    size_t prefix_size = strlen(prefix);
 
     char* fmtBuf = staticBuffer;
-    if (fmtSize > kBufferSize - 2 - prefixSize)
-      fmtBuf = static_cast<char*>(malloc(fmtSize + prefixSize + 2));
+    if (fmtSize > kBufferSize - 2 - prefix_size)
+      fmtBuf = static_cast<char*>(malloc(fmtSize + prefix_size + 2));
 
     if (!fmtBuf) {
       fprintf(dst, "%sCannot allocate buffer for vfprintf()\n", prefix);
     }
     else {
-      memcpy(fmtBuf, prefix, prefixSize);
-      memcpy(fmtBuf + prefixSize, fmt, fmtSize);
+      memcpy(fmtBuf, prefix, prefix_size);
+      memcpy(fmtBuf + prefix_size, fmt, fmtSize);
 
-      fmtSize += prefixSize;
+      fmtSize += prefix_size;
       if (fmtBuf[fmtSize - 1] != '\n')
         fmtBuf[fmtSize++] = '\n';
       fmtBuf[fmtSize] = '\0';

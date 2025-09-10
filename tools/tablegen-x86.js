@@ -22,9 +22,7 @@ const IndexedArray = commons.IndexedArray;
 const ObjectUtils = commons.ObjectUtils;
 const StringUtils = commons.StringUtils;
 
-const hasOwn = Object.prototype.hasOwnProperty;
 const disclaimer = StringUtils.disclaimer;
-
 const decToHex = StringUtils.decToHex;
 
 function readJSON(fileName) {
@@ -520,8 +518,8 @@ class X86TableGen extends core.TableGen {
         aliases            : aliasData,
 
         mainOpcodeValue    : -1,            // Main opcode value (0.255 hex).
-        mainOpcodeIndex    : -1,            // Index to InstDB::_mainOpcodeTable.
-        altOpcodeIndex     : -1,            // Index to InstDB::_altOpcodeTable.
+        mainOpcodeIndex    : -1,            // Index to InstDB::main_opcode_table.
+        altOpcodeIndex     : -1,            // Index to InstDB::alt_opcode_table.
         nameIndex          : -1,            // Index to InstDB::_nameData.
         commonInfoIndex    : -1,
         additionalInfoIndex: -1,
@@ -979,11 +977,11 @@ class AltOpcodeTable extends core.Task {
     // console.log(StringUtils.format(mainOpcodeTable, kIndent, true));
 
     this.inject("MainOpcodeTable",
-                disclaimer(`const uint32_t InstDB::_mainOpcodeTable[] = {\n${StringUtils.format(mainOpcodeTable, kIndent, true)}\n};\n`),
+                disclaimer(`const uint32_t InstDB::main_opcode_table[] = {\n${StringUtils.format(mainOpcodeTable, kIndent, true)}\n};\n`),
                 mainOpcodeTable.length * 4);
 
     this.inject("AltOpcodeTable",
-                disclaimer(`const uint32_t InstDB::_altOpcodeTable[] = {\n${StringUtils.format(altOpcodeTable, kIndent, true)}\n};\n`),
+                disclaimer(`const uint32_t InstDB::alt_opcode_table[] = {\n${StringUtils.format(altOpcodeTable, kIndent, true)}\n};\n`),
                 altOpcodeTable.length * 4);
   }
 }
@@ -1017,7 +1015,7 @@ function StringifyOpArray(a, map) {
     let mapped = null;
     if (typeof map === "function")
       mapped = map(op);
-    else if (hasOwn.call(map, op))
+    else if (Object.hasOwn(map, op))
       mapped = map[op];
     else
       FATAL(`UNHANDLED OPERAND '${op}'`);
@@ -1501,7 +1499,7 @@ class InstSignatureTable extends core.Task {
         const signature = signatures[i];
         const idx = iSignatureArr.length;
 
-        if (!hasOwn.call(iSignatureMap, signature.data))
+        if (!Object.hasOwn(iSignatureMap, signature.data))
           iSignatureMap[signature.data] = [];
 
         iSignatureMap[signature.data].push(idx);
@@ -1526,7 +1524,7 @@ class InstSignatureTable extends core.Task {
             while (x < signature.length) {
               const h = signature[x].toAsmJitOpData();
               let index = -1;
-              if (!hasOwn.call(oSignatureMap, h)) {
+              if (!Object.hasOwn(oSignatureMap, h)) {
                 index = oSignatureArr.length;
                 oSignatureMap[h] = index;
                 oSignatureArr.push(h);
@@ -1568,12 +1566,12 @@ class InstSignatureTable extends core.Task {
             `    0,                                                               \\\n` +
             `    { o0, o1, o2, o3, o4, o5 }                                       \\\n` +
             `  }\n` +
-            StringUtils.makeCxxArrayWithComment(iSignatureArr, "const InstDB::InstSignature InstDB::_instSignatureTable[]") +
+            StringUtils.makeCxxArrayWithComment(iSignatureArr, "const InstDB::InstSignature InstDB::_inst_signature_table[]") +
             `#undef ROW\n` +
             `\n` +
-            `#define ROW(opFlags, regId) { opFlags, uint8_t(regId) }\n` +
+            `#define ROW(op_flags, reg_id) { op_flags, uint8_t(reg_id) }\n` +
             `#define F(VAL) uint64_t(InstDB::OpFlags::k##VAL)\n` +
-            StringUtils.makeCxxArray(oSignatureArr, "const InstDB::OpSignature InstDB::_opSignatureTable[]") +
+            StringUtils.makeCxxArray(oSignatureArr, "const InstDB::OpSignature InstDB::_op_signature_table[]") +
             `#undef F\n` +
             `#undef ROW\n`;
     this.inject("InstSignatureTable", disclaimer(s), oSignatureArr.length * 8 + iSignatureArr.length * 8);
@@ -1827,15 +1825,15 @@ class AdditionalInfoTable extends core.Task {
     });
 
     let s = `#define EXT(VAL) uint32_t(CpuFeatures::X86::k##VAL)\n` +
-            `const InstDB::AdditionalInfo InstDB::_additionalInfoTable[] = {\n${StringUtils.format(additionaInfoTable, kIndent, true)}\n};\n` +
+            `const InstDB::AdditionalInfo InstDB::additional_info_table[] = {\n${StringUtils.format(additionaInfoTable, kIndent, true)}\n};\n` +
             `#undef EXT\n` +
             `\n` +
             `#define FLAG(VAL) uint32_t(CpuRWFlags::kX86_##VAL)\n` +
-            `const InstDB::RWFlagsInfoTable InstDB::_rwFlagsInfoTable[] = {\n${StringUtils.format(rwInfoTable, kIndent, true)}\n};\n` +
+            `const InstDB::RWFlagsInfoTable InstDB::rw_flags_info_table[] = {\n${StringUtils.format(rwInfoTable, kIndent, true)}\n};\n` +
             `#undef FLAG\n` +
             `\n` +
             `#define FLAG(VAL) uint32_t(InstRWFlags::k##VAL)\n` +
-            `const InstRWFlags InstDB::_instFlagsTable[] = {\n${StringUtils.format(instFlagsTable, kIndent, true)}\n};\n` +
+            `const InstRWFlags InstDB::inst_flags_table[] = {\n${StringUtils.format(instFlagsTable, kIndent, true)}\n};\n` +
             `#undef FLAG\n`;
     this.inject("AdditionalInfoTable", disclaimer(s), additionaInfoTable.length * 8 + rwInfoTable.length * 8 + instFlagsTable.length * 4);
   }
@@ -2078,17 +2076,17 @@ class InstRWInfoTable extends core.Task {
     });
 
     let s = "";
-    s += "const uint8_t InstDB::rwInfoIndexA[Inst::_kIdCount] = {\n" + StringUtils.format(this.rwInfoIndexA, kIndent, -1) + "\n};\n";
+    s += "const uint8_t InstDB::rw_info_index_a_table[Inst::_kIdCount] = {\n" + StringUtils.format(this.rwInfoIndexA, kIndent, -1) + "\n};\n";
     s += "\n";
-    s += "const uint8_t InstDB::rwInfoIndexB[Inst::_kIdCount] = {\n" + StringUtils.format(this.rwInfoIndexB, kIndent, -1) + "\n};\n";
+    s += "const uint8_t InstDB::rw_info_index_b_table[Inst::_kIdCount] = {\n" + StringUtils.format(this.rwInfoIndexB, kIndent, -1) + "\n};\n";
     s += "\n";
-    s += "const InstDB::RWInfo InstDB::rwInfoA[] = {\n" + StringUtils.format(this.rwInfoTableA, kIndent, true) + "\n};\n";
+    s += "const InstDB::RWInfo InstDB::rw_info_a_table[] = {\n" + StringUtils.format(this.rwInfoTableA, kIndent, true) + "\n};\n";
     s += "\n";
-    s += "const InstDB::RWInfo InstDB::rwInfoB[] = {\n" + StringUtils.format(this.rwInfoTableB, kIndent, true) + "\n};\n";
+    s += "const InstDB::RWInfo InstDB::rw_info_b_table[] = {\n" + StringUtils.format(this.rwInfoTableB, kIndent, true) + "\n};\n";
     s += "\n";
-    s += "const InstDB::RWInfoOp InstDB::rwInfoOp[] = {\n" + StringUtils.format(this.opInfoTable, kIndent, true) + "\n};\n";
+    s += "const InstDB::RWInfoOp InstDB::rw_info_op_table[] = {\n" + StringUtils.format(this.opInfoTable, kIndent, true) + "\n};\n";
     s += "\n";
-    s += "const InstDB::RWInfoRm InstDB::rwInfoRm[] = {\n" + StringUtils.format(this.rmInfoTable, kIndent, true) + "\n};\n";
+    s += "const InstDB::RWInfoRm InstDB::rw_info_rm_table[] = {\n" + StringUtils.format(this.rmInfoTable, kIndent, true) + "\n};\n";
 
     const size = this.rwInfoIndexA.length +
                  this.rwInfoIndexB.length +
@@ -2622,7 +2620,7 @@ class InstCommonTable extends core.Task {
             `#define X(VAL) uint32_t(InstDB::Avx512Flags::k##VAL)\n` +
             `#define CONTROL_FLOW(VAL) uint8_t(InstControlFlow::k##VAL)\n` +
             `#define SAME_REG_HINT(VAL) uint8_t(InstSameRegHint::k##VAL)\n` +
-            `const InstDB::CommonInfo InstDB::_commonInfoTable[] = {\n${StringUtils.format(table, kIndent, true)}\n};\n` +
+            `const InstDB::CommonInfo InstDB::_inst_common_info_table[] = {\n${StringUtils.format(table, kIndent, true)}\n};\n` +
             `#undef SAME_REG_HINT\n` +
             `#undef CONTROL_FLOW\n` +
             `#undef X\n` +

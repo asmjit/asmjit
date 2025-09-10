@@ -105,6 +105,14 @@ if (NOT DEFINED ASMJIT_NO_COMPILER)
   endif()
 endif()
 
+if (NOT DEFINED ASMJIT_NO_UJIT)
+  if (ASMJIT_NO_COMPILER)
+    set(ASMJIT_NO_UJIT TRUE)
+  else()
+    set(ASMJIT_NO_UJIT FALSE)
+  endif()
+endif()
+
 # AsmJit - Configuration - CMake Introspection
 # ============================================
 
@@ -131,6 +139,7 @@ set(ASMJIT_NO_VALIDATION    "${ASMJIT_NO_VALIDATION}"    CACHE BOOL "Disable ins
 set(ASMJIT_NO_INTROSPECTION "${ASMJIT_NO_INTROSPECTION}" CACHE BOOL "Disable instruction introspection API at build time")
 set(ASMJIT_NO_BUILDER       "${ASMJIT_NO_BUILDER}"       CACHE BOOL "Disable Builder at build time")
 set(ASMJIT_NO_COMPILER      "${ASMJIT_NO_COMPILER}"      CACHE BOOL "Disable Compiler at build time")
+set(ASMJIT_NO_UJIT          "${ASMJIT_NO_UJIT}"          CACHE BOOL "Disable UniCompiler at build time")
 
 # AsmJit - Project
 # ================
@@ -239,8 +248,17 @@ if (NOT ASMJIT_NO_CUSTOM_FLAGS)
     list(APPEND ASMJIT_PRIVATE_CFLAGS -fno-math-errno)
     list(APPEND ASMJIT_PRIVATE_CFLAGS_REL -O2)
 
+    # We would like also '-Wzero-as-null-pointer-constant' but it would warn when it comes to system headers.
+    asmjit_detect_cflags(ASMJIT_PRIVATE_CFLAGS
+      -Wdouble-promotion
+      -Wduplicated-cond
+      -Wduplicated-branches
+      -Wlogical-op
+      -Wrestrict
+    )
+
     # -fno-semantic-interposition is not available on apple - the compiler issues a warning, which is not detected.
-    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
+    if (APPLE)
       asmjit_detect_cflags(ASMJIT_PRIVATE_CFLAGS -fno-threadsafe-statics)
     else()
       asmjit_detect_cflags(ASMJIT_PRIVATE_CFLAGS -fno-threadsafe-statics -fno-semantic-interposition)
@@ -352,7 +370,8 @@ foreach(build_option # AsmJit build options.
                      ASMJIT_NO_INTROSPECTION
                      ASMJIT_NO_VALIDATION
                      ASMJIT_NO_BUILDER
-                     ASMJIT_NO_COMPILER)
+                     ASMJIT_NO_COMPILER
+                     ASMJIT_NO_UJIT)
   if (${build_option})
     List(APPEND ASMJIT_CFLAGS         "-D${build_option}")
     List(APPEND ASMJIT_PRIVATE_CFLAGS "-D${build_option}")
@@ -379,6 +398,20 @@ set(ASMJIT_SRC_LIST
   asmjit/core.h
   asmjit/core/api-build_p.h
   asmjit/core/api-config.h
+  asmjit/core/arena.cpp
+  asmjit/core/arena.h
+  asmjit/core/arenabitset.cpp
+  asmjit/core/arenabitset_p.h
+  asmjit/core/arenahash.cpp
+  asmjit/core/arenahash.h
+  asmjit/core/arenalist.cpp
+  asmjit/core/arenalist.h
+  asmjit/core/arenapool.h
+  asmjit/core/arenastring.h
+  asmjit/core/arenatree.cpp
+  asmjit/core/arenatree.h
+  asmjit/core/arenavector.cpp
+  asmjit/core/arenavector.h
   asmjit/core/archtraits.cpp
   asmjit/core/archtraits.h
   asmjit/core/archcommons.h
@@ -434,14 +467,18 @@ set(ASMJIT_SRC_LIST
   asmjit/core/osutils.h
   asmjit/core/osutils_p.h
   asmjit/core/raassignment_p.h
-  asmjit/core/rabuilders_p.h
+  asmjit/core/racfgblock_p.h
+  asmjit/core/racfgbuilder_p.h
+  asmjit/core/raconstraints_p.h
   asmjit/core/radefs_p.h
+  asmjit/core/rainst_p.h
   asmjit/core/ralocal.cpp
   asmjit/core/ralocal_p.h
   asmjit/core/rapass.cpp
   asmjit/core/rapass_p.h
   asmjit/core/rastack.cpp
   asmjit/core/rastack_p.h
+  asmjit/core/span.h
   asmjit/core/string.cpp
   asmjit/core/string.h
   asmjit/core/support.cpp
@@ -452,19 +489,6 @@ set(ASMJIT_SRC_LIST
   asmjit/core/type.h
   asmjit/core/virtmem.cpp
   asmjit/core/virtmem.h
-  asmjit/core/zone.cpp
-  asmjit/core/zone.h
-  asmjit/core/zonehash.cpp
-  asmjit/core/zonehash.h
-  asmjit/core/zonelist.cpp
-  asmjit/core/zonelist.h
-  asmjit/core/zonestack.cpp
-  asmjit/core/zonestack.h
-  asmjit/core/zonestring.h
-  asmjit/core/zonetree.cpp
-  asmjit/core/zonetree.h
-  asmjit/core/zonevector.cpp
-  asmjit/core/zonevector.h
 
   asmjit/a64.h
   asmjit/arm.h
@@ -521,6 +545,14 @@ set(ASMJIT_SRC_LIST
   asmjit/x86/x86operand.h
   asmjit/x86/x86rapass.cpp
   asmjit/x86/x86rapass_p.h
+
+  asmjit/ujit/ujitbase.h
+  asmjit/ujit/unicompiler_a64.cpp
+  asmjit/ujit/unicompiler_x86.cpp
+  asmjit/ujit/unicompiler.h
+  asmjit/ujit/uniop.h
+  asmjit/ujit/vecconsttable.cpp
+  asmjit/ujit/vecconsttable.h
 )
 
 if (MSVC AND NOT ASMJIT_NO_NATVIS)
@@ -695,11 +727,23 @@ if (NOT ASMJIT_EMBED)
         endif()
       endif()
 
+      set_property(SOURCE test/asmjit_test_unicompiler_avx2fma.cpp APPEND PROPERTY COMPILE_OPTIONS ${ASMJIT_AVX2FMA_CFLAGS})
+
       asmjit_add_target(asmjit_test_compiler TEST
                         SOURCES    test/asmjit_test_compiler.cpp
                                    test/asmjit_test_compiler.h
                                    test/asmjit_test_compiler_a64.cpp
                                    test/asmjit_test_compiler_x86.cpp
+                        LIBRARIES  asmjit::asmjit
+                        CFLAGS     ${ASMJIT_PRIVATE_CFLAGS} ${ASMJIT_SSE2_CFLAGS}
+                        CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
+                        CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
+
+      asmjit_add_target(asmjit_test_unicompiler TEST
+                        SOURCES    test/asmjit_test_unicompiler.cpp
+                                   test/asmjit_test_unicompiler_sse2.cpp
+                                   test/asmjit_test_unicompiler_avx2fma.cpp
+                                   test/broken.cpp
                         LIBRARIES  asmjit::asmjit
                         CFLAGS     ${ASMJIT_PRIVATE_CFLAGS} ${ASMJIT_SSE2_CFLAGS}
                         CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}

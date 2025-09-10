@@ -21,7 +21,6 @@
 //    misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-
 #ifndef ASMJIT_CORE_H_INCLUDED
 #define ASMJIT_CORE_H_INCLUDED
 
@@ -80,14 +79,14 @@ namespace asmjit {
 //!   - Make sure that you use \ref ErrorHandler, see \ref asmjit_error_handling.
 //!
 //!   - Instruction validation in your debug builds can reveal problems too. AsmJit provides validation at instruction
-//!     level that can be enabled via \ref BaseEmitter::addDiagnosticOptions(). See \ref DiagnosticOptions for more
+//!     level that can be enabled via \ref BaseEmitter::add_diagnostic_options(). See \ref DiagnosticOptions for more
 //!     details.
 //!
 //!   - If you are a Compiler user, use diagnostic options and read carefully if anything suspicious pops out.
-//!     Diagnostic options can be enabled via \ref BaseEmitter::addDiagnosticOptions(). If unsure which ones to use,
+//!     Diagnostic options can be enabled via \ref BaseEmitter::add_diagnostic_options(). If unsure which ones to use,
 //!     enable annotations and all debug options: `DiagnosticOptions::kRAAnnotate | DiagnosticOptions::kRADebugAll`.
 //!
-//!   - Make sure you put a breakpoint into \ref DebugUtils::errored() function if you have a problem with AsmJit
+//!   - Make sure you put a breakpoint into \ref make_error() function if you have a problem with AsmJit
 //!     returning errors during instruction encoding or register allocation. Having an active breakpoint there can
 //!     help to reveal the origin of the error, to inspect variables and other conditions that caused it.
 //!
@@ -270,7 +269,7 @@ namespace asmjit {
 
 
 //! \defgroup asmjit_breaking_changes Breaking Changes
-//! \brief Documentation of breaking changes
+//! \brief Documentation of breaking changes.
 //!
 //! ### Overview
 //!
@@ -280,25 +279,26 @@ namespace asmjit {
 //! removed APIs and should serve as a how-to guide for people that want to port existing code to work with the
 //! newest AsmJit.
 //!
-//! \section tips Tips
-//!
-//! Useful tips before you start:
-//!
-//!   - Visit our [Public Chat](https://app.gitter.im/#/room/#asmjit:gitter.im) if you need a quick help.
-//!
-//!   - Build AsmJit with `ASMJIT_NO_DEPRECATED` macro defined to make sure that you are not using deprecated
-//!     functionality at all. Deprecated functions are decorated with `[[deprecated]]` attribute, but sometimes
-//!     it's not possible to decorate everything like classes, which are used by deprecated functions as well,
-//!     because some compilers would warn about that. If your project compiles fine with `ASMJIT_NO_DEPRECATED`
-//!     it's not using anything, which will be definitely removed in the future.
-//!
 //! \section api_changes API Changes
+//!
+//! ### Changes committed at 2025-09-06
+//!
+//! Core changes:
+//!
+//!   - Refactored AsmJit to use snake_case_function_names() instead of camelCasedFunctionNames().
+//!
+//!   - Renamed Compiler's `newIntPtr()` and `newUIntPtr()` to `new_gp_ptr()`, or you should use just `new_gpz()`.
+//!
+//!   - Renamed Zone to Arena (including containers) and merged Arena and ArenaAllocator into a single class.
+//!
+//!   - Removed `Support::Temporary` in favor of `Span<uint8_t>`. `CodeHolder` and `Arena` now accept
+//!     `Span<uint8_t>` instead of `Support::Temporary`.
 //!
 //! ### Changes committed at 2025-06-15
 //!
 //! Core changes:
 //!
-//!   - No more architecture specific \ref RegTraits - removed `BaseRegTraits` and kept just \ref RegTraits:
+//!   - No more architecture specific \ref RegTraits - removed `BaseRegTraits` and kept just RegTraits:
 //!
 //!     - `BaseRegTraits` -> `RegTraits`
 //!     - `arm::RegTraits` -> `RegTraits`
@@ -307,7 +307,7 @@ namespace asmjit {
 //!   - Removed register signature and helper functions from ArchTraits. This functionality is now available
 //!     via asmjit::RegTraits and asmjit::RegUtils and doesn't require a valid architecture traits instance.
 //!
-//!   - No more architecture specific Gp/Vec/Mask register types in \ref RegType and \ref RegGroup:
+//!   - No more architecture specific Gp/Vec/Mask register types in RegType and RegGroup:
 //!
 //!     - `RegGroup::kX86_Rip`  -> `RegGroup::kPC`
 //!     - `RegGroup::kX86_KReg` -> `RegGroup::kMask`
@@ -346,8 +346,8 @@ namespace asmjit {
 //!     - `regOp.type()` -> `regOp.regType()`
 //!     - `regOp.group()` -> `regOp.regGroup()`
 //!
-//!   - Removed some static functions from \ref Operand, \reg Reg, etc... in favor of member functions. Most
-//!     of the operand functionality is now provided by \ref Operand_:
+//!   - Removed some static functions from \ref Operand, \ref Reg, etc... in favor of member functions. Most
+//!     of the operand functionality is now provided by \ref Operand_ class:
 //!
 //!     - `Operand::isGp(op)` -> op.isGp();
 //!     - `x86::Reg::isGp(op, id)` -> op.isGp(id);
@@ -661,7 +661,6 @@ namespace asmjit {
 //! AsmJit also provides global constants:
 //!
 //!   - \ref Globals - namespace that provides global constants.
-//!   - \ref ByteOrder - byte-order constants and functionality.
 //!
 //! \note CodeHolder examples use \ref x86::Assembler as abstract interfaces cannot be used to generate code.
 //!
@@ -683,7 +682,7 @@ namespace asmjit {
 //!
 //!   CodeHolder code;                  // Holds code and relocation information.
 //!   code.init(rt.environment(),       // Initialize code to match the JIT environment.
-//!             rt.cpuFeatures());
+//!             rt.cpu_features());
 //!
 //!   x86::Assembler a(&code);          // Create and attach x86::Assembler to code.
 //!   a.mov(x86::eax, 1);               // Move one to eax register.
@@ -692,7 +691,10 @@ namespace asmjit {
 //!
 //!   Func fn;                          // Holds address to the generated function.
 //!   Error err = rt.add(&fn, &code);   // Add the generated code to the runtime.
-//!   if (err) return 1;                // Handle a possible error returned by AsmJit.
+//!
+//!   if (err != Error::kOk) {
+//!     return 1;                       // Handle a possible error returned by AsmJit.
+//!   }
 //!   // ===== CodeHolder is no longer needed from here and can be destroyed =====
 //!
 //!   int result = fn();                // Execute the generated code.
@@ -747,7 +749,7 @@ namespace asmjit {
 //!
 //!   // Create a custom environment initialized to 32-bit X86 architecture.
 //!   Environment env;
-//!   env.setArch(Arch::kX86);
+//!   env.set_arch(Arch::kX86);
 //!
 //!   CodeHolder code;                  // Create a CodeHolder.
 //!   code.init(env);                   // Initialize CodeHolder with custom environment.
@@ -771,8 +773,8 @@ namespace asmjit {
 //!   // and CodeBuffer structure. We are interested in section's CodeBuffer.
 //!   //
 //!   // NOTE: The first section is always '.text', it can be retrieved by
-//!   // code.sectionById(0) or simply by code.textSection().
-//!   CodeBuffer& buffer = code.textSection()->buffer();
+//!   // code.section_by_id(0) or simply by code.text_section().
+//!   CodeBuffer& buffer = code.text_section()->buffer();
 //!
 //!   // Print the machine-code generated or do something else with it...
 //!   //   8B4424048B4C24048B5424040F28010F58010F2900C3
@@ -797,17 +799,17 @@ namespace asmjit {
 //! is stored in \ref LabelEntry and \ref CodeHolder as a single-linked list. Fixup represents either a reference to an
 //! unbound label and cross-sections references (only relevant to code that uses multiple sections). Since crossing
 //! sections is something that cannot be resolved immediately these fixups persist until offsets of these sections are
-//! assigned and until \ref CodeHolder::resolveCrossSectionFixups() is called. It's an error if you end up with code that
-//! still has fixups after flattening. You can verify it by calling \ref CodeHolder::hasUnresolvedFixups(), which inspects
-//! the value returned by \ref CodeHolder::unresolvedFixupCount().
+//! assigned and until \ref CodeHolder::resolve_cross_section_fixups() is called. It's an error if you end up with code that
+//! still has fixups after flattening. You can verify it by calling \ref CodeHolder::has_unresolved_fixups(), which inspects
+//! the value returned by \ref CodeHolder::unresolved_fixup_count().
 //!
 //! AsmJit can flatten code that uses multiple sections by assigning each section an incrementing offset that respects
 //! its alignment. Use \ref CodeHolder::flatten() to do that. After the sections are flattened their offsets and
 //! virtual sizes are adjusted to respect each section's buffer size and alignment. The \ref
-//! CodeHolder::resolveCrossSectionFixups() function must be called before relocating the code held by \ref CodeHolder.
+//! CodeHolder::resolve_cross_section_fixups() function must be called before relocating the code held by \ref CodeHolder.
 //! You can also flatten your code manually by iterating over all sections and calculating their offsets (relative to
 //! base) by your own algorithm. In that case \ref CodeHolder::flatten() should not be called, however,
-//! \ref CodeHolder::resolveCrossSectionFixups() should be.
+//! \ref CodeHolder::resolve_cross_section_fixups() should be.
 //!
 //! The example below shows how to use a built-in virtual memory allocator \ref JitAllocator instead of using \ref
 //! JitRuntime (just in case you want to use your own memory management) and how to relocate the generated code
@@ -828,10 +830,10 @@ namespace asmjit {
 //! int main() {
 //!   // Create a custom environment that matches the current host environment.
 //!   Environment env = Environment::host();
-//!   CpuFeatures cpuFeatures = CpuInfo::host().features();
+//!   CpuFeatures cpu_features = CpuInfo::host().features();
 //!
 //!   CodeHolder code;                  // Create a CodeHolder.
-//!   code.init(env, cpuFeatures);      // Initialize CodeHolder with environment.
+//!   code.init(env, cpu_features);     // Initialize CodeHolder with environment.
 //!
 //!   x86::Assembler a(&code);          // Create and attach x86::Assembler to `code`.
 //!
@@ -842,7 +844,7 @@ namespace asmjit {
 //!
 //!   // Handle the difference between 32-bit and 64-bit calling conventions
 //!   // (arguments passed through stack vs. arguments passed by registers).
-//!   if (env.is32Bit()) {
+//!   if (env.is_32bit()) {
 //!     dst   = x86::eax;
 //!     src_a = x86::ecx;
 //!     src_b = x86::edx;
@@ -851,7 +853,7 @@ namespace asmjit {
 //!     a.mov(src_b, x86::dword_ptr(x86::esp, 12));
 //!   }
 //!   else {
-//!     if (env.isPlatformWindows()) {
+//!     if (env.is_platform_windows()) {
 //!       dst   = x86::rcx;             // First argument  (destination pointer).
 //!       src_a = x86::rdx;             // Second argument (source 'a' pointer).
 //!       src_b = x86::r8;              // Third argument  (source 'b' pointer).
@@ -873,18 +875,18 @@ namespace asmjit {
 //!   // called '.addrtab' (address table section), which would be filled by data
 //!   // required by relocations (absolute jumps and calls). You can omit this code
 //!   // if you are 100% sure your code doesn't contain multiple sections and
-//!   // such relocations. You can use `CodeHolder::hasAddressTable()` to verify
-//!   // whether the address table section does exist.
+//!   // such relocations. You can use `CodeHolder::has_address_table_section()` to
+//!   // verify whether the address table section does exist.
 //!   code.flatten();
-//!   code.resolveCrossSectionFixups();
+//!   code.resolve_cross_section_fixups();
 //!
 //!   // After the code was generated it can be relocated manually to any memory
 //!   // location, however, we need to know it's size before we perform memory
-//!   // allocation. `CodeHolder::codeSize()` returns the worst estimated code
+//!   // allocation. `CodeHolder::code_size()` returns the worst estimated code
 //!   // size in case that relocations are not possible without trampolines (in
 //!   // that case some extra code at the end of the current code buffer is
 //!   // generated during relocation).
-//!   size_t estimatedSize = code.codeSize();
+//!   size_t estimated_size = code.code_size();
 //!
 //!   // Instead of rolling up our own memory allocator we can use the one AsmJit
 //!   // provides. It's decoupled so you don't need to use `JitRuntime` for that.
@@ -892,9 +894,9 @@ namespace asmjit {
 //!
 //!   // Allocate an executable virtual memory and handle a possible failure.
 //!   JitAllocator::Span span;
-//!   Error err = allocator.alloc(span, estimatedSize);
+//!   Error err = allocator.alloc(span, estimated_size);
 //!
-//!   if (err != kErrorOk) { // <- NOTE: This must be checked, always!
+//!   if (err != Error::kOk) { // <- NOTE: This must be checked, always!
 //!     return 0;
 //!   }
 //!
@@ -902,13 +904,13 @@ namespace asmjit {
 //!   // Please note that this DOESN'T COPY anything to it. This function will
 //!   // store the address in CodeHolder and use relocation entries to patch
 //!   // the existing code in all sections to respect the base address provided.
-//!   code.relocateToBase((uint64_t)span.rx());
+//!   code.relocate_to_base((uint64_t)span.rx());
 //!
 //!   // This is purely optional. There are cases in which the relocation can omit
 //!   // unneeded data, which would shrink the size of address table. If that
-//!   // happened the codeSize returned after relocateToBase() would be smaller
-//!   // than the originally `estimatedSize`.
-//!   size_t codeSize = code.codeSize();
+//!   // happened the code_size returned after relocate_to_base() would be smaller
+//!   // than the originally `estimated_size`.
+//!   size_t code_size = code.code_size();
 //!
 //!   // This will copy code from all sections to `p`. Iterating over all sections
 //!   // and calling `memcpy()` would work as well, however, this function supports
@@ -917,24 +919,26 @@ namespace asmjit {
 //!   //
 //!   // With some additional features, copyFlattenData() does roughly the following:
 //!   //
-//!   // allocator.write([&](JitAllocator::Span& span) {
+//!   // allocator.write([&](JitAllocator::Span& span) noexcept -> Error {
 //!   //   for (Section* section : code.sections()) {
 //!   //     uint8_t* p = (uint8_t*)span.rw() + section->offset();
-//!   //     memcpy(p, section->data(), section->bufferSize());
+//!   //     memcpy(p, section->data(), section->buffer_size());
 //!   //   }
+//!   //   return Error::kOk;
 //!   // }
-//!   allocator.write([&](JitAllocator::Span& span) {
-//!     code.copyFlattenedData(span.rw(), codeSize, CopySectionFlags::kPadSectionBuffer);
+//!   allocator.write([&](JitAllocator::Span& span) noexcept -> Error {
+//!     code.copy_flattened_data(span.rw(), code_size, CopySectionFlags::kPadSectionBuffer);
+//!     return Error::kOk;
 //!   });
 //!
 //!   // Execute the generated function.
-//!   int inA[4] = { 4, 3, 2, 1 };
-//!   int inB[4] = { 1, 5, 2, 8 };
+//!   int in_a[4] = { 4, 3, 2, 1 };
+//!   int in_b[4] = { 1, 5, 2, 8 };
 //!   int out[4];
 //!
 //!   // This code uses AsmJit's ptr_as_func<> to cast between void* and SumIntsFunc.
 //!   SumIntsFunc fn = ptr_as_func<SumIntsFunc>(span.rx());
-//!   fn(out, inA, inB);
+//!   fn(out, in_a, in_b);
 //!
 //!   // Prints {5 8 4 9}
 //!   printf("{%d %d %d %d}\n", out[0], out[1], out[2], out[3]);
@@ -959,13 +963,13 @@ namespace asmjit {
 //!
 //! using namespace asmjit;
 //!
-//! void initializeCodeHolder(CodeHolder& code) {
+//! void initialize_code_holder_example(CodeHolder& code) {
 //!   Environment env = Environment::host();
-//!   CpuFeatures cpuFeatures = CpuInfo::host().features();
-//!   uint64_t baseAddress = uint64_t(0x1234);
+//!   CpuFeatures cpu_features = CpuInfo::host().features();
+//!   uint64_t base_address = uint64_t(0x1234);
 //!
 //!   // initialize CodeHolder with environment and custom base address.
-//!   code.init(env, cpuFeatures, baseAddress);
+//!   code.init(env, cpu_features, base_address);
 //! }
 //! ```
 //!
@@ -981,17 +985,17 @@ namespace asmjit {
 //!
 //! using namespace asmjit;
 //!
-//! void labelLinksExample(CodeHolder& code, const Label& label) {
+//! void label_links_example(CodeHolder& code, const Label& label) {
 //!   // Tests whether the `label` is bound.
-//!   bool isBound = code.isLabelBound(label);
-//!   printf("Label %u is %s\n", label.id(), isBound ? "bound" : "not bound");
+//!   bool is_bound = code.is_label_bound(label);
+//!   printf("Label %u is %s\n", label.id(), is_bound ? "bound" : "not bound");
 //!
 //!   // Returns true if the code contains either referenced, but unbound
 //!   // labels, or cross-section fixups that are not resolved yet.
-//!   bool hasUnresolved = code.hasUnresolvedFixups();  // Boolean answer.
-//!   size_t nUnresolved = code.unresolvedFixupCount(); // Count of unresolved fixups.
+//!   bool has_unresolved = code.has_unresolved_fixups();  // Boolean answer.
+//!   size_t n_unresolved = code.unresolved_fixup_count(); // Count of unresolved fixups.
 //!
-//!   printf("Number of unresolved fixups: %zu\n", nUnresolved);
+//!   printf("Number of unresolved fixups: %zu\n", n_unresolved);
 //! }
 //! ```
 //!
@@ -1011,15 +1015,15 @@ namespace asmjit {
 //!   // to the start of the section, see below for alternative. If the given
 //!   // label is not bound the offset returned will be zero. It's recommended
 //!   // to always check whether the label is bound before using its offset.
-//!   uint64_t sectionOffset = code.labelOffset(label);
-//!   printf("Label offset relative to section: %llu\n", (unsigned long long)sectionOffset);
+//!   uint64_t section_offset = code.label_offset(label);
+//!   printf("Label offset relative to section: %llu\n", (unsigned long long)section_offset);
 //!
 //!   // If you use multiple sections and want the offset relative to the base.
 //!   // NOTE: This function expects that the section has already an offset and
 //!   // the label-link was resolved (if this is not true you will still get an
 //!   // offset relative to the start of the section).
-//!   uint64_t baseOffset = code.labelOffsetFromBase(label);
-//!   printf("Label offset relative to base: %llu\n", (unsigned long long)baseOffset);
+//!   uint64_t base_offset = code.label_offset_from_base(label);
+//!   printf("Label offset relative to base: %llu\n", (unsigned long long)base_offset);
 //! }
 //! ```
 //!
@@ -1035,13 +1039,13 @@ namespace asmjit {
 //!
 //! using namespace asmjit;
 //!
-//! void sectionsExample(CodeHolder& code) {
+//! void sections_example(CodeHolder& code) {
 //!   // Text section is always provided as the first section.
-//!   Section* text = code.textSection(); // or code.sectionById(0);
+//!   Section* text = code.text_section(); // or code.section_by_id(0);
 //!
-//!   // To create another section use CodeHolder::newSection().
+//!   // To create another section use CodeHolder::new_section().
 //!   Section* data;
-//!   Error err = code.newSection(&data,
+//!   Error err = code.new_section(Out(data),
 //!     ".data",                // Section name
 //!     SIZE_MAX,               // Name length if the name is not null terminated (or SIZE_MAX).
 //!     SectionFlags::kNone,    // Section flags, see SectionFlags.
@@ -1053,7 +1057,7 @@ namespace asmjit {
 //!   // the cursor would be placed at the end of the first (.text) section, which
 //!   // is initially empty.
 //!   x86::Assembler a(&code);
-//!   Label L_Data = a.newLabel();
+//!   Label L_Data = a.new_label();
 //!
 //!   a.mov(x86::eax, x86::ebx); // Emits in .text section.
 //!
@@ -1082,34 +1086,33 @@ namespace asmjit {
 //! using namespace asmjit;
 //!
 //! // ... (continuing the previous example) ...
-//! void sectionsExampleContinued(CodeHolder& code) {
+//! void sections_example_continued(CodeHolder& code) {
 //!   // Suppose we have some code that contains multiple sections and
 //!   // we would like to flatten it by using AsmJit's built-in API:
 //!   Error err = code.flatten();
-//!   if (err) {
+//!   if (err != Error::kOk) {
 //!     // There are many reasons it can fail, so always handle a possible error.
-//!     printf("Failed to flatten the code: %s\n", DebugUtils::errorAsString(err));
+//!     printf("Failed to flatten the code: %s\n", DebugUtils::error_as_string(err));
 //!     exit(1);
 //!   }
 //!
-//!   // After flattening all sections would contain assigned offsets
-//!   // relative to base. Offsets are 64-bit unsigned integers so we
-//!   // cast them to `size_t` for simplicity. On 32-bit targets it's
-//!   // guaranteed that the offset cannot be greater than `2^32 - 1`.
+//!   // After flattening all sections would contain assigned offsets relative to base.
+//!   // Offsets are 64-bit unsigned integers so we cast them to `size_t` for simplicity.
+//!   // On 32-bit targets it's guaranteed that the offset cannot be greater than `2^32 - 1`.
 //!   printf("Data section offset %zu", size_t(data->offset()));
 //!
 //!   // The flattening doesn't resolve unresolved fixups, this
 //!   // has to be done manually as flattening can be done separately.
-//!   err = code.resolveCrossSectionFixups();
-//!   if (err) {
+//!   err = code.resolve_cross_section_fixups();
+//!   if (err != Error::kOk) {
 //!     // This is the kind of error that should always be handled...
-//!     printf("Failed to resolve fixups: %s\n", DebugUtils::errorAsString(err));
+//!     printf("Failed to resolve fixups: %s\n", DebugUtils::error_as_string(err));
 //!     exit(1);
 //!   }
 //!
-//!   if (code.hasUnresolvedFixups()) {
+//!   if (code.has_unresolved_fixups()) {
 //!     // This would mean either unbound label or some other issue.
-//!     printf("The code has %zu unbound labels\n", code.unresolvedFixupCount());
+//!     printf("The code has %zu unbound labels\n", code.unresolved_fixup_count());
 //!     exit(1);
 //!   }
 //! }
@@ -1135,9 +1138,10 @@ namespace asmjit {
 //!        - \ref UniVec - Universal abstraction of a vector register, inherited by:
 //!          - \ref x86::Vec - Vector register operand specific to X86 and X86_64 architectures.
 //!          - \ref a64::Vec - Vector register operand specific to AArch64 architecture.
+//!        - \ref x86::Mm, \ref x86::KReg, \ref x86::Tmm, and other architecture specific register operands.
 //!     - \ref BaseMem - Base class for a memory operand, inherited by:
 //!        - \ref x86::Mem - Memory operand specific to X86 and X86_64 architectures.
-//!        - \ref arm::Mem - Memory operand specific to AArch64 architecture.
+//!        - \ref a64::Mem - Memory operand specific to AArch64 architecture.
 //!     - \ref Imm - Immediate (value) operand.
 //!     - \ref Label - Label operand.
 //!
@@ -1161,18 +1165,23 @@ namespace asmjit {
 //! are commonly accessible by getters and setters:
 //!
 //!   - \ref Operand - Base operand, which only provides accessors that are common to all operand types.
-//!   - \ref BaseReg - Describes either physical or virtual register. Physical registers have id that matches the
-//!     target's machine id directly whereas virtual registers must be allocated into physical registers by a register
-//!     allocator pass. Register operand provides:
+//!   - \ref Reg - Describes either physical or virtual register. Physical registers have ids that match the target's
+//!     machine id directly whereas virtual registers must be allocated into physical registers by a register allocator
+//!     pass. Register operand provides:
 //!     - Register Type (\ref RegType) - Unique id that describes each possible register provided by the target
 //!       architecture - for example X86 backend provides general purpose registers (GPB-LO, GPB-HI, GPW, GPD, and GPQ)
-//!       and all types of other registers like K, MM, BND, XMM, YMM, ZMM, and TMM.
+//!       and various types of other registers like K, MM, BND, XMM, YMM, ZMM, and TMM.
 //!     - Register Group (\ref RegGroup) - Groups multiple register types under a single group - for example all
 //!       general-purpose registers (of all sizes) on X86 are part of \ref RegGroup::kGp and all SIMD registers
-//!      (XMM, YMM, ZMM) are part of \ref RegGroup::kVec.
+//!       (XMM, YMM, ZMM) are part of \ref RegGroup::kVec.
 //!     - Register Size - Contains the size of the register in bytes. If the size depends on the mode (32-bit vs
 //!       64-bit) then generally the higher size is used (for example RIP register has size 8 by default).
 //!     - Register Id - Contains physical or virtual id of the register.
+//!     - Unified interface of general purpose registers is provided by \ref UniGp, which acts as a base of
+//!       all architecture specific GP registers such as \ref x86::Gp and \ref a64::Gp.
+//!     - Unified interface of vector registers is provided by \ref UniVec, which acts as a base of all architecture
+//!       specific vector registers such as \ref x86::Vec and \ref a64::Vec. Please note that X86 MMX registers are
+//!       not part of \ref x86::Vec, instead they are modeled as \ref x86::Mm.
 //!   - \ref BaseMem - Used to reference a memory location. Memory operand provides:
 //!     - Base Register - A base register type and id (physical or virtual).
 //!     - Index Register - An index register type and id (physical or virtual).
@@ -1213,28 +1222,28 @@ namespace asmjit {
 //!   x86::Mem m = x86::ptr(src, idx);
 //!
 //!   // Examine `m`: Returns `RegType::kGp64`.
-//!   m.indexType();
+//!   m.index_type();
 //!   // Examine `m`: Returns 10 (`r10`).
-//!   m.indexId();
+//!   m.index_id();
 //!
 //!   // Reconstruct `idx` stored in mem:
-//!   x86::Gp idx_2 = x86::Gp::fromTypeAndId(m.indexType(), m.indexId());
+//!   x86::Gp idx_2 = x86::Gp::from_type_and_id(m.index_type(), m.index_id());
 //!
-//!   // True, `idx` and idx_2` are identical.
+//!   // True, `idx` and `idx_2` are identical.
 //!   idx == idx_2;
 //!
 //!   // Possible - op will still be the same as `m`.
 //!   Operand op = m;
 //!   // True (can be casted to BaseMem or architecture-specific Mem).
-//!   op.isMem();
+//!   op.is_mem();
 //!
 //!   // True, `op` is just a copy of `m`.
 //!   m == op;
 //!
 //!   // Static cast is fine and valid here.
-//!   static_cast<BaseMem&>(op).addOffset(1);
+//!   static_cast<BaseMem&>(op).add_offset(1);
 //!   // However, using `as<T>()` to cast to a derived type is preferred.
-//!   op.as<BaseMem>().addOffset(1);
+//!   op.as<BaseMem>().add_offset(1);
 //!   // False, `op` now points to [rax + r10 + 2], which is not [rax + r10].
 //!   m == op;
 //!
@@ -1251,7 +1260,7 @@ namespace asmjit {
 //! ```
 //!
 //! Some operands have to be created explicitly by emitters. For example labels must be created by \ref
-//! BaseEmitter::newLabel(), which creates a label entry and returns a \ref Label operand with the id that refers
+//! BaseEmitter::new_label(), which creates a label entry and returns a \ref Label operand with the id that refers
 //! to it. Such label then can be used by emitters.
 //!
 //! \section memory_operands Memory Operands
@@ -1334,19 +1343,18 @@ namespace asmjit {
 //!   // The same as: dword ptr [rax + 12].
 //!   x86::Mem mem = x86::dword_ptr(x86::rax, 12);
 //!
-//!   mem.hasBase();                    // true.
-//!   mem.hasIndex();                   // false.
-//!   mem.size();                       // 4.
-//!   mem.offset();                     // 12.
+//!   mem.has_base();                    // true.
+//!   mem.has_index();                   // false.
+//!   mem.size();                        // 4.
+//!   mem.offset();                      // 12.
 //!
-//!   mem.setSize(0);                   // Sets the size to 0 (makes it size-less).
-//!   mem.addOffset(-1);                // Adds -1 to the offset and makes it 11.
-//!   mem.setOffset(0);                 // Sets the offset to 0.
-//!   mem.setBase(x86::rcx);            // Changes BASE to RCX.
-//!   mem.setIndex(x86::rax);           // Changes INDEX to RAX.
-//!   mem.hasIndex();                   // true.
+//!   mem.set_size(0);                   // Sets the size to 0 (makes it size-less).
+//!   mem.add_offset(-1);                // Adds -1 to the offset and makes it 11.
+//!   mem.set_offset(0);                 // Sets the offset to 0.
+//!   mem.set_base(x86::rcx);            // Changes BASE to RCX.
+//!   mem.set_index(x86::rax);           // Changes INDEX to RAX.
+//!   mem.has_index();                   // true.
 //! }
-//! // ...
 //! ```
 //!
 //! Making changes to memory operand is very comfortable when emitting loads
@@ -1358,12 +1366,12 @@ namespace asmjit {
 //! using namespace asmjit;
 //!
 //! void testX86Mem(CodeHolder& code) {
-//!   x86::Assembler a(code);           // Your initialized x86::Assembler.
-//!   x86::Mem mSrc = x86::ptr(eax);    // Construct [eax] memory operand.
+//!   x86::Assembler a(code);            // Your initialized x86::Assembler.
+//!   x86::Mem mSrc = x86::ptr(eax);     // Construct [eax] memory operand.
 //!
 //!   // One way of emitting bunch of loads is to use `mem.adjusted()`, which
 //!   // returns a new memory operand and keeps the source operand unchanged.
-//!   a.movaps(x86::xmm0, mSrc);        // No adjustment needed to load [eax].
+//!   a.movaps(x86::xmm0, mSrc);              // No adjustment needed to load [eax].
 //!   a.movaps(x86::xmm1, mSrc.adjusted(16)); // Loads from [eax + 16].
 //!   a.movaps(x86::xmm2, mSrc.adjusted(32)); // Loads from [eax + 32].
 //!   a.movaps(x86::xmm3, mSrc.adjusted(48)); // Loads from [eax + 48].
@@ -1372,18 +1380,18 @@ namespace asmjit {
 //!
 //!   // Another way of adjusting memory is to change the operand in-place.
 //!   // If you want to keep the original operand you can simply clone it.
-//!   x86::Mem mDst = mSrc.clone();     // Clone mSrc.
+//!   x86::Mem mDst = mSrc.clone();      // Clone mSrc.
 //!
-//!   a.movaps(mDst, x86::xmm0);        // Stores xmm0 to [eax].
-//!   mDst.addOffset(16);               // Adds 16 to `mDst`.
+//!   a.movaps(mDst, x86::xmm0);         // Stores xmm0 to [eax].
+//!   mDst.add_offset(16);               // Adds 16 to `mDst`.
 //!
-//!   a.movaps(mDst, x86::xmm1);        // Stores to [eax + 16] .
-//!   mDst.addOffset(16);               // Adds 16 to `mDst`.
+//!   a.movaps(mDst, x86::xmm1);         // Stores to [eax + 16] .
+//!   mDst.add_offset(16);               // Adds 16 to `mDst`.
 //!
-//!   a.movaps(mDst, x86::xmm2);        // Stores to [eax + 32].
-//!   mDst.addOffset(16);               // Adds 16 to `mDst`.
+//!   a.movaps(mDst, x86::xmm2);         // Stores to [eax + 32].
+//!   mDst.add_offset(16);               // Adds 16 to `mDst`.
 //!
-//!   a.movaps(mDst, x86::xmm3);        // Stores to [eax + 48].
+//!   a.movaps(mDst, x86::xmm3);         // Stores to [eax + 48].
 //! }
 //! ```
 //!
@@ -1487,7 +1495,7 @@ namespace asmjit {
 //!     and they have to be implemented in the same way.
 //!
 //!   - Compiler provides a useful debugging functionality, which can be turned on through \ref FormatFlags. Use
-//!     \ref Logger::addFlags() to turn on additional logging features when using Compiler.
+//!     \ref Logger::add_flags() to turn on additional logging features when using Compiler.
 
 
 //! \defgroup asmjit_function Function
@@ -1560,7 +1568,7 @@ namespace asmjit {
 //!
 //!   - \ref FormatOptions - Formatting options that can change how instructions and operands are formatted.
 //!
-//!   - \ref Formatter - A namespace that provides functions that can format input data like \ref Operand, \ref BaseReg,
+//!   - \ref Formatter - A namespace that provides functions that can format input data like \ref Operand, \ref Reg,
 //!     \ref Label, and \ref BaseNode into \ref String.
 //!
 //! AsmJit's \ref Logger serves the following purposes:
@@ -1595,8 +1603,8 @@ namespace asmjit {
 //!
 //!   CodeHolder code;             // Holds code and relocation information.
 //!   code.init(rt.environment(),  // Initialize code to match the JIT environment.
-//!             rt.cpuFeatures());
-//!   code.setLogger(&logger);     // Attach the `logger` to `code` holder.
+//!             rt.cpu_features());
+//!   code.set_logger(&logger);    // Attach the `logger` to `code` holder.
 //!
 //!   // ... code as usual, everything emitted will be logged to `stdout` ...
 //!   return 0;
@@ -1619,8 +1627,8 @@ namespace asmjit {
 //!
 //!   CodeHolder code;             // Holds code and relocation information.
 //!   code.init(rt.environment(),  // Initialize code to match the JIT environment.
-//!             rt.cpuFeatures());
-//!   code.setLogger(&logger);     // Attach the `logger` to `code` holder.
+//!             rt.cpu_features());
+//!   code.set_logger(&logger);    // Attach the `logger` to `code` holder.
 //!
 //!   // ... code as usual, logging will be concatenated to logger string  ...
 //!
@@ -1656,10 +1664,10 @@ namespace asmjit {
 //!   BaseEmitter* emitter = nullptr;
 //!
 //!   // No flags by default.
-//!   FormatFlags formatFlags = FormatFlags::kNone;
+//!   FormatFlags format_flags = FormatFlags::kNone;
 //!
 //!   StringTmp<128> sb;
-//!   Formatter::formatOperand(sb, formatFlags, emitter, arch, op);
+//!   Formatter::format_operand(sb, format_flags, emitter, arch, op);
 //!   printf("%s\n", sb.data());
 //! }
 //!
@@ -1693,14 +1701,14 @@ namespace asmjit {
 //!   BaseEmitter* emitter = nullptr;
 //!
 //!   // No flags by default.
-//!   FormatFlags formatFlags = FormatFlags::kNone;
+//!   FormatFlags format_flags = FormatFlags::kNone;
 //!
 //!   // The formatter expects operands in an array.
 //!   Operand_ operands[] { std::forward<Args>(args)... };
 //!
 //!   StringTmp<128> sb;
-//!   Formatter::formatInstruction(
-//!     sb, formatFlags, emitter, arch, inst, operands, sizeof...(args));
+//!   Formatter::format_instruction(
+//!     sb, format_flags, emitter, arch, inst, operands, sizeof...(args));
 //!   printf("%s\n", sb.data());
 //! }
 //!
@@ -1720,7 +1728,7 @@ namespace asmjit {
 //!                  BaseInst(Inst::kIdVaddpd),
 //!                  zmm0, zmm1, ptr(rax)._1to8());
 //!
-//!   // BaseInst abstracts instruction id, instruction options, and extraReg.
+//!   // BaseInst abstracts instruction id, instruction options, and extra_reg.
 //!   // Prints 'lock add [rax], rcx'.
 //!   logInstruction(arch,
 //!                  BaseInst(Inst::kIdAdd, InstOptions::kX86_Lock),
@@ -1744,7 +1752,7 @@ namespace asmjit {
 //! using namespace asmjit;
 //!
 //! void formattingExample(BaseBuilder* builder) {
-//!   FormatOptions formatOptions {};
+//!   FormatOptions format_options {};
 //!
 //!   // This also shows how temporary strings can be used.
 //!   StringTmp<512> sb;
@@ -1753,7 +1761,7 @@ namespace asmjit {
 //!   // were zero (no extra flags), and the builder instance, which we have
 //!   // provided. An overloaded version also exists, which accepts begin and
 //!   // and end nodes, which can be used to only format a range of nodes.
-//!   Formatter::formatNodeList(sb, formatOptions, builder);
+//!   Formatter::format_node_list(sb, format_options, builder);
 //!
 //!   // You can do whatever else with the string, it's always null terminated,
 //!   // so it can be passed to C functions like printf().
@@ -1769,7 +1777,7 @@ namespace asmjit {
 //!
 //! AsmJit uses error codes to represent and return errors. Every function that can fail returns an \ref Error code.
 //! Exceptions are never thrown by AsmJit itself even in extreme conditions like out-of-memory, but it's possible to
-//! override \ref ErrorHandler::handleError() to throw, in that case no error will be returned and exception will be
+//! override \ref ErrorHandler::handle_error() to throw, in that case no error will be returned and exception will be
 //! thrown instead. All functions where this can happen are not marked `noexcept`.
 //!
 //! Errors should never be ignored, however, checking errors after each AsmJit API call would simply over-complicate
@@ -1780,11 +1788,11 @@ namespace asmjit {
 //!   - Throw an exception. AsmJit doesn't use exceptions and is completely exception-safe, but it's perfectly legal
 //!     to throw an exception from the error handler.
 //!   - Use plain old C's `setjmp()` and `longjmp()`. Asmjit always puts Assembler, Builder and Compiler to a
-//!     consistent state before calling \ref ErrorHandler::handleError(), so `longjmp()` can be used without issues
+//!     consistent state before calling \ref ErrorHandler::handle_error(), so `longjmp()` can be used without issues
 //!     to cancel the code-generation if an error occurred. This method can be used if exception handling in your
 //!     project is turned off and you still want some comfort. In most cases it should be safe as AsmJit uses \ref
-//!     Zone memory and the ownership of memory it allocates always ends with the instance that allocated it. If
-//!     using this approach please never jump outside the life-time of \ref CodeHolder and \ref BaseEmitter.
+//!     Arena allocated memory and the ownership of memory it allocates always ends with the instance that allocated
+//!     it. If using this approach please never jump outside the life-time of \ref CodeHolder and \ref BaseEmitter.
 //!
 //! \section using_error_handler Using ErrorHandler
 //!
@@ -1799,7 +1807,7 @@ namespace asmjit {
 //! // A simple error handler implementation, extend according to your needs.
 //! class MyErrorHandler : public ErrorHandler {
 //! public:
-//!   void handleError(Error err, const char* message, BaseEmitter* origin) override {
+//!   void handle_error(Error err, const char* message, BaseEmitter* origin) override {
 //!     printf("AsmJit error: %s\n", message);
 //!   }
 //! };
@@ -1810,8 +1818,8 @@ namespace asmjit {
 //!   MyErrorHandler myErrorHandler;
 //!   CodeHolder code;
 //!
-//!   code.init(rt.environment(), rt.cpuFeatures());
-//!   code.setErrorHandler(&myErrorHandler);
+//!   code.init(rt.environment(), rt.cpu_features());
+//!   code.set_error_handler(&myErrorHandler);
 //!
 //!   x86::Assembler a(&code);
 //!   // ... code generation ...
@@ -1854,10 +1862,10 @@ namespace asmjit {
 //!
 //! The instruction query API is provided by \ref InstAPI namespace. The following queries are possible:
 //!
-//!   - \ref InstAPI::queryRWInfo() - queries read/write information of the given instruction and its operands.
+//!   - \ref InstAPI::query_rw_info() - queries read/write information of the given instruction and its operands.
 //!     Includes also CPU flags read/written.
 //!
-//!   - \ref InstAPI::queryFeatures() - queries CPU features that are required to execute the given instruction. A full
+//!   - \ref InstAPI::query_features() - queries CPU features that are required to execute the given instruction. A full
 //!     instruction with operands must be given as some architectures like X86 may require different features for the
 //!     same instruction based on its operands.
 //!
@@ -1872,7 +1880,7 @@ namespace asmjit {
 //!   - \ref InstAPI::validate() - low-level instruction validation function that is used internally by emitters
 //!     if strict validation is enabled.
 //!
-//!   - \ref BaseEmitter::addDiagnosticOptions() - can be used to enable validation at emitter level, see \ref
+//!   - \ref BaseEmitter::add_diagnostic_options() - can be used to enable validation at emitter level, see \ref
 //!     DiagnosticOptions.
 
 
@@ -1883,19 +1891,19 @@ namespace asmjit {
 //!
 //! AsmJit's virtual memory management is divided into three main categories:
 //!
-//!   - Low level interface that provides cross-platform abstractions for virtual memory allocation. Implemented in
-//!     \ref VirtMem namespace. This API is a thin wrapper around operating system specific calls such as
-//!     `VirtualAlloc()` and `mmap()` and it's intended to be used by AsmJit's higher level API. Low-level virtual
-//!     memory functions can be used to allocate virtual memory, change its permissions, and to release it.
-//!     Additionally, an API that allows to create dual mapping (to support hardened environments) is provided.
+//!   - \ref VirtMem namespace provides low level interface that can be used for cross-platform  virtual memory
+//!     allocation. This API is a thin wrapper around operating system specific calls such as `VirtualAlloc()` and
+//!     `mmap()` and it's intended to be used by AsmJit's higher level API. Low-level virtual memory functions can
+//!     be used to allocate virtual memory, change its permissions, and to release it. Additionally, an API that
+//!     allows to create dual mapping (to support hardened environments) is provided.
 //!
-//!   - Middle level API that is provided by \ref JitAllocator, which uses \ref VirtMem internally and offers nicer
-//!     API that can be used by users to allocate executable memory conveniently. \ref JitAllocator tries to be smart,
-//!     for example automatically using dual mapping or `MAP_JIT` on hardened environments.
+//!   - \ref JitAllocator provides middle level API, which is built on top of \ref VirtMem internally and offers
+//!     nicer API that can be used by users to allocate executable memory conveniently. \ref JitAllocator tries to
+//!     be smart, for example automatically using dual mapping or `MAP_JIT` on hardened environments.
 //!
-//!   - High level API that is provided by \ref JitRuntime, which implements \ref Target interface and uses \ref
-//!     JitAllocator under the hood. Since \ref JitRuntime inherits from \ref Target it makes it easy to use with
-//!     \ref CodeHolder. Many AsmJit examples use \ref JitRuntime for its simplicity and easy integration.
+//!   - \ref JitRuntime provides high level API, which implements \ref Target interface and uses \ref JitAllocator
+//!     under the hood. Since \ref JitRuntime inherits from \ref Target it makes it easy to use with \ref CodeHolder.
+//!     Many AsmJit examples use \ref JitRuntime for its simplicity and easy integration.
 //!
 //! The main difference between \ref VirtMem and \ref JitAllocator is that \ref VirtMem can only be used to allocate
 //! whole pages, whereas \ref JitAllocator has `malloc()` like API that allows to allocate smaller quantities that
@@ -1934,81 +1942,78 @@ namespace asmjit {
 //! Dual mapping is provided by both \ref VirtMem and \ref JitAllocator.
 
 
-//! \defgroup asmjit_zone Zone Memory
-//! \brief Zone memory allocator and containers.
+//! \defgroup asmjit_support Support
+//! \brief Provides utility functions, arena allocator, and arena-backed containers.
 //!
 //! ### Overview
 //!
-//! AsmJit uses zone memory allocation (also known as Arena allocation) to allocate most of the data it uses. It's a
-//! fast allocator that allows AsmJit to allocate a lot of small data structures fast and without `malloc()` overhead.
-//! Since code generators and all related classes are usually short-lived this approach decreases memory usage and
-//! fragmentation as arena-based allocators always allocate larger blocks of memory, which are then split into smaller
-//! chunks.
+//! This functionality is primarily intended for AsmJit's internal use, but is exposed to users since it may be used
+//! in public headers as well. \ref Arena and arena-backed containers are used by many AsmJit classes, which are public,
+//! and AsmJit doesn't try to hide the use.
 //!
-//! Another advantage of zone memory allocation is that since the whole library uses this strategy it's very easy to
-//! deallocate everything that a particular instance is holding by simply releasing the memory the allocator holds.
-//! This improves destruction time of such objects as there is no destruction at all. Long-lived objects just reset
-//! its data in destructor or in their reset() member function for a future reuse. For this purpose all containers in
-//! AsmJit are also zone allocated.
+//! The arena allocator is used for most allocations within AsmJit. It is optimized for fast allocation of small objects,
+//! avoiding the overhead of `malloc()`. Memory is managed in large blocks that are split into smaller chunks, reducing
+//! fragmentation and improving performance.
 //!
-//! \section zone_allocation Zone Allocation
+//! Releasing an arena allocator invalidates memory it holds, allowing efficient cleanup without per-object destruction.
+//! Long-lived objects typically reset their data in the destructor or via `reset()` for allocation reuse. All AsmJit
+//! containers use \ref Arena allocator.
 //!
-//!   - \ref Zone - Incremental zone memory allocator with minimum features. It can only allocate memory without the
-//!     possibility to return it back to the allocator.
+//! \section arena_allocators Arena Allocators
 //!
-//!   - \ref ZoneTmp - A temporary \ref Zone with some initial static storage. If the allocation requests fit the
-//!     static storage allocated then there will be no dynamic memory allocation during the lifetime of \ref ZoneTmp,
-//!     otherwise it would act as \ref Zone with one preallocated block on the stack.
+//!   - \ref Arena - Arena memory allocator that quickly allocates the requested memory from larger chunks and then
+//!     frees everything at once. AsmJit uses Arena allocators almost everywhere as almost everything is short-lived.
 //!
-//!   - \ref ZoneAllocator - A wrapper of \ref Zone that provides the capability of returning memory to the allocator.
-//!     Such memory is stored in a pool for later reuse.
+//!   - \ref ArenaTmp - A temporary \ref Arena with some initial static storage. If the allocation requests fit the
+//!     static storage allocated then there will be no dynamic memory allocation during the lifetime of \ref ArenaTmp,
+//!     otherwise it would act as \ref Arena with one preallocated block at the beginning.
 //!
-//! \section zone_containers Zone Allocated Containers
+//! \section arena_containers Arena-Allocated Containers
 //!
-//!   - \ref ZoneString - Zone allocated string.
-//!   - \ref ZoneHash - Zone allocated hash table.
-//!   - \ref ZoneTree - Zone allocated red-black tree.
-//!   - \ref ZoneList - Zone allocated double-linked list.
-//!   - \ref ZoneStack - Zone allocated stack.
-//!   - \ref ZoneVector - Zone allocated vector.
-//!   - \ref ZoneBitVector - Zone allocated vector of bits.
+//!   - \ref ArenaString - Arena allocated string.
+//!   - \ref ArenaHash   - Arena allocated hash table.
+//!   - \ref ArenaTree   - Arena allocated red-black tree.
+//!   - \ref ArenaList   - Arena allocated double-linked list.
+//!   - \ref ArenaVector - Arena allocated vector.
 //!
-//! \section using_zone_containers Using Zone Allocated Containers
+//! \section using_arena_containers Using Arena-Allocated Containers
 //!
-//! The most common data structure exposed by AsmJit is \ref ZoneVector. It's very similar to `std::vector`, but the
-//! implementation doesn't use exceptions and uses the mentioned \ref ZoneAllocator for performance reasons. You don't
-//! have to worry about allocations as you should not need to add items to AsmJit's data structures directly as there
-//! should be API for all required operations.
+//! The most common data structure exposed by AsmJit is \ref ArenaVector. It's very similar to `std::vector`, but the
+//! implementation doesn't use exceptions and uses the mentioned \ref Arena allocator for increased performance and
+//! decreased memory footprint. You don't have to worry about allocations as you should not need to add items to
+//! AsmJit's data structures directly as there should be API for all required operations.
 //!
-//! The following APIs in \ref CodeHolder returns \ref ZoneVector reference:
+//! Most of the time, AsmJit returns a non-owning Span instead of a reference to the allocator when it returns an array
+//! of something. For example, the following APIs in \ref CodeHolder return a non-owning \ref Span instance:
 //!
 //! ```
 //! using namespace asmjit;
 //!
 //! void example(CodeHolder& code) {
 //!   // Contains all section entries managed by CodeHolder.
-//!   const ZoneVector<Section*>& sections = code.sections();
+//!   Span<Section*> sections = code.sections();
 //!
 //!   // Contains all label entries managed by CodeHolder.
-//!   const ZoneVector<LabelEntry>& labelEntries = code.labelEntries();
+//!   Span<LabelEntry> label_entries = code.label_entries();
 //!
 //!   // Contains all relocation entries managed by CodeHolder.
-//!   const ZoneVector<RelocEntry*>& relocEntries = code.relocEntries();
+//!   Span<RelocEntry*> reloc_entries = code.reloc_entries();
 //! }
 //! ```
 //!
-//! \ref ZoneVector has overloaded array access operator to make it possible to access its elements through operator[].
-//! Some standard functions like \ref ZoneVector::empty(), \ref ZoneVector::size(), and \ref ZoneVector::data() are
+//! \ref Span has overloaded array access operator to make it possible to access its elements through operator[].
+//! Some standard functions like \ref ArenaVector::is_empty(), \ref ArenaVector::size(), and \ref ArenaVector::data() are
 //! provided as well. Vectors are also iterable through a range-based for loop:
 //!
 //! ```
 //! using namespace asmjit;
 //!
 //! void example(CodeHolder& code) {
-//!   for (uint32_t labelId = 0; labelId < code.labelCount(); labelId++) {
-//!     const LabelEntry& le = code.labelEntry(labelId);
-//!     if (le.isBound()) {
-//!       printf("Bound Label #%u at offset=%llu\n", labelId, (unsigned long long)le->offset());
+//!   Span<LabelEntry> label_entries = code.label_entries();
+//!   for (size_t label_id = 0; label_id < label_entries.size(); label_id++) {
+//!     const LabelEntry& le = label_entries[label_id];
+//!     if (le.is_bound()) {
+//!       printf("Bound Label #%u at offset=%llu\n", uint32_t(label_id), (unsigned long long)le.offset());
 //!     }
 //!   }
 //! }
@@ -2016,53 +2021,53 @@ namespace asmjit {
 //!
 //! \section design_considerations Design Considerations
 //!
-//! Zone-allocated containers do not store the allocator within the container. This decision was made to reduce the
+//! Arena-allocated containers do not store the allocator within the container. This decision was made to reduce the
 //! footprint of such containers as AsmJit tooling, especially Compiler's register allocation, may use many instances
 //! of such containers to perform code analysis and register allocation.
 //!
-//! For example to append an item into a \ref ZoneVector it's required to pass the allocator as the first argument,
-//! so it can be used in case that the vector needs a reallocation. Such function also returns an error, which must
-//! be propagated to the caller.
+//! For example to append an item into an \ref ArenaVector it's required to pass the allocator as the first argument,
+//! so it can be used in case that the vector needs to grow. Such function also returns an error, which must be
+//! propagated to the caller.
 //!
 //! ```
-//! using namespace asmjit
+//! using namespace asmjit;
 //!
-//! Error example(ZoneAllocator* allocator) {
-//!   ZoneVector<int> vector;
+//! Error example(Arena& arena) {
+//!   ArenaVector<int> vector;
 //!
-//!   // Unfortunately, allocator must be provided to all functions that mutate
+//!   // Unfortunately, arena must be provided to all functions that mutate
 //!   // the vector. However, AsmJit users should never need to do this as all
 //!   // manipulation should be done through public API, which takes care of
-//!   // that.
+//!   // this.
 //!   for (int i = 0; i < 100; i++) {
-//!     ASMJIT_PROPAGATE(vector.append(allocator, i));
+//!     ASMJIT_PROPAGATE(vector.append(arena, i));
 //!   }
 //!
 //!   // By default vector's destructor doesn't release anything as it knows
-//!   // that its content is zone allocated. However, \ref ZoneVector::release
-//!   // can be used to explicitly release the vector data to the allocator if
+//!   // that its content is allocated by Arena. However, \ref ArenaVector::release
+//!   // can be used to explicitly release the vector data back to the allocator if
 //!   // necessary
-//!   vector.release(allocator);
+//!   vector.release(arena);
 //! }
 //! ```
 //!
-//! Containers like \ref ZoneVector also provide a functionality to reserve a certain number of items before any items
+//! Containers like \ref ArenaVector also provide a functionality to reserve a certain number of items before any items
 //! are added to it. This approach is used internally in most places as it allows to prepare space for data that will
 //! be added to some container before the data itself was created.
 //!
 //! ```
-//! using namespace asmjit
+//! using namespace asmjit;
 //!
-//! Error example(ZoneAllocator* allocator) {
-//!   ZoneVector<int> vector;
+//! Error example(Arena& arena) {
+//!   ArenaVector<int> vector;
 //!
-//!   ASMJIT_PROPAGATE(vector.willGrow(100));
+//!   ASMJIT_PROPAGATE(vector.reserve_additional(arena, 100));
 //!   for (int i = 0; i < 100; i++) {
 //!     // Cannot fail.
-//!     vector.appendUnsafe(allocator, i);
+//!     vector.append_unchecked(arena, i);
 //!   }
 //!
-//!   vector.release(allocator);
+//!   vector.release(arena);
 //! }
 //! ```
 
@@ -2106,6 +2111,9 @@ namespace asmjit {
 //! \defgroup asmjit_a64 AArch64 Backend
 //! \brief AArch64 backend.
 
+//! \defgroup asmjit_ujit UJIT
+//! \brief Universal JIT - abstracts X86|X86_64 and AArch64 code generation.
+
 //! \cond INTERNAL
 //! \defgroup asmjit_ra RA
 //! \brief Register allocator internals.
@@ -2135,18 +2143,19 @@ namespace asmjit {
 #include "core/logger.h"
 #include "core/operand.h"
 #include "core/osutils.h"
+#include "core/span.h"
 #include "core/string.h"
 #include "core/support.h"
 #include "core/target.h"
 #include "core/type.h"
 #include "core/virtmem.h"
-#include "core/zone.h"
-#include "core/zonehash.h"
-#include "core/zonelist.h"
-#include "core/zonetree.h"
-#include "core/zonestack.h"
-#include "core/zonestring.h"
-#include "core/zonevector.h"
+#include "core/arena.h"
+#include "core/arenahash.h"
+#include "core/arenalist.h"
+#include "core/arenapool.h"
+#include "core/arenatree.h"
+#include "core/arenastring.h"
+#include "core/arenavector.h"
 #include "asmjit-scope-end.h"
 
 #endif // ASMJIT_CORE_H_INCLUDED

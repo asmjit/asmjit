@@ -45,25 +45,25 @@ ASMJIT_BEGIN_SUB_NAMESPACE(a64)
 #define ASMJIT_INST_1cc(NAME, ID, T0) \
   inline Error NAME(const T0& o0) { return _emitter()->_emitI(Inst::kId##ID, o0); } \
   \
-  inline Error NAME(CondCode cc, const T0& o0) { return _emitter()->_emitI(BaseInst::composeARMInstId(Inst::kId##ID, cc), o0); } \
+  inline Error NAME(CondCode cc, const T0& o0) { return _emitter()->_emitI(BaseInst::compose_arm_inst_id(Inst::kId##ID, cc), o0); } \
   \
-  inline Error NAME##_eq(const T0& o0) { return _emitter()->_emitI(BaseInst::composeARMInstId(Inst::kId##ID, CondCode::kEQ), o0); } \
-  inline Error NAME##_ne(const T0& o0) { return _emitter()->_emitI(BaseInst::composeARMInstId(Inst::kId##ID, CondCode::kNE), o0); } \
-  inline Error NAME##_cs(const T0& o0) { return _emitter()->_emitI(BaseInst::composeARMInstId(Inst::kId##ID, CondCode::kCS), o0); } \
-  inline Error NAME##_hs(const T0& o0) { return _emitter()->_emitI(BaseInst::composeARMInstId(Inst::kId##ID, CondCode::kHS), o0); } \
-  inline Error NAME##_cc(const T0& o0) { return _emitter()->_emitI(BaseInst::composeARMInstId(Inst::kId##ID, CondCode::kCC), o0); } \
-  inline Error NAME##_lo(const T0& o0) { return _emitter()->_emitI(BaseInst::composeARMInstId(Inst::kId##ID, CondCode::kLO), o0); } \
-  inline Error NAME##_mi(const T0& o0) { return _emitter()->_emitI(BaseInst::composeARMInstId(Inst::kId##ID, CondCode::kMI), o0); } \
-  inline Error NAME##_pl(const T0& o0) { return _emitter()->_emitI(BaseInst::composeARMInstId(Inst::kId##ID, CondCode::kPL), o0); } \
-  inline Error NAME##_vs(const T0& o0) { return _emitter()->_emitI(BaseInst::composeARMInstId(Inst::kId##ID, CondCode::kVS), o0); } \
-  inline Error NAME##_vc(const T0& o0) { return _emitter()->_emitI(BaseInst::composeARMInstId(Inst::kId##ID, CondCode::kVC), o0); } \
-  inline Error NAME##_hi(const T0& o0) { return _emitter()->_emitI(BaseInst::composeARMInstId(Inst::kId##ID, CondCode::kHI), o0); } \
-  inline Error NAME##_ls(const T0& o0) { return _emitter()->_emitI(BaseInst::composeARMInstId(Inst::kId##ID, CondCode::kLS), o0); } \
-  inline Error NAME##_ge(const T0& o0) { return _emitter()->_emitI(BaseInst::composeARMInstId(Inst::kId##ID, CondCode::kGE), o0); } \
-  inline Error NAME##_lt(const T0& o0) { return _emitter()->_emitI(BaseInst::composeARMInstId(Inst::kId##ID, CondCode::kLT), o0); } \
-  inline Error NAME##_gt(const T0& o0) { return _emitter()->_emitI(BaseInst::composeARMInstId(Inst::kId##ID, CondCode::kGT), o0); } \
-  inline Error NAME##_le(const T0& o0) { return _emitter()->_emitI(BaseInst::composeARMInstId(Inst::kId##ID, CondCode::kLE), o0); } \
-  inline Error NAME##_al(const T0& o0) { return _emitter()->_emitI(BaseInst::composeARMInstId(Inst::kId##ID, CondCode::kAL), o0); }
+  inline Error NAME##_eq(const T0& o0) { return _emitter()->_emitI(BaseInst::compose_arm_inst_id(Inst::kId##ID, CondCode::kEQ), o0); } \
+  inline Error NAME##_ne(const T0& o0) { return _emitter()->_emitI(BaseInst::compose_arm_inst_id(Inst::kId##ID, CondCode::kNE), o0); } \
+  inline Error NAME##_cs(const T0& o0) { return _emitter()->_emitI(BaseInst::compose_arm_inst_id(Inst::kId##ID, CondCode::kCS), o0); } \
+  inline Error NAME##_hs(const T0& o0) { return _emitter()->_emitI(BaseInst::compose_arm_inst_id(Inst::kId##ID, CondCode::kHS), o0); } \
+  inline Error NAME##_cc(const T0& o0) { return _emitter()->_emitI(BaseInst::compose_arm_inst_id(Inst::kId##ID, CondCode::kCC), o0); } \
+  inline Error NAME##_lo(const T0& o0) { return _emitter()->_emitI(BaseInst::compose_arm_inst_id(Inst::kId##ID, CondCode::kLO), o0); } \
+  inline Error NAME##_mi(const T0& o0) { return _emitter()->_emitI(BaseInst::compose_arm_inst_id(Inst::kId##ID, CondCode::kMI), o0); } \
+  inline Error NAME##_pl(const T0& o0) { return _emitter()->_emitI(BaseInst::compose_arm_inst_id(Inst::kId##ID, CondCode::kPL), o0); } \
+  inline Error NAME##_vs(const T0& o0) { return _emitter()->_emitI(BaseInst::compose_arm_inst_id(Inst::kId##ID, CondCode::kVS), o0); } \
+  inline Error NAME##_vc(const T0& o0) { return _emitter()->_emitI(BaseInst::compose_arm_inst_id(Inst::kId##ID, CondCode::kVC), o0); } \
+  inline Error NAME##_hi(const T0& o0) { return _emitter()->_emitI(BaseInst::compose_arm_inst_id(Inst::kId##ID, CondCode::kHI), o0); } \
+  inline Error NAME##_ls(const T0& o0) { return _emitter()->_emitI(BaseInst::compose_arm_inst_id(Inst::kId##ID, CondCode::kLS), o0); } \
+  inline Error NAME##_ge(const T0& o0) { return _emitter()->_emitI(BaseInst::compose_arm_inst_id(Inst::kId##ID, CondCode::kGE), o0); } \
+  inline Error NAME##_lt(const T0& o0) { return _emitter()->_emitI(BaseInst::compose_arm_inst_id(Inst::kId##ID, CondCode::kLT), o0); } \
+  inline Error NAME##_gt(const T0& o0) { return _emitter()->_emitI(BaseInst::compose_arm_inst_id(Inst::kId##ID, CondCode::kGT), o0); } \
+  inline Error NAME##_le(const T0& o0) { return _emitter()->_emitI(BaseInst::compose_arm_inst_id(Inst::kId##ID, CondCode::kLE), o0); } \
+  inline Error NAME##_al(const T0& o0) { return _emitter()->_emitI(BaseInst::compose_arm_inst_id(Inst::kId##ID, CondCode::kAL), o0); }
 
 //! \addtogroup asmjit_a64
 //! \{
@@ -89,9 +89,9 @@ struct EmitterExplicitT {
   //! \{
 
   //! Returns either 32-bit or 64-bit GP register of the given `id` depending on the emitter's architecture.
-  inline Gp gpz(uint32_t id) const noexcept { return Gp(_emitter()->_gpSignature, id); }
+  inline Gp gpz(uint32_t id) const noexcept { return Gp(_emitter()->_gp_signature, id); }
   //! Clones the given `reg` to either 32-bit or 64-bit GP register depending on the emitter's architecture.
-  inline Gp gpz(const Gp& reg) const noexcept { return Gp(_emitter()->_gpSignature, reg.id()); }
+  inline Gp gpz(const Gp& reg) const noexcept { return Gp(_emitter()->_gp_signature, reg.id()); }
 
   //! \}
 
