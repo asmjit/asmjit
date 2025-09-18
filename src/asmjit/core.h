@@ -191,7 +191,7 @@ namespace asmjit {
 //! cmake_minimum_required(VERSION 3.30)
 //!
 //! project(asmjit_consumer C CXX)    # Both C and CXX are required.
-//! set(CMAKE_CXX_STANDARD 17)        # C++17 and never is supported.
+//! set(CMAKE_CXX_STANDARD 17)        # C++17 and newer is supported.
 //!
 //! set(ASMJIT_DIR "3rdparty/asmjit") # Location of AsmJit.
 //! set(ASMJIT_STATIC TRUE)           # Force static build.
