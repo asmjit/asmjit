@@ -547,9 +547,10 @@ set(ASMJIT_SRC_LIST
   asmjit/x86/x86rapass_p.h
 
   asmjit/ujit/ujitbase.h
+  asmjit/ujit/unicompiler.h
   asmjit/ujit/unicompiler_a64.cpp
   asmjit/ujit/unicompiler_x86.cpp
-  asmjit/ujit/unicompiler.h
+  asmjit/ujit/unicompiler_utils_p.h
   asmjit/ujit/uniop.h
   asmjit/ujit/vecconsttable.cpp
   asmjit/ujit/vecconsttable.h

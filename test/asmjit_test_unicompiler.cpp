@@ -115,14 +115,14 @@ typedef void (*TestVVVVFunc)(void* dst, const void* src1, const void* src2, cons
 // ujit::UniCompiler - Tests - JIT Context Error Handler
 // =====================================================
 
-class TestErrorHandler : public asmjit::ErrorHandler {
+class TestErrorHandler : public ErrorHandler {
 public:
   TestErrorHandler() noexcept {}
   ~TestErrorHandler() noexcept override {}
 
-  void handle_error(asmjit::Error err, const char* message, asmjit::BaseEmitter* origin) override {
+  void handle_error(Error err, const char* message, BaseEmitter* origin) override {
     Support::maybe_unused(origin);
-    EXPECT_EQ(err, asmjit::Error::kOk)
+    EXPECT_EQ(err, Error::kOk)
       .message("AsmJit Error: %s", message);
   }
 };
@@ -131,16 +131,16 @@ public:
 
 class JitContext {
 public:
-  asmjit::JitRuntime rt;
-  asmjit::CpuFeatures features {};
-  UniOptFlags opt_flags {};
+  JitRuntime rt;
+  CpuFeatures features {};
+  CpuHints cpu_hints {};
 
 #if !defined(ASMJIT_NO_LOGGING)
-  asmjit::StringLogger logger;
+  StringLogger logger;
 #endif // !ASMJIT_NO_LOGGING
 
   TestErrorHandler eh;
-  asmjit::CodeHolder code;
+  CodeHolder code;
   BackendCompiler cc;
 
   void prepare() noexcept {
@@ -154,16 +154,16 @@ public:
 #endif // !ASMJIT_NO_LOGGING
 
     code.attach(&cc);
-    cc.add_diagnostic_options(asmjit::DiagnosticOptions::kRAAnnotate);
-    cc.add_diagnostic_options(asmjit::DiagnosticOptions::kValidateAssembler);
-    cc.add_diagnostic_options(asmjit::DiagnosticOptions::kValidateIntermediate);
+    cc.add_diagnostic_options(DiagnosticOptions::kRAAnnotate);
+    cc.add_diagnostic_options(DiagnosticOptions::kValidateAssembler);
+    cc.add_diagnostic_options(DiagnosticOptions::kValidateIntermediate);
   }
 
   template<typename Fn>
   Fn finish() noexcept {
     Fn fn;
-    EXPECT_EQ(cc.finalize(), asmjit::Error::kOk);
-    EXPECT_EQ(rt.add(&fn, &code), asmjit::Error::kOk);
+    EXPECT_EQ(cc.finalize(), Error::kOk);
+    EXPECT_EQ(rt.add(&fn, &code), Error::kOk);
     code.reset();
     return fn;
   }
@@ -180,9 +180,9 @@ public:
 
 static TestCondRRFunc create_func_cond_rr(JitContext& ctx, UniOpCond op, CondCode cond_code, uint32_t variation) noexcept {
   ctx.prepare();
-  UniCompiler pc(&ctx.cc, ctx.features, ctx.opt_flags);
+  UniCompiler pc(&ctx.cc, ctx.features, ctx.cpu_hints);
 
-  asmjit::FuncNode* node = ctx.cc.new_func(asmjit::FuncSignature::build<uint32_t, int32_t, int32_t>());
+  FuncNode* node = ctx.cc.new_func(FuncSignature::build<uint32_t, int32_t, int32_t>());
   EXPECT_NOT_NULL(node);
 
   pc.init_vec_width(VecWidth::k128);
@@ -200,7 +200,7 @@ static TestCondRRFunc create_func_cond_rr(JitContext& ctx, UniOpCond op, CondCod
       // Test a conditional branch based on the given condition.
       Label done = pc.new_label();
       pc.mov(result, 1);
-      pc.j(done, Condition(op, cond_code, a, b));
+      pc.j(done, UniCondition(op, cond_code, a, b));
       pc.mov(result, 0);
       pc.bind(done);
       break;
@@ -211,7 +211,7 @@ static TestCondRRFunc create_func_cond_rr(JitContext& ctx, UniOpCond op, CondCod
       Gp true_value = pc.new_gp32("true_value");
       pc.mov(result, 0);
       pc.mov(true_value, 1);
-      pc.cmov(result, true_value, Condition(op, cond_code, a, b));
+      pc.cmov(result, true_value, UniCondition(op, cond_code, a, b));
       break;
     }
 
@@ -221,7 +221,7 @@ static TestCondRRFunc create_func_cond_rr(JitContext& ctx, UniOpCond op, CondCod
       Gp true_value = pc.new_gp32("true_value");
       pc.mov(false_value, 0);
       pc.mov(true_value, 1);
-      pc.select(result, true_value, false_value, Condition(op, cond_code, a, b));
+      pc.select(result, true_value, false_value, UniCondition(op, cond_code, a, b));
       break;
     }
   }
@@ -234,9 +234,9 @@ static TestCondRRFunc create_func_cond_rr(JitContext& ctx, UniOpCond op, CondCod
 
 static TestCondRIFunc create_func_cond_ri(JitContext& ctx, UniOpCond op, CondCode cond_code, Imm bImm) noexcept {
   ctx.prepare();
-  UniCompiler pc(&ctx.cc, ctx.features, ctx.opt_flags);
+  UniCompiler pc(&ctx.cc, ctx.features, ctx.cpu_hints);
 
-  asmjit::FuncNode* node = ctx.cc.new_func(asmjit::FuncSignature::build<uint32_t, int32_t>());
+  FuncNode* node = ctx.cc.new_func(FuncSignature::build<uint32_t, int32_t>());
   EXPECT_NOT_NULL(node);
 
   pc.init_vec_width(VecWidth::k128);
@@ -248,7 +248,7 @@ static TestCondRIFunc create_func_cond_ri(JitContext& ctx, UniOpCond op, CondCod
 
   node->set_arg(0, a);
   pc.mov(result, 1);
-  pc.j(done, Condition(op, cond_code, a, bImm));
+  pc.j(done, UniCondition(op, cond_code, a, bImm));
   pc.mov(result, 0);
   pc.bind(done);
   ctx.cc.ret(result);
@@ -552,9 +552,9 @@ static ASMJIT_NOINLINE void test_cond_ops(JitContext& ctx) noexcept {
 
 static TestMFunc create_func_m(JitContext& ctx, UniOpM op) noexcept {
   ctx.prepare();
-  UniCompiler pc(&ctx.cc, ctx.features, ctx.opt_flags);
+  UniCompiler pc(&ctx.cc, ctx.features, ctx.cpu_hints);
 
-  asmjit::FuncNode* node = ctx.cc.new_func(asmjit::FuncSignature::build<void, void*>());
+  FuncNode* node = ctx.cc.new_func(FuncSignature::build<void, void*>());
   EXPECT_NOT_NULL(node);
 
   pc.init_vec_width(VecWidth::k128);
@@ -619,9 +619,9 @@ static ASMJIT_NOINLINE void test_m_ops(JitContext& ctx) noexcept {
 
 static TestRMFunc create_func_rm(JitContext& ctx, UniOpRM op) noexcept {
   ctx.prepare();
-  UniCompiler pc(&ctx.cc, ctx.features, ctx.opt_flags);
+  UniCompiler pc(&ctx.cc, ctx.features, ctx.cpu_hints);
 
-  asmjit::FuncNode* node = ctx.cc.new_func(asmjit::FuncSignature::build<uintptr_t, uintptr_t, void*>());
+  FuncNode* node = ctx.cc.new_func(FuncSignature::build<uintptr_t, uintptr_t, void*>());
   EXPECT_NOT_NULL(node);
 
   pc.init_vec_width(VecWidth::k128);
@@ -735,9 +735,9 @@ static ASMJIT_NOINLINE void test_rm_ops(JitContext& ctx) noexcept {
 
 static TestMRFunc create_func_mr(JitContext& ctx, UniOpMR op) noexcept {
   ctx.prepare();
-  UniCompiler pc(&ctx.cc, ctx.features, ctx.opt_flags);
+  UniCompiler pc(&ctx.cc, ctx.features, ctx.cpu_hints);
 
-  asmjit::FuncNode* node = ctx.cc.new_func(asmjit::FuncSignature::build<void, void*, uintptr_t>());
+  FuncNode* node = ctx.cc.new_func(FuncSignature::build<void, void*, uintptr_t>());
   EXPECT_NOT_NULL(node);
 
   pc.init_vec_width(VecWidth::k128);
@@ -849,9 +849,9 @@ static ASMJIT_NOINLINE void test_mr_ops(JitContext& ctx) noexcept {
 
 static TestRRFunc create_func_rr(JitContext& ctx, UniOpRR op) noexcept {
   ctx.prepare();
-  UniCompiler pc(&ctx.cc, ctx.features, ctx.opt_flags);
+  UniCompiler pc(&ctx.cc, ctx.features, ctx.cpu_hints);
 
-  asmjit::FuncNode* node = ctx.cc.new_func(asmjit::FuncSignature::build<uint32_t, uint32_t>());
+  FuncNode* node = ctx.cc.new_func(FuncSignature::build<uint32_t, uint32_t>());
   EXPECT_NOT_NULL(node);
 
   pc.init_vec_width(VecWidth::k128);
@@ -929,9 +929,9 @@ static ASMJIT_NOINLINE void test_rr_ops(JitContext& ctx) noexcept {
 
 static TestRRRFunc create_func_rrr(JitContext& ctx, UniOpRRR op) noexcept {
   ctx.prepare();
-  UniCompiler pc(&ctx.cc, ctx.features, ctx.opt_flags);
+  UniCompiler pc(&ctx.cc, ctx.features, ctx.cpu_hints);
 
-  asmjit::FuncNode* node = ctx.cc.new_func(asmjit::FuncSignature::build<uint32_t, uint32_t, uint32_t>());
+  FuncNode* node = ctx.cc.new_func(FuncSignature::build<uint32_t, uint32_t, uint32_t>());
   EXPECT_NOT_NULL(node);
 
   pc.init_vec_width(VecWidth::k128);
@@ -953,9 +953,9 @@ static TestRRRFunc create_func_rrr(JitContext& ctx, UniOpRRR op) noexcept {
 
 static TestRRIFunc create_func_rri(JitContext& ctx, UniOpRRR op, Imm bImm) noexcept {
   ctx.prepare();
-  UniCompiler pc(&ctx.cc, ctx.features, ctx.opt_flags);
+  UniCompiler pc(&ctx.cc, ctx.features, ctx.cpu_hints);
 
-  asmjit::FuncNode* node = ctx.cc.new_func(asmjit::FuncSignature::build<uint32_t, uint32_t>());
+  FuncNode* node = ctx.cc.new_func(FuncSignature::build<uint32_t, uint32_t>());
   EXPECT_NOT_NULL(node);
 
   pc.init_vec_width(VecWidth::k128);
@@ -1161,9 +1161,9 @@ static constexpr uint32_t kNumVariationsVV_Broadcast = 4;
 
 static TestVVFunc create_func_vv(JitContext& ctx, VecWidth vw, UniOpVV op, Variation variation = Variation{0}) noexcept {
   ctx.prepare();
-  UniCompiler pc(&ctx.cc, ctx.features, ctx.opt_flags);
+  UniCompiler pc(&ctx.cc, ctx.features, ctx.cpu_hints);
 
-  asmjit::FuncNode* node = ctx.cc.new_func(asmjit::FuncSignature::build<void, void*, const void*>());
+  FuncNode* node = ctx.cc.new_func(FuncSignature::build<void, void*, const void*>());
   EXPECT_NOT_NULL(node);
 
   pc.init_vec_width(vw);
@@ -1175,7 +1175,7 @@ static TestVVFunc create_func_vv(JitContext& ctx, VecWidth vw, UniOpVV op, Varia
   node->set_arg(0, dst_ptr);
   node->set_arg(1, src_ptr);
 
-  Vec dst_vec = pc.new_vec(vw, "dst_vec");
+  Vec dst_vec = pc.new_vec_with_width(vw, "dst_vec");
 
   // There are some instructions that fill the high part of the register, so just zero the destination to make
   // sure that we can test this function (that the low part is actually zeroed and doesn't contain garbage).
@@ -1233,7 +1233,7 @@ static TestVVFunc create_func_vv(JitContext& ctx, VecWidth vw, UniOpVV op, Varia
     pc.emit_2v(op, dst_vec, dst_vec);
   }
   else {
-    Vec src_vec = pc.new_vec(vw, "src_vec");
+    Vec src_vec = pc.new_vec_with_width(vw, "src_vec");
     pc.v_loaduvec(src_vec, mem_ptr(src_ptr));
     pc.emit_2v(op, dst_vec, src_vec);
   }
@@ -1252,9 +1252,9 @@ static constexpr uint32_t kNumVariationsVVI = 3;
 
 static TestVVFunc create_func_vvi(JitContext& ctx, VecWidth vw, UniOpVVI op, uint32_t imm, Variation variation = Variation{0}) noexcept {
   ctx.prepare();
-  UniCompiler pc(&ctx.cc, ctx.features, ctx.opt_flags);
+  UniCompiler pc(&ctx.cc, ctx.features, ctx.cpu_hints);
 
-  asmjit::FuncNode* node = ctx.cc.new_func(asmjit::FuncSignature::build<void, void*, const void*>());
+  FuncNode* node = ctx.cc.new_func(FuncSignature::build<void, void*, const void*>());
   EXPECT_NOT_NULL(node);
 
   pc.init_vec_width(vw);
@@ -1266,14 +1266,14 @@ static TestVVFunc create_func_vvi(JitContext& ctx, VecWidth vw, UniOpVVI op, uin
   node->set_arg(0, dst_ptr);
   node->set_arg(1, src_ptr);
 
-  Vec src_vec = pc.new_vec(vw, "src_vec");
+  Vec src_vec = pc.new_vec_with_width(vw, "src_vec");
 
   switch (variation.value) {
     default:
     case 0: {
       // There are some instructions that fill the high part of the register, so just zero the destination to make
       // sure that we can test this function (that the low part is actually zeroed and doesn't contain garbage).
-      Vec dst_vec = pc.new_vec(vw, "dst_vec");
+      Vec dst_vec = pc.new_vec_with_width(vw, "dst_vec");
       pc.v_zero_i(dst_vec);
 
       pc.v_loaduvec(src_vec, mem_ptr(src_ptr));
@@ -1291,7 +1291,7 @@ static TestVVFunc create_func_vvi(JitContext& ctx, VecWidth vw, UniOpVVI op, uin
     }
 
     case 2: {
-      Vec dst_vec = pc.new_vec(vw, "dst_vec");
+      Vec dst_vec = pc.new_vec_with_width(vw, "dst_vec");
       pc.emit_2vi(op, dst_vec, mem_ptr(src_ptr), imm);
       pc.v_storeuvec(mem_ptr(dst_ptr), dst_vec);
       break;
@@ -1312,9 +1312,9 @@ static constexpr uint32_t kNumVariationsVVV = 5;
 
 static TestVVVFunc create_func_vvv(JitContext& ctx, VecWidth vw, UniOpVVV op, Variation variation = Variation{0}) noexcept {
   ctx.prepare();
-  UniCompiler pc(&ctx.cc, ctx.features, ctx.opt_flags);
+  UniCompiler pc(&ctx.cc, ctx.features, ctx.cpu_hints);
 
-  asmjit::FuncNode* node = ctx.cc.new_func(asmjit::FuncSignature::build<void, void*, const void*, const void*>());
+  FuncNode* node = ctx.cc.new_func(FuncSignature::build<void, void*, const void*, const void*>());
   EXPECT_NOT_NULL(node);
 
   pc.init_vec_width(vw);
@@ -1328,15 +1328,15 @@ static TestVVVFunc create_func_vvv(JitContext& ctx, VecWidth vw, UniOpVVV op, Va
   node->set_arg(1, src1_ptr);
   node->set_arg(2, src2_ptr);
 
-  Vec src1_vec = pc.new_vec(vw, "src1_vec");
-  Vec src2_vec = pc.new_vec(vw, "src2_vec");
+  Vec src1_vec = pc.new_vec_with_width(vw, "src1_vec");
+  Vec src2_vec = pc.new_vec_with_width(vw, "src2_vec");
 
   switch (variation.value) {
     default:
     case 0: {
       // There are some instructions that fill the high part of the register, so just zero the destination to make
       // sure that we can test this function (that the low part is actually zeroed and doesn't contain garbage).
-      Vec dst_vec = pc.new_vec(vw, "dst_vec");
+      Vec dst_vec = pc.new_vec_with_width(vw, "dst_vec");
       pc.v_zero_i(dst_vec);
 
       pc.v_loaduvec(src1_vec, mem_ptr(src1_ptr));
@@ -1366,7 +1366,7 @@ static TestVVVFunc create_func_vvv(JitContext& ctx, VecWidth vw, UniOpVVV op, Va
     }
 
     case 3: {
-      Vec dst_vec = pc.new_vec(vw, "dst_vec");
+      Vec dst_vec = pc.new_vec_with_width(vw, "dst_vec");
       pc.v_zero_i(dst_vec);
 
       pc.v_loaduvec(src1_vec, mem_ptr(src1_ptr));
@@ -1393,9 +1393,9 @@ static constexpr uint32_t kNumVariationsVVVI = 5;
 
 static TestVVVFunc create_func_vvvi(JitContext& ctx, VecWidth vw, UniOpVVVI op, uint32_t imm, Variation variation = Variation{0}) noexcept {
   ctx.prepare();
-  UniCompiler pc(&ctx.cc, ctx.features, ctx.opt_flags);
+  UniCompiler pc(&ctx.cc, ctx.features, ctx.cpu_hints);
 
-  asmjit::FuncNode* node = ctx.cc.new_func(asmjit::FuncSignature::build<void, void*, const void*, const void*>());
+  FuncNode* node = ctx.cc.new_func(FuncSignature::build<void, void*, const void*, const void*>());
   EXPECT_NOT_NULL(node);
 
   pc.init_vec_width(vw);
@@ -1409,15 +1409,15 @@ static TestVVVFunc create_func_vvvi(JitContext& ctx, VecWidth vw, UniOpVVVI op, 
   node->set_arg(1, src1_ptr);
   node->set_arg(2, src2_ptr);
 
-  Vec src1_vec = pc.new_vec(vw, "src1_vec");
-  Vec src2_vec = pc.new_vec(vw, "src2_vec");
+  Vec src1_vec = pc.new_vec_with_width(vw, "src1_vec");
+  Vec src2_vec = pc.new_vec_with_width(vw, "src2_vec");
 
   switch (variation.value) {
     default:
     case 0: {
       // There are some instructions that fill the high part of the register, so just zero the destination to make
       // sure that we can test this function (that the low part is actually zeroed and doesn't contain garbage).
-      Vec dst_vec = pc.new_vec(vw, "dst_vec");
+      Vec dst_vec = pc.new_vec_with_width(vw, "dst_vec");
       pc.v_zero_i(dst_vec);
 
       pc.v_loaduvec(src1_vec, mem_ptr(src1_ptr));
@@ -1447,7 +1447,7 @@ static TestVVVFunc create_func_vvvi(JitContext& ctx, VecWidth vw, UniOpVVVI op, 
     }
 
     case 3: {
-      Vec dst_vec = pc.new_vec(vw, "dst_vec");
+      Vec dst_vec = pc.new_vec_with_width(vw, "dst_vec");
       pc.v_zero_i(dst_vec);
 
       pc.v_loaduvec(src1_vec, mem_ptr(src1_ptr));
@@ -1479,9 +1479,9 @@ static constexpr uint32_t kNumVariationsVVVV = 4;
 
 static TestVVVVFunc create_func_vvvv(JitContext& ctx, VecWidth vw, UniOpVVVV op, Variation variation = Variation{0}) noexcept {
   ctx.prepare();
-  UniCompiler pc(&ctx.cc, ctx.features, ctx.opt_flags);
+  UniCompiler pc(&ctx.cc, ctx.features, ctx.cpu_hints);
 
-  asmjit::FuncNode* node = ctx.cc.new_func(asmjit::FuncSignature::build<void, void*, const void*, const void*, const void*>());
+  FuncNode* node = ctx.cc.new_func(FuncSignature::build<void, void*, const void*, const void*, const void*>());
   EXPECT_NOT_NULL(node);
 
   pc.init_vec_width(vw);
@@ -1497,9 +1497,9 @@ static TestVVVVFunc create_func_vvvv(JitContext& ctx, VecWidth vw, UniOpVVVV op,
   node->set_arg(2, src2_ptr);
   node->set_arg(3, src3_ptr);
 
-  Vec src1_vec = pc.new_vec(vw, "src1_vec");
-  Vec src2_vec = pc.new_vec(vw, "src2_vec");
-  Vec src3_vec = pc.new_vec(vw, "src3_vec");
+  Vec src1_vec = pc.new_vec_with_width(vw, "src1_vec");
+  Vec src2_vec = pc.new_vec_with_width(vw, "src2_vec");
+  Vec src3_vec = pc.new_vec_with_width(vw, "src3_vec");
 
   pc.v_loaduvec(src1_vec, mem_ptr(src1_ptr));
   pc.v_loaduvec(src2_vec, mem_ptr(src2_ptr));
@@ -1510,7 +1510,7 @@ static TestVVVVFunc create_func_vvvv(JitContext& ctx, VecWidth vw, UniOpVVVV op,
     case 0: {
       // There are some instructions that fill the high part of the register, so just zero the destination to make
       // sure that we can test this function (that the low part is actually zeroed and doesn't contain garbage).
-      Vec dst_vec = pc.new_vec(vw, "dst_vec");
+      Vec dst_vec = pc.new_vec_with_width(vw, "dst_vec");
       pc.v_zero_i(dst_vec);
 
       pc.emit_4v(op, dst_vec, src1_vec, src2_vec, src3_vec);
@@ -1847,8 +1847,14 @@ static const char* vec_op_name_vv(UniOpVV op) noexcept {
     case UniOpVV::kCvtI32HiToI64     : return "v_cvt_i32_hi_to_i64";
     case UniOpVV::kCvtU32LoToU64     : return "v_cvt_u32_lo_to_u64";
     case UniOpVV::kCvtU32HiToU64     : return "v_cvt_u32_hi_to_u64";
+    case UniOpVV::kAbsF32S           : return "s_abs_f32";
+    case UniOpVV::kAbsF64S           : return "s_abs_f64";
     case UniOpVV::kAbsF32            : return "v_abs_f32";
     case UniOpVV::kAbsF64            : return "v_abs_f64";
+    case UniOpVV::kNegF32S           : return "s_neg_f32";
+    case UniOpVV::kNegF64S           : return "s_neg_f64";
+    case UniOpVV::kNegF32            : return "v_neg_f32";
+    case UniOpVV::kNegF64            : return "v_neg_f64";
     case UniOpVV::kNotF32            : return "v_not_f32";
     case UniOpVV::kNotF64            : return "v_not_f64";
     case UniOpVV::kTruncF32S         : return "v_trunc_f32s";
@@ -1863,10 +1869,14 @@ static const char* vec_op_name_vv(UniOpVV op) noexcept {
     case UniOpVV::kCeilF64S          : return "v_ceil_f64s";
     case UniOpVV::kCeilF32           : return "v_ceil_f32";
     case UniOpVV::kCeilF64           : return "v_ceil_f64";
-    case UniOpVV::kRoundF32S         : return "v_round_f32s";
-    case UniOpVV::kRoundF64S         : return "v_round_f64s";
-    case UniOpVV::kRoundF32          : return "v_round_f32";
-    case UniOpVV::kRoundF64          : return "v_round_f64";
+    case UniOpVV::kRoundEvenF32S     : return "v_round_even_f32s";
+    case UniOpVV::kRoundEvenF64S     : return "v_round_even_f64s";
+    case UniOpVV::kRoundEvenF32      : return "v_round_even_f32";
+    case UniOpVV::kRoundEvenF64      : return "v_round_even_f64";
+    case UniOpVV::kRoundHalfUpF32S   : return "v_round_half_up_f32s";
+    case UniOpVV::kRoundHalfUpF64S   : return "v_round_half_up_f64s";
+    case UniOpVV::kRoundHalfUpF32    : return "v_round_half_up_f32";
+    case UniOpVV::kRoundHalfUpF64    : return "v_round_half_up_f64";
     case UniOpVV::kRcpF32            : return "v_rcp_f32";
     case UniOpVV::kRcpF64            : return "v_rcp_f64";
     case UniOpVV::kSqrtF32S          : return "v_sqrt_f32s";
@@ -1888,10 +1898,9 @@ static const char* vec_op_name_vv(UniOpVV op) noexcept {
     case UniOpVV::kCvtRoundF32ToI32  : return "v_cvt_round_f32_to_i32";
     case UniOpVV::kCvtRoundF64ToI32Lo: return "v_cvt_round_f64_to_i32_lo";
     case UniOpVV::kCvtRoundF64ToI32Hi: return "v_cvt_round_f64_to_i32_hi";
-
-    default:
-      ASMJIT_NOT_REACHED();
   }
+
+  ASMJIT_NOT_REACHED();
 }
 
 static VecOpInfo vec_op_info_vv(UniOpVV op) noexcept {
@@ -1936,8 +1945,14 @@ static VecOpInfo vec_op_info_vv(UniOpVV op) noexcept {
     case UniOpVV::kCvtI32HiToI64     : return VecOpInfo::make(VE::kInt64, VE::kInt32);
     case UniOpVV::kCvtU32LoToU64     : return VecOpInfo::make(VE::kUInt64, VE::kUInt32);
     case UniOpVV::kCvtU32HiToU64     : return VecOpInfo::make(VE::kUInt64, VE::kUInt32);
+    case UniOpVV::kAbsF32S           : return VecOpInfo::make(VE::kFloat32, VE::kFloat32);
+    case UniOpVV::kAbsF64S           : return VecOpInfo::make(VE::kFloat64, VE::kFloat64);
     case UniOpVV::kAbsF32            : return VecOpInfo::make(VE::kFloat32, VE::kFloat32);
     case UniOpVV::kAbsF64            : return VecOpInfo::make(VE::kFloat64, VE::kFloat64);
+    case UniOpVV::kNegF32S           : return VecOpInfo::make(VE::kFloat32, VE::kFloat32);
+    case UniOpVV::kNegF64S           : return VecOpInfo::make(VE::kFloat64, VE::kFloat64);
+    case UniOpVV::kNegF32            : return VecOpInfo::make(VE::kFloat32, VE::kFloat32);
+    case UniOpVV::kNegF64            : return VecOpInfo::make(VE::kFloat64, VE::kFloat64);
     case UniOpVV::kNotF32            : return VecOpInfo::make(VE::kUInt32, VE::kUInt32);
     case UniOpVV::kNotF64            : return VecOpInfo::make(VE::kUInt64, VE::kUInt64);
     case UniOpVV::kTruncF32S         : return VecOpInfo::make(VE::kFloat32, VE::kFloat32);
@@ -1952,10 +1967,14 @@ static VecOpInfo vec_op_info_vv(UniOpVV op) noexcept {
     case UniOpVV::kCeilF64S          : return VecOpInfo::make(VE::kFloat64, VE::kFloat64);
     case UniOpVV::kCeilF32           : return VecOpInfo::make(VE::kFloat32, VE::kFloat32);
     case UniOpVV::kCeilF64           : return VecOpInfo::make(VE::kFloat64, VE::kFloat64);
-    case UniOpVV::kRoundF32S         : return VecOpInfo::make(VE::kFloat32, VE::kFloat32);
-    case UniOpVV::kRoundF64S         : return VecOpInfo::make(VE::kFloat64, VE::kFloat64);
-    case UniOpVV::kRoundF32          : return VecOpInfo::make(VE::kFloat32, VE::kFloat32);
-    case UniOpVV::kRoundF64          : return VecOpInfo::make(VE::kFloat64, VE::kFloat64);
+    case UniOpVV::kRoundEvenF32S     : return VecOpInfo::make(VE::kFloat32, VE::kFloat32);
+    case UniOpVV::kRoundEvenF64S     : return VecOpInfo::make(VE::kFloat64, VE::kFloat64);
+    case UniOpVV::kRoundEvenF32      : return VecOpInfo::make(VE::kFloat32, VE::kFloat32);
+    case UniOpVV::kRoundEvenF64      : return VecOpInfo::make(VE::kFloat64, VE::kFloat64);
+    case UniOpVV::kRoundHalfUpF32S   : return VecOpInfo::make(VE::kFloat32, VE::kFloat32);
+    case UniOpVV::kRoundHalfUpF64S   : return VecOpInfo::make(VE::kFloat64, VE::kFloat64);
+    case UniOpVV::kRoundHalfUpF32    : return VecOpInfo::make(VE::kFloat32, VE::kFloat32);
+    case UniOpVV::kRoundHalfUpF64    : return VecOpInfo::make(VE::kFloat64, VE::kFloat64);
     case UniOpVV::kRcpF32            : return VecOpInfo::make(VE::kFloat32, VE::kFloat32);
     case UniOpVV::kRcpF64            : return VecOpInfo::make(VE::kFloat64, VE::kFloat64);
     case UniOpVV::kSqrtF32S          : return VecOpInfo::make(VE::kFloat32, VE::kFloat32);
@@ -1977,10 +1996,9 @@ static VecOpInfo vec_op_info_vv(UniOpVV op) noexcept {
     case UniOpVV::kCvtRoundF32ToI32  : return VecOpInfo::make(VE::kInt32, VE::kFloat32);
     case UniOpVV::kCvtRoundF64ToI32Lo: return VecOpInfo::make(VE::kInt32, VE::kFloat64);
     case UniOpVV::kCvtRoundF64ToI32Hi: return VecOpInfo::make(VE::kInt32, VE::kFloat64);
-
-    default:
-      ASMJIT_NOT_REACHED();
   }
+
+  ASMJIT_NOT_REACHED();
 }
 
 static const char* vec_op_name_vvi(UniOpVVI op) noexcept {
@@ -2030,43 +2048,48 @@ static const char* vec_op_name_vvi(UniOpVVI op) noexcept {
     case UniOpVVI::kSrlnHiU32      : return "v_srln_hi_u32";
     case UniOpVVI::kSrlnLoU64      : return "v_srln_lo_u64";
     case UniOpVVI::kSrlnHiU64      : return "v_srln_hi_u64";
+    case UniOpVVI::kSrlnRndLoU16   : return "v_srln_rnd_lo_u16";
+    case UniOpVVI::kSrlnRndHiU16   : return "v_srln_rnd_hi_u16";
+    case UniOpVVI::kSrlnRndLoU32   : return "v_srln_rnd_lo_u32";
+    case UniOpVVI::kSrlnRndHiU32   : return "v_srln_rnd_hi_u32";
+    case UniOpVVI::kSrlnRndLoU64   : return "v_srln_rnd_lo_u64";
+    case UniOpVVI::kSrlnRndHiU64   : return "v_srln_rnd_hi_u64";
 #endif // ASMJIT_UJIT_AARCH64
-
-    default:
-      ASMJIT_NOT_REACHED();
   }
+
+  ASMJIT_NOT_REACHED();
 }
 
 static VecOpInfo vec_op_info_vvi(UniOpVVI op) noexcept {
   using VE = VecElementType;
 
   switch (op) {
-    case UniOpVVI::kSllU16         : return VecOpInfo::make(VE::kUInt16, VE::kUInt16);
-    case UniOpVVI::kSllU32         : return VecOpInfo::make(VE::kUInt32, VE::kUInt32);
-    case UniOpVVI::kSllU64         : return VecOpInfo::make(VE::kUInt64, VE::kUInt64);
-    case UniOpVVI::kSrlU16         : return VecOpInfo::make(VE::kUInt16, VE::kUInt16);
-    case UniOpVVI::kSrlU32         : return VecOpInfo::make(VE::kUInt32, VE::kUInt32);
-    case UniOpVVI::kSrlU64         : return VecOpInfo::make(VE::kUInt64, VE::kUInt64);
-    case UniOpVVI::kSraI16         : return VecOpInfo::make(VE::kInt16, VE::kInt16);
-    case UniOpVVI::kSraI32         : return VecOpInfo::make(VE::kInt32, VE::kInt32);
-    case UniOpVVI::kSraI64         : return VecOpInfo::make(VE::kInt64, VE::kInt64);
-    case UniOpVVI::kSllbU128       : return VecOpInfo::make(VE::kUInt8, VE::kUInt8);
-    case UniOpVVI::kSrlbU128       : return VecOpInfo::make(VE::kUInt8, VE::kUInt8);
-    case UniOpVVI::kSwizzleU16x4   : return VecOpInfo::make(VE::kUInt16, VE::kUInt16);
-    case UniOpVVI::kSwizzleLoU16x4 : return VecOpInfo::make(VE::kUInt16, VE::kUInt16);
-    case UniOpVVI::kSwizzleHiU16x4 : return VecOpInfo::make(VE::kUInt16, VE::kUInt16);
-    case UniOpVVI::kSwizzleU32x4   : return VecOpInfo::make(VE::kUInt32, VE::kUInt32);
-    case UniOpVVI::kSwizzleU64x2   : return VecOpInfo::make(VE::kUInt64, VE::kUInt64);
+    case UniOpVVI::kSllU16         : return VecOpInfo::make(VE::kUInt16 , VE::kUInt16);
+    case UniOpVVI::kSllU32         : return VecOpInfo::make(VE::kUInt32 , VE::kUInt32);
+    case UniOpVVI::kSllU64         : return VecOpInfo::make(VE::kUInt64 , VE::kUInt64);
+    case UniOpVVI::kSrlU16         : return VecOpInfo::make(VE::kUInt16 , VE::kUInt16);
+    case UniOpVVI::kSrlU32         : return VecOpInfo::make(VE::kUInt32 , VE::kUInt32);
+    case UniOpVVI::kSrlU64         : return VecOpInfo::make(VE::kUInt64 , VE::kUInt64);
+    case UniOpVVI::kSraI16         : return VecOpInfo::make(VE::kInt16  , VE::kInt16);
+    case UniOpVVI::kSraI32         : return VecOpInfo::make(VE::kInt32  , VE::kInt32);
+    case UniOpVVI::kSraI64         : return VecOpInfo::make(VE::kInt64  , VE::kInt64);
+    case UniOpVVI::kSllbU128       : return VecOpInfo::make(VE::kUInt8  , VE::kUInt8);
+    case UniOpVVI::kSrlbU128       : return VecOpInfo::make(VE::kUInt8  , VE::kUInt8);
+    case UniOpVVI::kSwizzleU16x4   : return VecOpInfo::make(VE::kUInt16 , VE::kUInt16);
+    case UniOpVVI::kSwizzleLoU16x4 : return VecOpInfo::make(VE::kUInt16 , VE::kUInt16);
+    case UniOpVVI::kSwizzleHiU16x4 : return VecOpInfo::make(VE::kUInt16 , VE::kUInt16);
+    case UniOpVVI::kSwizzleU32x4   : return VecOpInfo::make(VE::kUInt32 , VE::kUInt32);
+    case UniOpVVI::kSwizzleU64x2   : return VecOpInfo::make(VE::kUInt64 , VE::kUInt64);
     case UniOpVVI::kSwizzleF32x4   : return VecOpInfo::make(VE::kFloat32, VE::kFloat32);
     case UniOpVVI::kSwizzleF64x2   : return VecOpInfo::make(VE::kFloat64, VE::kFloat64);
-    case UniOpVVI::kSwizzleU64x4   : return VecOpInfo::make(VE::kUInt64, VE::kUInt64);
+    case UniOpVVI::kSwizzleU64x4   : return VecOpInfo::make(VE::kUInt64 , VE::kUInt64);
     case UniOpVVI::kSwizzleF64x4   : return VecOpInfo::make(VE::kFloat64, VE::kFloat64);
-    case UniOpVVI::kExtractV128_I32: return VecOpInfo::make(VE::kInt32, VE::kInt32);
-    case UniOpVVI::kExtractV128_I64: return VecOpInfo::make(VE::kInt64, VE::kInt64);
+    case UniOpVVI::kExtractV128_I32: return VecOpInfo::make(VE::kInt32  , VE::kInt32);
+    case UniOpVVI::kExtractV128_I64: return VecOpInfo::make(VE::kInt64  , VE::kInt64);
     case UniOpVVI::kExtractV128_F32: return VecOpInfo::make(VE::kFloat32, VE::kFloat32);
     case UniOpVVI::kExtractV128_F64: return VecOpInfo::make(VE::kFloat64, VE::kFloat64);
-    case UniOpVVI::kExtractV256_I32: return VecOpInfo::make(VE::kUInt32, VE::kUInt32);
-    case UniOpVVI::kExtractV256_I64: return VecOpInfo::make(VE::kUInt64, VE::kUInt64);
+    case UniOpVVI::kExtractV256_I32: return VecOpInfo::make(VE::kUInt32 , VE::kUInt32);
+    case UniOpVVI::kExtractV256_I64: return VecOpInfo::make(VE::kUInt64 , VE::kUInt64);
     case UniOpVVI::kExtractV256_F32: return VecOpInfo::make(VE::kFloat32, VE::kFloat32);
     case UniOpVVI::kExtractV256_F64: return VecOpInfo::make(VE::kFloat64, VE::kFloat64);
 
@@ -2086,11 +2109,16 @@ static VecOpInfo vec_op_info_vvi(UniOpVVI op) noexcept {
     case UniOpVVI::kSrlnHiU32      : return VecOpInfo::make(VE::kUInt16, VE::kUInt16);
     case UniOpVVI::kSrlnLoU64      : return VecOpInfo::make(VE::kUInt32, VE::kUInt32);
     case UniOpVVI::kSrlnHiU64      : return VecOpInfo::make(VE::kUInt64, VE::kUInt64);
+    case UniOpVVI::kSrlnRndLoU16   : return VecOpInfo::make(VE::kUInt8 , VE::kUInt16);
+    case UniOpVVI::kSrlnRndHiU16   : return VecOpInfo::make(VE::kUInt8 , VE::kUInt16);
+    case UniOpVVI::kSrlnRndLoU32   : return VecOpInfo::make(VE::kUInt16, VE::kUInt32);
+    case UniOpVVI::kSrlnRndHiU32   : return VecOpInfo::make(VE::kUInt16, VE::kUInt32);
+    case UniOpVVI::kSrlnRndLoU64   : return VecOpInfo::make(VE::kUInt32, VE::kUInt64);
+    case UniOpVVI::kSrlnRndHiU64   : return VecOpInfo::make(VE::kUInt32, VE::kUInt64);
 #endif // ASMJIT_UJIT_AARCH64
-
-    default:
-      ASMJIT_NOT_REACHED();
   }
+
+  ASMJIT_NOT_REACHED();
 }
 
 static const char* vec_op_name_vvv(UniOpVVV op) noexcept {
@@ -2208,6 +2236,10 @@ static const char* vec_op_name_vvv(UniOpVVV op) noexcept {
     case UniOpVVV::kDivF64S        : return "v_div_f64s";
     case UniOpVVV::kDivF32         : return "v_div_f32";
     case UniOpVVV::kDivF64         : return "v_div_f64";
+    case UniOpVVV::kModF32S        : return "v_mod_f32s";
+    case UniOpVVV::kModF64S        : return "v_mod_f64s";
+    case UniOpVVV::kModF32         : return "v_mod_f32";
+    case UniOpVVV::kModF64         : return "v_mod_f64";
     case UniOpVVV::kMinF32S        : return "v_min_f32s";
     case UniOpVVV::kMinF64S        : return "v_min_f64s";
     case UniOpVVV::kMinF32         : return "v_min_f32";
@@ -2298,9 +2330,15 @@ static const char* vec_op_name_vvv(UniOpVVV op) noexcept {
     case UniOpVVV::kMAddwHiU32     : return "v_maddw_hi_u32";
 #endif // ASMJIT_UJIT_AARCH64
 
-    default:
-      ASMJIT_NOT_REACHED();
+#if defined(ASMJIT_UJIT_X86)
+    case UniOpVVV::kPermuteU8       : return "v_permute_u8";
+    case UniOpVVV::kPermuteU16      : return "v_permute_u16";
+    case UniOpVVV::kPermuteU32      : return "v_permute_u32";
+    case UniOpVVV::kPermuteU64      : return "v_permute_u64";
+#endif // ASMJIT_UJIT_X86
   }
+
+  ASMJIT_NOT_REACHED();
 }
 
 static VecOpInfo vec_op_info_vvv(UniOpVVV op) noexcept {
@@ -2420,6 +2458,10 @@ static VecOpInfo vec_op_info_vvv(UniOpVVV op) noexcept {
     case UniOpVVV::kDivF64S        : return VecOpInfo::make(VE::kFloat64, VE::kFloat64, VE::kFloat64);
     case UniOpVVV::kDivF32         : return VecOpInfo::make(VE::kFloat32, VE::kFloat32, VE::kFloat32);
     case UniOpVVV::kDivF64         : return VecOpInfo::make(VE::kFloat64, VE::kFloat64, VE::kFloat64);
+    case UniOpVVV::kModF32S        : return VecOpInfo::make(VE::kFloat32, VE::kFloat32, VE::kFloat32);
+    case UniOpVVV::kModF64S        : return VecOpInfo::make(VE::kFloat64, VE::kFloat64, VE::kFloat64);
+    case UniOpVVV::kModF32         : return VecOpInfo::make(VE::kFloat32, VE::kFloat32, VE::kFloat32);
+    case UniOpVVV::kModF64         : return VecOpInfo::make(VE::kFloat64, VE::kFloat64, VE::kFloat64);
     case UniOpVVV::kMinF32S        : return VecOpInfo::make(VE::kFloat32, VE::kFloat32, VE::kFloat32);
     case UniOpVVV::kMinF64S        : return VecOpInfo::make(VE::kFloat64, VE::kFloat64, VE::kFloat64);
     case UniOpVVV::kMinF32         : return VecOpInfo::make(VE::kFloat32, VE::kFloat32, VE::kFloat32);
@@ -2510,9 +2552,15 @@ static VecOpInfo vec_op_info_vvv(UniOpVVV op) noexcept {
     case UniOpVVV::kMAddwHiU32     : return VecOpInfo::make(VE::kUInt64, VE::kUInt32, VE::kUInt32);
 #endif // ASMJIT_UJIT_AARCH64
 
-    default:
-      ASMJIT_NOT_REACHED();
+#if defined(ASMJIT_UJIT_X86)
+    case UniOpVVV::kPermuteU8      : return VecOpInfo::make(VE::kUInt8, VE::kUInt8, VE::kUInt8);
+    case UniOpVVV::kPermuteU16     : return VecOpInfo::make(VE::kUInt16, VE::kUInt16, VE::kUInt16);
+    case UniOpVVV::kPermuteU32     : return VecOpInfo::make(VE::kUInt32, VE::kUInt32, VE::kUInt32);
+    case UniOpVVV::kPermuteU64     : return VecOpInfo::make(VE::kUInt64, VE::kUInt64, VE::kUInt64);
+#endif // ASMJIT_UJIT_X86
   }
+
+  ASMJIT_NOT_REACHED();
 }
 
 static const char* vec_op_name_vvvi(UniOpVVVI op) noexcept {
@@ -2530,10 +2578,9 @@ static const char* vec_op_name_vvvi(UniOpVVVI op) noexcept {
     case UniOpVVVI::kInsertV256_F32        : return "v_insert_v256_f32";
     case UniOpVVVI::kInsertV256_U64        : return "v_insert_v256_u64";
     case UniOpVVVI::kInsertV256_F64        : return "v_insert_v256_f64";
-
-    default:
-      ASMJIT_NOT_REACHED();
   }
+
+  ASMJIT_NOT_REACHED();
 }
 
 static VecOpInfo vec_op_info_vvvi(UniOpVVVI op) noexcept {
@@ -2580,10 +2627,9 @@ static const char* vec_op_name_vvvv(UniOpVVVV op) noexcept {
     case UniOpVVVV::kNMSubF64S: return "v_nmsub_f64s";
     case UniOpVVVV::kNMSubF32 : return "v_nmsub_f32";
     case UniOpVVVV::kNMSubF64 : return "v_nmsub_f64";
-
-    default:
-      ASMJIT_NOT_REACHED();
   }
+
+  ASMJIT_NOT_REACHED();
 }
 
 static VecOpInfo vec_op_info_vvvv(UniOpVVVV op) noexcept {
@@ -2609,49 +2655,55 @@ static VecOpInfo vec_op_info_vvvv(UniOpVVVV op) noexcept {
     case UniOpVVVV::kNMSubF64S: return VecOpInfo::make(VE::kFloat64, VE::kFloat64, VE::kFloat64, VE::kFloat64);
     case UniOpVVVV::kNMSubF32 : return VecOpInfo::make(VE::kFloat32, VE::kFloat32, VE::kFloat32, VE::kFloat32);
     case UniOpVVVV::kNMSubF64 : return VecOpInfo::make(VE::kFloat64, VE::kFloat64, VE::kFloat64, VE::kFloat64);
-
-    default:
-      ASMJIT_NOT_REACHED();
   }
+
+  ASMJIT_NOT_REACHED();
 }
 
 // ujit::UniCompiler - Tests - SIMD - Float To Int - Machine Behavior
 // ==================================================================
 
-#if defined(ASMJIT_UJIT_X86)
-static ASMJIT_INLINE_NODEBUG int32_t cvt_non_finite_f32_to_i32([[maybe_unused]] float x) noexcept { return INT32_MIN; }
-static ASMJIT_INLINE_NODEBUG int32_t cvt_non_finite_f64_to_i32([[maybe_unused]] double x) noexcept { return INT32_MIN; }
-#endif // ASMJIT_UJIT_X86
+template<FloatToIntOutsideRangeBehavior behavior, typename IntT, typename FloatT>
+static ASMJIT_INLINE_NODEBUG int32_t cvt_float_to_int_trunc(const FloatT& x) noexcept {
+  constexpr IntT min_value = std::numeric_limits<IntT>::lowest();
+  constexpr IntT max_value = std::numeric_limits<IntT>::max();
+  constexpr IntT zero = IntT(0);
 
-#if defined(ASMJIT_UJIT_AARCH64)
-static constexpr int32_t kPInfToInt32 = INT32_MAX;
-static constexpr int32_t kNInfToInt32 = INT32_MIN;
-static constexpr int32_t kNaNToInt32 = 0;
+  if (std::isnan(x)) {
+    return behavior == FloatToIntOutsideRangeBehavior::kSmallestValue ? min_value : zero;
+  }
 
-static ASMJIT_INLINE_NODEBUG int32_t cvt_non_finite_f32_to_i32(float x) noexcept {
-  if (x == std::numeric_limits<float>::infinity()) {
-    return kPInfToInt32;
+  if (x < FloatT(min_value)) {
+    return min_value;
   }
-  else if (x == -std::numeric_limits<float>::infinity()) {
-    return kNInfToInt32;
+
+  if (x > FloatT(max_value)) {
+    return behavior == FloatToIntOutsideRangeBehavior::kSmallestValue ? min_value : max_value;
   }
-  else {
-    return kNaNToInt32;
-  }
+
+  return IntT(x);
 }
 
-static ASMJIT_INLINE_NODEBUG int32_t cvt_non_finite_f64_to_i32(double x) noexcept {
-  if (x == std::numeric_limits<double>::infinity()) {
-    return kPInfToInt32;
+template<FloatToIntOutsideRangeBehavior behavior, typename IntT, typename FloatT>
+static ASMJIT_INLINE_NODEBUG int32_t cvt_float_to_int_round(const FloatT& x) noexcept {
+  constexpr IntT min_value = std::numeric_limits<IntT>::lowest();
+  constexpr IntT max_value = std::numeric_limits<IntT>::max();
+  constexpr IntT zero = IntT(0);
+
+  if (std::isnan(x)) {
+    return behavior == FloatToIntOutsideRangeBehavior::kSmallestValue ? min_value : zero;
   }
-  else if (x == -std::numeric_limits<double>::infinity()) {
-    return kNInfToInt32;
+
+  if (x < FloatT(min_value)) {
+    return min_value;
   }
-  else {
-    return kNaNToInt32;
+
+  if (x > FloatT(max_value)) {
+    return behavior == FloatToIntOutsideRangeBehavior::kSmallestValue ? min_value : max_value;
   }
+
+  return IntT(std::nearbyint(x));
 }
-#endif // ASMJIT_UJIT_AARCH64
 
 // ujit::UniCompiler - Tests - SIMD - Data Generators & Constraints
 // ================================================================
@@ -2799,6 +2851,7 @@ public:
       case  66: return 0.1;
       case  69: return 0.2;
       case  79: return 0.3;
+      case  80: return 4503599627370495.5;
       case  99: return -std::numeric_limits<double>::infinity();
       case 100:
       case 102:
@@ -2813,6 +2866,7 @@ public:
       case 122: return 10.3;
       case 123: return 20.3;
       case 124: return -100.3;
+      case 125: return 4503599627370496.0;
       case 127: return 1.3;
       case 130: return std::numeric_limits<double>::quiet_NaN();
       case 135: return -std::numeric_limits<double>::infinity();
@@ -2824,6 +2878,7 @@ public:
       case 165: return -0.5;
       case 175: return -1.0;
       case 245: return 2.5;
+      case 248: return -4503599627370495.5;
 
       default: {
         double sign = rng.next_uint32() < 0x7FFFFFF ? 1.0 : -1.0;
@@ -3326,8 +3381,12 @@ template<typename T> struct vec_op_ceil : public op_each_vv<T, vec_op_ceil<T>> {
   static ASMJIT_INLINE_NODEBUG T apply_one(const T& a) noexcept { return std::ceil(a); }
 };
 
-template<typename T> struct vec_op_round : public op_each_vv<T, vec_op_round<T>> {
+template<typename T> struct vec_op_round_even : public op_each_vv<T, vec_op_round_even<T>> {
   static ASMJIT_INLINE_NODEBUG T apply_one(const T& a) noexcept { return std::nearbyint(a); }
+};
+
+template<typename T> struct vec_op_round_half_up : public op_each_vv<T, vec_op_round_half_up<T>> {
+  static ASMJIT_INLINE_NODEBUG T apply_one(const T& a) noexcept { return std::floor(a + T(0.5)); }
 };
 
 template<typename T> struct vec_op_sqrt : public op_each_vv<T, vec_op_sqrt<T>> {
@@ -3403,130 +3462,74 @@ struct vec_op_cvt_i32_to_f64_impl {
 struct vec_op_cvt_i32_lo_to_f64 : public vec_op_cvt_i32_to_f64_impl<false> {};
 struct vec_op_cvt_i32_hi_to_f64 : public vec_op_cvt_i32_to_f64_impl<true> {};
 
+template<FloatToIntOutsideRangeBehavior behavior>
 struct vec_op_cvt_trunc_f32_to_i32 {
-  static ASMJIT_INLINE int32_t cvt(float val) noexcept {
-    if (!std::isfinite(val))
-      return cvt_non_finite_f32_to_i32(val);
-
-    if (val <= float(INT32_MIN)) {
-      return INT32_MIN;
-    }
-    else if (val >= float(INT32_MAX)) {
-      return INT32_MAX;
-    }
-    else {
-      return int32_t(val);
-    }
-  }
-
   template<uint32_t kW>
   static ASMJIT_INLINE VecOverlay<kW> apply(const VecOverlay<kW>& a) noexcept {
     VecOverlay<kW> out{};
     for (uint32_t off = 0; off < kW; off += 16) {
-      out.data_i32[off / 4 + 0] = cvt(a.data_f32[off / 4 + 0]);
-      out.data_i32[off / 4 + 1] = cvt(a.data_f32[off / 4 + 1]);
-      out.data_i32[off / 4 + 2] = cvt(a.data_f32[off / 4 + 2]);
-      out.data_i32[off / 4 + 3] = cvt(a.data_f32[off / 4 + 3]);
+      out.data_i32[off / 4 + 0] = cvt_float_to_int_trunc<behavior, int32_t>(a.data_f32[off / 4 + 0]);
+      out.data_i32[off / 4 + 1] = cvt_float_to_int_trunc<behavior, int32_t>(a.data_f32[off / 4 + 1]);
+      out.data_i32[off / 4 + 2] = cvt_float_to_int_trunc<behavior, int32_t>(a.data_f32[off / 4 + 2]);
+      out.data_i32[off / 4 + 3] = cvt_float_to_int_trunc<behavior, int32_t>(a.data_f32[off / 4 + 3]);
     }
     return out;
   }
 };
 
-template<bool kHi>
+template<FloatToIntOutsideRangeBehavior behavior, bool kHi>
 struct vec_op_cvt_trunc_f64_to_i32_impl {
-  static ASMJIT_INLINE int32_t cvt(double val) noexcept {
-    if (!std::isfinite(val)) {
-      return cvt_non_finite_f64_to_i32(val);
-    }
-
-    if (val <= double(INT32_MIN)) {
-      return INT32_MIN;
-    }
-    else if (val >= double(INT32_MAX)) {
-      return INT32_MAX;
-    }
-    else {
-      return int32_t(val);
-    }
-  }
-
   template<uint32_t kW>
   static ASMJIT_INLINE VecOverlay<kW> apply(const VecOverlay<kW>& a) noexcept {
     VecOverlay<kW> out{};
     uint32_t adj = kHi ? kW / 8 : 0u;
     for (uint32_t off = 0; off < kW; off += 16) {
-      out.data_i32[off / 8 + adj + 0] = cvt(a.data_f64[off / 8 + 0]);
-      out.data_i32[off / 8 + adj + 1] = cvt(a.data_f64[off / 8 + 1]);
+      out.data_i32[off / 8 + adj + 0] = cvt_float_to_int_trunc<behavior, int32_t>(a.data_f64[off / 8 + 0]);
+      out.data_i32[off / 8 + adj + 1] = cvt_float_to_int_trunc<behavior, int32_t>(a.data_f64[off / 8 + 1]);
     }
     return out;
   }
 };
 
-struct vec_op_cvt_trunc_f64_to_i32_lo : vec_op_cvt_trunc_f64_to_i32_impl<false> {};
-struct vec_op_cvt_trunc_f64_to_i32_hi : vec_op_cvt_trunc_f64_to_i32_impl<true> {};
+template<FloatToIntOutsideRangeBehavior behavior>
+struct vec_op_cvt_trunc_f64_to_i32_lo : vec_op_cvt_trunc_f64_to_i32_impl<behavior, false> {};
 
+template<FloatToIntOutsideRangeBehavior behavior>
+struct vec_op_cvt_trunc_f64_to_i32_hi : vec_op_cvt_trunc_f64_to_i32_impl<behavior, true> {};
+
+template<FloatToIntOutsideRangeBehavior behavior>
 struct vec_op_cvt_round_f32_to_i32 {
-  static ASMJIT_INLINE int32_t cvt(float val) noexcept {
-    if (!std::isfinite(val)) {
-      return cvt_non_finite_f32_to_i32(val);
-    }
-
-    if (val <= float(INT32_MIN)) {
-      return INT32_MIN;
-    }
-    else if (val >= float(INT32_MAX)) {
-      return INT32_MAX;
-    }
-    else {
-      return static_cast<int32_t>(std::nearbyint(val));
-    }
-  }
-
   template<uint32_t kW>
   static ASMJIT_INLINE VecOverlay<kW> apply(const VecOverlay<kW>& a) noexcept {
     VecOverlay<kW> out{};
     for (uint32_t off = 0; off < kW; off += 16) {
-      out.data_i32[off / 4 + 0] = cvt(a.data_f32[off / 4 + 0]);
-      out.data_i32[off / 4 + 1] = cvt(a.data_f32[off / 4 + 1]);
-      out.data_i32[off / 4 + 2] = cvt(a.data_f32[off / 4 + 2]);
-      out.data_i32[off / 4 + 3] = cvt(a.data_f32[off / 4 + 3]);
+      out.data_i32[off / 4 + 0] = cvt_float_to_int_round<behavior, int32_t>(a.data_f32[off / 4 + 0]);
+      out.data_i32[off / 4 + 1] = cvt_float_to_int_round<behavior, int32_t>(a.data_f32[off / 4 + 1]);
+      out.data_i32[off / 4 + 2] = cvt_float_to_int_round<behavior, int32_t>(a.data_f32[off / 4 + 2]);
+      out.data_i32[off / 4 + 3] = cvt_float_to_int_round<behavior, int32_t>(a.data_f32[off / 4 + 3]);
     }
     return out;
   }
 };
 
-template<bool kHi>
+template<FloatToIntOutsideRangeBehavior behavior, bool kHi>
 struct vec_op_cvt_round_f64_to_i32_impl {
-  static ASMJIT_INLINE int32_t cvt(double val) noexcept {
-    if (!std::isfinite(val)) {
-      return cvt_non_finite_f64_to_i32(val);
-    }
-
-    if (val <= double(INT32_MIN)) {
-      return INT32_MIN;
-    }
-    else if (val >= double(INT32_MAX)) {
-      return INT32_MAX;
-    }
-    else {
-      return static_cast<int32_t>(std::nearbyint(val));
-    }
-  }
-
   template<uint32_t kW>
   static ASMJIT_INLINE VecOverlay<kW> apply(const VecOverlay<kW>& a) noexcept {
     VecOverlay<kW> out{};
     uint32_t adj = kHi ? kW / 8 : 0u;
     for (uint32_t off = 0; off < kW; off += 16) {
-      out.data_i32[off / 8 + adj + 0] = cvt(a.data_f64[off / 8 + 0]);
-      out.data_i32[off / 8 + adj + 1] = cvt(a.data_f64[off / 8 + 1]);
+      out.data_i32[off / 8 + adj + 0] = cvt_float_to_int_round<behavior, int32_t>(a.data_f64[off / 8 + 0]);
+      out.data_i32[off / 8 + adj + 1] = cvt_float_to_int_round<behavior, int32_t>(a.data_f64[off / 8 + 1]);
     }
     return out;
   }
 };
 
-struct vec_op_cvt_round_f64_to_i32_lo : vec_op_cvt_round_f64_to_i32_impl<false> {};
-struct vec_op_cvt_round_f64_to_i32_hi : vec_op_cvt_round_f64_to_i32_impl<true> {};
+template<FloatToIntOutsideRangeBehavior behavior>
+struct vec_op_cvt_round_f64_to_i32_lo : vec_op_cvt_round_f64_to_i32_impl<behavior, false> {};
+template<FloatToIntOutsideRangeBehavior behavior>
+struct vec_op_cvt_round_f64_to_i32_hi : vec_op_cvt_round_f64_to_i32_impl<behavior, true> {};
 
 struct scalar_op_cvt_f32_to_f64 {
   template<uint32_t kW>
@@ -3558,8 +3561,12 @@ template<ScalarOpBehavior kB, typename T> struct scalar_op_ceil : public op_scal
   static ASMJIT_INLINE_NODEBUG T apply_one(const T& a) noexcept { return std::ceil(a); }
 };
 
-template<ScalarOpBehavior kB, typename T> struct scalar_op_round : public op_scalar_vv<kB, T, scalar_op_round<kB, T>> {
+template<ScalarOpBehavior kB, typename T> struct scalar_op_round_even : public op_scalar_vv<kB, T, scalar_op_round_even<kB, T>> {
   static ASMJIT_INLINE_NODEBUG T apply_one(const T& a) noexcept { return std::nearbyint(a); }
+};
+
+template<ScalarOpBehavior kB, typename T> struct scalar_op_round_half_up : public op_scalar_vv<kB, T, scalar_op_round_half_up<kB, T>> {
+  static ASMJIT_INLINE_NODEBUG T apply_one(const T& a) noexcept { return std::floor(a + T(0.5)); }
 };
 
 template<ScalarOpBehavior kB, typename T> struct scalar_op_sqrt : public op_scalar_vv<kB, T, scalar_op_sqrt<kB, T>> {
@@ -4715,15 +4722,17 @@ template<VecWidth kVecWidth>
 static ASMJIT_NOINLINE void test_simd_ops(JitContext& ctx) noexcept {
   // We need to know some behaviors in advance so we can select the right test function,
   // so create a dummy compiler and extract the necessary information from it.
-  ScalarOpBehavior scalar_op_behavior;
-  FMAddOpBehavior fmadd_op_behavior;
+  ScalarOpBehavior scalar_op_behavior {};
+  FMAddOpBehavior fmadd_op_behavior {};
+  FloatToIntOutsideRangeBehavior float_to_int_behavior {};
 
   {
     ctx.prepare();
-    UniCompiler pc(&ctx.cc, ctx.features, ctx.opt_flags);
+    UniCompiler pc(&ctx.cc, ctx.features, ctx.cpu_hints);
 
     scalar_op_behavior = pc.scalar_op_behavior();
     fmadd_op_behavior = pc.fmadd_op_behavior();
+    float_to_int_behavior = pc.float_to_int_outside_range_behavior();
   }
 
   bool valgrind_fma_bug = false;
@@ -4843,8 +4852,10 @@ static ASMJIT_NOINLINE void test_simd_ops(JitContext& ctx) noexcept {
         test_vecop_vv<kVecWidth, UniOpVV::kFloorF64S, scalar_op_floor<ScalarOpBehavior::kZeroing, double>>(ctx, Variation{v});
         test_vecop_vv<kVecWidth, UniOpVV::kCeilF32S, scalar_op_ceil<ScalarOpBehavior::kZeroing, float>>(ctx, Variation{v});
         test_vecop_vv<kVecWidth, UniOpVV::kCeilF64S, scalar_op_ceil<ScalarOpBehavior::kZeroing, double>>(ctx, Variation{v});
-        test_vecop_vv<kVecWidth, UniOpVV::kRoundF32S, scalar_op_round<ScalarOpBehavior::kZeroing, float>>(ctx, Variation{v});
-        test_vecop_vv<kVecWidth, UniOpVV::kRoundF64S, scalar_op_round<ScalarOpBehavior::kZeroing, double>>(ctx, Variation{v});
+        test_vecop_vv<kVecWidth, UniOpVV::kRoundEvenF32S, scalar_op_round_even<ScalarOpBehavior::kZeroing, float>>(ctx, Variation{v});
+        test_vecop_vv<kVecWidth, UniOpVV::kRoundEvenF64S, scalar_op_round_even<ScalarOpBehavior::kZeroing, double>>(ctx, Variation{v});
+        test_vecop_vv<kVecWidth, UniOpVV::kRoundHalfUpF32S, scalar_op_round_half_up<ScalarOpBehavior::kZeroing, float>>(ctx, Variation{v});
+        test_vecop_vv<kVecWidth, UniOpVV::kRoundHalfUpF64S, scalar_op_round_half_up<ScalarOpBehavior::kZeroing, double>>(ctx, Variation{v});
       }
       else {
         test_vecop_vv<kVecWidth, UniOpVV::kTruncF32S, scalar_op_trunc<ScalarOpBehavior::kPreservingVec128, float>>(ctx, Variation{v});
@@ -4853,8 +4864,10 @@ static ASMJIT_NOINLINE void test_simd_ops(JitContext& ctx) noexcept {
         test_vecop_vv<kVecWidth, UniOpVV::kFloorF64S, scalar_op_floor<ScalarOpBehavior::kPreservingVec128, double>>(ctx, Variation{v});
         test_vecop_vv<kVecWidth, UniOpVV::kCeilF32S, scalar_op_ceil<ScalarOpBehavior::kPreservingVec128, float>>(ctx, Variation{v});
         test_vecop_vv<kVecWidth, UniOpVV::kCeilF64S, scalar_op_ceil<ScalarOpBehavior::kPreservingVec128, double>>(ctx, Variation{v});
-        test_vecop_vv<kVecWidth, UniOpVV::kRoundF32S, scalar_op_round<ScalarOpBehavior::kPreservingVec128, float>>(ctx, Variation{v});
-        test_vecop_vv<kVecWidth, UniOpVV::kRoundF64S, scalar_op_round<ScalarOpBehavior::kPreservingVec128, double>>(ctx, Variation{v});
+        test_vecop_vv<kVecWidth, UniOpVV::kRoundEvenF32S, scalar_op_round_even<ScalarOpBehavior::kPreservingVec128, float>>(ctx, Variation{v});
+        test_vecop_vv<kVecWidth, UniOpVV::kRoundEvenF64S, scalar_op_round_even<ScalarOpBehavior::kPreservingVec128, double>>(ctx, Variation{v});
+        test_vecop_vv<kVecWidth, UniOpVV::kRoundHalfUpF32S, scalar_op_round_half_up<ScalarOpBehavior::kPreservingVec128, float>>(ctx, Variation{v});
+        test_vecop_vv<kVecWidth, UniOpVV::kRoundHalfUpF64S, scalar_op_round_half_up<ScalarOpBehavior::kPreservingVec128, double>>(ctx, Variation{v});
       }
 
       test_vecop_vv<kVecWidth, UniOpVV::kTruncF32, vec_op_trunc<float>>(ctx, Variation{v});
@@ -4863,8 +4876,10 @@ static ASMJIT_NOINLINE void test_simd_ops(JitContext& ctx) noexcept {
       test_vecop_vv<kVecWidth, UniOpVV::kFloorF64, vec_op_floor<double>>(ctx, Variation{v});
       test_vecop_vv<kVecWidth, UniOpVV::kCeilF32, vec_op_ceil<float>>(ctx, Variation{v});
       test_vecop_vv<kVecWidth, UniOpVV::kCeilF64, vec_op_ceil<double>>(ctx, Variation{v});
-      test_vecop_vv<kVecWidth, UniOpVV::kRoundF32, vec_op_round<float>>(ctx, Variation{v});
-      test_vecop_vv<kVecWidth, UniOpVV::kRoundF64, vec_op_round<double>>(ctx, Variation{v});
+      test_vecop_vv<kVecWidth, UniOpVV::kRoundEvenF32, vec_op_round_even<float>>(ctx, Variation{v});
+      test_vecop_vv<kVecWidth, UniOpVV::kRoundEvenF64, vec_op_round_even<double>>(ctx, Variation{v});
+      test_vecop_vv<kVecWidth, UniOpVV::kRoundHalfUpF32, vec_op_round_half_up<float>>(ctx, Variation{v});
+      test_vecop_vv<kVecWidth, UniOpVV::kRoundHalfUpF64, vec_op_round_half_up<double>>(ctx, Variation{v});
     }
   }
 
@@ -4908,12 +4923,24 @@ static ASMJIT_NOINLINE void test_simd_ops(JitContext& ctx) noexcept {
       test_vecop_vv<kVecWidth, UniOpVV::kCvtI32LoToF64, vec_op_cvt_i32_lo_to_f64>(ctx, Variation{v});
       test_vecop_vv<kVecWidth, UniOpVV::kCvtI32HiToF64, vec_op_cvt_i32_hi_to_f64>(ctx, Variation{v});
 
-      test_vecop_vv<kVecWidth, UniOpVV::kCvtTruncF32ToI32, vec_op_cvt_trunc_f32_to_i32>(ctx, Variation{v});
-      test_vecop_vv<kVecWidth, UniOpVV::kCvtTruncF64ToI32Lo, vec_op_cvt_trunc_f64_to_i32_lo>(ctx, Variation{0});
-      test_vecop_vv<kVecWidth, UniOpVV::kCvtTruncF64ToI32Hi, vec_op_cvt_trunc_f64_to_i32_hi>(ctx, Variation{0});
-      test_vecop_vv<kVecWidth, UniOpVV::kCvtRoundF32ToI32, vec_op_cvt_round_f32_to_i32>(ctx, Variation{v});
-      test_vecop_vv<kVecWidth, UniOpVV::kCvtRoundF64ToI32Lo, vec_op_cvt_round_f64_to_i32_lo>(ctx, Variation{0});
-      test_vecop_vv<kVecWidth, UniOpVV::kCvtRoundF64ToI32Hi, vec_op_cvt_round_f64_to_i32_hi>(ctx, Variation{0});
+      if (float_to_int_behavior == FloatToIntOutsideRangeBehavior::kSmallestValue) {
+        constexpr FloatToIntOutsideRangeBehavior behavior = FloatToIntOutsideRangeBehavior::kSmallestValue;
+        test_vecop_vv<kVecWidth, UniOpVV::kCvtTruncF32ToI32, vec_op_cvt_trunc_f32_to_i32<behavior>>(ctx, Variation{v});
+        test_vecop_vv<kVecWidth, UniOpVV::kCvtTruncF64ToI32Lo, vec_op_cvt_trunc_f64_to_i32_lo<behavior>>(ctx, Variation{0});
+        test_vecop_vv<kVecWidth, UniOpVV::kCvtTruncF64ToI32Hi, vec_op_cvt_trunc_f64_to_i32_hi<behavior>>(ctx, Variation{0});
+        test_vecop_vv<kVecWidth, UniOpVV::kCvtRoundF32ToI32, vec_op_cvt_round_f32_to_i32<behavior>>(ctx, Variation{v});
+        test_vecop_vv<kVecWidth, UniOpVV::kCvtRoundF64ToI32Lo, vec_op_cvt_round_f64_to_i32_lo<behavior>>(ctx, Variation{0});
+        test_vecop_vv<kVecWidth, UniOpVV::kCvtRoundF64ToI32Hi, vec_op_cvt_round_f64_to_i32_hi<behavior>>(ctx, Variation{0});
+      }
+      else {
+        constexpr FloatToIntOutsideRangeBehavior behavior = FloatToIntOutsideRangeBehavior::kSaturatedValue;
+        test_vecop_vv<kVecWidth, UniOpVV::kCvtTruncF32ToI32, vec_op_cvt_trunc_f32_to_i32<behavior>>(ctx, Variation{v});
+        test_vecop_vv<kVecWidth, UniOpVV::kCvtTruncF64ToI32Lo, vec_op_cvt_trunc_f64_to_i32_lo<behavior>>(ctx, Variation{0});
+        test_vecop_vv<kVecWidth, UniOpVV::kCvtTruncF64ToI32Hi, vec_op_cvt_trunc_f64_to_i32_hi<behavior>>(ctx, Variation{0});
+        test_vecop_vv<kVecWidth, UniOpVV::kCvtRoundF32ToI32, vec_op_cvt_round_f32_to_i32<behavior>>(ctx, Variation{v});
+        test_vecop_vv<kVecWidth, UniOpVV::kCvtRoundF64ToI32Lo, vec_op_cvt_round_f64_to_i32_lo<behavior>>(ctx, Variation{0});
+        test_vecop_vv<kVecWidth, UniOpVV::kCvtRoundF64ToI32Hi, vec_op_cvt_round_f64_to_i32_hi<behavior>>(ctx, Variation{0});
+      }
     }
   }
 
@@ -5410,30 +5437,29 @@ static void test_gp_ops(JitContext& ctx) noexcept {
 }
 
 #if defined(ASMJIT_UJIT_X86)
-static void dump_feature_list(asmjit::String& out, const asmjit::CpuFeatures& features) noexcept {
+static void dump_feature_list(String& out, const CpuFeatures& features) noexcept {
 #if !defined(ASMJIT_NO_LOGGING)
-  asmjit::CpuFeatures::Iterator it = features.iterator();
+  CpuFeatures::Iterator it = features.iterator();
   bool first = true;
   while (it.has_next()) {
     size_t feature_id = it.next();
     if (!first) {
       out.append(' ');
     }
-    asmjit::Formatter::format_feature(out, asmjit::Arch::kHost, uint32_t(feature_id));
+    Formatter::format_feature(out, Arch::kHost, uint32_t(feature_id));
     first = false;
   }
 #else
-  asmjit::Support::maybe_unused(features);
+  Support::maybe_unused(features);
   out.append("<ASMJIT_NO_LOGGING>");
 #endif
 }
 
-static void test_x86_ops(JitContext& ctx, const asmjit::CpuFeatures& host_features) noexcept {
-  using Ext = asmjit::CpuFeatures::X86;
-  using CpuFeatures = asmjit::CpuFeatures;
+static void test_x86_ops(JitContext& ctx, const CpuFeatures& host_features) noexcept {
+  using Ext = CpuFeatures::X86;
 
   {
-    asmjit::String s;
+    String s;
     dump_feature_list(s, host_features);
     INFO("Available CPU features: %s", s.data());
   }
@@ -5474,7 +5500,7 @@ static void test_x86_ops(JitContext& ctx, const asmjit::CpuFeatures& host_featur
         continue;
       }
 
-      asmjit::String s;
+      String s;
       if (filtered == host_features) {
         s.assign("[ALL]");
       }
@@ -5554,7 +5580,7 @@ static void test_x86_ops(JitContext& ctx, const asmjit::CpuFeatures& host_featur
         continue;
       }
 
-      asmjit::String s;
+      String s;
       if (filtered == host_features) {
         s.assign("[ALL]");
       }
@@ -5585,7 +5611,7 @@ static void test_x86_ops(JitContext& ctx, const asmjit::CpuFeatures& host_featur
 #endif // ASMJIT_UJIT_X86
 
 #if defined(ASMJIT_UJIT_AARCH64)
-static void test_a64_ops(JitContext& ctx, const asmjit::CpuFeatures& host_features) noexcept {
+static void test_a64_ops(JitContext& ctx, const CpuFeatures& host_features) noexcept {
   ctx.features = host_features;
 
   test_gp_ops(ctx);

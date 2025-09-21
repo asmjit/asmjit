@@ -89,6 +89,8 @@ static void print_cpu_info() noexcept {
   // ------------
 
 #ifndef ASMJIT_NO_LOGGING
+  using asmjit::CpuHints;
+
   printf("CPU Features:\n");
   asmjit::CpuFeatures::Iterator it(cpu.features().iterator());
   while (it.has_next()) {
@@ -99,6 +101,27 @@ static void print_cpu_info() noexcept {
   };
   printf("\n");
 #endif // !ASMJIT_NO_LOGGING
+
+  // CPU Hints
+  // ---------
+
+  printf("CPU Hints:\n");
+  auto print_hint = [&](CpuHints hint, const char* name) {
+    if ((cpu.hints() & hint) != CpuHints::kNone) {
+      printf("  %s\n", name);
+    }
+  };
+
+  print_hint(CpuHints::kVecMaskedOps8  , "VecMaskedOps8"  );
+  print_hint(CpuHints::kVecMaskedOps16 , "VecMaskedOps16" );
+  print_hint(CpuHints::kVecMaskedOps32 , "VecMaskedOps32" );
+  print_hint(CpuHints::kVecMaskedOps64 , "VecMaskedOps64" );
+  print_hint(CpuHints::kVecFastIntMul32, "VecFastIntMul32");
+  print_hint(CpuHints::kVecFastIntMul64, "VecFastIntMul64");
+  print_hint(CpuHints::kVecFastGather  , "VecFastGather"  );
+  print_hint(CpuHints::kVecMaskedStore , "VecMaskedStore" );
+
+  printf("\n");
 }
 
 [[maybe_unused]]

@@ -21,8 +21,6 @@
 #include "../core/support.h"
 #include "../core/type.h"
 
-#define ASMJIT_NO_NODE_USERDATA
-
 ASMJIT_BEGIN_NAMESPACE
 
 //! \addtogroup asmjit_builder

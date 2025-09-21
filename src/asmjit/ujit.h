@@ -9,6 +9,7 @@
 #include "asmjit-scope-begin.h"
 #include "ujit/ujitbase.h"
 #include "ujit/unicompiler.h"
+#include "ujit/unicondition.h"
 #include "ujit/uniop.h"
 #include "ujit/vecconsttable.h"
 #include "asmjit-scope-end.h"
