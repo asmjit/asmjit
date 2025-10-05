@@ -1,9 +1,9 @@
 #include <stdint.h>
 #include <asmjit/host.h>
 
-#include "asmjitutils.h"
-#include "cmdline.h"
-#include "performancetimer.h"
+#include "../commons/asmjitutils.h"
+#include "../commons/cmdline.h"
+#include "../commons/performancetimer.h"
 
 using namespace asmjit;
 

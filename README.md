@@ -17,10 +17,12 @@ Project Organization
     * **src**      - Source code
       * **asmjit** - Source code and headers (always point include path in here)
         * **core** - Core API, backend independent except relocations
-        * **arm**  - ARM specific API, used only by ARM and AArch64 backends
+        * **arm**  - ARM specific API, designed to be common for both AArch32 and AArch64
+        * **a64**  - AArch64 specific API, used only by AArch64 backends
         * **x86**  - X86 specific API, used only by X86 and X64 backends
+        * **ujit** - Universal JIT API
     * **test**     - Unit and integration tests (don't embed in your project)
-    * **tools**    - Tools used for configuring, documenting, and generating files
+    * **tools**    - Tools used to re-regenerate generated files (instruction DB, enum strings)
 
 Roadmap
 -------
@@ -37,6 +39,11 @@ Documentation
 
   * [Documentation Index](https://asmjit.com/doc/index.html)
   * [Build Instructions](https://asmjit.com/doc/group__asmjit__build.html) (includes [CMake Integration](https://asmjit.com/doc/group__asmjit__build.html#cmake_integration))
+
+Development & Testing
+---------------------
+
+  * Basic configure scripts that invoke cmake are provided in project root.
 
 Breaking Changes
 ----------------

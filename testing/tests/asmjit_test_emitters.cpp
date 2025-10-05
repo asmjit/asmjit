@@ -8,7 +8,7 @@
 #include <string.h>
 
 #include <asmjit/core.h>
-#include "asmjitutils.h"
+#include "../commons/asmjitutils.h"
 
 #if ASMJIT_ARCH_X86 != 0
   #include <asmjit/x86.h>

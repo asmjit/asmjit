@@ -4491,14 +4491,14 @@ Case_BaseLdurStur:
           goto InvalidInstruction;
 
         uint32_t x = o0.as<Gp>().is_gp64();
-        uint32_t gpMustBeX = uint32_t(size_op.size() >= 3u - op_data.is_signed);
+        uint32_t gp_must_be_x = uint32_t(size_op.size() >= 3u - op_data.is_signed);
 
         if (op_data.is_signed) {
-          if (gpMustBeX && !x)
+          if (gp_must_be_x && !x)
             goto InvalidInstruction;
         }
         else {
-          if (x != gpMustBeX)
+          if (x != gp_must_be_x)
             goto InvalidInstruction;
         }
 

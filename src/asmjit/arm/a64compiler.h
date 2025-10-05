@@ -37,75 +37,87 @@ public:
   //! \name Virtual Registers
   //! \{
 
-  //! \cond INTERNAL
-  template<typename RegT, typename Type>
-  ASMJIT_INLINE_NODEBUG RegT _new_reg_internal(const Type& type) {
-    RegT reg(Globals::NoInit);
-    _new_reg(Out<Reg>{reg}, type, nullptr);
-    return reg;
-  }
+  //! Creates a new general-purpose register with `type_id` type and optional name passed via `args`.
+  //!
+  //! \note Using \ref TypeId is too generic. In general it's recommended to use \ref new_gp32(),
+  //! \ref new_gp64(), and \ref new_gpz() or \ref new_gp_ptr().
+  template<typename... Args>
+  ASMJIT_INLINE_NODEBUG Gp new_gp(TypeId type_id, Args&&... args) { return new_reg<Gp>(type_id, std::forward<Args>(args)...); }
 
-  template<typename RegT, typename Type>
-  ASMJIT_INLINE_NODEBUG RegT _new_reg_internal(const Type& type, const char* s) {
-#ifndef ASMJIT_NO_LOGGING
-    RegT reg(Globals::NoInit);
-    _new_reg(Out<Reg>{reg}, type, s);
-    return reg;
-#else
-    Support::maybe_unused(s);
-    return _new_reg_internal<RegT>(type);
-#endif
-  }
+  //! Creates a new vector register with `type_id` type and optional name passed via `args`.
+  //!
+  //! \note Using \ref TypeId is too generic. In general it's recommended to use \ref new_vec128(),
+  //! \ref new_vec_s(), \ref new_vec_d(), \ref new_vec_q(), ...
+  template<typename... Args>
+  ASMJIT_INLINE_NODEBUG Vec new_vec(TypeId type_id, Args&&... args) { return new_reg<Vec>(type_id, std::forward<Args>(args)...); }
 
-  template<typename RegT, typename Type, typename... Args>
-  ASMJIT_INLINE_NODEBUG RegT _new_reg_internal(const Type& type, const char* s, Args&&... args) {
-#ifndef ASMJIT_NO_LOGGING
-    RegT reg(Globals::NoInit);
-    _new_reg_fmt(Out<Reg>{reg}, type, s, std::forward<Args>(args)...);
-    return reg;
-#else
-    Support::maybe_unused(s, std::forward<Args>(args)...);
-    return _new_reg_internal<RegT>(type);
-#endif
-  }
-  //! \endcond
+  //! Creates a new 32-bit general purpose register mapped to low 32 bits of a full register (on 64-bit targets).
+  template<typename... Args>
+  ASMJIT_INLINE_NODEBUG Gp new_gp32(Args&&... args) { return new_reg<Gp>(TypeId::kUInt32, std::forward<Args>(args)...); }
 
-  template<typename RegT, typename... Args>
-  ASMJIT_INLINE_NODEBUG RegT new_similar_reg(const RegT& ref, Args&&... args) {
-    return _new_reg_internal<RegT>(ref, std::forward<Args>(args)...);
-  }
+  //! Creates a new 64-bit general purpose register.
+  template<typename... Args>
+  ASMJIT_INLINE_NODEBUG Gp new_gp64(Args&&... args) { return new_reg<Gp>(TypeId::kUInt64, std::forward<Args>(args)...); }
 
+  //! Creates a new 32-bit general purpose register.
+  //!
+  //! \note This is a convenience function alias of \ref new_gp32().
   template<typename... Args>
-  ASMJIT_INLINE_NODEBUG Reg new_reg(TypeId type_id, Args&&... args) { return _new_reg_internal<Reg>(type_id, std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG Gp new_gpw(Args&&... args) { return new_reg<Gp>(TypeId::kUIntPtr, std::forward<Args>(args)...); }
 
+  //! Creates a new 64-bit general purpose register.
+  //!
+  //! \note This is a convenience function alias of \ref new_gp64().
   template<typename... Args>
-  ASMJIT_INLINE_NODEBUG Gp new_gp(TypeId type_id, Args&&... args) { return _new_reg_internal<Gp>(type_id, std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG Gp new_gpx(Args&&... args) { return new_reg<Gp>(TypeId::kUIntPtr, std::forward<Args>(args)...); }
 
+  //! Creates a new 32-bit or 64-bit general purpose register depending on the target register width.
+  //!
+  //! \note This is a convenience function, on aarch64 target it always creates a 64-bit general-purpose register.
   template<typename... Args>
-  ASMJIT_INLINE_NODEBUG Gp new_gp32(Args&&... args) { return _new_reg_internal<Gp>(TypeId::kUInt32, std::forward<Args>(args)...); }
-  template<typename... Args>
-  ASMJIT_INLINE_NODEBUG Gp new_gp64(Args&&... args) { return _new_reg_internal<Gp>(TypeId::kUInt64, std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG Gp new_gpz(Args&&... args) { return new_reg<Gp>(TypeId::kUIntPtr, std::forward<Args>(args)...); }
 
+  //! Creates a new 32-bit or 64-bit general purpose register depending on the target register width.
+  //!
+  //! \note This is a convenience function, on aarch64 target it always creates a 64-bit general-purpose register.
   template<typename... Args>
-  ASMJIT_INLINE_NODEBUG Gp new_gpw(Args&&... args) { return _new_reg_internal<Gp>(TypeId::kUInt32, std::forward<Args>(args)...); }
-  template<typename... Args>
-  ASMJIT_INLINE_NODEBUG Gp new_gpx(Args&&... args) { return _new_reg_internal<Gp>(TypeId::kUInt64, std::forward<Args>(args)...); }
-  template<typename... Args>
-  ASMJIT_INLINE_NODEBUG Gp new_gpz(Args&&... args) { return _new_reg_internal<Gp>(TypeId::kUIntPtr, std::forward<Args>(args)...); }
-  template<typename... Args>
-  ASMJIT_INLINE_NODEBUG Gp new_gp_ptr(Args&&... args) { return _new_reg_internal<Gp>(TypeId::kUIntPtr, std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG Gp new_gp_ptr(Args&&... args) { return new_reg<Gp>(TypeId::kUIntPtr, std::forward<Args>(args)...); }
 
+  //! Creates a new 128-bit vector register.
   template<typename... Args>
-  ASMJIT_INLINE_NODEBUG Vec new_vec(TypeId type_id, Args&&... args) { return _new_reg_internal<Vec>(type_id, std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG Vec new_vec128(Args&&... args) { return new_reg<Vec>(TypeId::kInt32x4, std::forward<Args>(args)...); }
 
+  //! Creates a new 128-bit vector register that will be used for scalar 32-bit floating point operation.
   template<typename... Args>
-  ASMJIT_INLINE_NODEBUG Vec new_vec_s(Args&&... args) { return _new_reg_internal<Vec>(TypeId::kFloat32, std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG Vec new_vec128_f32x1(Args&&... args) { return new_reg<Vec>(TypeId::kFloat32x1, std::forward<Args>(args)...); }
 
+  //! Creates a new 128-bit vector register that will be used for scalar 64-bit floating point operation.
   template<typename... Args>
-  ASMJIT_INLINE_NODEBUG Vec new_vec_d(Args&&... args) { return _new_reg_internal<Vec>(TypeId::kFloat64, std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG Vec new_vec128_f64x1(Args&&... args) { return new_reg<Vec>(TypeId::kFloat64x1, std::forward<Args>(args)...); }
 
+  //! Creates a new 128-bit vector register that will be used for packed 32-bit floating point operation.
   template<typename... Args>
-  ASMJIT_INLINE_NODEBUG Vec new_vec_q(Args&&... args) { return _new_reg_internal<Vec>(TypeId::kUInt8x16, std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG Vec new_vec128_f32x4(Args&&... args) { return new_reg<Vec>(TypeId::kFloat32x4, std::forward<Args>(args)...); }
+
+  //! Creates a new 128-bit vector register that will be used for packed 64-bit floating point operation.
+  template<typename... Args>
+  ASMJIT_INLINE_NODEBUG Vec new_vec128_f64x2(Args&&... args) { return new_reg<Vec>(TypeId::kFloat64x2, std::forward<Args>(args)...); }
+
+  //! Creates a new 32-bit vector register (S).
+  //!
+  //! \note This may look like an alias of \ref new_vec128_f32x1(), but it's not. This really creates a 32-bit
+  //! register, which has a type \ref RegType::kVec32, whereas \ref new_vec128_f32x1() creates a register,
+  //! which has a type \ref RegType::kVec64
+  template<typename... Args>
+  ASMJIT_INLINE_NODEBUG Vec new_vec_s(Args&&... args) { return new_reg<Vec>(TypeId::kFloat32, std::forward<Args>(args)...); }
+
+  //! Alias of \ref new_vec128_f64x1() that matches aarch64 architecture terminology.
+  template<typename... Args>
+  ASMJIT_INLINE_NODEBUG Vec new_vec_d(Args&&... args) { return new_reg<Vec>(TypeId::kFloat64, std::forward<Args>(args)...); }
+
+  //! Alias of \ref new_vec128() that matches aarch64 architecture terminology.
+  template<typename... Args>
+  ASMJIT_INLINE_NODEBUG Vec new_vec_q(Args&&... args) { return new_reg<Vec>(TypeId::kInt32x4, std::forward<Args>(args)...); }
 
   //! \}
 

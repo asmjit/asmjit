@@ -188,19 +188,16 @@ namespace asmjit {
 //! you can just use the following CMake snippet that integrates AsmJit with your own CMake project:
 //!
 //! ```cmake
-//! cmake_minimum_required(VERSION 3.30)
+//! cmake_minimum_required(VERSION 3.30 FATAL_ERROR)
+//! project(app C CXX)
 //!
-//! project(asmjit_consumer C CXX)    # Both C and CXX are required.
-//! set(CMAKE_CXX_STANDARD 17)        # C++17 and never is supported.
+//! set(ASMJIT_DIR "3rdparty/asmjit")              # Location of AsmJit.
+//! set(ASMJIT_STATIC TRUE)                        # Force static build.
+//! add_subdirectory("${ASMJIT_DIR}")              # Adds AsmJit sub-project to your project.
 //!
-//! set(ASMJIT_DIR "3rdparty/asmjit") # Location of AsmJit.
-//! set(ASMJIT_STATIC TRUE)           # Force static build.
-//!
-//! add_subdirectory("${ASMJIT_DIR}") # This adds AsmJit as a part of your project.
-//!
-//! add_executable(asmjit_consumer asmjit_consumer.cpp)
-//! target_link_libraries(
-//!   asmjit_consumer asmjit::asmjit) # This adds AsmJit as a dependency to your target.
+//! add_executable(app asmjit_consumer.cpp)        # Adds executable that uses AsmJit.
+//! target_link_libraries(app asmjit::asmjit)      # Adds AsmJit as a dependency to app.
+//! target_compile_features(app PUBLIC cxx_std_17) # Makes C++17 as a requirement.
 //! ```
 //!
 //! \section build_type Build Type Configuration
@@ -2111,8 +2108,53 @@ namespace asmjit {
 //! \defgroup asmjit_a64 AArch64 Backend
 //! \brief AArch64 backend.
 
-//! \defgroup asmjit_ujit UJIT
-//! \brief Universal JIT - abstracts X86|X86_64 and AArch64 code generation.
+//! \defgroup asmjit_ujit Universal JIT
+//! \brief Universal JIT abstracts X86, X86_64, and AArch64 code generation.
+//!
+//! ### Overview
+//!
+//! Universal JIT (UJIT) is an abstraction that uses AsmJit's Compiler, but provides target independent API that
+//! users can use to target multiple target architectures at a time. The goal of Universal JIT is not to provide
+//! its own IR. Instead, it translates user calls into target-dependent instructions (or instruction sequences)
+//! and allows users to switch to target-specific assembly only where required for extra performance.
+//!
+//! \warning UJIT is still in an experimental phase, expect minor API breaks in the future.
+//!
+//! API Overview
+//!
+//! Compiler:
+//!
+//!  - \ref ujit::UniCompiler - UniCompiler that wraps an existing \ref ujit::BackendCompiler.
+//!  - \ref ujit::BackendCompiler - alias of a platform-dependent Compiler (\ref x86::Compiler or \ref a64::Compiler).
+//!
+//! Operands:
+//!
+//!  - \ref ujit::Gp - alias of a platform-dependent general-purpose register (\ref x86::Gp, \ref a64::Gp).
+//!  - \ref ujit::Vec - alias of a platform-dependent vector register (\ref x86::Vec, \ref a64::Vec).
+//!  - \ref ujit::Mem - alias of a platform-dependent memory operand (\ref x86::Mem, \ref a64::Mem).
+//!
+//! Conditions:
+//!
+//!  - \ref ujit::CondCode - alias of a platform-dependent condition code (\ref x86::CondCode, a64::CondCode).
+//!  - \ref ujit::UniCondition - platform-independent condition representation that can be used with some ujit
+//!    instructions.
+//!
+//! Instructions:
+//!
+//!  - \ref ujit::UniOpCond - instruction that can be used by \ref ujit::UniCondition.
+//!  - \ref ujit::UniOpM - instruction with a single `[mem]` operand.
+//!  - \ref ujit::UniOpRM - instruction with `[reg, mem]` operands.
+//!  - \ref ujit::UniOpMR - instruction with `[mem, reg]` operands.
+//!  - \ref ujit::UniOpRR - instruction with `[reg, reg]` operands.
+//!  - \ref ujit::UniOpRRR - instruction with `[reg, reg, reg]` operands.
+//!  - \ref ujit::UniOpVR - instruction with `[vec, reg]` operands.
+//!  - \ref ujit::UniOpVM - instruction with `[vec, mem]` operands.
+//!  - \ref ujit::UniOpMV - instruction with `[mem, vec]` operands.
+//!  - \ref ujit::UniOpVV - instruction with `[vec, vec]` operands.
+//!  - \ref ujit::UniOpVVI - instruction with `[vec, vec, imm]` operands.
+//!  - \ref ujit::UniOpVVV - instruction with `[vec, vec, vec]` operands.
+//!  - \ref ujit::UniOpVVVI - instruction with `[vec, vec, vec, imm]` operands.
+//!  - \ref ujit::UniOpVVVV - instruction with `[vec, vec, vec, vec]` operands.
 
 //! \cond INTERNAL
 //! \defgroup asmjit_ra RA
@@ -2122,7 +2164,16 @@ namespace asmjit {
 } // {asmjit}
 
 #include "asmjit-scope-begin.h"
+#include "core/api-config.h"
+#include "core/archcommons.h"
 #include "core/archtraits.h"
+#include "core/arena.h"
+#include "core/arenahash.h"
+#include "core/arenalist.h"
+#include "core/arenapool.h"
+#include "core/arenastring.h"
+#include "core/arenatree.h"
+#include "core/arenavector.h"
 #include "core/assembler.h"
 #include "core/builder.h"
 #include "core/codebuffer.h"
@@ -2149,13 +2200,6 @@ namespace asmjit {
 #include "core/target.h"
 #include "core/type.h"
 #include "core/virtmem.h"
-#include "core/arena.h"
-#include "core/arenahash.h"
-#include "core/arenalist.h"
-#include "core/arenapool.h"
-#include "core/arenatree.h"
-#include "core/arenastring.h"
-#include "core/arenavector.h"
 #include "asmjit-scope-end.h"
 
 #endif // ASMJIT_CORE_H_INCLUDED

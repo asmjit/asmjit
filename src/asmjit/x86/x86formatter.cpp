@@ -561,7 +561,7 @@ struct ImmBits {
   char text[48 - 3];
 };
 
-ASMJIT_FAVOR_SIZE static Error FormatterInternal_formatImmShuf(String& sb, uint32_t imm8, uint32_t bits, uint32_t count) noexcept {
+ASMJIT_FAVOR_SIZE static Error FormatterInternal_format_imm_shuf(String& sb, uint32_t imm8, uint32_t bits, uint32_t count) noexcept {
   uint32_t mask = (1 << bits) - 1;
   uint32_t last_predicate_shift = bits * (count - 1u);
 
@@ -576,7 +576,7 @@ ASMJIT_FAVOR_SIZE static Error FormatterInternal_formatImmShuf(String& sb, uint3
   return Error::kOk;
 }
 
-ASMJIT_FAVOR_SIZE static Error FormatterInternal_formatImmBits(String& sb, uint32_t imm8, const ImmBits* bits, uint32_t count) noexcept {
+ASMJIT_FAVOR_SIZE static Error FormatterInternal_format_imm_bits(String& sb, uint32_t imm8, const ImmBits* bits, uint32_t count) noexcept {
   uint32_t n = 0;
   char buf[64];
 
@@ -615,7 +615,7 @@ ASMJIT_FAVOR_SIZE static Error FormatterInternal_formatImmBits(String& sb, uint3
   return Error::kOk;
 }
 
-ASMJIT_FAVOR_SIZE static Error FormatterInternal_formatImmText(String& sb, uint32_t imm8, uint32_t bits, uint32_t advance, const char* text, uint32_t count = 1) noexcept {
+ASMJIT_FAVOR_SIZE static Error FormatterInternal_format_imm_text(String& sb, uint32_t imm8, uint32_t bits, uint32_t advance, const char* text, uint32_t count = 1) noexcept {
   uint32_t mask = (1u << bits) - 1;
   uint32_t pos = 0;
 
@@ -628,7 +628,7 @@ ASMJIT_FAVOR_SIZE static Error FormatterInternal_formatImmText(String& sb, uint3
   return sb.append(kImmCharEnd);
 }
 
-ASMJIT_FAVOR_SIZE static Error FormatterInternal_explainConst(
+ASMJIT_FAVOR_SIZE static Error FormatterInternal_explain_const(
   String& sb,
   FormatFlags format_flags,
   InstId inst_id,
@@ -700,55 +700,55 @@ ASMJIT_FAVOR_SIZE static Error FormatterInternal_explainConst(
   };
 
   static const ImmBits vroundxx[] = {
-    { 0x07u, 0, ImmBits::kModeLookup, "ROUND\0" "FLOOR\0" "CEIL\0" "TRUNC\0" "\0" "\0" "\0" "\0" },
-    { 0x08u, 3, ImmBits::kModeLookup, "\0" "INEXACT\0" }
+    { 0x07u, 0, ImmBits::kModeLookup, "ROUND\0" "FLOOR\0" "CEIL\0" "TRUNC\0" "CURRENT\0" "\0" "\0" "\0" },
+    { 0x08u, 3, ImmBits::kModeLookup, "\0" "SUPPRESS\0" }
   };
 
   uint32_t u8 = imm.value_as<uint8_t>();
   switch (inst_id) {
     case Inst::kIdVblendpd:
     case Inst::kIdBlendpd:
-      return FormatterInternal_formatImmShuf(sb, u8, 1, vec_size / 8);
+      return FormatterInternal_format_imm_shuf(sb, u8, 1, vec_size / 8);
 
     case Inst::kIdVblendps:
     case Inst::kIdBlendps:
-      return FormatterInternal_formatImmShuf(sb, u8, 1, vec_size / 4);
+      return FormatterInternal_format_imm_shuf(sb, u8, 1, vec_size / 4);
 
     case Inst::kIdVcmppd:
     case Inst::kIdVcmpps:
     case Inst::kIdVcmpsd:
     case Inst::kIdVcmpss:
-      return FormatterInternal_formatImmText(sb, u8, 5, 0, vcmpx);
+      return FormatterInternal_format_imm_text(sb, u8, 5, 0, vcmpx);
 
     case Inst::kIdCmppd:
     case Inst::kIdCmpps:
     case Inst::kIdCmpsd:
     case Inst::kIdCmpss:
-      return FormatterInternal_formatImmText(sb, u8, 3, 0, vcmpx);
+      return FormatterInternal_format_imm_text(sb, u8, 3, 0, vcmpx);
 
     case Inst::kIdVdbpsadbw:
-      return FormatterInternal_formatImmShuf(sb, u8, 2, 4);
+      return FormatterInternal_format_imm_shuf(sb, u8, 2, 4);
 
     case Inst::kIdVdppd:
     case Inst::kIdVdpps:
     case Inst::kIdDppd:
     case Inst::kIdDpps:
-      return FormatterInternal_formatImmShuf(sb, u8, 1, 8);
+      return FormatterInternal_format_imm_shuf(sb, u8, 1, 8);
 
     case Inst::kIdVmpsadbw:
     case Inst::kIdMpsadbw:
-      return FormatterInternal_formatImmBits(sb, u8, vmpsadbw, Support::min<uint32_t>(vec_size / 8, 4));
+      return FormatterInternal_format_imm_bits(sb, u8, vmpsadbw, Support::min<uint32_t>(vec_size / 8, 4));
 
     case Inst::kIdVpblendw:
     case Inst::kIdPblendw:
-      return FormatterInternal_formatImmShuf(sb, u8, 1, 8);
+      return FormatterInternal_format_imm_shuf(sb, u8, 1, 8);
 
     case Inst::kIdVpblendd:
-      return FormatterInternal_formatImmShuf(sb, u8, 1, Support::min<uint32_t>(vec_size / 4, 8));
+      return FormatterInternal_format_imm_shuf(sb, u8, 1, Support::min<uint32_t>(vec_size / 4, 8));
 
     case Inst::kIdVpclmulqdq:
     case Inst::kIdPclmulqdq:
-      return FormatterInternal_formatImmBits(sb, u8, vpclmulqdq, ASMJIT_ARRAY_SIZE(vpclmulqdq));
+      return FormatterInternal_format_imm_bits(sb, u8, vpclmulqdq, ASMJIT_ARRAY_SIZE(vpclmulqdq));
 
     case Inst::kIdVroundpd:
     case Inst::kIdVroundps:
@@ -758,57 +758,57 @@ ASMJIT_FAVOR_SIZE static Error FormatterInternal_explainConst(
     case Inst::kIdRoundps:
     case Inst::kIdRoundsd:
     case Inst::kIdRoundss:
-      return FormatterInternal_formatImmBits(sb, u8, vroundxx, ASMJIT_ARRAY_SIZE(vroundxx));
+      return FormatterInternal_format_imm_bits(sb, u8, vroundxx, ASMJIT_ARRAY_SIZE(vroundxx));
 
     case Inst::kIdVshufpd:
     case Inst::kIdShufpd:
-      return FormatterInternal_formatImmText(sb, u8, 1, 2, vshufpd, Support::min<uint32_t>(vec_size / 8, 8));
+      return FormatterInternal_format_imm_text(sb, u8, 1, 2, vshufpd, Support::min<uint32_t>(vec_size / 8, 8));
 
     case Inst::kIdVshufps:
     case Inst::kIdShufps:
-      return FormatterInternal_formatImmText(sb, u8, 2, 4, vshufps, 4);
+      return FormatterInternal_format_imm_text(sb, u8, 2, 4, vshufps, 4);
 
     case Inst::kIdVcvtps2ph:
-      return FormatterInternal_formatImmBits(sb, u8, vroundxx, 1);
+      return FormatterInternal_format_imm_bits(sb, u8, vroundxx, 1);
 
     case Inst::kIdVperm2f128:
     case Inst::kIdVperm2i128:
-      return FormatterInternal_formatImmBits(sb, u8, vperm2x128, ASMJIT_ARRAY_SIZE(vperm2x128));
+      return FormatterInternal_format_imm_bits(sb, u8, vperm2x128, ASMJIT_ARRAY_SIZE(vperm2x128));
 
     case Inst::kIdVpermilpd:
-      return FormatterInternal_formatImmShuf(sb, u8, 1, vec_size / 8);
+      return FormatterInternal_format_imm_shuf(sb, u8, 1, vec_size / 8);
 
     case Inst::kIdVpermilps:
-      return FormatterInternal_formatImmShuf(sb, u8, 2, 4);
+      return FormatterInternal_format_imm_shuf(sb, u8, 2, 4);
 
     case Inst::kIdVpshufd:
     case Inst::kIdPshufd:
-      return FormatterInternal_formatImmShuf(sb, u8, 2, 4);
+      return FormatterInternal_format_imm_shuf(sb, u8, 2, 4);
 
     case Inst::kIdVpshufhw:
     case Inst::kIdVpshuflw:
     case Inst::kIdPshufhw:
     case Inst::kIdPshuflw:
     case Inst::kIdPshufw:
-      return FormatterInternal_formatImmShuf(sb, u8, 2, 4);
+      return FormatterInternal_format_imm_shuf(sb, u8, 2, 4);
 
     case Inst::kIdVfixupimmpd:
     case Inst::kIdVfixupimmps:
     case Inst::kIdVfixupimmsd:
     case Inst::kIdVfixupimmss:
-      return FormatterInternal_formatImmBits(sb, u8, vfixupimmxx, ASMJIT_ARRAY_SIZE(vfixupimmxx));
+      return FormatterInternal_format_imm_bits(sb, u8, vfixupimmxx, ASMJIT_ARRAY_SIZE(vfixupimmxx));
 
     case Inst::kIdVfpclasspd:
     case Inst::kIdVfpclassps:
     case Inst::kIdVfpclasssd:
     case Inst::kIdVfpclassss:
-      return FormatterInternal_formatImmBits(sb, u8, vfpclassxx, ASMJIT_ARRAY_SIZE(vfpclassxx));
+      return FormatterInternal_format_imm_bits(sb, u8, vfpclassxx, ASMJIT_ARRAY_SIZE(vfpclassxx));
 
     case Inst::kIdVgetmantpd:
     case Inst::kIdVgetmantps:
     case Inst::kIdVgetmantsd:
     case Inst::kIdVgetmantss:
-      return FormatterInternal_formatImmBits(sb, u8, vgetmantxx, ASMJIT_ARRAY_SIZE(vgetmantxx));
+      return FormatterInternal_format_imm_bits(sb, u8, vgetmantxx, ASMJIT_ARRAY_SIZE(vgetmantxx));
 
     case Inst::kIdVpcmpb:
     case Inst::kIdVpcmpd:
@@ -818,7 +818,7 @@ ASMJIT_FAVOR_SIZE static Error FormatterInternal_explainConst(
     case Inst::kIdVpcmpud:
     case Inst::kIdVpcmpuq:
     case Inst::kIdVpcmpuw:
-      return FormatterInternal_formatImmText(sb, u8, 3, 0, vpcmpx);
+      return FormatterInternal_format_imm_text(sb, u8, 3, 0, vpcmpx);
 
     case Inst::kIdVpcomb:
     case Inst::kIdVpcomd:
@@ -828,21 +828,21 @@ ASMJIT_FAVOR_SIZE static Error FormatterInternal_explainConst(
     case Inst::kIdVpcomud:
     case Inst::kIdVpcomuq:
     case Inst::kIdVpcomuw:
-      return FormatterInternal_formatImmText(sb, u8, 3, 0, vpcomx);
+      return FormatterInternal_format_imm_text(sb, u8, 3, 0, vpcomx);
 
     case Inst::kIdVpermq:
     case Inst::kIdVpermpd:
-      return FormatterInternal_formatImmShuf(sb, u8, 2, 4);
+      return FormatterInternal_format_imm_shuf(sb, u8, 2, 4);
 
     case Inst::kIdVpternlogd:
     case Inst::kIdVpternlogq:
-      return FormatterInternal_formatImmShuf(sb, u8, 1, 8);
+      return FormatterInternal_format_imm_shuf(sb, u8, 1, 8);
 
     case Inst::kIdVrangepd:
     case Inst::kIdVrangeps:
     case Inst::kIdVrangesd:
     case Inst::kIdVrangess:
-      return FormatterInternal_formatImmBits(sb, u8, vrangexx, ASMJIT_ARRAY_SIZE(vrangexx));
+      return FormatterInternal_format_imm_bits(sb, u8, vrangexx, ASMJIT_ARRAY_SIZE(vrangexx));
 
     case Inst::kIdVreducepd:
     case Inst::kIdVreduceps:
@@ -852,7 +852,7 @@ ASMJIT_FAVOR_SIZE static Error FormatterInternal_explainConst(
     case Inst::kIdVrndscaleps:
     case Inst::kIdVrndscalesd:
     case Inst::kIdVrndscaless:
-      return FormatterInternal_formatImmBits(sb, u8, vreducexx_vrndscalexx, ASMJIT_ARRAY_SIZE(vreducexx_vrndscalexx));
+      return FormatterInternal_format_imm_bits(sb, u8, vreducexx_vrndscalexx, ASMJIT_ARRAY_SIZE(vreducexx_vrndscalexx));
 
     case Inst::kIdVshuff32x4:
     case Inst::kIdVshuff64x2:
@@ -860,7 +860,7 @@ ASMJIT_FAVOR_SIZE static Error FormatterInternal_explainConst(
     case Inst::kIdVshufi64x2: {
       uint32_t count = Support::max<uint32_t>(vec_size / 16, 2u);
       uint32_t bits = count <= 2 ? 1u : 2u;
-      return FormatterInternal_formatImmShuf(sb, u8, bits, count);
+      return FormatterInternal_format_imm_shuf(sb, u8, bits, count);
     }
 
     default:
@@ -969,7 +969,7 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::format_instruction(
           vec_size = Support::max<uint32_t>(vec_size, operands[j].as<Reg>().size());
         }
       }
-      ASMJIT_PROPAGATE(FormatterInternal_explainConst(sb, format_flags, inst_id, vec_size, op.as<Imm>()));
+      ASMJIT_PROPAGATE(FormatterInternal_explain_const(sb, format_flags, inst_id, vec_size, op.as<Imm>()));
     }
 
     // Support AVX-512 masking - {k}{z}.

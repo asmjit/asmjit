@@ -9,6 +9,8 @@
 #if defined(ASMJIT_UJIT_AARCH64)
 
 #include "unicompiler.h"
+#include "unicompiler_utils_p.h"
+#include "unicondition.h"
 
 ASMJIT_BEGIN_SUB_NAMESPACE(ujit)
 
@@ -19,17 +21,19 @@ namespace Inst { using namespace a64::Inst; }
 // ujit::UniCompiler - Construction & Destruction
 // ==============================================
 
-UniCompiler::UniCompiler(BackendCompiler* cc, const CpuFeatures& features, UniOptFlags opt_flags) noexcept
+UniCompiler::UniCompiler(BackendCompiler* cc, const CpuFeatures& features, CpuHints cpu_hints, VecConstTableRef ct_ref) noexcept
   : cc(cc),
-    ct(vec_const_table),
+    _ct_ref(ct_ref),
     _features(features),
-    _opt_flags(opt_flags),
+    _cpu_hints(cpu_hints),
     _vec_reg_count(32),
     _common_table_offset(0) {
 
   _scalar_op_behavior = ScalarOpBehavior::kZeroing;
-  _fmin_fmax_op_hehavior = FMinFMaxOpBehavior::kFiniteValue;
+  _fmin_fmax_op_behavior = FMinFMaxOpBehavior::kFiniteValue;
   _fmadd_op_behavior = FMAddOpBehavior::kFMAStoreToAccumulator;
+  _float_to_int_outside_range_behavior = FloatToIntOutsideRangeBehavior::kSaturatedValue;
+
   _init_extensions(features);
 }
 
@@ -38,7 +42,7 @@ UniCompiler::~UniCompiler() noexcept {}
 // ujit::UniCompiler - CPU Architecture, Features and Optimization Options
 // =======================================================================
 
-void UniCompiler::_init_extensions(const asmjit::CpuFeatures& features) noexcept {
+void UniCompiler::_init_extensions(const CpuFeatures& features) noexcept {
   uint64_t gp_ext_mask = 0;
   uint64_t asimd_ext_mask = 0;
 
@@ -85,16 +89,16 @@ void UniCompiler::init_vec_width(VecWidth vw) noexcept {
 
   _vec_width = VecWidth::k128;
   _vec_reg_type = RegType::kVec128;
-  _vec_type_id = asmjit::TypeId::kInt32x4;
+  _vec_type_id = TypeId::kInt32x4;
   _vec_multiplier = 1u;
 }
 
 bool UniCompiler::has_masked_access_of(uint32_t data_size) const noexcept {
   switch (data_size) {
-    case 1: return has_opt_flag(UniOptFlags::kMaskOps8Bit);
-    case 2: return has_opt_flag(UniOptFlags::kMaskOps16Bit);
-    case 4: return has_opt_flag(UniOptFlags::kMaskOps32Bit);
-    case 8: return has_opt_flag(UniOptFlags::kMaskOps64Bit);
+    case 1: return has_cpu_hint(CpuHints::kVecMaskedOps8);
+    case 2: return has_cpu_hint(CpuHints::kVecMaskedOps16);
+    case 4: return has_cpu_hint(CpuHints::kVecMaskedOps32);
+    case 8: return has_cpu_hint(CpuHints::kVecMaskedOps64);
 
     default:
       return false;
@@ -104,7 +108,7 @@ bool UniCompiler::has_masked_access_of(uint32_t data_size) const noexcept {
 // ujit::UniCompiler - Function
 // ============================
 
-void UniCompiler::init_function(asmjit::FuncNode* func_node) noexcept {
+void UniCompiler::init_function(FuncNode* func_node) noexcept {
   cc->add_func(func_node);
 
   _func_node = func_node;
@@ -116,7 +120,7 @@ void UniCompiler::init_function(asmjit::FuncNode* func_node) noexcept {
 // =============================
 
 void UniCompiler::_init_vec_const_table_ptr() noexcept {
-  const void* global = &vec_const_table;
+  const void* global = ct_ptr<void>();
 
   if (!_common_table_ptr.is_valid()) {
     ScopedInjector injector(cc, &_func_init);
@@ -152,7 +156,7 @@ Vec UniCompiler::simd_vec_const(const void* c, Bcst bcst_width, VecWidth const_w
     }
   }
 
-  return Vec(OperandSignature{RegTraits<RegType::kVec128>::kSignature}, _new_vecConst(c, true).id());
+  return Vec(OperandSignature{RegTraits<RegType::kVec128>::kSignature}, _new_vec_const(c, true).id());
 }
 
 Vec UniCompiler::simd_vec_const(const void* c, Bcst bcst_width, const Vec& similar_to) noexcept {
@@ -181,39 +185,39 @@ Mem UniCompiler::simd_mem_const(const void* c, Bcst bcst_width, const VecArray& 
 }
 
 Mem UniCompiler::_get_mem_const(const void* c) noexcept {
-  // Make sure we are addressing a constant from the `vec_const_table` constant pool.
-  const void* global = &vec_const_table;
-  ASMJIT_ASSERT((uintptr_t)c >= (uintptr_t)global &&
-                (uintptr_t)c <  (uintptr_t)global + sizeof(VecConstTable));
+  // Make sure we are addressing a constant from the `ct` constant pool.
+  const void* ct_addr = ct_ptr<void>();
+  ASMJIT_ASSERT((uintptr_t)c >= (uintptr_t)ct_addr &&
+                (uintptr_t)c <  (uintptr_t)ct_addr + _ct_ref.size);
 
-  // One GP register is sacrificed to hold the pointer to the `vec_const_table`.
+  // One GP register is sacrificed to hold the pointer to the `ct`.
   _init_vec_const_table_ptr();
 
-  int32_t disp = int32_t((intptr_t)c - (intptr_t)global);
+  int32_t disp = int32_t((intptr_t)c - (intptr_t)ct_addr);
   return mem_ptr(_common_table_ptr, disp - _common_table_offset);
 }
 
-Vec UniCompiler::_new_vecConst(const void* c, bool is_unique_const) noexcept {
+Vec UniCompiler::_new_vec_const(const void* c, bool is_unique_const) noexcept {
   Support::maybe_unused(is_unique_const);
 
   Vec vec;
   const char* special_const_name = nullptr;
 
   if (special_const_name) {
-    vec = new_vec(vec_width(), special_const_name);
+    vec = new_vec_with_width(vec_width(), special_const_name);
   }
   else {
     uint64_t u0 = static_cast<const uint64_t*>(c)[0];
     uint64_t u1 = static_cast<const uint64_t*>(c)[1];
 
     if (u0 != u1)
-      vec = new_vec(vec_width(), "c_0x%016llX%016llX", (unsigned long long)u1, (unsigned long long)u0);
+      vec = new_vec_with_width(vec_width(), "c_0x%016llX%016llX", (unsigned long long)u1, (unsigned long long)u0);
     else if ((u0 >> 32) != (u0 & 0xFFFFFFFFu))
-      vec = new_vec(vec_width(), "c_0x%016llX", (unsigned long long)u0);
+      vec = new_vec_with_width(vec_width(), "c_0x%016llX", (unsigned long long)u0);
     else if (((u0 >> 16) & 0xFFFFu) != (u0 & 0xFFFFu))
-      vec = new_vec(vec_width(), "c_0x%08X", (unsigned)(u0 & 0xFFFFFFFFu));
+      vec = new_vec_with_width(vec_width(), "c_0x%08X", (unsigned)(u0 & 0xFFFFFFFFu));
     else
-      vec = new_vec(vec_width(), "c_0x%04X", (unsigned)(u0 & 0xFFFFu));
+      vec = new_vec_with_width(vec_width(), "c_0x%04X", (unsigned)(u0 & 0xFFFFu));
   }
 
   VecConstData const_data;
@@ -221,7 +225,7 @@ Vec UniCompiler::_new_vecConst(const void* c, bool is_unique_const) noexcept {
   const_data.virt_reg_id = vec.id();
   _vec_consts.append(arena(), const_data);
 
-  if (c == &ct.p_0000000000000000) {
+  if (c == &ct().p_0000000000000000) {
     ScopedInjector inject(cc, &_func_init);
     v_zero_i(vec.v128());
   }
@@ -245,14 +249,14 @@ Vec UniCompiler::simd_const_16b(const void* data16) noexcept {
     }
   }
 
-  Vec vec = new_vec(VecWidth::k128, "const");
+  Vec vec = new_vec128("const");
   VecConstDataEx entry;
 
   memcpy(entry.data, data16, 16);
   entry.virt_reg_id = vec.id();
   _vec_consts_ex.append(arena(), entry);
 
-  Mem mem = cc->new_const(asmjit::ConstPoolScope::kLocal, data16, 16);
+  Mem mem = cc->new_const(ConstPoolScope::kLocal, data16, 16);
   {
     ScopedInjector inject(cc, &_func_init);
     v_loadavec(vec, mem);
@@ -302,8 +306,8 @@ struct MemInst {
   uint16_t mem_size;
 };
 
-static ASMJIT_NOINLINE void gp_emit_mem_op(UniCompiler* pc, Gp r, Mem m, MemInst ii) noexcept {
-  BackendCompiler* cc = pc->cc;
+static ASMJIT_NOINLINE void gp_emit_mem_op(UniCompiler& uc, Gp r, Mem m, MemInst ii) noexcept {
+  BackendCompiler* cc = uc.cc;
   InstId inst_id = ii.inst_id;
 
   if (m.has_index() && m.has_shift()) {
@@ -313,7 +317,7 @@ static ASMJIT_NOINLINE void gp_emit_mem_op(UniCompiler* pc, Gp r, Mem m, MemInst
     uint32_t shift = m.shift();
 
     if (mem_size != (1u << shift)) {
-      Gp tmp = pc->new_gpz("@mem_addr");
+      Gp tmp = uc.new_gpz("@mem_addr");
       cc->add(tmp, m.base_reg().as<Gp>(), m.index_reg().as<Gp>(), a64::Shift(m.shift_op(), shift));
       m = a64::ptr(tmp);
     }
@@ -328,7 +332,7 @@ static ASMJIT_INLINE const Gp& gp_zero_as(const Gp& ref) noexcept {
   return gp_zero_regs[size_t(ref.is_gp64())];
 }
 
-static ASMJIT_NOINLINE Gp gp_force_reg(UniCompiler* pc, const Operand_& op, const Gp& ref) noexcept {
+static ASMJIT_NOINLINE Gp gp_force_reg(UniCompiler& uc, const Operand_& op, const Gp& ref) noexcept {
   ASMJIT_ASSERT(op.is_gp() || op.is_mem() || op.is_imm());
 
   Gp reg;
@@ -343,11 +347,11 @@ static ASMJIT_NOINLINE Gp gp_force_reg(UniCompiler* pc, const Operand_& op, cons
     return gp_zero_as(ref);
   }
 
-  BackendCompiler* cc = pc->cc;
-  reg = pc->new_similar_reg(ref, "@tmp");
+  BackendCompiler* cc = uc.cc;
+  reg = uc.new_similar_reg(ref, "@tmp");
 
   if (op.is_mem()) {
-    gp_emit_mem_op(pc, reg, op.as<Mem>(), MemInst{uint16_t(Inst::kIdLdr), uint16_t(reg.size())});
+    gp_emit_mem_op(uc, reg, op.as<Mem>(), MemInst{uint16_t(Inst::kIdLdr), uint16_t(reg.size())});
   }
   else {
     cc->mov(reg, op.as<Imm>());
@@ -375,15 +379,15 @@ static constexpr ConditionOpInfo condition_op_info[size_t(UniOpCond::kMaxValue) 
   { Inst::kIdCmp , 0 }  // UniOpCond::kCompare
 };
 
-class ConditionApplier : public Condition {
+class ConditionApplier : public UniCondition {
 public:
-  ASMJIT_INLINE ConditionApplier(const Condition& condition) noexcept : Condition(condition) {
+  ASMJIT_INLINE ConditionApplier(const UniCondition& condition) noexcept : UniCondition(condition) {
     // The first operand must always be a register.
     ASMJIT_ASSERT(a.is_gp());
   }
 
-  ASMJIT_NOINLINE void optimize(UniCompiler* pc) noexcept {
-    Support::maybe_unused(pc);
+  ASMJIT_NOINLINE void optimize(UniCompiler& uc) noexcept {
+    Support::maybe_unused(uc);
 
     switch (op) {
       case UniOpCond::kCompare:
@@ -412,8 +416,8 @@ public:
     cond = a64::reverse_cond(cond);
   }
 
-  ASMJIT_NOINLINE void emit(UniCompiler* pc) noexcept {
-    BackendCompiler* cc = pc->cc;
+  ASMJIT_NOINLINE void emit(UniCompiler& uc) noexcept {
+    BackendCompiler* cc = uc.cc;
     ConditionOpInfo info = condition_op_info[size_t(op)];
 
     Gp aGp = a.as<Gp>();
@@ -424,7 +428,7 @@ public:
           cc->emit(info.inst_id, aGp, aGp, b.as<Imm>());
         }
         else {
-          cc->emit(info.inst_id, aGp, aGp, gp_force_reg(pc, b, aGp));
+          cc->emit(info.inst_id, aGp, aGp, gp_force_reg(uc, b, aGp));
         }
         return;
       }
@@ -435,7 +439,7 @@ public:
           cc->emit(info.inst_id, aGp, aGp, b.as<Imm>());
         }
         else {
-          cc->emit(info.inst_id, aGp, aGp, gp_force_reg(pc, b, aGp));
+          cc->emit(info.inst_id, aGp, aGp, gp_force_reg(uc, b, aGp));
         }
         return;
       }
@@ -457,7 +461,7 @@ public:
           cc->tst(aGp, aGp);
         }
         else {
-          cc->emit(info.inst_id, aGp, aGp, gp_force_reg(pc, b, aGp));
+          cc->emit(info.inst_id, aGp, aGp, gp_force_reg(uc, b, aGp));
           cc->tst(aGp, aGp);
         }
         return;
@@ -468,7 +472,7 @@ public:
           cc->adds(aGp, gp_zero_as(aGp), aGp, a64::lsr(b.as<Imm>().value_as<uint32_t>()));
         }
         else {
-          cc->lsr(aGp, aGp, gp_force_reg(pc, b, aGp));
+          cc->lsr(aGp, aGp, gp_force_reg(uc, b, aGp));
           cc->tst(aGp, aGp);
         }
         return;
@@ -479,7 +483,7 @@ public:
           cc->emit(info.inst_id, aGp, b.as<Imm>());
         }
         else {
-          cc->emit(info.inst_id, aGp, gp_force_reg(pc, b, aGp));
+          cc->emit(info.inst_id, aGp, gp_force_reg(uc, b, aGp));
         }
         return;
       }
@@ -489,14 +493,14 @@ public:
           cc->emit(info.inst_id, aGp, b.as<Imm>());
         }
         else {
-          cc->emit(info.inst_id, aGp, gp_force_reg(pc, b, aGp));
+          cc->emit(info.inst_id, aGp, gp_force_reg(uc, b, aGp));
         }
         return;
       }
 
       case UniOpCond::kBitTest: {
-        Gp tmp = pc->new_similar_reg(aGp);
-        cc->lsr(tmp, aGp, gp_force_reg(pc, b, aGp));
+        Gp tmp = uc.new_similar_reg(aGp);
+        cc->lsr(tmp, aGp, gp_force_reg(uc, b, aGp));
         cc->tst(tmp, Imm(1));
         return;
       }
@@ -512,7 +516,7 @@ public:
 
 void UniCompiler::emit_mov(const Gp& dst, const Operand_& src) noexcept {
   if (src.is_mem()) {
-    gp_emit_mem_op(this, dst, src.as<Mem>(), MemInst{uint16_t(Inst::kIdLdr), uint16_t(dst.size())});
+    gp_emit_mem_op(*this, dst, src.as<Mem>(), MemInst{uint16_t(Inst::kIdLdr), uint16_t(dst.size())});
   }
   else {
     cc->emit(Inst::kIdMov, dst, src);
@@ -531,7 +535,7 @@ void UniCompiler::emit_m(UniOpM op, const Mem& m_) noexcept {
   Gp zero = gp_zero_regs[size_t(op == UniOpM::kStoreZeroReg || op == UniOpM::kStoreZeroU64)];
   MemInst ii = st_inst[size_t(op)];
 
-  gp_emit_mem_op(this, zero, m_, ii);
+  gp_emit_mem_op(*this, zero, m_, ii);
 }
 
 void UniCompiler::emit_rm(UniOpRM op, const Gp& dst, const Mem& src) noexcept {
@@ -578,14 +582,14 @@ void UniCompiler::emit_rm(UniOpRM op, const Gp& dst, const Mem& src) noexcept {
         r = r.w();
       }
 
-      gp_emit_mem_op(this, r, m, ii);
+      gp_emit_mem_op(*this, r, m, ii);
       return;
     }
 
     case UniOpRM::kLoadShiftU8:
     case UniOpRM::kLoadShiftU16: {
       Gp tmp = new_similar_reg(r);
-      gp_emit_mem_op(this, tmp.r32(), m, ii);
+      gp_emit_mem_op(*this, tmp.r32(), m, ii);
       cc->orr(r, tmp, r, a64::lsl(ii.mem_size * 8));
       return;
     }
@@ -593,7 +597,7 @@ void UniCompiler::emit_rm(UniOpRM op, const Gp& dst, const Mem& src) noexcept {
     case UniOpRM::kLoadMergeU8:
     case UniOpRM::kLoadMergeU16: {
       Gp tmp = new_similar_reg(r);
-      gp_emit_mem_op(this, tmp.r32(), m, ii);
+      gp_emit_mem_op(*this, tmp.r32(), m, ii);
       cc->orr(r, r, tmp);
       return;
     }
@@ -649,20 +653,20 @@ void UniCompiler::emit_mr(UniOpMR op, const Mem& dst, const Gp& src) noexcept {
   }
 }
 
-void UniCompiler::emit_cmov(const Gp& dst, const Operand_& sel, const Condition& condition) noexcept {
+void UniCompiler::emit_cmov(const Gp& dst, const Operand_& sel, const UniCondition& condition) noexcept {
   ConditionApplier ca(condition);
-  ca.optimize(this);
-  ca.emit(this);
-  cc->csel(dst, gp_force_reg(this, sel, dst), dst, condition.cond);
+  ca.optimize(*this);
+  ca.emit(*this);
+  cc->csel(dst, gp_force_reg(*this, sel, dst), dst, condition.cond);
 }
 
-void UniCompiler::emit_select(const Gp& dst, const Operand_& sel1_, const Operand_& sel2_, const Condition& condition) noexcept {
+void UniCompiler::emit_select(const Gp& dst, const Operand_& sel1_, const Operand_& sel2_, const UniCondition& condition) noexcept {
   ConditionApplier ca(condition);
-  ca.optimize(this);
-  ca.emit(this);
+  ca.optimize(*this);
+  ca.emit(*this);
 
-  Gp sel1 = gp_force_reg(this, sel1_, dst);
-  Gp sel2 = gp_force_reg(this, sel2_, dst);
+  Gp sel1 = gp_force_reg(*this, sel1_, dst);
+  Gp sel2 = gp_force_reg(*this, sel2_, dst);
   cc->csel(dst, sel1, sel2, condition.cond);
 }
 
@@ -671,7 +675,7 @@ void UniCompiler::emit_2i(UniOpRR op, const Gp& dst, const Operand_& src_) noexc
   // ----------------
 
   if (src_.is_reg_or_mem()) {
-    Gp src = gp_force_reg(this, src_, dst);
+    Gp src = gp_force_reg(*this, src_, dst);
 
     switch (op) {
       case UniOpRR::kAbs: {
@@ -755,7 +759,7 @@ void UniCompiler::emit_3i(UniOpRRR op, const Gp& dst, const Operand_& src1_, con
       std::swap(src1, src2);
     }
     else {
-      src1 = gp_force_reg(this, src1, dst);
+      src1 = gp_force_reg(*this, src1, dst);
     }
   }
 
@@ -805,13 +809,13 @@ void UniCompiler::emit_3i(UniOpRRR op, const Gp& dst, const Operand_& src1_, con
 
         // TODO: [JIT] Just testing the idea of patching the previous instruction to have a post-index addressing.
         if (!reverse && uint64_t(value) < 256 && dst.id() == a.id()) {
-          if (cc->cursor()->type() == asmjit::NodeType::kInst) {
-            asmjit::InstNode* prev_inst = cc->cursor()->as<asmjit::InstNode>();
+          if (cc->cursor()->type() == NodeType::kInst) {
+            InstNode* prev_inst = cc->cursor()->as<InstNode>();
             if (prev_inst->inst_id() == Inst::kIdLdr || prev_inst->inst_id() == Inst::kIdStr ||
                 prev_inst->inst_id() == Inst::kIdLdr_v || prev_inst->inst_id() == Inst::kIdStr_v) {
               Mem& mem_op = prev_inst->op(prev_inst->op_count() - 1).as<Mem>();
               if (mem_op.base_reg() == a && !mem_op.has_index() && !mem_op.has_offset()) {
-                mem_op.set_offset_mode(asmjit::arm::OffsetMode::kPostIndex);
+                mem_op.set_offset_mode(arm::OffsetMode::kPostIndex);
                 mem_op.add_offset(int64_t(value));
                 return;
               }
@@ -819,7 +823,7 @@ void UniCompiler::emit_3i(UniOpRRR op, const Gp& dst, const Operand_& src1_, con
           }
         }
 
-        if (asmjit::Support::is_uint_n<12>(value)) {
+        if (Support::is_uint_n<12>(value)) {
           cc->emit(addsub_inst[reverse], dst, a, Imm(value));
           return;
         }
@@ -831,15 +835,15 @@ void UniCompiler::emit_3i(UniOpRRR op, const Gp& dst, const Operand_& src1_, con
       case UniOpRRR::kMul: {
         uint64_t value = b.value_as<uint64_t>();
         if (value > 0u) {
-          if (asmjit::Support::is_power_of_2(value)) {
-            uint32_t shift = asmjit::Support::ctz(value);
+          if (Support::is_power_of_2(value)) {
+            uint32_t shift = Support::ctz(value);
             cc->lsl(dst, a, Imm(shift));
             return;
           }
 
           // We can still support multiplication with `power_of_2 + 1`
-          if (asmjit::Support::is_power_of_2(--value)) {
-            uint32_t shift = asmjit::Support::ctz(value);
+          if (Support::is_power_of_2(--value)) {
+            uint32_t shift = Support::ctz(value);
             cc->add(dst, a, a, a64::lsl(shift));
             return;
           }
@@ -921,7 +925,7 @@ void UniCompiler::emit_3i(UniOpRRR op, const Gp& dst, const Operand_& src1_, con
   // ---------------------
 
   {
-    src2 = gp_force_reg(this, src2, dst);
+    src2 = gp_force_reg(*this, src2, dst);
 
     Gp a = src1.as<Gp>();
     Gp b = src2.as<Gp>();
@@ -1020,10 +1024,10 @@ void UniCompiler::emit_j(const Operand_& target) noexcept {
   cc->emit(Inst::kIdB, target);
 }
 
-void UniCompiler::emit_j_if(const Label& target, const Condition& condition) noexcept {
+void UniCompiler::emit_j_if(const Label& target, const UniCondition& condition) noexcept {
   ConditionApplier ca(condition);
-  ca.optimize(this);
-  ca.emit(this);
+  ca.optimize(*this);
+  ca.emit(*this);
   cc->b(ca.cond, target);
 }
 
@@ -1066,8 +1070,8 @@ void UniCompiler::mul_257_hu16(const Gp& dst, const Gp& src) noexcept {
 void UniCompiler::add_scaled(const Gp& dst, const Gp& a_, int b) noexcept {
   Gp a = a_.clone_as(dst);
 
-  if (asmjit::Support::is_power_of_2(b)) {
-    uint32_t shift = asmjit::Support::ctz(b);
+  if (Support::is_power_of_2(b)) {
+    uint32_t shift = Support::ctz(b);
     cc->add(dst, dst, a, a64::lsl(shift));
   }
   else if (b == 3 && dst.id() == a.id()) {
@@ -1086,8 +1090,8 @@ void UniCompiler::add_ext(const Gp& dst, const Gp& src_, const Gp& idx_, uint32_
   Gp src = src_.clone_as(dst);
   Gp idx = idx_.clone_as(dst);
 
-  if (asmjit::Support::is_power_of_2(scale)) {
-    cc->add(dst, src, idx, a64::lsl(asmjit::Support::ctz(scale)));
+  if (Support::is_power_of_2(scale)) {
+    cc->add(dst, src, idx, a64::lsl(Support::ctz(scale)));
   }
   else {
     Gp tmp = new_similar_reg(dst, "@tmp");
@@ -1206,20 +1210,20 @@ struct UniOpVInfo {
 };
 
 #define DEFINE_OP(inst_id, ext, commutative, comparison, reverse, same_vec_op, float_mode, dst_element, dst_part, src_element, src_part, imm) \
-  UniOpVInfo {              \
+  UniOpVInfo {                \
     inst_id,                  \
-    ASIMDExt::ext,           \
-    commutative,             \
-    comparison,              \
-    reverse,                 \
-    SameVecOp::same_vec_op,    \
+    ASIMDExt::ext,            \
+    commutative,              \
+    comparison,               \
+    reverse,                  \
+    SameVecOp::same_vec_op,   \
     FloatMode::float_mode,    \
     ElementSize::dst_element, \
     VecPart::dst_part,        \
     ElementSize::src_element, \
     VecPart::src_part,        \
-    imm,                     \
-    0                        \
+    imm,                      \
+    0                         \
   }
 
 static constexpr UniOpVInfo opcode_info_2v[size_t(UniOpVV::kMaxValue) + 1] = {
@@ -1261,8 +1265,12 @@ static constexpr UniOpVInfo opcode_info_2v[size_t(UniOpVV::kMaxValue) + 1] = {
   DEFINE_OP(Inst::kIdSshll2_v       , kIntrin, 0, 0, 0, kNone, kNone, k64, kNA, k32, kHi, 0x00u), // kCvtI32HiToI64
   DEFINE_OP(Inst::kIdUshll_v        , kIntrin, 0, 0, 0, kNone, kNone, k64, kNA, k32, kLo, 0x00u), // kCvtU32LoToU64
   DEFINE_OP(Inst::kIdUshll2_v       , kIntrin, 0, 0, 0, kNone, kNone, k64, kNA, k32, kHi, 0x00u), // kCvtU32HiToU64
+  DEFINE_OP(Inst::kIdFabs_v         , kASIMD , 0, 0, 0, kNone, kF32S, k32, kNA, k32, kNA, 0x00u), // kAbsF32S.
+  DEFINE_OP(Inst::kIdFabs_v         , kASIMD , 0, 0, 0, kNone, kF64S, k64, kNA, k64, kNA, 0x00u), // kAbsF64S.
   DEFINE_OP(Inst::kIdFabs_v         , kASIMD , 0, 0, 0, kNone, kF32V, k32, kNA, k32, kNA, 0x00u), // kAbsF32.
   DEFINE_OP(Inst::kIdFabs_v         , kASIMD , 0, 0, 0, kNone, kF64V, k64, kNA, k64, kNA, 0x00u), // kAbsF64.
+  DEFINE_OP(Inst::kIdFneg_v         , kASIMD , 0, 0, 0, kNone, kF32S, k32, kNA, k32, kNA, 0x00u), // kNegF32S.
+  DEFINE_OP(Inst::kIdFneg_v         , kASIMD , 0, 0, 0, kNone, kF64S, k64, kNA, k64, kNA, 0x00u), // kNegF64S.
   DEFINE_OP(Inst::kIdFneg_v         , kASIMD , 0, 0, 0, kNone, kF32V, k32, kNA, k32, kNA, 0x00u), // kNegF32.
   DEFINE_OP(Inst::kIdFneg_v         , kASIMD , 0, 0, 0, kNone, kF64V, k64, kNA, k64, kNA, 0x00u), // kNegF64.
   DEFINE_OP(Inst::kIdMvn_v          , kASIMD , 0, 0, 0, kNone, kNone, k8 , kNA, k8 , kNA, 0x00u), // kNotF32.
@@ -1279,10 +1287,18 @@ static constexpr UniOpVInfo opcode_info_2v[size_t(UniOpVV::kMaxValue) + 1] = {
   DEFINE_OP(Inst::kIdFrintp_v       , kASIMD , 0, 0, 0, kNone, kF64S, k64, kNA, k64, kNA, 0x00u), // kCeilF64S.
   DEFINE_OP(Inst::kIdFrintp_v       , kASIMD , 0, 0, 0, kNone, kF32V, k32, kNA, k32, kNA, 0x00u), // kCeilF32.
   DEFINE_OP(Inst::kIdFrintp_v       , kASIMD , 0, 0, 0, kNone, kF64V, k64, kNA, k64, kNA, 0x00u), // kCeilF64.
-  DEFINE_OP(Inst::kIdFrintn_v       , kASIMD , 0, 0, 0, kNone, kF32S, k32, kNA, k32, kNA, 0x00u), // kRoundF32S.
-  DEFINE_OP(Inst::kIdFrintn_v       , kASIMD , 0, 0, 0, kNone, kF64S, k64, kNA, k64, kNA, 0x00u), // kRoundF64S.
-  DEFINE_OP(Inst::kIdFrintn_v       , kASIMD , 0, 0, 0, kNone, kF32V, k32, kNA, k32, kNA, 0x00u), // kRoundF32.
-  DEFINE_OP(Inst::kIdFrintn_v       , kASIMD , 0, 0, 0, kNone, kF64V, k64, kNA, k64, kNA, 0x00u), // kRoundF64.
+  DEFINE_OP(Inst::kIdFrintn_v       , kASIMD , 0, 0, 0, kNone, kF32S, k32, kNA, k32, kNA, 0x00u), // kRoundEvenF32S.
+  DEFINE_OP(Inst::kIdFrintn_v       , kASIMD , 0, 0, 0, kNone, kF64S, k64, kNA, k64, kNA, 0x00u), // kRoundEvenF64S.
+  DEFINE_OP(Inst::kIdFrintn_v       , kASIMD , 0, 0, 0, kNone, kF32V, k32, kNA, k32, kNA, 0x00u), // kRoundEvenF32.
+  DEFINE_OP(Inst::kIdFrintn_v       , kASIMD , 0, 0, 0, kNone, kF64V, k64, kNA, k64, kNA, 0x00u), // kRoundEvenF64.
+  DEFINE_OP(Inst::kIdFrinta_v       , kASIMD , 0, 0, 0, kNone, kF32S, k32, kNA, k32, kNA, 0x00u), // kRoundHalfAwayF32S.
+  DEFINE_OP(Inst::kIdFrinta_v       , kASIMD , 0, 0, 0, kNone, kF64S, k64, kNA, k64, kNA, 0x00u), // kRoundHalfAwayF64S.
+  DEFINE_OP(Inst::kIdFrinta_v       , kASIMD , 0, 0, 0, kNone, kF32V, k32, kNA, k32, kNA, 0x00u), // kRoundHalfAwayF32.
+  DEFINE_OP(Inst::kIdFrinta_v       , kASIMD , 0, 0, 0, kNone, kF64V, k64, kNA, k64, kNA, 0x00u), // kRoundHalfAwayF64.
+  DEFINE_OP(Inst::kIdNone           , kIntrin, 0, 0, 0, kNone, kF32S, k32, kNA, k32, kNA, 0x00u), // kRoundHalfUpF32S.
+  DEFINE_OP(Inst::kIdNone           , kIntrin, 0, 0, 0, kNone, kF64S, k64, kNA, k64, kNA, 0x00u), // kRoundHalfUpF64S.
+  DEFINE_OP(Inst::kIdNone           , kIntrin, 0, 0, 0, kNone, kF32V, k32, kNA, k32, kNA, 0x00u), // kRoundHalfUpF32.
+  DEFINE_OP(Inst::kIdNone           , kIntrin, 0, 0, 0, kNone, kF64V, k64, kNA, k64, kNA, 0x00u), // kRoundHalfUpF64.
   DEFINE_OP(Inst::kIdNone           , kIntrin, 0, 0, 0, kNone, kNone, k32, kNA, k32, kNA, 0x00u), // kRcpF32.
   DEFINE_OP(Inst::kIdNone           , kIntrin, 0, 0, 0, kNone, kNone, k64, kNA, k64, kNA, 0x00u), // kRcpF64.
   DEFINE_OP(Inst::kIdFsqrt_v        , kASIMD , 0, 0, 0, kNone, kF32S, k32, kNA, k32, kNA, 0x00u), // kSqrtF32S.
@@ -1492,6 +1508,10 @@ static constexpr UniOpVInfo opcode_info_3v[size_t(UniOpVVV::kMaxValue) + 1] = {
   DEFINE_OP(Inst::kIdFdiv_v         , kASIMD , 0, 0, 0, kNone, kF64S, k64, kNA, k64, kNA, 0x00u), // kDivF64S.
   DEFINE_OP(Inst::kIdFdiv_v         , kASIMD , 0, 0, 0, kNone, kF32V, k32, kNA, k32, kNA, 0x00u), // kDivF32.
   DEFINE_OP(Inst::kIdFdiv_v         , kASIMD , 0, 0, 0, kNone, kF64V, k64, kNA, k64, kNA, 0x00u), // kDivF64.
+  DEFINE_OP(Inst::kIdNone           , kIntrin, 0, 0, 0, kNone, kF32S, k32, kNA, k32, kNA, 0x00u), // kModF32S.
+  DEFINE_OP(Inst::kIdNone           , kIntrin, 0, 0, 0, kNone, kF64S, k64, kNA, k64, kNA, 0x00u), // kModF64S.
+  DEFINE_OP(Inst::kIdNone           , kIntrin, 0, 0, 0, kNone, kF32V, k32, kNA, k32, kNA, 0x00u), // kModF32.
+  DEFINE_OP(Inst::kIdNone           , kIntrin, 0, 0, 0, kNone, kF64V, k64, kNA, k64, kNA, 0x00u), // kModF64.
   DEFINE_OP(Inst::kIdFminnm_v       , kASIMD , 1, 0, 0, kSrc , kF32S, k32, kNA, k32, kNA, 0x00u), // kMinF32S.
   DEFINE_OP(Inst::kIdFminnm_v       , kASIMD , 1, 0, 0, kSrc , kF64S, k64, kNA, k64, kNA, 0x00u), // kMinF64S.
   DEFINE_OP(Inst::kIdFminnm_v       , kASIMD , 1, 0, 0, kSrc , kF32V, k32, kNA, k32, kNA, 0x00u), // kMinF32.
@@ -1809,8 +1829,8 @@ static ASMJIT_INLINE void vec_set_type_and_index(Vec& vec, ElementSize sz, uint3
   vec.set_element_index(idx);
 }
 
-static ASMJIT_NOINLINE void vec_load_mem(UniCompiler* pc, const Vec& dst, Mem src, uint32_t mem_size) noexcept {
-  BackendCompiler* cc = pc->cc;
+static ASMJIT_NOINLINE void vec_load_mem(UniCompiler& uc, const Vec& dst, Mem src, uint32_t mem_size) noexcept {
+  BackendCompiler* cc = uc.cc;
 
   if (src.has_index() && src.has_shift()) {
     // AArch64 limitation: index shift can be the same size as the size of the read operation, so H << 1, S << 2,
@@ -1825,7 +1845,7 @@ static ASMJIT_NOINLINE void vec_load_mem(UniCompiler* pc, const Vec& dst, Mem sr
         src = a64::ptr(base, src.offset_lo32());
       }
       else {
-        Gp tmp = pc->new_gpz("@mem_addr");
+        Gp tmp = uc.new_gpz("@mem_addr");
         cc->add(tmp, base, index, a64::Shift(src.shift_op(), shift));
         src = a64::ptr(tmp, src.offset_lo32());
       }
@@ -1843,30 +1863,30 @@ static ASMJIT_NOINLINE void vec_load_mem(UniCompiler* pc, const Vec& dst, Mem sr
   }
 }
 
-static ASMJIT_NOINLINE Vec vec_from_mem(UniCompiler* pc, const Mem& op, const Vec& ref, uint32_t mem_size = 0) noexcept {
-  Vec vec = pc->new_vec128("@tmp");
+static ASMJIT_NOINLINE Vec vec_from_mem(UniCompiler& uc, const Mem& op, const Vec& ref, uint32_t mem_size = 0) noexcept {
+  Vec vec = uc.new_vec128("@tmp");
   if (mem_size == 0)
     mem_size = ref.size();
-  vec_load_mem(pc, vec, op, mem_size);
+  vec_load_mem(uc, vec, op, mem_size);
   return vec.clone_as(ref);
 }
 
-static ASMJIT_INLINE Vec as_vec(UniCompiler* pc, const Operand_& op, const Vec& ref, uint32_t mem_size = 0) noexcept {
+static ASMJIT_INLINE Vec as_vec(UniCompiler& uc, const Operand_& op, const Vec& ref, uint32_t mem_size = 0) noexcept {
   if (op.is_vec())
     return op.as<Vec>().clone_as(ref);
   else
-    return vec_from_mem(pc, op.as<Mem>(), ref, mem_size);
+    return vec_from_mem(uc, op.as<Mem>(), ref, mem_size);
 }
 
-static ASMJIT_INLINE Vec as_vec(UniCompiler* pc, const Operand_& op, const Vec& ref, FloatMode fm) noexcept {
+static ASMJIT_INLINE Vec as_vec(UniCompiler& uc, const Operand_& op, const Vec& ref, FloatMode fm) noexcept {
   if (op.is_vec())
     return op.as<Vec>().clone_as(ref);
   else
-    return vec_from_mem(pc, op.as<Mem>(), ref, float_mode_mem_size_table[size_t(fm)]);
+    return vec_from_mem(uc, op.as<Mem>(), ref, float_mode_mem_size_table[size_t(fm)]);
 }
 
-static ASMJIT_NOINLINE Vec vec_mov(UniCompiler* pc, const Vec& dst_, const Operand_& src_) noexcept {
-  BackendCompiler* cc = pc->cc;
+static ASMJIT_NOINLINE Vec vec_mov(UniCompiler& uc, const Vec& dst_, const Operand_& src_) noexcept {
+  BackendCompiler* cc = uc.cc;
 
   Vec dst(dst_);
   vec_set_type(dst, ElementSize::k8);
@@ -1881,15 +1901,15 @@ static ASMJIT_NOINLINE Vec vec_mov(UniCompiler* pc, const Vec& dst_, const Opera
   }
 
   if (src_.is_mem()) {
-    vec_load_mem(pc, dst, src_.as<Mem>(), dst.size());
+    vec_load_mem(uc, dst, src_.as<Mem>(), dst.size());
     return dst;
   }
 
   ASMJIT_NOT_REACHED();
 }
 
-static ASMJIT_NOINLINE void vec_neg(UniCompiler* pc, const Vec& dst, const Vec& src, FloatMode fm) noexcept {
-  BackendCompiler* cc = pc->cc;
+static ASMJIT_NOINLINE void vec_neg(UniCompiler& uc, const Vec& dst, const Vec& src, FloatMode fm) noexcept {
+  BackendCompiler* cc = uc.cc;
 
   if (fm == FloatMode::kF32S)
     cc->mvn_(dst.s(), src.s());
@@ -2109,10 +2129,10 @@ static constexpr Swizzle32Data swizzle_32_data[256] = {
 
 #undef OP
 
-static void emit_swizzle32_impl(UniCompiler* pc, const Vec& dst, const Vec& src, uint32_t imm) noexcept {
+static void emit_swizzle32_impl(UniCompiler& uc, const Vec& dst, const Vec& src, uint32_t imm) noexcept {
   ASMJIT_ASSERT((imm & 0xFCFCFCFC) == 0);
 
-  BackendCompiler* cc = pc->cc;
+  BackendCompiler* cc = uc.cc;
 
   uint32_t table_index = ((imm & 0x03000000) >> (24 - 6)) |
                          ((imm & 0x00030000) >> (16 - 4)) |
@@ -2134,12 +2154,12 @@ static void emit_swizzle32_impl(UniCompiler* pc, const Vec& dst, const Vec& src,
         op_dst = dst;
       }
       else {
-        op_dst = pc->new_similar_reg(dst, "@tmp");
+        op_dst = uc.new_similar_reg(dst, "@tmp");
       }
 
       switch (op.type()) {
         case Swizzle32Data::Op::kMov: {
-          vec_mov(pc, op_dst, op_src[0]);
+          vec_mov(uc, op_dst, op_src[0]);
           break;
         }
 
@@ -2226,7 +2246,7 @@ static void emit_swizzle32_impl(UniCompiler* pc, const Vec& dst, const Vec& src,
     pred_data[14] = uint8_t(d + 2u);
     pred_data[15] = uint8_t(d + 3u);
 
-    Vec pred = pc->simd_const_16b(pred_data);
+    Vec pred = uc.simd_const_16b(pred_data);
     cc->tbl(dst.b16(), src.b16(), pred.b16());
   }
 }
@@ -2508,13 +2528,13 @@ static constexpr InterleavedShuffle32Ops interleaved_shuffle32_ops_dst_same_as_b
 
 #undef OP
 
-static void emit_interleaved_shuffle32_impl(UniCompiler* pc, const Vec& dst, const Vec& src1, const Vec& src2, uint32_t imm) noexcept {
+static void emit_interleaved_shuffle32_impl(UniCompiler& uc, const Vec& dst, const Vec& src1, const Vec& src2, uint32_t imm) noexcept {
   ASMJIT_ASSERT((imm & 0xFCFCFCFC) == 0);
 
   if (src1.id() == src2.id())
-    return emit_swizzle32_impl(pc, dst, src1, imm);
+    return emit_swizzle32_impl(uc, dst, src1, imm);
 
-  BackendCompiler* cc = pc->cc;
+  BackendCompiler* cc = uc.cc;
 
   uint32_t table_index = ((imm & 0x03000000) >> (24 - 6)) |
                          ((imm & 0x00030000) >> (16 - 4)) |
@@ -2575,7 +2595,7 @@ static void emit_interleaved_shuffle32_impl(UniCompiler* pc, const Vec& dst, con
         op_dst = regs[op_index];
       }
       else {
-        op_dst = pc->new_similar_reg(dst, "@shuf_tmp_%u", op_index - 2);
+        op_dst = uc.new_similar_reg(dst, "@shuf_tmp_%u", op_index - 2);
       }
     }
     else {
@@ -2592,7 +2612,7 @@ static void emit_interleaved_shuffle32_impl(UniCompiler* pc, const Vec& dst, con
           // In this case the destination is in conflict with one of the source registers. We have to
           // create a new virtual register and then move it to the real `dst` to not mess up the shuffle.
           ASMJIT_ASSERT(!regs[op_index].is_valid());
-          final_dst = pc->new_similar_reg(dst, "@shuf_dst");
+          final_dst = uc.new_similar_reg(dst, "@shuf_dst");
         }
         else {
           // Perfect - the destination is not in conflict with any source register.
@@ -2661,7 +2681,7 @@ static void emit_interleaved_shuffle32_impl(UniCompiler* pc, const Vec& dst, con
     regs[op_index] = op_dst;
   }
 
-  vec_mov(pc, dst, final_dst);
+  vec_mov(uc, dst, final_dst);
 }
 
 // ujit::UniCompiler - Vector Instructions - OpArray Iterator
@@ -2690,62 +2710,62 @@ public:
 };
 
 template<typename Src>
-static ASMJIT_INLINE void emit_2v_t(UniCompiler* pc, UniOpVV op, const OpArray& dst_, const Src& src_) noexcept {
+static ASMJIT_INLINE void emit_2v_t(UniCompiler& uc, UniOpVV op, const OpArray& dst_, const Src& src_) noexcept {
   size_t n = dst_.size();
   OpArrayIter<Src> src(src_);
 
   for (size_t i = 0; i < n; i++) {
-    pc->emit_2v(op, dst_[i], src.op());
+    uc.emit_2v(op, dst_[i], src.op());
     src.next();
   }
 }
 
 template<typename Src>
-static ASMJIT_INLINE void emit_2vi_t(UniCompiler* pc, UniOpVVI op, const OpArray& dst_, const Src& src_, uint32_t imm) noexcept {
+static ASMJIT_INLINE void emit_2vi_t(UniCompiler& uc, UniOpVVI op, const OpArray& dst_, const Src& src_, uint32_t imm) noexcept {
   size_t n = dst_.size();
   OpArrayIter<Src> src(src_);
 
   for (size_t i = 0; i < n; i++) {
-    pc->emit_2vi(op, dst_[i], src.op(), imm);
+    uc.emit_2vi(op, dst_[i], src.op(), imm);
     src.next();
   }
 }
 
 template<typename Src1, typename Src2>
-static ASMJIT_INLINE void emit_3v_t(UniCompiler* pc, UniOpVVV op, const OpArray& dst_, const Src1& src1_, const Src2& src2_) noexcept {
+static ASMJIT_INLINE void emit_3v_t(UniCompiler& uc, UniOpVVV op, const OpArray& dst_, const Src1& src1_, const Src2& src2_) noexcept {
   size_t n = dst_.size();
   OpArrayIter<Src1> src1(src1_);
   OpArrayIter<Src2> src2(src2_);
 
   for (size_t i = 0; i < n; i++) {
-    pc->emit_3v(op, dst_[i], src1.op(), src2.op());
+    uc.emit_3v(op, dst_[i], src1.op(), src2.op());
     src1.next();
     src2.next();
   }
 }
 
 template<typename Src1, typename Src2>
-static ASMJIT_INLINE void emit_3vi_t(UniCompiler* pc, UniOpVVVI op, const OpArray& dst_, const Src1& src1_, const Src2& src2_, uint32_t imm) noexcept {
+static ASMJIT_INLINE void emit_3vi_t(UniCompiler& uc, UniOpVVVI op, const OpArray& dst_, const Src1& src1_, const Src2& src2_, uint32_t imm) noexcept {
   size_t n = dst_.size();
   OpArrayIter<Src1> src1(src1_);
   OpArrayIter<Src2> src2(src2_);
 
   for (size_t i = 0; i < n; i++) {
-    pc->emit_3vi(op, dst_[i], src1.op(), src2.op(), imm);
+    uc.emit_3vi(op, dst_[i], src1.op(), src2.op(), imm);
     src1.next();
     src2.next();
   }
 }
 
 template<typename Src1, typename Src2, typename Src3>
-static ASMJIT_INLINE void emit_4v_t(UniCompiler* pc, UniOpVVVV op, const OpArray& dst_, const Src1& src1_, const Src2& src2_, const Src3& src3_) noexcept {
+static ASMJIT_INLINE void emit_4v_t(UniCompiler& uc, UniOpVVVV op, const OpArray& dst_, const Src1& src1_, const Src2& src2_, const Src3& src3_) noexcept {
   size_t n = dst_.size();
   OpArrayIter<Src1> src1(src1_);
   OpArrayIter<Src2> src2(src2_);
   OpArrayIter<Src3> src3(src3_);
 
   for (size_t i = 0; i < n; i++) {
-    pc->emit_4v(op, dst_[i], src1.op(), src2.op(), src3.op());
+    uc.emit_4v(op, dst_[i], src1.op(), src2.op(), src3.op());
     src1.next();
     src2.next();
     src3.next();
@@ -2774,13 +2794,13 @@ void UniCompiler::emit_2v(UniOpVV op, const Operand_& dst_, const Operand_& src_
         return;
       }
 
-      vec_mov(this, dst, src_);
+      vec_mov(*this, dst, src_);
       return;
     }
 
     case UniOpVV::kMovU64: {
       dst = dst.d();
-      Vec src = as_vec(this, src_, dst);
+      Vec src = as_vec(*this, src_, dst);
 
       cc->mov(dst.b8(), src.b8());
       return;
@@ -2809,7 +2829,7 @@ void UniCompiler::emit_2v(UniOpVV op, const Operand_& dst_, const Operand_& src_
           return;
         }
 
-        v_load_iany(dst, src.as<Mem>(), 1u << uint32_t(op_info.src_element), Alignment{1});
+        v_load_iany(dst, src.as<Mem>(), size_t(1) << uint32_t(op_info.src_element), Alignment(1));
         src = dst;
       }
 
@@ -2855,7 +2875,7 @@ void UniCompiler::emit_2v(UniOpVV op, const Operand_& dst_, const Operand_& src_
     case UniOpVV::kNotU64:
     case UniOpVV::kNotF32:
     case UniOpVV::kNotF64: {
-      Vec src = as_vec(this, src_, dst);
+      Vec src = as_vec(*this, src_, dst);
 
       vec_set_type(dst, op_info.dst_element);
       vec_set_type(src, op_info.src_element);
@@ -2866,7 +2886,7 @@ void UniCompiler::emit_2v(UniOpVV op, const Operand_& dst_, const Operand_& src_
 
     case UniOpVV::kCvtI8ToI32:
     case UniOpVV::kCvtU8ToU32: {
-      Vec src = as_vec(this, src_, dst);
+      Vec src = as_vec(*this, src_, dst);
       cc->emit(inst_id, dst.h8(), src.b8(), 0);
       cc->emit(inst_id, dst.s4(), dst.h4(), 0);
       return;
@@ -2889,7 +2909,7 @@ void UniCompiler::emit_2v(UniOpVV op, const Operand_& dst_, const Operand_& src_
       Vec src;
 
       if (op_info.src_part == VecPart::kLo) {
-        src = as_vec(this, src_, dst, 8);
+        src = as_vec(*this, src_, dst, 8);
         src = src.v64();
       }
       else if (src_.is_vec()) {
@@ -2898,7 +2918,7 @@ void UniCompiler::emit_2v(UniOpVV op, const Operand_& dst_, const Operand_& src_
       else {
         Mem m(src_.as<Mem>());
         m.add_offset(8);
-        src = vec_from_mem(this,  m, dst, 8);
+        src = vec_from_mem(*this,  m, dst, 8);
         src = src.v64();
 
         // Since we have loaded from memory, we want to use the low-part variant of the instruction.
@@ -2913,10 +2933,10 @@ void UniCompiler::emit_2v(UniOpVV op, const Operand_& dst_, const Operand_& src_
     case UniOpVV::kRcpF32:
     case UniOpVV::kRcpF64: {
       // Intrinsic.
-      const void* one_ptr = op == UniOpVV::kRcpF32 ? static_cast<const void*>(&ct.f32_1) : static_cast<const void*>(&ct.f64_1);
+      const void* one_ptr = op_info.src_element == ElementSize::k32 ? static_cast<const void*>(&ct().f32_1) : static_cast<const void*>(&ct().f64_1);
 
       Vec one = simd_vec_const(one_ptr, Bcst::kNA, dst);
-      Vec src = as_vec(this, src_, dst);
+      Vec src = as_vec(*this, src_, dst);
 
       vec_set_type(dst, op_info.dst_element);
       vec_set_type(one, op_info.dst_element);
@@ -2926,27 +2946,68 @@ void UniCompiler::emit_2v(UniOpVV op, const Operand_& dst_, const Operand_& src_
       return;
     }
 
+    case UniOpVV::kAbsF32S:
+    case UniOpVV::kNegF32S:
     case UniOpVV::kTruncF32S:
     case UniOpVV::kFloorF32S:
     case UniOpVV::kCeilF32S:
-    case UniOpVV::kRoundF32S:
+    case UniOpVV::kRoundEvenF32S:
+    case UniOpVV::kRoundHalfAwayF32S:
     case UniOpVV::kSqrtF32S: {
       dst.set_signature(RegTraits<RegType::kVec32>::kSignature);
-      Vec src = as_vec(this, src_, dst);
+      Vec src = as_vec(*this, src_, dst);
 
       cc->emit(inst_id, dst, src);
       return;
     }
 
+    case UniOpVV::kAbsF64S:
+    case UniOpVV::kNegF64S:
     case UniOpVV::kTruncF64S:
     case UniOpVV::kFloorF64S:
     case UniOpVV::kCeilF64S:
-    case UniOpVV::kRoundF64S:
+    case UniOpVV::kRoundEvenF64S:
+    case UniOpVV::kRoundHalfAwayF64S:
     case UniOpVV::kSqrtF64S: {
       dst.set_signature(RegTraits<RegType::kVec64>::kSignature);
-      Vec src = as_vec(this, src_, dst);
+      Vec src = as_vec(*this, src_, dst);
 
       cc->emit(inst_id, dst, src);
+      return;
+    }
+
+    case UniOpVV::kRoundHalfUpF32S:
+    case UniOpVV::kRoundHalfUpF64S:
+    case UniOpVV::kRoundHalfUpF32:
+    case UniOpVV::kRoundHalfUpF64: {
+      // Intrinsic.
+      const void* one_ptr =
+        op_info.src_element == ElementSize::k32
+          ? static_cast<const void*>(&ct().f32_0_5_minus_1ulp)
+          : static_cast<const void*>(&ct().f64_0_5_minus_1ulp);
+
+      Vec one = simd_vec_const(one_ptr, Bcst::kNA, dst);
+      Vec src = as_vec(*this, src_, dst);
+
+      if (op == UniOpVV::kRoundHalfUpF32S) {
+        dst.set_signature(RegTraits<RegType::kVec32>::kSignature);
+        src.set_signature(RegTraits<RegType::kVec32>::kSignature);
+        one.set_signature(RegTraits<RegType::kVec32>::kSignature);
+      }
+      else if (op == UniOpVV::kRoundHalfUpF64S) {
+        dst.set_signature(RegTraits<RegType::kVec64>::kSignature);
+        src.set_signature(RegTraits<RegType::kVec64>::kSignature);
+        one.set_signature(RegTraits<RegType::kVec64>::kSignature);
+      }
+      else {
+        vec_set_type(dst, op_info.dst_element);
+        vec_set_type(one, op_info.src_element);
+        vec_set_type(src, op_info.src_element);
+      }
+
+      cc->fadd(dst, src, one);
+      cc->frintm(dst, dst);
+
       return;
     }
 
@@ -2960,14 +3021,16 @@ void UniCompiler::emit_2v(UniOpVV op, const Operand_& dst_, const Operand_& src_
     case UniOpVV::kFloorF64:
     case UniOpVV::kCeilF32:
     case UniOpVV::kCeilF64:
-    case UniOpVV::kRoundF32:
-    case UniOpVV::kRoundF64:
+    case UniOpVV::kRoundEvenF32:
+    case UniOpVV::kRoundEvenF64:
+    case UniOpVV::kRoundHalfAwayF32:
+    case UniOpVV::kRoundHalfAwayF64:
     case UniOpVV::kSqrtF32:
     case UniOpVV::kSqrtF64:
     case UniOpVV::kCvtI32ToF32:
     case UniOpVV::kCvtRoundF32ToI32:
     case UniOpVV::kCvtTruncF32ToI32: {
-      Vec src = as_vec(this, src_, dst);
+      Vec src = as_vec(*this, src_, dst);
 
       vec_set_type(dst, op_info.dst_element);
       vec_set_type(src, op_info.src_element);
@@ -2978,7 +3041,7 @@ void UniCompiler::emit_2v(UniOpVV op, const Operand_& dst_, const Operand_& src_
 
     case UniOpVV::kCvtF32ToF64S:
     case UniOpVV::kCvtF64ToF32S: {
-      Vec src = as_vec(this, src_, dst);
+      Vec src = as_vec(*this, src_, dst);
 
       vec_set_vec_type(dst, op_info.dst_element);
       vec_set_vec_type(src, op_info.src_element);
@@ -2989,7 +3052,7 @@ void UniCompiler::emit_2v(UniOpVV op, const Operand_& dst_, const Operand_& src_
 
     case UniOpVV::kCvtF32HiToF64:
       if (src_.is_mem()) {
-        Vec src = as_vec(this, src_.as<Mem>().clone_adjusted(8), dst, 8).v64();
+        Vec src = as_vec(*this, src_.as<Mem>().clone_adjusted(8), dst, 8).v64();
 
         vec_set_type(dst, op_info.dst_element);
         vec_set_type(src, op_info.src_element);
@@ -3000,7 +3063,7 @@ void UniCompiler::emit_2v(UniOpVV op, const Operand_& dst_, const Operand_& src_
       [[fallthrough]];
 
     case UniOpVV::kCvtF32LoToF64: {
-      Vec src = as_vec(this, src_, dst, 8);
+      Vec src = as_vec(*this, src_, dst, 8);
 
       if (op_info.src_part == VecPart::kLo) {
         src = src.v64();
@@ -3015,7 +3078,7 @@ void UniCompiler::emit_2v(UniOpVV op, const Operand_& dst_, const Operand_& src_
 
     case UniOpVV::kCvtI32HiToF64:
       if (src_.is_mem()) {
-        Vec src = as_vec(this, src_.as<Mem>().clone_adjusted(8), dst, 8).v64();
+        Vec src = as_vec(*this, src_.as<Mem>().clone_adjusted(8), dst, 8).v64();
 
         vec_set_type(dst, op_info.dst_element);
         vec_set_type(src, op_info.src_element);
@@ -3027,7 +3090,7 @@ void UniCompiler::emit_2v(UniOpVV op, const Operand_& dst_, const Operand_& src_
       [[fallthrough]];
 
     case UniOpVV::kCvtI32LoToF64: {
-      Vec src = as_vec(this, src_, dst, 8);
+      Vec src = as_vec(*this, src_, dst, 8);
 
       if (op_info.src_part == VecPart::kLo) {
         src = src.v64();
@@ -3044,7 +3107,7 @@ void UniCompiler::emit_2v(UniOpVV op, const Operand_& dst_, const Operand_& src_
     case UniOpVV::kCvtF64ToF32Lo:
     case UniOpVV::kCvtF64ToF32Hi: {
       dst = dst.q();
-      Vec src = as_vec(this, src_, dst);
+      Vec src = as_vec(*this, src_, dst);
 
       if (op_info.dst_part == VecPart::kLo) {
         dst = dst.d();
@@ -3063,7 +3126,7 @@ void UniCompiler::emit_2v(UniOpVV op, const Operand_& dst_, const Operand_& src_
     case UniOpVV::kCvtRoundF64ToI32Hi: {
       dst = dst.q();
 
-      Vec src = as_vec(this, src_, dst);
+      Vec src = as_vec(*this, src_, dst);
       Vec tmp = new_similar_reg(dst, "@tmp");
 
       cc->emit(inst_id, tmp.d2(), src.d2());
@@ -3083,8 +3146,8 @@ void UniCompiler::emit_2v(UniOpVV op, const Operand_& dst_, const Operand_& src_
   }
 }
 
-void UniCompiler::emit_2v(UniOpVV op, const OpArray& dst_, const Operand_& src_) noexcept { emit_2v_t(this, op, dst_, src_); }
-void UniCompiler::emit_2v(UniOpVV op, const OpArray& dst_, const OpArray& src_) noexcept { emit_2v_t(this, op, dst_, src_); }
+void UniCompiler::emit_2v(UniOpVV op, const OpArray& dst_, const Operand_& src_) noexcept { emit_2v_t(*this, op, dst_, src_); }
+void UniCompiler::emit_2v(UniOpVV op, const OpArray& dst_, const OpArray& src_) noexcept { emit_2v_t(*this, op, dst_, src_); }
 
 // ujit::UniCompiler - Vector Instructions - Emit 2VI
 // ==================================================
@@ -3102,7 +3165,7 @@ void UniCompiler::emit_2vi(UniOpVVI op, const Operand_& dst_, const Operand_& sr
     case UniOpVVI::kSrlbU128: {
       ASMJIT_ASSERT(imm < 16);
 
-      Vec src = as_vec(this, src_, dst);
+      Vec src = as_vec(*this, src_, dst);
 
       // If the shift is used to extract a high 64-bit element and zero the rest of the register.
       if (op == UniOpVVI::kSrlbU128 && imm == 8) {
@@ -3131,7 +3194,7 @@ void UniCompiler::emit_2vi(UniOpVVI op, const Operand_& dst_, const Operand_& sr
     case UniOpVVI::kSwizzleU16x4:
     case UniOpVVI::kSwizzleLoU16x4:
     case UniOpVVI::kSwizzleHiU16x4: {
-      Vec src = as_vec(this, src_, dst);
+      Vec src = as_vec(*this, src_, dst);
 
       uint8_t pred_data[16] = { 0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF };
 
@@ -3169,14 +3232,14 @@ void UniCompiler::emit_2vi(UniOpVVI op, const Operand_& dst_, const Operand_& sr
 
     case UniOpVVI::kSwizzleU32x4:
     case UniOpVVI::kSwizzleF32x4: {
-      Vec src = as_vec(this, src_, dst);
-      emit_swizzle32_impl(this, dst, src, imm);
+      Vec src = as_vec(*this, src_, dst);
+      emit_swizzle32_impl(*this, dst, src, imm);
       return;
     }
 
     case UniOpVVI::kSwizzleU64x2:
     case UniOpVVI::kSwizzleF64x2: {
-      Vec src = as_vec(this, src_, dst);
+      Vec src = as_vec(*this, src_, dst);
 
       // Use `dup` to broadcast one 64-bit elements.
       if (Swizzle2{imm} == swizzle(0, 0) ||
@@ -3215,7 +3278,7 @@ void UniCompiler::emit_2vi(UniOpVVI op, const Operand_& dst_, const Operand_& sr
       ASMJIT_NOT_REACHED();
 
     default: {
-      Vec src = as_vec(this, src_, dst);
+      Vec src = as_vec(*this, src_, dst);
 
       if (op_info.dst_part == VecPart::kLo) dst = dst.d();
       if (op_info.src_part == VecPart::kLo) src = src.d();
@@ -3229,8 +3292,8 @@ void UniCompiler::emit_2vi(UniOpVVI op, const Operand_& dst_, const Operand_& sr
   }
 }
 
-void UniCompiler::emit_2vi(UniOpVVI op, const OpArray& dst_, const Operand_& src_, uint32_t imm) noexcept { emit_2vi_t(this, op, dst_, src_, imm); }
-void UniCompiler::emit_2vi(UniOpVVI op, const OpArray& dst_, const OpArray& src_, uint32_t imm) noexcept { emit_2vi_t(this, op, dst_, src_, imm); }
+void UniCompiler::emit_2vi(UniOpVVI op, const OpArray& dst_, const Operand_& src_, uint32_t imm) noexcept { emit_2vi_t(*this, op, dst_, src_, imm); }
+void UniCompiler::emit_2vi(UniOpVVI op, const OpArray& dst_, const OpArray& src_, uint32_t imm) noexcept { emit_2vi_t(*this, op, dst_, src_, imm); }
 
 // ujit::UniCompiler - Vector Instructions - Emit 2VS
 // ==================================================
@@ -3375,7 +3438,7 @@ void UniCompiler::emit_vm(UniOpVM op, const Vec& dst_, const Mem& src_, Alignmen
     case UniOpVM::kLoad128_U64:
     case UniOpVM::kLoad128_F32:
     case UniOpVM::kLoad128_F64: {
-      vec_load_mem(this, dst, src, op_info.mem_size);
+      vec_load_mem(*this, dst, src, op_info.mem_size);
       return;
     }
 
@@ -3383,7 +3446,7 @@ void UniCompiler::emit_vm(UniOpVM op, const Vec& dst_, const Mem& src_, Alignmen
     case UniOpVM::kLoadN_U64:
     case UniOpVM::kLoadN_F32:
     case UniOpVM::kLoadN_F64: {
-      vec_load_mem(this, dst.q(), src, 16);
+      vec_load_mem(*this, dst.q(), src, 16);
       return;
     }
 
@@ -3411,7 +3474,7 @@ void UniCompiler::emit_vm(UniOpVM op, const Vec& dst_, const Mem& src_, Alignmen
     case UniOpVM::kLoadCvt64_U16ToU32:
     case UniOpVM::kLoadCvt64_I32ToI64:
     case UniOpVM::kLoadCvt64_U32ToU64: {
-      vec_load_mem(this, dst, src, op_info.mem_size);
+      vec_load_mem(*this, dst, src, op_info.mem_size);
       emit_2v(UniOpVV(op_info.cvt_op), dst, dst);
       return;
     }
@@ -3424,7 +3487,7 @@ void UniCompiler::emit_vm(UniOpVM op, const Vec& dst_, const Mem& src_, Alignmen
     case UniOpVM::kLoadCvtN_U16ToU32:
     case UniOpVM::kLoadCvtN_I32ToI64:
     case UniOpVM::kLoadCvtN_U32ToU64: {
-      vec_load_mem(this, dst, src, dst.size() / 2u);
+      vec_load_mem(*this, dst, src, dst.size() / 2u);
       emit_2v(UniOpVV(op_info.cvt_op), dst, dst);
       return;
     }
@@ -3442,7 +3505,7 @@ void UniCompiler::emit_vm(UniOpVM op, const Vec& dst_, const Mem& src_, Alignmen
       }
       else {
         Vec tmp = new_similar_reg(dst, "@tmp");
-        v_load_iany(tmp, src, op_info.mem_size, Alignment{1});
+        v_load_iany(tmp, src, op_info.mem_size, Alignment(1));
 
         vec_set_type_and_index(dst, op_info.element, idx);
         vec_set_type_and_index(tmp, op_info.element, 0);
@@ -3725,7 +3788,7 @@ void UniCompiler::emit_mv(UniOpMV op, const Mem& dst_, const OpArray& src_, Alig
 // =================================================
 
 static void emit_3v_op(
-  UniCompiler* pc,
+  UniCompiler& uc,
   InstId inst_id,
   Vec dst, Vec src1, Operand_ src2_,
   FloatMode float_mode,
@@ -3739,19 +3802,19 @@ static void emit_3v_op(
     case FloatMode::kF32S: {
       dst = dst.s();
       src1 = src1.s();
-      src2 = as_vec(pc, src2_, dst, 4);
+      src2 = as_vec(uc, src2_, dst, 4);
       break;
     }
 
     case FloatMode::kF64S: {
       dst = dst.d();
       src1 = src1.d();
-      src2 = as_vec(pc, src2_, dst, 8);
+      src2 = as_vec(uc, src2_, dst, 8);
       break;
     }
 
     default: {
-      src2 = as_vec(pc, src2_, dst);
+      src2 = as_vec(uc, src2_, dst);
 
       if (dst_part == VecPart::kLo) {
         dst = dst.d();
@@ -3769,7 +3832,7 @@ static void emit_3v_op(
     }
   }
 
-  BackendCompiler* cc = pc->cc;
+  BackendCompiler* cc = uc.cc;
   if (reversed)
     cc->emit(inst_id, dst, src2, src1);
   else
@@ -3799,7 +3862,7 @@ void UniCompiler::emit_3v(UniOpVVV op, const Operand_& dst_, const Operand_& src
       }
 
       case SameVecOp::kSrc: {
-        vec_mov(this, dst, src1);
+        vec_mov(*this, dst, src1);
         return;
       }
 
@@ -3809,8 +3872,29 @@ void UniCompiler::emit_3v(UniOpVVV op, const Operand_& dst_, const Operand_& src
   }
 
   switch (op) {
+    // dst = a - (floor(a / b) * b).
+    case UniOpVVV::kModF32S:
+    case UniOpVVV::kModF64S:
+    case UniOpVVV::kModF32:
+    case UniOpVVV::kModF64: {
+      Vec src2 = as_vec(*this, src2_, dst, op_info.float_mode);
+      Vec tmp = new_similar_reg(dst, "@tmp1");
+
+      UniOpVVV sub_op = translate_op(op, UniOpVVV::kModF32S, UniOpVVV::kSubF32S);
+      UniOpVVV mul_op = translate_op(op, UniOpVVV::kModF32S, UniOpVVV::kMulF32S);
+      UniOpVVV div_op = translate_op(op, UniOpVVV::kModF32S, UniOpVVV::kDivF32S);
+      UniOpVV trunc_op = translate_op(op, UniOpVVV::kModF32S, UniOpVV::kTruncF32S);
+
+      emit_3v(div_op, tmp, src1, src2);
+      emit_2v(trunc_op, tmp, tmp);
+      emit_3v(mul_op, tmp, tmp, src2);
+      emit_3v(sub_op, dst, src1, tmp);
+
+      return;
+    }
+
     case UniOpVVV::kMulU64: {
-      Vec src2 = as_vec(this, src2_, dst);
+      Vec src2 = as_vec(*this, src2_, dst);
       Vec tmp1 = new_similar_reg(dst, "@tmp1");
       Vec tmp2 = new_similar_reg(dst, "@tmp2");
       Vec tmp3 = new_similar_reg(dst, "@tmp3");
@@ -3827,7 +3911,7 @@ void UniCompiler::emit_3v(UniOpVVV op, const Operand_& dst_, const Operand_& src
     }
 
     case UniOpVVV::kMulhI16: {
-      Vec src2 = as_vec(this, src2_, dst);
+      Vec src2 = as_vec(*this, src2_, dst);
       Vec tmp = new_similar_reg(dst, "@tmp");
 
       cc->smull(tmp.s4(), src1.h4(), src2.h4());
@@ -3837,7 +3921,7 @@ void UniCompiler::emit_3v(UniOpVVV op, const Operand_& dst_, const Operand_& src
     }
 
     case UniOpVVV::kMulhU16: {
-      Vec src2 = as_vec(this, src2_, dst);
+      Vec src2 = as_vec(*this, src2_, dst);
       Vec tmp = new_similar_reg(dst, "@tmp");
 
       cc->umull(tmp.s4(), src1.h4(), src2.h4());
@@ -3847,7 +3931,7 @@ void UniCompiler::emit_3v(UniOpVVV op, const Operand_& dst_, const Operand_& src
     }
 
     case UniOpVVV::kMulU64_LoU32: {
-      Vec src2 = as_vec(this, src2_, dst);
+      Vec src2 = as_vec(*this, src2_, dst);
       Vec tmp1 = new_similar_reg(dst, "@tmp1");
       Vec tmp2 = new_similar_reg(dst, "@tmp2");
       Vec tmp3 = dst;
@@ -3865,7 +3949,7 @@ void UniCompiler::emit_3v(UniOpVVV op, const Operand_& dst_, const Operand_& src
     }
 
     case UniOpVVV::kMHAddI16_I32: {
-      Vec src2 = as_vec(this, src2_, dst);
+      Vec src2 = as_vec(*this, src2_, dst);
 
       Vec al = new_similar_reg(dst, "@al");
       Vec ah = new_similar_reg(dst, "@ah");
@@ -3888,7 +3972,7 @@ void UniCompiler::emit_3v(UniOpVVV op, const Operand_& dst_, const Operand_& src
     case UniOpVVV::kMinU64:
     case UniOpVVV::kMaxI64:
     case UniOpVVV::kMaxU64: {
-      Vec src2 = as_vec(this, src2_, dst);
+      Vec src2 = as_vec(*this, src2_, dst);
 
       // Min/Max is commutative, so let's make dst only overlap src1.
       if (dst.id() == src2.id()) {
@@ -3923,8 +4007,8 @@ void UniCompiler::emit_3v(UniOpVVV op, const Operand_& dst_, const Operand_& src
     case UniOpVVV::kCmpNeF64S:
     case UniOpVVV::kCmpNeF32:
     case UniOpVVV::kCmpNeF64: {
-      emit_3v_op(this, inst_id, dst, src1, src2_, op_info.float_mode, op_info.dst_element, op_info.dst_part, op_info.src_element, op_info.src_part, 0);
-      vec_neg(this, dst, dst, op_info.float_mode);
+      emit_3v_op(*this, inst_id, dst, src1, src2_, op_info.float_mode, op_info.dst_element, op_info.dst_part, op_info.src_element, op_info.src_part, 0);
+      vec_neg(*this, dst, dst, op_info.float_mode);
       return;
     }
 
@@ -3937,7 +4021,7 @@ void UniCompiler::emit_3v(UniOpVVV op, const Operand_& dst_, const Operand_& src
     case UniOpVVV::kCmpUnordF32:
     case UniOpVVV::kCmpUnordF64: {
       if (is_same_vec(src1, src2_)) {
-        emit_3v_op(this, Inst::kIdFcmeq_v, dst, src1, src1, op_info.float_mode, op_info.dst_element, op_info.dst_part, op_info.src_element, op_info.src_part, 0);
+        emit_3v_op(*this, Inst::kIdFcmeq_v, dst, src1, src1, op_info.float_mode, op_info.dst_element, op_info.dst_part, op_info.src_element, op_info.src_part, 0);
       }
       else {
         // This takes advantage of the following:
@@ -3952,20 +4036,20 @@ void UniCompiler::emit_3v(UniOpVVV op, const Operand_& dst_, const Operand_& src
         //
         //   - If both elements are zeros, regardless of the sign of either zero, the result is the second element.
         //   - If either element is a NaN, regardless of the value of FPCR.DN, the result is the second element.
-        Vec src2 = as_vec(this, src2_, dst, op_info.float_mode);
-        emit_3v_op(this, Inst::kIdFmin_v, dst, src1, src2, op_info.float_mode, op_info.dst_element, op_info.dst_part, op_info.src_element, op_info.src_part, 0);
-        emit_3v_op(this, Inst::kIdFcmeq_v, dst, dst, dst, op_info.float_mode, op_info.dst_element, op_info.dst_part, op_info.src_element, op_info.src_part, 0);
+        Vec src2 = as_vec(*this, src2_, dst, op_info.float_mode);
+        emit_3v_op(*this, Inst::kIdFmin_v, dst, src1, src2, op_info.float_mode, op_info.dst_element, op_info.dst_part, op_info.src_element, op_info.src_part, 0);
+        emit_3v_op(*this, Inst::kIdFcmeq_v, dst, dst, dst, op_info.float_mode, op_info.dst_element, op_info.dst_part, op_info.src_element, op_info.src_part, 0);
       }
 
       if (op_info.imm)
-        vec_neg(this, dst, dst, op_info.float_mode);
+        vec_neg(*this, dst, dst, op_info.float_mode);
 
       return;
     }
 
     case UniOpVVV::kHAddF64: {
       Vec tmp = new_similar_reg(dst, "@tmp");
-      Vec src2 = as_vec(this, src2_, dst);
+      Vec src2 = as_vec(*this, src2_, dst);
 
       if (src1.id() == src2.id()) {
         cc->ext(tmp.b16(), src1.b16(), src1.b16(), 8);
@@ -3982,7 +4066,7 @@ void UniCompiler::emit_3v(UniOpVVV op, const Operand_& dst_, const Operand_& src
     case UniOpVVV::kCombineLoHiU64:
     case UniOpVVV::kCombineLoHiF64: {
       // Intrinsic - dst = {src1.u64[0], src2.64[1]} - combining low part of src1 and high part of src1.
-      Vec src2 = as_vec(this, src2_, dst);
+      Vec src2 = as_vec(*this, src2_, dst);
 
       vec_set_type(dst, ElementSize::k8);
       vec_set_type(src1, ElementSize::k8);
@@ -3996,7 +4080,7 @@ void UniCompiler::emit_3v(UniOpVVV op, const Operand_& dst_, const Operand_& src
     case UniOpVVV::kCombineHiLoU64:
     case UniOpVVV::kCombineHiLoF64: {
       // Intrinsic - dst = {src1.u64[1], src2.64[0]} - combining high part of src1 and low part of src2.
-      Vec src2 = as_vec(this, src2_, dst);
+      Vec src2 = as_vec(*this, src2_, dst);
 
       if (is_same_vec(dst, src1)) {
         if (is_same_vec(dst, src2))
@@ -4023,7 +4107,7 @@ void UniCompiler::emit_3v(UniOpVVV op, const Operand_& dst_, const Operand_& src
 
       size_t id = size_t(op) - size_t(UniOpVVV::kPacksI16_I8);
 
-      Vec src2 = as_vec(this, src2_, dst);
+      Vec src2 = as_vec(*this, src2_, dst);
       vec_set_type(src1, op_info.src_element);
       vec_set_type(src2, op_info.src_element);
 
@@ -4058,15 +4142,15 @@ void UniCompiler::emit_3v(UniOpVVV op, const Operand_& dst_, const Operand_& src
     }
 
     default: {
-      emit_3v_op(this, inst_id, dst, src1, src2_, op_info.float_mode, op_info.dst_element, op_info.dst_part, op_info.src_element, op_info.src_part, op_info.reverse);
+      emit_3v_op(*this, inst_id, dst, src1, src2_, op_info.float_mode, op_info.dst_element, op_info.dst_part, op_info.src_element, op_info.src_part, op_info.reverse);
       return;
     }
   }
 }
 
-void UniCompiler::emit_3v(UniOpVVV op, const OpArray& dst_, const Operand_& src1_, const OpArray& src2_) noexcept { emit_3v_t(this, op, dst_, src1_, src2_); }
-void UniCompiler::emit_3v(UniOpVVV op, const OpArray& dst_, const OpArray& src1_, const Operand_& src2_) noexcept { emit_3v_t(this, op, dst_, src1_, src2_); }
-void UniCompiler::emit_3v(UniOpVVV op, const OpArray& dst_, const OpArray& src1_, const OpArray& src2_) noexcept { emit_3v_t(this, op, dst_, src1_, src2_); }
+void UniCompiler::emit_3v(UniOpVVV op, const OpArray& dst_, const Operand_& src1_, const OpArray& src2_) noexcept { emit_3v_t(*this, op, dst_, src1_, src2_); }
+void UniCompiler::emit_3v(UniOpVVV op, const OpArray& dst_, const OpArray& src1_, const Operand_& src2_) noexcept { emit_3v_t(*this, op, dst_, src1_, src2_); }
+void UniCompiler::emit_3v(UniOpVVV op, const OpArray& dst_, const OpArray& src1_, const OpArray& src2_) noexcept { emit_3v_t(*this, op, dst_, src1_, src2_); }
 
 // ujit::UniCompiler - Vector Instructions - Emit 3VI
 // ==================================================
@@ -4087,11 +4171,11 @@ void UniCompiler::emit_3vi(UniOpVVVI op, const Operand_& dst_, const Operand_& s
       ASMJIT_ASSERT(imm < 16);
 
       if (imm == 0) {
-        vec_mov(this, dst, src2_);
+        vec_mov(*this, dst, src2_);
         return;
       }
 
-      Vec src2 = as_vec(this, src2_, dst);
+      Vec src2 = as_vec(*this, src2_, dst);
       vec_set_type(dst, ElementSize::k8);
       vec_set_type(src1, ElementSize::k8);
       vec_set_type(src2, ElementSize::k8);
@@ -4103,8 +4187,8 @@ void UniCompiler::emit_3vi(UniOpVVVI op, const Operand_& dst_, const Operand_& s
     case UniOpVVVI::kInterleaveShuffleF32x4: {
       ASMJIT_ASSERT((imm & 0xFCFCFCFC) == 0);
 
-      Vec src2 = as_vec(this, src2_, dst);
-      emit_interleaved_shuffle32_impl(this, dst, src1, src2, imm);
+      Vec src2 = as_vec(*this, src2_, dst);
+      emit_interleaved_shuffle32_impl(*this, dst, src1, src2, imm);
       return;
     }
 
@@ -4112,7 +4196,7 @@ void UniCompiler::emit_3vi(UniOpVVVI op, const Operand_& dst_, const Operand_& s
     case UniOpVVVI::kInterleaveShuffleF64x2: {
       ASMJIT_ASSERT((imm & 0xFFFCFEFE) == 0);
 
-      Vec src2 = as_vec(this, src2_, dst);
+      Vec src2 = as_vec(*this, src2_, dst);
 
       if (src1.id() == src2.id()) {
         v_swizzle_u64x2(dst, src1, Swizzle2{imm});
@@ -4147,9 +4231,9 @@ void UniCompiler::emit_3vi(UniOpVVVI op, const Operand_& dst_, const Operand_& s
   }
 }
 
-void UniCompiler::emit_3vi(UniOpVVVI op, const OpArray& dst_, const Operand_& src1_, const OpArray& src2_, uint32_t imm) noexcept { emit_3vi_t(this, op, dst_, src1_, src2_, imm); }
-void UniCompiler::emit_3vi(UniOpVVVI op, const OpArray& dst_, const OpArray& src1_, const Operand_& src2_, uint32_t imm) noexcept { emit_3vi_t(this, op, dst_, src1_, src2_, imm); }
-void UniCompiler::emit_3vi(UniOpVVVI op, const OpArray& dst_, const OpArray& src1_, const OpArray& src2_, uint32_t imm) noexcept { emit_3vi_t(this, op, dst_, src1_, src2_, imm); }
+void UniCompiler::emit_3vi(UniOpVVVI op, const OpArray& dst_, const Operand_& src1_, const OpArray& src2_, uint32_t imm) noexcept { emit_3vi_t(*this, op, dst_, src1_, src2_, imm); }
+void UniCompiler::emit_3vi(UniOpVVVI op, const OpArray& dst_, const OpArray& src1_, const Operand_& src2_, uint32_t imm) noexcept { emit_3vi_t(*this, op, dst_, src1_, src2_, imm); }
+void UniCompiler::emit_3vi(UniOpVVVI op, const OpArray& dst_, const OpArray& src1_, const OpArray& src2_, uint32_t imm) noexcept { emit_3vi_t(*this, op, dst_, src1_, src2_, imm); }
 
 // ujit::UniCompiler - Vector Instructions - Emit 4V
 // =================================================
@@ -4166,8 +4250,8 @@ void UniCompiler::emit_4v(UniOpVVVV op, const Operand_& dst_, const Operand_& sr
 
   switch (op) {
     case UniOpVVVV::kBlendV_U8: {
-      Vec src2 = as_vec(this, src2_, dst);
-      Vec src3 = as_vec(this, src3_, dst);
+      Vec src2 = as_vec(*this, src2_, dst);
+      Vec src3 = as_vec(*this, src3_, dst);
 
       vec_set_type(dst, op_info.dst_element);
       vec_set_type(src1, op_info.src_element);
@@ -4189,7 +4273,7 @@ void UniCompiler::emit_4v(UniOpVVVV op, const Operand_& dst_, const Operand_& sr
         return;
       }
 
-      vec_mov(this, dst, src3);
+      vec_mov(*this, dst, src3);
       cc->bsl(dst, src2, src1);
       return;
     }
@@ -4208,14 +4292,14 @@ void UniCompiler::emit_4v(UniOpVVVV op, const Operand_& dst_, const Operand_& sr
       if (op_info.float_mode == FloatMode::kF32S) {
         dst = dst.s();
         src1 = src1.s();
-        src2 = as_vec(this, src2_, dst, 4);
-        src3 = as_vec(this, src3_, dst, 4);
+        src2 = as_vec(*this, src2_, dst, 4);
+        src3 = as_vec(*this, src3_, dst, 4);
       }
       else {
         dst = dst.d();
         src1 = src1.d();
-        src2 = as_vec(this, src2_, dst, 8);
-        src3 = as_vec(this, src3_, dst, 8);
+        src2 = as_vec(*this, src2_, dst, 8);
+        src3 = as_vec(*this, src3_, dst, 8);
       }
 
       cc->emit(inst_id, dst, src1, src2, src3);
@@ -4232,7 +4316,7 @@ void UniCompiler::emit_4v(UniOpVVVV op, const Operand_& dst_, const Operand_& sr
     case UniOpVVVV::kNMAddF64:
     case UniOpVVVV::kNMSubF32:
     case UniOpVVVV::kNMSubF64: {
-      Vec src2 = as_vec(this, src2_, dst);
+      Vec src2 = as_vec(*this, src2_, dst);
       Vec src3;
 
       bool negate_acc = op_info.imm != 0;
@@ -4240,11 +4324,11 @@ void UniCompiler::emit_4v(UniOpVVVV op, const Operand_& dst_, const Operand_& sr
       bool destructible = is_same_vec(dst, src3_) || !src3_.is_reg();
 
       if (!dst_overlaps && src3_.is_mem()) {
-        vec_load_mem(this, dst, src3_.as<Mem>(), dst.size());
+        vec_load_mem(*this, dst, src3_.as<Mem>(), dst.size());
         src3 = dst;
       }
       else {
-        src3 = as_vec(this, src3_, dst);
+        src3 = as_vec(*this, src3_, dst);
       }
 
       vec_set_type(dst, op_info.dst_element);
@@ -4288,13 +4372,13 @@ void UniCompiler::emit_4v(UniOpVVVV op, const Operand_& dst_, const Operand_& sr
   }
 }
 
-void UniCompiler::emit_4v(UniOpVVVV op, const OpArray& dst_, const Operand_& src1_, const Operand_& src2_, const OpArray& src3_) noexcept { emit_4v_t(this, op, dst_, src1_, src2_, src3_); }
-void UniCompiler::emit_4v(UniOpVVVV op, const OpArray& dst_, const Operand_& src1_, const OpArray& src2_, const Operand& src3_) noexcept { emit_4v_t(this, op, dst_, src1_, src2_, src3_); }
-void UniCompiler::emit_4v(UniOpVVVV op, const OpArray& dst_, const Operand_& src1_, const OpArray& src2_, const OpArray& src3_) noexcept { emit_4v_t(this, op, dst_, src1_, src2_, src3_); }
-void UniCompiler::emit_4v(UniOpVVVV op, const OpArray& dst_, const OpArray& src1_, const Operand_& src2_, const Operand& src3_) noexcept { emit_4v_t(this, op, dst_, src1_, src2_, src3_); }
-void UniCompiler::emit_4v(UniOpVVVV op, const OpArray& dst_, const OpArray& src1_, const Operand_& src2_, const OpArray& src3_) noexcept { emit_4v_t(this, op, dst_, src1_, src2_, src3_); }
-void UniCompiler::emit_4v(UniOpVVVV op, const OpArray& dst_, const OpArray& src1_, const OpArray& src2_, const Operand& src3_) noexcept { emit_4v_t(this, op, dst_, src1_, src2_, src3_); }
-void UniCompiler::emit_4v(UniOpVVVV op, const OpArray& dst_, const OpArray& src1_, const OpArray& src2_, const OpArray& src3_) noexcept { emit_4v_t(this, op, dst_, src1_, src2_, src3_); }
+void UniCompiler::emit_4v(UniOpVVVV op, const OpArray& dst_, const Operand_& src1_, const Operand_& src2_, const OpArray& src3_) noexcept { emit_4v_t(*this, op, dst_, src1_, src2_, src3_); }
+void UniCompiler::emit_4v(UniOpVVVV op, const OpArray& dst_, const Operand_& src1_, const OpArray& src2_, const Operand& src3_) noexcept { emit_4v_t(*this, op, dst_, src1_, src2_, src3_); }
+void UniCompiler::emit_4v(UniOpVVVV op, const OpArray& dst_, const Operand_& src1_, const OpArray& src2_, const OpArray& src3_) noexcept { emit_4v_t(*this, op, dst_, src1_, src2_, src3_); }
+void UniCompiler::emit_4v(UniOpVVVV op, const OpArray& dst_, const OpArray& src1_, const Operand_& src2_, const Operand& src3_) noexcept { emit_4v_t(*this, op, dst_, src1_, src2_, src3_); }
+void UniCompiler::emit_4v(UniOpVVVV op, const OpArray& dst_, const OpArray& src1_, const Operand_& src2_, const OpArray& src3_) noexcept { emit_4v_t(*this, op, dst_, src1_, src2_, src3_); }
+void UniCompiler::emit_4v(UniOpVVVV op, const OpArray& dst_, const OpArray& src1_, const OpArray& src2_, const Operand& src3_) noexcept { emit_4v_t(*this, op, dst_, src1_, src2_, src3_); }
+void UniCompiler::emit_4v(UniOpVVVV op, const OpArray& dst_, const OpArray& src1_, const OpArray& src2_, const OpArray& src3_) noexcept { emit_4v_t(*this, op, dst_, src1_, src2_, src3_); }
 
 ASMJIT_END_SUB_NAMESPACE
 

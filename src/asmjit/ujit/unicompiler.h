@@ -17,159 +17,9 @@ ASMJIT_BEGIN_SUB_NAMESPACE(ujit)
 //! \addtogroup asmjit_ujit
 //! \{
 
-//! Condition represents either a condition or an assignment operation that can be checked.
-class Condition {
-public:
-  //! \name Members
-  //! \{
+class UniCondition;
 
-  UniOpCond op;
-  CondCode cond;
-  Operand a;
-  Operand b;
-
-  //! \}
-
-  //! \name Construction & Destruction
-  //! \{
-
-  ASMJIT_INLINE_NODEBUG Condition(UniOpCond op, CondCode cond, const Operand& a, const Operand& b) noexcept
-    : op(op),
-      cond(cond),
-      a(a),
-      b(b) {}
-
-  ASMJIT_INLINE_NODEBUG Condition(const Condition& other) noexcept = default;
-
-  //! \}
-
-  //! \name Overloaded Operators
-  //! \{
-
-  ASMJIT_INLINE_NODEBUG Condition& operator=(const Condition& other) noexcept = default;
-
-  //! \}
-};
-
-static ASMJIT_INLINE Condition and_z(const Gp& a, const Gp& b) noexcept { return Condition(UniOpCond::kAssignAnd, CondCode::kZero, a, b); }
-static ASMJIT_INLINE Condition and_z(const Gp& a, const Mem& b) noexcept { return Condition(UniOpCond::kAssignAnd, CondCode::kZero, a, b); }
-static ASMJIT_INLINE Condition and_z(const Gp& a, const Imm& b) noexcept { return Condition(UniOpCond::kAssignAnd, CondCode::kZero, a, b); }
-static ASMJIT_INLINE Condition and_nz(const Gp& a, const Gp& b) noexcept { return Condition(UniOpCond::kAssignAnd, CondCode::kNotZero, a, b); }
-static ASMJIT_INLINE Condition and_nz(const Gp& a, const Mem& b) noexcept { return Condition(UniOpCond::kAssignAnd, CondCode::kNotZero, a, b); }
-static ASMJIT_INLINE Condition and_nz(const Gp& a, const Imm& b) noexcept { return Condition(UniOpCond::kAssignAnd, CondCode::kNotZero, a, b); }
-
-static ASMJIT_INLINE Condition or_z(const Gp& a, const Gp& b) noexcept { return Condition(UniOpCond::kAssignOr, CondCode::kZero, a, b); }
-static ASMJIT_INLINE Condition or_z(const Gp& a, const Mem& b) noexcept { return Condition(UniOpCond::kAssignOr, CondCode::kZero, a, b); }
-static ASMJIT_INLINE Condition or_z(const Gp& a, const Imm& b) noexcept { return Condition(UniOpCond::kAssignOr, CondCode::kZero, a, b); }
-static ASMJIT_INLINE Condition or_nz(const Gp& a, const Gp& b) noexcept { return Condition(UniOpCond::kAssignOr, CondCode::kNotZero, a, b); }
-static ASMJIT_INLINE Condition or_nz(const Gp& a, const Mem& b) noexcept { return Condition(UniOpCond::kAssignOr, CondCode::kNotZero, a, b); }
-static ASMJIT_INLINE Condition or_nz(const Gp& a, const Imm& b) noexcept { return Condition(UniOpCond::kAssignOr, CondCode::kNotZero, a, b); }
-
-static ASMJIT_INLINE Condition xor_z(const Gp& a, const Gp& b) noexcept { return Condition(UniOpCond::kAssignXor, CondCode::kZero, a, b); }
-static ASMJIT_INLINE Condition xor_z(const Gp& a, const Mem& b) noexcept { return Condition(UniOpCond::kAssignXor, CondCode::kZero, a, b); }
-static ASMJIT_INLINE Condition xor_z(const Gp& a, const Imm& b) noexcept { return Condition(UniOpCond::kAssignXor, CondCode::kZero, a, b); }
-static ASMJIT_INLINE Condition xor_nz(const Gp& a, const Gp& b) noexcept { return Condition(UniOpCond::kAssignXor, CondCode::kNotZero, a, b); }
-static ASMJIT_INLINE Condition xor_nz(const Gp& a, const Mem& b) noexcept { return Condition(UniOpCond::kAssignXor, CondCode::kNotZero, a, b); }
-static ASMJIT_INLINE Condition xor_nz(const Gp& a, const Imm& b) noexcept { return Condition(UniOpCond::kAssignXor, CondCode::kNotZero, a, b); }
-
-static ASMJIT_INLINE Condition add_z(const Gp& a, const Gp& b) noexcept { return Condition(UniOpCond::kAssignAdd, CondCode::kZero, a, b); }
-static ASMJIT_INLINE Condition add_z(const Gp& a, const Mem& b) noexcept { return Condition(UniOpCond::kAssignAdd, CondCode::kZero, a, b); }
-static ASMJIT_INLINE Condition add_z(const Gp& a, const Imm& b) noexcept { return Condition(UniOpCond::kAssignAdd, CondCode::kZero, a, b); }
-static ASMJIT_INLINE Condition add_nz(const Gp& a, const Gp& b) noexcept { return Condition(UniOpCond::kAssignAdd, CondCode::kNotZero, a, b); }
-static ASMJIT_INLINE Condition add_nz(const Gp& a, const Mem& b) noexcept { return Condition(UniOpCond::kAssignAdd, CondCode::kNotZero, a, b); }
-static ASMJIT_INLINE Condition add_nz(const Gp& a, const Imm& b) noexcept { return Condition(UniOpCond::kAssignAdd, CondCode::kNotZero, a, b); }
-static ASMJIT_INLINE Condition add_c(const Gp& a, const Gp& b) noexcept { return Condition(UniOpCond::kAssignAdd, CondCode::kCarry, a, b); }
-static ASMJIT_INLINE Condition add_c(const Gp& a, const Mem& b) noexcept { return Condition(UniOpCond::kAssignAdd, CondCode::kCarry, a, b); }
-static ASMJIT_INLINE Condition add_c(const Gp& a, const Imm& b) noexcept { return Condition(UniOpCond::kAssignAdd, CondCode::kCarry, a, b); }
-static ASMJIT_INLINE Condition add_nc(const Gp& a, const Gp& b) noexcept { return Condition(UniOpCond::kAssignAdd, CondCode::kNotCarry, a, b); }
-static ASMJIT_INLINE Condition add_nc(const Gp& a, const Mem& b) noexcept { return Condition(UniOpCond::kAssignAdd, CondCode::kNotCarry, a, b); }
-static ASMJIT_INLINE Condition add_nc(const Gp& a, const Imm& b) noexcept { return Condition(UniOpCond::kAssignAdd, CondCode::kNotCarry, a, b); }
-static ASMJIT_INLINE Condition add_s(const Gp& a, const Gp& b) noexcept { return Condition(UniOpCond::kAssignAdd, CondCode::kSign, a, b); }
-static ASMJIT_INLINE Condition add_s(const Gp& a, const Mem& b) noexcept { return Condition(UniOpCond::kAssignAdd, CondCode::kSign, a, b); }
-static ASMJIT_INLINE Condition add_s(const Gp& a, const Imm& b) noexcept { return Condition(UniOpCond::kAssignAdd, CondCode::kSign, a, b); }
-static ASMJIT_INLINE Condition add_ns(const Gp& a, const Gp& b) noexcept { return Condition(UniOpCond::kAssignAdd, CondCode::kNotSign, a, b); }
-static ASMJIT_INLINE Condition add_ns(const Gp& a, const Mem& b) noexcept { return Condition(UniOpCond::kAssignAdd, CondCode::kNotSign, a, b); }
-static ASMJIT_INLINE Condition add_ns(const Gp& a, const Imm& b) noexcept { return Condition(UniOpCond::kAssignAdd, CondCode::kNotSign, a, b); }
-
-static ASMJIT_INLINE Condition sub_z(const Gp& a, const Gp& b) noexcept { return Condition(UniOpCond::kAssignSub, CondCode::kZero, a, b); }
-static ASMJIT_INLINE Condition sub_z(const Gp& a, const Mem& b) noexcept { return Condition(UniOpCond::kAssignSub, CondCode::kZero, a, b); }
-static ASMJIT_INLINE Condition sub_z(const Gp& a, const Imm& b) noexcept { return Condition(UniOpCond::kAssignSub, CondCode::kZero, a, b); }
-static ASMJIT_INLINE Condition sub_nz(const Gp& a, const Gp& b) noexcept { return Condition(UniOpCond::kAssignSub, CondCode::kNotZero, a, b); }
-static ASMJIT_INLINE Condition sub_nz(const Gp& a, const Mem& b) noexcept { return Condition(UniOpCond::kAssignSub, CondCode::kNotZero, a, b); }
-static ASMJIT_INLINE Condition sub_nz(const Gp& a, const Imm& b) noexcept { return Condition(UniOpCond::kAssignSub, CondCode::kNotZero, a, b); }
-static ASMJIT_INLINE Condition sub_c(const Gp& a, const Gp& b) noexcept { return Condition(UniOpCond::kAssignSub, CondCode::kUnsignedLT, a, b); }
-static ASMJIT_INLINE Condition sub_c(const Gp& a, const Mem& b) noexcept { return Condition(UniOpCond::kAssignSub, CondCode::kUnsignedLT, a, b); }
-static ASMJIT_INLINE Condition sub_c(const Gp& a, const Imm& b) noexcept { return Condition(UniOpCond::kAssignSub, CondCode::kUnsignedLT, a, b); }
-static ASMJIT_INLINE Condition sub_nc(const Gp& a, const Gp& b) noexcept { return Condition(UniOpCond::kAssignSub, CondCode::kUnsignedGE, a, b); }
-static ASMJIT_INLINE Condition sub_nc(const Gp& a, const Mem& b) noexcept { return Condition(UniOpCond::kAssignSub, CondCode::kUnsignedGE, a, b); }
-static ASMJIT_INLINE Condition sub_nc(const Gp& a, const Imm& b) noexcept { return Condition(UniOpCond::kAssignSub, CondCode::kUnsignedGE, a, b); }
-static ASMJIT_INLINE Condition sub_s(const Gp& a, const Gp& b) noexcept { return Condition(UniOpCond::kAssignSub, CondCode::kSign, a, b); }
-static ASMJIT_INLINE Condition sub_s(const Gp& a, const Mem& b) noexcept { return Condition(UniOpCond::kAssignSub, CondCode::kSign, a, b); }
-static ASMJIT_INLINE Condition sub_s(const Gp& a, const Imm& b) noexcept { return Condition(UniOpCond::kAssignSub, CondCode::kSign, a, b); }
-static ASMJIT_INLINE Condition sub_ns(const Gp& a, const Gp& b) noexcept { return Condition(UniOpCond::kAssignSub, CondCode::kNotSign, a, b); }
-static ASMJIT_INLINE Condition sub_ns(const Gp& a, const Mem& b) noexcept { return Condition(UniOpCond::kAssignSub, CondCode::kNotSign, a, b); }
-static ASMJIT_INLINE Condition sub_ns(const Gp& a, const Imm& b) noexcept { return Condition(UniOpCond::kAssignSub, CondCode::kNotSign, a, b); }
-
-static ASMJIT_INLINE Condition sub_ugt(const Gp& a, const Gp& b) noexcept { return Condition(UniOpCond::kAssignSub, CondCode::kUnsignedGT, a, b); }
-static ASMJIT_INLINE Condition sub_ugt(const Gp& a, const Mem& b) noexcept { return Condition(UniOpCond::kAssignSub, CondCode::kUnsignedGT, a, b); }
-static ASMJIT_INLINE Condition sub_ugt(const Gp& a, const Imm& b) noexcept { return Condition(UniOpCond::kAssignSub, CondCode::kUnsignedGT, a, b); }
-
-static ASMJIT_INLINE Condition shr_z(const Gp& a, const Gp& b) noexcept { return Condition(UniOpCond::kAssignShr, CondCode::kZero, a, b); }
-static ASMJIT_INLINE Condition shr_z(const Gp& a, const Mem& b) noexcept { return Condition(UniOpCond::kAssignShr, CondCode::kZero, a, b); }
-static ASMJIT_INLINE Condition shr_z(const Gp& a, const Imm& b) noexcept { return Condition(UniOpCond::kAssignShr, CondCode::kZero, a, b); }
-static ASMJIT_INLINE Condition shr_nz(const Gp& a, const Gp& b) noexcept { return Condition(UniOpCond::kAssignShr, CondCode::kNotZero, a, b); }
-static ASMJIT_INLINE Condition shr_nz(const Gp& a, const Mem& b) noexcept { return Condition(UniOpCond::kAssignShr, CondCode::kNotZero, a, b); }
-static ASMJIT_INLINE Condition shr_nz(const Gp& a, const Imm& b) noexcept { return Condition(UniOpCond::kAssignShr, CondCode::kNotZero, a, b); }
-
-static ASMJIT_INLINE Condition cmp_eq(const Gp& a, const Gp& b) noexcept { return Condition(UniOpCond::kCompare, CondCode::kEqual, a, b); }
-static ASMJIT_INLINE Condition cmp_eq(const Gp& a, const Mem& b) noexcept { return Condition(UniOpCond::kCompare, CondCode::kEqual, a, b); }
-static ASMJIT_INLINE Condition cmp_eq(const Gp& a, const Imm& b) noexcept { return Condition(UniOpCond::kCompare, CondCode::kEqual, a, b); }
-static ASMJIT_INLINE Condition cmp_ne(const Gp& a, const Gp& b) noexcept { return Condition(UniOpCond::kCompare, CondCode::kNotEqual, a, b); }
-static ASMJIT_INLINE Condition cmp_ne(const Gp& a, const Mem& b) noexcept { return Condition(UniOpCond::kCompare, CondCode::kNotEqual, a, b); }
-static ASMJIT_INLINE Condition cmp_ne(const Gp& a, const Imm& b) noexcept { return Condition(UniOpCond::kCompare, CondCode::kNotEqual, a, b); }
-static ASMJIT_INLINE Condition scmp_lt(const Gp& a, const Gp& b) noexcept { return Condition(UniOpCond::kCompare, CondCode::kSignedLT, a, b); }
-static ASMJIT_INLINE Condition scmp_lt(const Gp& a, const Mem& b) noexcept { return Condition(UniOpCond::kCompare, CondCode::kSignedLT, a, b); }
-static ASMJIT_INLINE Condition scmp_lt(const Gp& a, const Imm& b) noexcept { return Condition(UniOpCond::kCompare, CondCode::kSignedLT, a, b); }
-static ASMJIT_INLINE Condition scmp_le(const Gp& a, const Gp& b) noexcept { return Condition(UniOpCond::kCompare, CondCode::kSignedLE, a, b); }
-static ASMJIT_INLINE Condition scmp_le(const Gp& a, const Mem& b) noexcept { return Condition(UniOpCond::kCompare, CondCode::kSignedLE, a, b); }
-static ASMJIT_INLINE Condition scmp_le(const Gp& a, const Imm& b) noexcept { return Condition(UniOpCond::kCompare, CondCode::kSignedLE, a, b); }
-static ASMJIT_INLINE Condition scmp_gt(const Gp& a, const Gp& b) noexcept { return Condition(UniOpCond::kCompare, CondCode::kSignedGT, a, b); }
-static ASMJIT_INLINE Condition scmp_gt(const Gp& a, const Mem& b) noexcept { return Condition(UniOpCond::kCompare, CondCode::kSignedGT, a, b); }
-static ASMJIT_INLINE Condition scmp_gt(const Gp& a, const Imm& b) noexcept { return Condition(UniOpCond::kCompare, CondCode::kSignedGT, a, b); }
-static ASMJIT_INLINE Condition scmp_ge(const Gp& a, const Gp& b) noexcept { return Condition(UniOpCond::kCompare, CondCode::kSignedGE, a, b); }
-static ASMJIT_INLINE Condition scmp_ge(const Gp& a, const Mem& b) noexcept { return Condition(UniOpCond::kCompare, CondCode::kSignedGE, a, b); }
-static ASMJIT_INLINE Condition scmp_ge(const Gp& a, const Imm& b) noexcept { return Condition(UniOpCond::kCompare, CondCode::kSignedGE, a, b); }
-static ASMJIT_INLINE Condition ucmp_lt(const Gp& a, const Gp& b) noexcept { return Condition(UniOpCond::kCompare, CondCode::kUnsignedLT, a, b); }
-static ASMJIT_INLINE Condition ucmp_lt(const Gp& a, const Mem& b) noexcept { return Condition(UniOpCond::kCompare, CondCode::kUnsignedLT, a, b); }
-static ASMJIT_INLINE Condition ucmp_lt(const Gp& a, const Imm& b) noexcept { return Condition(UniOpCond::kCompare, CondCode::kUnsignedLT, a, b); }
-static ASMJIT_INLINE Condition ucmp_le(const Gp& a, const Gp& b) noexcept { return Condition(UniOpCond::kCompare, CondCode::kUnsignedLE, a, b); }
-static ASMJIT_INLINE Condition ucmp_le(const Gp& a, const Mem& b) noexcept { return Condition(UniOpCond::kCompare, CondCode::kUnsignedLE, a, b); }
-static ASMJIT_INLINE Condition ucmp_le(const Gp& a, const Imm& b) noexcept { return Condition(UniOpCond::kCompare, CondCode::kUnsignedLE, a, b); }
-static ASMJIT_INLINE Condition ucmp_gt(const Gp& a, const Gp& b) noexcept { return Condition(UniOpCond::kCompare, CondCode::kUnsignedGT, a, b); }
-static ASMJIT_INLINE Condition ucmp_gt(const Gp& a, const Mem& b) noexcept { return Condition(UniOpCond::kCompare, CondCode::kUnsignedGT, a, b); }
-static ASMJIT_INLINE Condition ucmp_gt(const Gp& a, const Imm& b) noexcept { return Condition(UniOpCond::kCompare, CondCode::kUnsignedGT, a, b); }
-static ASMJIT_INLINE Condition ucmp_ge(const Gp& a, const Gp& b) noexcept { return Condition(UniOpCond::kCompare, CondCode::kUnsignedGE, a, b); }
-static ASMJIT_INLINE Condition ucmp_ge(const Gp& a, const Mem& b) noexcept { return Condition(UniOpCond::kCompare, CondCode::kUnsignedGE, a, b); }
-static ASMJIT_INLINE Condition ucmp_ge(const Gp& a, const Imm& b) noexcept { return Condition(UniOpCond::kCompare, CondCode::kUnsignedGE, a, b); }
-
-static ASMJIT_INLINE Condition test_z(const Gp& a) noexcept { return Condition(UniOpCond::kCompare, CondCode::kEqual, a, Imm(0)); }
-static ASMJIT_INLINE Condition test_nz(const Gp& a) noexcept { return Condition(UniOpCond::kCompare, CondCode::kNotEqual, a, Imm(0)); }
-
-static ASMJIT_INLINE Condition test_z(const Gp& a, const Gp& b) noexcept { return Condition(UniOpCond::kTest, CondCode::kZero, a, b); }
-static ASMJIT_INLINE Condition test_z(const Gp& a, const Mem& b) noexcept { return Condition(UniOpCond::kTest, CondCode::kZero, a, b); }
-static ASMJIT_INLINE Condition test_z(const Gp& a, const Imm& b) noexcept { return Condition(UniOpCond::kTest, CondCode::kZero, a, b); }
-static ASMJIT_INLINE Condition test_nz(const Gp& a, const Gp& b) noexcept { return Condition(UniOpCond::kTest, CondCode::kNotZero, a, b); }
-static ASMJIT_INLINE Condition test_nz(const Gp& a, const Mem& b) noexcept { return Condition(UniOpCond::kTest, CondCode::kNotZero, a, b); }
-static ASMJIT_INLINE Condition test_nz(const Gp& a, const Imm& b) noexcept { return Condition(UniOpCond::kTest, CondCode::kNotZero, a, b); }
-
-static ASMJIT_INLINE Condition bt_z(const Gp& a, const Gp& b) noexcept { return Condition(UniOpCond::kBitTest, CondCode::kBTZero, a, b); }
-static ASMJIT_INLINE Condition bt_z(const Gp& a, const Mem& b) noexcept { return Condition(UniOpCond::kBitTest, CondCode::kBTZero, a, b); }
-static ASMJIT_INLINE Condition bt_z(const Gp& a, const Imm& b) noexcept { return Condition(UniOpCond::kBitTest, CondCode::kBTZero, a, b); }
-static ASMJIT_INLINE Condition bt_nz(const Gp& a, const Gp& b) noexcept { return Condition(UniOpCond::kBitTest, CondCode::kBTNotZero, a, b); }
-static ASMJIT_INLINE Condition bt_nz(const Gp& a, const Mem& b) noexcept { return Condition(UniOpCond::kBitTest, CondCode::kBTNotZero, a, b); }
-static ASMJIT_INLINE Condition bt_nz(const Gp& a, const Imm& b) noexcept { return Condition(UniOpCond::kBitTest, CondCode::kBTNotZero, a, b); }
-
-//! Pipeline compiler.
+//! Universal compiler.
 class UniCompiler {
 public:
   ASMJIT_NONCOPYABLE(UniCompiler)
@@ -285,7 +135,10 @@ public:
   //! AsmJit compiler.
   BackendCompiler* cc = nullptr;
 
-  const VecConstTable& ct;
+  //! Reference to a table that provides global constants.
+  //!
+  //! \note This table can be extended by users so it fits a particular use-case, see \ref UniCompiler constructor.
+  VecConstTableRef _ct_ref;
 
 #if defined(ASMJIT_UJIT_X86)
   //! General purpose extension mask (X86 and X86_64 only).
@@ -306,14 +159,16 @@ public:
   //! The behavior of scalar operations (mostly floating point).
   ScalarOpBehavior _scalar_op_behavior {};
   //! The behavior of floating point min/max operation.
-  FMinFMaxOpBehavior _fmin_fmax_op_hehavior {};
+  FMinFMaxOpBehavior _fmin_fmax_op_behavior {};
   //! The behavior of floating point `madd` operation.
   FMAddOpBehavior _fmadd_op_behavior {};
+  //! The behavior of a float-to-int conversion when the float is out of integer range, infinite, or NaN.
+  FloatToIntOutsideRangeBehavior _float_to_int_outside_range_behavior {};
 
   //! Target CPU features.
   CpuFeatures _features {};
   //! Optimization flags.
-  UniOptFlags _opt_flags = UniOptFlags::kNone;
+  CpuHints _cpu_hints {};
 
   //! Number of available vector registers.
   uint32_t _vec_reg_count = 0;
@@ -323,20 +178,20 @@ public:
   //! SIMD multiplier, derived from `_vec_width` (1, 2, 4).
   uint8_t _vec_multiplier = 0;
   //! SIMD register type (AsmJit).
-  asmjit::RegType _vec_reg_type = asmjit::RegType::kNone;
+  RegType _vec_reg_type = RegType::kNone;
   //! SIMD type id (AsmJit).
-  asmjit::TypeId _vec_type_id = asmjit::TypeId::kVoid;
+  TypeId _vec_type_id = TypeId::kVoid;
 
   //! Function node.
-  asmjit::FuncNode* _func_node = nullptr;
+  FuncNode* _func_node = nullptr;
   //! Function initialization hook.
-  asmjit::BaseNode* _func_init = nullptr;
+  BaseNode* _func_init = nullptr;
   //! Function end hook (to add 'unlikely' branches).
-  asmjit::BaseNode* _func_end = nullptr;
+  BaseNode* _func_end = nullptr;
 
   //! Invalid GP register.
   Gp _gp_none;
-  //! Temporary stack used to transfer SIMD regs to GP/MM.
+  //! Temporary stack used to transfer SIMD regs to GP.
   Mem _tmp_stack[size_t(StackId::kMaxValue) + 1];
 
   //! Offset to the first constant to the `commonTable` global.
@@ -359,15 +214,22 @@ public:
     uint32_t virt_reg_id;
   };
 
-  asmjit::ArenaVector<VecConstData> _vec_consts;
-  asmjit::ArenaVector<VecConstDataEx> _vec_consts_ex;
+  ArenaVector<VecConstData> _vec_consts;
+  ArenaVector<VecConstDataEx> _vec_consts_ex;
 
   //! \}
 
   //! \name Construction & Destruction
   //! \{
 
-  ASMJIT_API UniCompiler(BackendCompiler* cc, const CpuFeatures& features, UniOptFlags opt_flags) noexcept;
+  //! Creates `UniCompiler` that would use the existing BackendCompiler (it would keep the pointer to it).
+  ASMJIT_API UniCompiler(BackendCompiler* cc, const CpuFeatures& features, CpuHints cpu_hints, VecConstTableRef ct_ref) noexcept;
+
+  //! Creates `UniCompiler` that would use the existing BackendCompiler (it would keep the pointer to it).
+  ASMJIT_INLINE UniCompiler(BackendCompiler* cc, const CpuFeatures& features, CpuHints cpu_hints) noexcept
+    : UniCompiler(cc, features, cpu_hints, VecConstTableRef{vec_const_table, sizeof(VecConstTable)}) {}
+
+  //! Destroys `UniCompiler` - the existing BackendCompiler would be untouched.
   ASMJIT_API ~UniCompiler() noexcept;
 
   //! \}
@@ -375,22 +237,39 @@ public:
   //! \name Allocators
   //! \{
 
-  ASMJIT_INLINE_NODEBUG asmjit::Arena& arena() noexcept { return cc->_builder_arena; }
+  //! Returns the arena used by `UniCompiler`.
+  ASMJIT_INLINE_NODEBUG Arena& arena() noexcept { return cc->_builder_arena; }
+
+  //! \}
+
+  //! \name Constant Table
+  //! \{
+
+  template<typename T = VecConstTable>
+  ASMJIT_INLINE_NODEBUG const T& ct() const noexcept { return static_cast<const T&>(_ct_ref.table); }
+
+  template<typename T = VecConstTable>
+  ASMJIT_INLINE_NODEBUG const T* ct_ptr() const noexcept { return static_cast<const T*>(&_ct_ref.table); }
+
+  ASMJIT_INLINE_NODEBUG size_t ct_size() const noexcept { return _ct_ref.size; }
 
   //! \}
 
   //! \name CPU Architecture, Features and Optimization Options
   //! \{
 
-  ASMJIT_API void _init_extensions(const asmjit::CpuFeatures& features) noexcept;
+  ASMJIT_API void _init_extensions(const CpuFeatures& features) noexcept;
 
   ASMJIT_INLINE_NODEBUG bool is_32bit() const noexcept { return cc->is_32bit(); }
   ASMJIT_INLINE_NODEBUG bool is_64bit() const noexcept { return cc->is_64bit(); }
   ASMJIT_INLINE_NODEBUG uint32_t register_size() const noexcept { return cc->register_size(); }
 
 #if defined(ASMJIT_UJIT_X86)
+  //! Tests whether a general purpose extension `ext` is available.
   ASMJIT_INLINE_NODEBUG bool has_gp_ext(GPExt ext) const noexcept { return (_gp_ext_mask & (1u << uint32_t(ext))) != 0; }
+  //! Tests whether an SSE extension `ext` is available.
   ASMJIT_INLINE_NODEBUG bool has_sse_ext(SSEExt ext) const noexcept { return (_sse_ext_mask & (1u << uint32_t(ext))) != 0; }
+  //! Tests whether an AVX or AVX-512 extension `ext` is available.
   ASMJIT_INLINE_NODEBUG bool has_avx_ext(AVXExt ext) const noexcept { return (_avx_ext_mask & (uint64_t(1) << uint32_t(ext))) != 0; }
 
   //! Tests whether ADX extension is available.
@@ -468,7 +347,9 @@ public:
 #endif // ASMJIT_UJIT_X86
 
 #if defined(ASMJIT_UJIT_AARCH64)
+  //! Tests whether a general purpose extension `ext` is available.
   ASMJIT_INLINE_NODEBUG bool has_gp_ext(GPExt ext) const noexcept { return (_gp_ext_mask & (uint64_t(1) << uint32_t(ext))) != 0; }
+  //! Tests whether an ASIMD extension `ext` is available.
   ASMJIT_INLINE_NODEBUG bool has_asimd_ext(ASIMDExt ext) const noexcept { return (_asimd_ext_mask & (uint64_t(1) << uint32_t(ext))) != 0; }
 
   //! Tests whether CSSC extension is available.
@@ -535,9 +416,12 @@ public:
   //! Returns the behavior of scalar operations (mostly floating point).
   ASMJIT_INLINE_NODEBUG ScalarOpBehavior scalar_op_behavior() const noexcept { return _scalar_op_behavior; }
   //! Returns the behavior of floating point min/max operations.
-  ASMJIT_INLINE_NODEBUG FMinFMaxOpBehavior fmin_fmax_op_hehavior() const noexcept { return _fmin_fmax_op_hehavior; }
+  ASMJIT_INLINE_NODEBUG FMinFMaxOpBehavior fmin_fmax_op_behavior() const noexcept { return _fmin_fmax_op_behavior; }
   //! Returns the behavior of floating point mul+add (`madd`) operations.
   ASMJIT_INLINE_NODEBUG FMAddOpBehavior fmadd_op_behavior() const noexcept { return _fmadd_op_behavior; }
+  //! Returns the behavior of float-to-integer conversion when the floating point is outside of the integer representable
+  //! range, infinite, or NaN.
+  ASMJIT_INLINE_NODEBUG FloatToIntOutsideRangeBehavior float_to_int_outside_range_behavior() const noexcept { return _float_to_int_outside_range_behavior; }
 
   //! Tests whether a scalar operation is zeroing the rest of the destination register (AArch64).
   ASMJIT_INLINE_NODEBUG bool is_scalar_op_zeroing() const noexcept { return _scalar_op_behavior == ScalarOpBehavior::kZeroing; }
@@ -545,9 +429,9 @@ public:
   ASMJIT_INLINE_NODEBUG bool is_scalar_op_preserving_vec128() const noexcept { return _scalar_op_behavior == ScalarOpBehavior::kPreservingVec128; }
 
   //! Tests whether a floating point min/max operation selects a finite value if one of the values is NaN (AArch64).
-  ASMJIT_INLINE_NODEBUG bool is_fmin_fmax_finite() const noexcept { return _fmin_fmax_op_hehavior == FMinFMaxOpBehavior::kFiniteValue; }
+  ASMJIT_INLINE_NODEBUG bool is_fmin_fmax_finite() const noexcept { return _fmin_fmax_op_behavior == FMinFMaxOpBehavior::kFiniteValue; }
   //! Tests whether a floating point min/max operation works as a ternary if - `if a <|> b ? a : b` (X86|X86_64).
-  ASMJIT_INLINE_NODEBUG bool is_fmin_fmax_ternary() const noexcept { return _fmin_fmax_op_hehavior == FMinFMaxOpBehavior::kTernaryLogic; }
+  ASMJIT_INLINE_NODEBUG bool is_fmin_fmax_ternary() const noexcept { return _fmin_fmax_op_behavior == FMinFMaxOpBehavior::kTernaryLogic; }
 
   //! Tests whether a floating point mul+add operation is fused (uses FMA).
   ASMJIT_INLINE_NODEBUG bool is_fmadd_fused() const noexcept { return _fmadd_op_behavior != FMAddOpBehavior::kNoFMA; }
@@ -556,8 +440,10 @@ public:
   //! Tests whether a FMA operation is available and that it only stores the result to accumulator register.
   ASMJIT_INLINE_NODEBUG bool is_fma_storing_to_any_accumulator() const noexcept { return _fmadd_op_behavior == FMAddOpBehavior::kFMAStoreToAccumulator; }
 
-  ASMJIT_INLINE_NODEBUG UniOptFlags opt_flags() const noexcept { return _opt_flags; }
-  ASMJIT_INLINE_NODEBUG bool has_opt_flag(UniOptFlags flag) const noexcept { return Support::test(_opt_flags, flag); }
+  //! Returns CPU hints.
+  ASMJIT_INLINE_NODEBUG CpuHints cpu_hints() const noexcept { return _cpu_hints; }
+  //! Tests whether a CPU hint `hint` is enabled.
+  ASMJIT_INLINE_NODEBUG bool has_cpu_hint(CpuHints hint) const noexcept { return Support::test(_cpu_hints, hint); }
 
   //! Returns a native register signature, either 32-bit or 64-bit depending on the target architecture).
   ASMJIT_INLINE_NODEBUG OperandSignature gp_signature() const noexcept { return cc->gp_signature(); }
@@ -599,7 +485,7 @@ public:
   //! \name Function
   //! \{
 
-  ASMJIT_API void init_function(asmjit::FuncNode* func_node) noexcept;
+  ASMJIT_API void init_function(FuncNode* func_node) noexcept;
 
   //! \}
 
@@ -607,13 +493,15 @@ public:
   //! \{
 
   ASMJIT_INLINE void rename(const OpArray& op_array, const char* name) noexcept {
-    for (uint32_t i = 0; i < op_array.size(); i++)
-      cc->rename(op_array[i].as<asmjit::Reg>(), "%s%u", name, unsigned(i));
+    for (uint32_t i = 0; i < op_array.size(); i++) {
+      cc->rename(op_array[i].as<Reg>(), "%s%u", name, unsigned(i));
+    }
   }
 
   ASMJIT_INLINE void rename(const OpArray& op_array, const char* prefix, const char* name) noexcept {
-    for (uint32_t i = 0; i < op_array.size(); i++)
-      cc->rename(op_array[i].as<asmjit::Reg>(), "%s%s%u", prefix, name, unsigned(i));
+    for (uint32_t i = 0; i < op_array.size(); i++) {
+      cc->rename(op_array[i].as<Reg>(), "%s%s%u", prefix, name, unsigned(i));
+    }
   }
 
   //! \}
@@ -631,83 +519,162 @@ public:
   //! \name Virtual Registers & Memory (Target Independent)
   //! \{
 
-  ASMJIT_INLINE Gp new_gp32() noexcept { return cc->new_gp32(); }
-  ASMJIT_INLINE Gp new_gp64() noexcept { return cc->new_gp64(); }
-  ASMJIT_INLINE Gp new_gpz() noexcept { return cc->new_gpz(); }
-
-  template<typename... Args>
-  ASMJIT_INLINE Gp new_gp32(const char* name, Args&&... args) noexcept { return cc->new_gp32(name, std::forward<Args>(args)...); }
-  template<typename... Args>
-  ASMJIT_INLINE Gp new_gp64(const char* name, Args&&... args) noexcept { return cc->new_gp64(name, std::forward<Args>(args)...); }
-  template<typename... Args>
-  ASMJIT_INLINE Gp new_gpz(const char* name, Args&&... args) noexcept { return cc->new_gpz(name, std::forward<Args>(args)...); }
-
-  template<typename RegT>
-  ASMJIT_INLINE RegT new_similar_reg(const RegT& ref) noexcept { return cc->new_similar_reg(ref); }
+  //! Wraps `BackendCompiler::new_reg(type_id, args...)`.
   template<typename RegT, typename... Args>
-  ASMJIT_INLINE RegT new_similar_reg(const RegT& ref, Args&&... args) noexcept { return cc->new_similar_reg(ref, std::forward<Args>(args)...); }
+  ASMJIT_INLINE RegT new_reg(TypeId type_id, Args&&... args) noexcept {
+    return cc->new_similar_reg<RegT>(type_id, std::forward<Args>(args)...);
+  }
+
+  //! Wraps `BackendCompiler::new_similar_reg(ref, args...)`.
+  template<typename RegT, typename... Args>
+  ASMJIT_INLINE RegT new_similar_reg(const RegT& ref, Args&&... args) noexcept {
+    return cc->new_similar_reg(ref, std::forward<Args>(args)...);
+  }
+
+  //! Wraps `BackendCompiler::new_gp32(args...)`.
+  template<typename... Args>
+  ASMJIT_INLINE Gp new_gp32(Args&&... args) noexcept {
+    return cc->new_gp32(std::forward<Args>(args)...);
+  }
+
+  //! Wraps `BackendCompiler::new_gp64(args...)`.
+  template<typename... Args>
+  ASMJIT_INLINE Gp new_gp64(Args&&... args) noexcept {
+    return cc->new_gp64(std::forward<Args>(args)...);
+  }
+
+  //! Wraps `BackendCompiler::new_gpz(args...)`.
+  template<typename... Args>
+  ASMJIT_INLINE Gp new_gpz(Args&&... args) noexcept {
+    return cc->new_gpz(std::forward<Args>(args)...);
+  }
+
+  //! Wraps `BackendCompiler::new_gpz(args...)`.
+  template<typename... Args>
+  ASMJIT_INLINE Gp new_gp_ptr(Args&&... args) noexcept {
+    return cc->new_gp_ptr(std::forward<Args>(args)...);
+  }
 
   template<typename... Args>
-  ASMJIT_INLINE Vec new_vec(const char* name, Args&&... args) noexcept {
-    Vec reg;
-    cc->_new_reg_fmt(Out<Reg>(reg), _vec_type_id, name, std::forward<Args>(args)...);
-    return reg;
+  ASMJIT_INLINE Vec new_vec(Args&&... args) noexcept {
+    return cc->new_vec(_vec_type_id, std::forward<Args>(args)...);
   }
 
   template<typename... Args>
-  ASMJIT_INLINE Vec new_vec(VecWidth vw, const char* name, Args&&... args) noexcept {
-    Vec reg;
-    cc->_new_reg_fmt(Out<Reg>(reg), VecWidthUtils::type_id_of(vw), name, std::forward<Args>(args)...);
-    return reg;
+  ASMJIT_INLINE Vec new_vec_with_width(VecWidth vw, Args&&... args) noexcept {
+    return cc->new_reg<Vec>(VecWidthUtils::type_id_of(vw), std::forward<Args>(args)...);
   }
 
-  ASMJIT_NOINLINE void new_reg_array(OpArray& dst, uint32_t n, asmjit::TypeId type_id, const char* name) noexcept {
+  template<typename... Args>
+  ASMJIT_INLINE Vec new_vec128(Args&&... args) noexcept {
+    return cc->new_vec128(std::forward<Args>(args)...);
+  }
+
+  template<typename... Args>
+  ASMJIT_INLINE Vec new_vec128_f32x1(Args&&... args) noexcept {
+    return cc->new_vec128_f32x1(std::forward<Args>(args)...);
+  }
+
+  template<typename... Args>
+  ASMJIT_INLINE Vec new_vec128_f64x1(Args&&... args) noexcept {
+    return cc->new_vec128_f64x1(std::forward<Args>(args)...);
+  }
+
+  template<typename... Args>
+  ASMJIT_INLINE Vec new_vec128_f32x4(Args&&... args) noexcept {
+    return cc->new_vec128_f32x4(std::forward<Args>(args)...);
+  }
+
+  template<typename... Args>
+  ASMJIT_INLINE Vec new_vec128_f64x2(Args&&... args) noexcept {
+    return cc->new_vec128_f64x2(std::forward<Args>(args)...);
+  }
+
+#if defined(ASMJIT_UJIT_X86)
+  template<typename... Args>
+  ASMJIT_INLINE Vec new_vec256(Args&&... args) noexcept {
+    return cc->new_vec256(std::forward<Args>(args)...);
+  }
+
+  template<typename... Args>
+  ASMJIT_INLINE Vec new_vec512(Args&&... args) noexcept {
+    return cc->new_vec512(std::forward<Args>(args)...);
+  }
+#endif // ASMJIT_UJIT_X86
+
+  ASMJIT_NOINLINE void new_reg_array(OpArray& dst, size_t n, TypeId type_id, const char* name) noexcept {
     ASMJIT_ASSERT(n <= OpArray::kMaxSize);
     dst._size = n;
-    for (uint32_t i = 0; i < n; i++) {
-      cc->_new_reg_fmt(Out(dst[i].as<asmjit::Reg>()), type_id, "%s%u", name, i);
+    for (size_t i = 0; i < n; i++) {
+      cc->_new_reg(Out(dst[i].as<Reg>()), type_id, "%s%u", name, i);
     }
   }
 
-  ASMJIT_NOINLINE void new_reg_array(OpArray& dst, uint32_t n, asmjit::TypeId type_id, const char* prefix, const char* name) noexcept {
+  ASMJIT_NOINLINE void new_reg_array(OpArray& dst, size_t n, TypeId type_id, const char* prefix, const char* name) noexcept {
     ASMJIT_ASSERT(n <= OpArray::kMaxSize);
     dst._size = n;
-    for (uint32_t i = 0; i < n; i++) {
-      cc->_new_reg_fmt(Out(dst[i].as<asmjit::Reg>()), type_id, "%s%s%u", prefix, name, i);
+    for (size_t i = 0; i < n; i++) {
+      cc->_new_reg(Out(dst[i].as<Reg>()), type_id, "%s%s%u", prefix, name, i);
     }
   }
 
-  ASMJIT_NOINLINE void new_reg_array(OpArray& dst, uint32_t n, const asmjit::Reg& ref, const char* name) noexcept {
+  ASMJIT_NOINLINE void new_reg_array(OpArray& dst, size_t n, const Reg& ref, const char* name) noexcept {
     ASMJIT_ASSERT(n <= OpArray::kMaxSize);
     dst._size = n;
-    for (uint32_t i = 0; i < n; i++) {
-      cc->_new_reg_fmt(Out(dst[i].as<asmjit::Reg>()), ref, "%s%u", name, i);
+    for (size_t i = 0; i < n; i++) {
+      cc->_new_reg(Out(dst[i].as<Reg>()), ref, "%s%u", name, i);
     }
   }
 
-  ASMJIT_NOINLINE void new_reg_array(OpArray& dst, uint32_t n, const asmjit::Reg& ref, const char* prefix, const char* name) noexcept {
+  ASMJIT_NOINLINE void new_reg_array(OpArray& dst, size_t n, const Reg& ref, const char* prefix, const char* name) noexcept {
     ASMJIT_ASSERT(n <= OpArray::kMaxSize);
     dst._size = n;
-    for (uint32_t i = 0; i < n; i++) {
-      cc->_new_reg_fmt(Out(dst[i].as<asmjit::Reg>()), ref, "%s%s%u", prefix, name, i);
+    for (size_t i = 0; i < n; i++) {
+      cc->_new_reg(Out(dst[i].as<Reg>()), ref, "%s%s%u", prefix, name, i);
     }
   }
 
-  ASMJIT_INLINE void new_vec_array(OpArray& dst, uint32_t n, VecWidth vw, const char* name) noexcept {
+  ASMJIT_INLINE void new_vec_array(OpArray& dst, size_t n, VecWidth vw, const char* name) noexcept {
     new_reg_array(dst, n, VecWidthUtils::type_id_of(vw), name);
   }
 
-  ASMJIT_INLINE void new_vec_array(OpArray& dst, uint32_t n, VecWidth vw, const char* prefix, const char* name) noexcept {
+  ASMJIT_INLINE void new_vec_array(OpArray& dst, size_t n, VecWidth vw, const char* prefix, const char* name) noexcept {
     new_reg_array(dst, n, VecWidthUtils::type_id_of(vw), prefix, name);
   }
 
-  ASMJIT_INLINE void new_vec_array(OpArray& dst, uint32_t n, const Vec& ref, const char* name) noexcept {
+  ASMJIT_INLINE void new_vec_array(OpArray& dst, size_t n, const Vec& ref, const char* name) noexcept {
     new_reg_array(dst, n, ref, name);
   }
 
-  ASMJIT_INLINE void new_vec_array(OpArray& dst, uint32_t n, const Vec& ref, const char* prefix, const char* name) noexcept {
+  ASMJIT_INLINE void new_vec_array(OpArray& dst, size_t n, const Vec& ref, const char* prefix, const char* name) noexcept {
     new_reg_array(dst, n, ref, prefix, name);
   }
+
+  ASMJIT_INLINE void new_vec128_array(OpArray& dst, size_t n, const char* name) noexcept {
+    new_reg_array(dst, n, TypeId::kInt32x4, name);
+  }
+
+  ASMJIT_INLINE void new_vec128_array(OpArray& dst, size_t n, const char* prefix, const char* name) noexcept {
+    new_reg_array(dst, n, TypeId::kInt32x4, prefix, name);
+  }
+
+#if defined(ASMJIT_UJIT_X86)
+  ASMJIT_INLINE void new_vec256_array(OpArray& dst, size_t n, const char* name) noexcept {
+    new_reg_array(dst, n, TypeId::kInt32x8, name);
+  }
+
+  ASMJIT_INLINE void new_vec256_array(OpArray& dst, size_t n, const char* prefix, const char* name) noexcept {
+    new_reg_array(dst, n, TypeId::kInt32x8, prefix, name);
+  }
+
+  ASMJIT_INLINE void new_vec512_array(OpArray& dst, size_t n, const char* name) noexcept {
+    new_reg_array(dst, n, TypeId::kInt32x16, name);
+  }
+
+  ASMJIT_INLINE void new_vec512_array(OpArray& dst, size_t n, const char* prefix, const char* name) noexcept {
+    new_reg_array(dst, n, TypeId::kInt32x16, prefix, name);
+  }
+#endif // ASMJIT_UJIT_X86
 
   ASMJIT_API Mem tmp_stack(StackId id, uint32_t size) noexcept;
 
@@ -721,165 +688,6 @@ public:
   //! \}
 
   ASMJIT_API void _init_vec_const_table_ptr() noexcept;
-
-  //! \name Virtual Registers
-  //! \{
-
-#if defined(ASMJIT_UJIT_X86)
-
-  ASMJIT_INLINE Vec new_vec128() noexcept {
-    Vec reg;
-    cc->_new_reg(Out<Reg>(reg), asmjit::TypeId::kInt32x4);
-    return reg;
-  }
-
-  ASMJIT_INLINE Vec new_vec128_1xf32() noexcept {
-    Vec reg;
-    cc->_new_reg(Out<Reg>(reg), asmjit::TypeId::kFloat32x1);
-    return reg;
-  }
-
-  ASMJIT_INLINE Vec new_vec128_1xf64() noexcept {
-    Vec reg;
-    cc->_new_reg(Out<Reg>(reg), asmjit::TypeId::kFloat64x1);
-    return reg;
-  }
-
-  ASMJIT_INLINE Vec new_vec128_4xf32() noexcept {
-    Vec reg;
-    cc->_new_reg(Out<Reg>(reg), asmjit::TypeId::kFloat32x4);
-    return reg;
-  }
-
-  ASMJIT_INLINE Vec new_vec128_2xf64() noexcept {
-    Vec reg;
-    cc->_new_reg(Out<Reg>(reg), asmjit::TypeId::kFloat64x2);
-    return reg;
-  }
-
-  template<typename... Args>
-  ASMJIT_INLINE Vec new_vec128(Args&&... args) noexcept {
-    Vec reg;
-    cc->_new_reg_fmt(Out<Reg>(reg), asmjit::TypeId::kInt32x4, std::forward<Args>(args)...);
-    return reg;
-  }
-
-  template<typename... Args>
-  ASMJIT_INLINE Vec new_vec128_1xf32(Args&&... args) noexcept {
-    Vec reg;
-    cc->_new_reg_fmt(Out<Reg>(reg), asmjit::TypeId::kFloat32x1, std::forward<Args>(args)...);
-    return reg;
-  }
-
-  template<typename... Args>
-  ASMJIT_INLINE Vec new_vec128_1xf64(Args&&... args) noexcept {
-    Vec reg;
-    cc->_new_reg_fmt(Out<Reg>(reg), asmjit::TypeId::kFloat64x1, std::forward<Args>(args)...);
-    return reg;
-  }
-
-  template<typename... Args>
-  ASMJIT_INLINE Vec new_vec128_4xf32(Args&&... args) noexcept {
-    Vec reg;
-    cc->_new_reg_fmt(Out<Reg>(reg), asmjit::TypeId::kFloat32x4, std::forward<Args>(args)...);
-    return reg;
-  }
-
-  template<typename... Args>
-  ASMJIT_INLINE Vec new_vec128_2xf64(Args&&... args) noexcept {
-    Vec reg;
-    cc->_new_reg_fmt(Out<Reg>(reg), asmjit::TypeId::kFloat64x2, std::forward<Args>(args)...);
-    return reg;
-  }
-
-  ASMJIT_INLINE void new_vec128_array(OpArray& dst, uint32_t n, const char* name) noexcept {
-    new_reg_array(dst, n, asmjit::TypeId::kInt32x4, name);
-  }
-
-  ASMJIT_INLINE void new_vec128_array(OpArray& dst, uint32_t n, const char* prefix, const char* name) noexcept {
-    new_reg_array(dst, n, asmjit::TypeId::kInt32x4, prefix, name);
-  }
-
-  template<typename... Args>
-  ASMJIT_INLINE Vec new_vec256(const char* name, Args&&... args) noexcept {
-    Vec reg;
-    cc->_new_reg_fmt(Out<Reg>(reg), asmjit::TypeId::kInt32x8, name, std::forward<Args>(args)...);
-    return reg;
-  }
-
-  ASMJIT_INLINE void new_vec256_array(OpArray& dst, uint32_t n, const char* name) noexcept {
-    new_reg_array(dst, n, asmjit::TypeId::kInt32x8, name);
-  }
-
-  ASMJIT_INLINE void new_vec256_array(OpArray& dst, uint32_t n, const char* prefix, const char* name) noexcept {
-    new_reg_array(dst, n, asmjit::TypeId::kInt32x8, prefix, name);
-  }
-
-  template<typename... Args>
-  ASMJIT_INLINE Vec new_vec512(const char* name, Args&&... args) noexcept {
-    Vec reg;
-    cc->_new_reg_fmt(Out<Reg>(reg), asmjit::TypeId::kInt32x16, name, std::forward<Args>(args)...);
-    return reg;
-  }
-
-  ASMJIT_INLINE void new_vec512_array(OpArray& dst, uint32_t n, const char* name) noexcept {
-    new_reg_array(dst, n, asmjit::TypeId::kInt32x16, name);
-  }
-
-  ASMJIT_INLINE void new_vec512_array(OpArray& dst, uint32_t n, const char* prefix, const char* name) noexcept {
-    new_reg_array(dst, n, asmjit::TypeId::kInt32x16, prefix, name);
-  }
-
-#endif // ASMJIT_UJIT_X86
-
-#if defined(ASMJIT_UJIT_AARCH64)
-
-  template<typename... Args>
-  ASMJIT_INLINE Vec new_vec128(const char* name, Args&&... args) noexcept {
-    Vec reg;
-    cc->_new_reg_fmt(Out<Reg>(reg), asmjit::TypeId::kInt32x4, name, std::forward<Args>(args)...);
-    return reg;
-  }
-
-  template<typename... Args>
-  ASMJIT_INLINE Vec new_vec128_1xf32(const char* name, Args&&... args) noexcept {
-    Vec reg;
-    cc->_new_reg_fmt(Out<Reg>(reg), asmjit::TypeId::kFloat32x1, name, std::forward<Args>(args)...);
-    return reg.v128();
-  }
-
-  template<typename... Args>
-  ASMJIT_INLINE Vec new_vec128_1xf64(const char* name, Args&&... args) noexcept {
-    Vec reg;
-    cc->_new_reg_fmt(Out<Reg>(reg), asmjit::TypeId::kFloat64x1, name, std::forward<Args>(args)...);
-    return reg.v128();
-  }
-
-  template<typename... Args>
-  ASMJIT_INLINE Vec new_vec128_4xf32(const char* name, Args&&... args) noexcept {
-    Vec reg;
-    cc->_new_reg_fmt(Out<Reg>(reg), asmjit::TypeId::kFloat32x4, name, std::forward<Args>(args)...);
-    return reg;
-  }
-
-  template<typename... Args>
-  ASMJIT_INLINE Vec new_vec128_2xf64(const char* name, Args&&... args) noexcept {
-    Vec reg;
-    cc->_new_reg_fmt(Out<Reg>(reg), asmjit::TypeId::kFloat64x2, name, std::forward<Args>(args)...);
-    return reg;
-  }
-
-  ASMJIT_INLINE void new_vec128_array(OpArray& dst, uint32_t n, const char* name) noexcept {
-    new_reg_array(dst, n, asmjit::TypeId::kInt32x4, name);
-  }
-
-  ASMJIT_INLINE void new_vec128_array(OpArray& dst, uint32_t n, const char* prefix, const char* name) noexcept {
-    new_reg_array(dst, n, asmjit::TypeId::kInt32x4, prefix, name);
-  }
-
-#endif
-
-  //! \}
 
   //! \name Constants (X86|X86_64)
   //! \{
@@ -901,14 +709,14 @@ public:
   ASMJIT_API Mem simd_mem_const(const void* c, Bcst bcst_width, const VecArray& similar_to) noexcept;
 
   ASMJIT_API Mem _get_mem_const(const void* c) noexcept;
-  ASMJIT_API Vec _new_vecConst(const void* c, bool is_unique_const) noexcept;
+  ASMJIT_API Vec _new_vec_const(const void* c, bool is_unique_const) noexcept;
 
 #if defined(ASMJIT_UJIT_AARCH64)
   ASMJIT_API Vec simd_const_16b(const void* data16) noexcept;
 #endif // ASMJIT_UJIT_AARCH64
 
 #if defined(ASMJIT_UJIT_AARCH64)
-  inline Vec simd_vec_zero(const Vec& similar_to) noexcept { return simd_vec_const(&ct.p_0000000000000000, Bcst::k32, similar_to); }
+  inline Vec simd_vec_zero(const Vec& similar_to) noexcept { return simd_vec_const(&ct().p_0000000000000000, Bcst::k32, similar_to); }
 #endif // ASMJIT_UJIT_AARCH64
 
   //! \}
@@ -920,12 +728,12 @@ public:
   ASMJIT_API void emit_m(UniOpM op, const Mem& m) noexcept;
   ASMJIT_API void emit_rm(UniOpRM op, const Gp& dst, const Mem& src) noexcept;
   ASMJIT_API void emit_mr(UniOpMR op, const Mem& dst, const Gp& src) noexcept;
-  ASMJIT_API void emit_cmov(const Gp& dst, const Operand_& sel, const Condition& condition) noexcept;
-  ASMJIT_API void emit_select(const Gp& dst, const Operand_& sel1_, const Operand_& sel2_, const Condition& condition) noexcept;
+  ASMJIT_API void emit_cmov(const Gp& dst, const Operand_& sel, const UniCondition& condition) noexcept;
+  ASMJIT_API void emit_select(const Gp& dst, const Operand_& sel1_, const Operand_& sel2_, const UniCondition& condition) noexcept;
   ASMJIT_API void emit_2i(UniOpRR op, const Gp& dst, const Operand_& src_) noexcept;
   ASMJIT_API void emit_3i(UniOpRRR op, const Gp& dst, const Operand_& src1_, const Operand_& src2_) noexcept;
   ASMJIT_API void emit_j(const Operand_& target) noexcept;
-  ASMJIT_API void emit_j_if(const Label& target, const Condition& condition) noexcept;
+  ASMJIT_API void emit_j_if(const Label& target, const UniCondition& condition) noexcept;
 
   ASMJIT_INLINE void mov(const Gp& dst, const Gp& src) noexcept { return emit_mov(dst, src); }
   ASMJIT_INLINE void mov(const Gp& dst, const Imm& src) noexcept { return emit_mov(dst, src); }
@@ -963,11 +771,11 @@ public:
   ASMJIT_INLINE void mem_add_u32(const Mem& dst, const Gp& src) noexcept { return emit_mr(UniOpMR::kAddU32, dst, src); }
   ASMJIT_INLINE void mem_add_u64(const Mem& dst, const Gp& src) noexcept { return emit_mr(UniOpMR::kAddU64, dst, src); }
 
-  ASMJIT_INLINE void cmov(const Gp& dst, const Gp& sel, const Condition& condition) noexcept { emit_cmov(dst, sel, condition); }
-  ASMJIT_INLINE void cmov(const Gp& dst, const Mem& sel, const Condition& condition) noexcept { emit_cmov(dst, sel, condition); }
+  ASMJIT_INLINE void cmov(const Gp& dst, const Gp& sel, const UniCondition& condition) noexcept { emit_cmov(dst, sel, condition); }
+  ASMJIT_INLINE void cmov(const Gp& dst, const Mem& sel, const UniCondition& condition) noexcept { emit_cmov(dst, sel, condition); }
 
   template<typename Sel1, typename Sel2>
-  ASMJIT_INLINE void select(const Gp& dst, const Sel1& sel1, const Sel2& sel2, const Condition& condition) noexcept { emit_select(dst, sel1, sel2, condition); }
+  ASMJIT_INLINE void select(const Gp& dst, const Sel1& sel1, const Sel2& sel2, const UniCondition& condition) noexcept { emit_select(dst, sel1, sel2, condition); }
 
   ASMJIT_INLINE void abs(const Gp& dst, const Gp& src) noexcept { emit_2i(UniOpRR::kAbs, dst, src); }
   ASMJIT_INLINE void abs(const Gp& dst, const Mem& src) noexcept { emit_2i(UniOpRR::kAbs, dst, src); }
@@ -1101,7 +909,7 @@ public:
 
   ASMJIT_INLINE void j(const Gp& target) noexcept { emit_j(target); }
   ASMJIT_INLINE void j(const Label& target) noexcept { emit_j(target); }
-  ASMJIT_INLINE void j(const Label& target, const Condition& condition) noexcept { emit_j_if(target, condition); }
+  ASMJIT_INLINE void j(const Label& target, const UniCondition& condition) noexcept { emit_j_if(target, condition); }
 
   ASMJIT_API void adds_u8(const Gp& dst, const Gp& src1, const Gp& src2) noexcept;
 
@@ -1283,8 +1091,12 @@ public:
   DEFINE_OP_2V(v_cvt_i32_hi_to_i64, UniOpVV::kCvtI32HiToI64)
   DEFINE_OP_2V(v_cvt_u32_lo_to_u64, UniOpVV::kCvtU32LoToU64)
   DEFINE_OP_2V(v_cvt_u32_hi_to_u64, UniOpVV::kCvtU32HiToU64)
+  DEFINE_OP_2V(s_abs_f32, UniOpVV::kAbsF32S)
+  DEFINE_OP_2V(s_abs_f64, UniOpVV::kAbsF64S)
   DEFINE_OP_2V(v_abs_f32, UniOpVV::kAbsF32)
   DEFINE_OP_2V(v_abs_f64, UniOpVV::kAbsF64)
+  DEFINE_OP_2V(s_neg_f32, UniOpVV::kNegF32S)
+  DEFINE_OP_2V(s_neg_f64, UniOpVV::kNegF64S)
   DEFINE_OP_2V(v_neg_f32, UniOpVV::kNegF32)
   DEFINE_OP_2V(v_neg_f64, UniOpVV::kNegF64)
   DEFINE_OP_2V(v_not_f32, UniOpVV::kNotF32)
@@ -1301,10 +1113,18 @@ public:
   DEFINE_OP_2V(s_ceil_f64, UniOpVV::kCeilF64S)
   DEFINE_OP_2V(v_ceil_f32, UniOpVV::kCeilF32)
   DEFINE_OP_2V(v_ceil_f64, UniOpVV::kCeilF64)
-  DEFINE_OP_2V(s_round_f32, UniOpVV::kRoundF32S)
-  DEFINE_OP_2V(s_round_f64, UniOpVV::kRoundF64S)
-  DEFINE_OP_2V(v_round_f32, UniOpVV::kRoundF32)
-  DEFINE_OP_2V(v_round_f64, UniOpVV::kRoundF64)
+  DEFINE_OP_2V(s_round_even_f32, UniOpVV::kRoundEvenF32S)
+  DEFINE_OP_2V(s_round_even_f64, UniOpVV::kRoundEvenF64S)
+  DEFINE_OP_2V(v_round_even_f32, UniOpVV::kRoundEvenF32)
+  DEFINE_OP_2V(v_round_even_f64, UniOpVV::kRoundEvenF64)
+  DEFINE_OP_2V(s_round_half_away_f32, UniOpVV::kRoundHalfAwayF32S)
+  DEFINE_OP_2V(s_round_half_away_f64, UniOpVV::kRoundHalfAwayF64S)
+  DEFINE_OP_2V(v_round_half_away_f32, UniOpVV::kRoundHalfAwayF32)
+  DEFINE_OP_2V(v_round_half_away_f64, UniOpVV::kRoundHalfAwayF64)
+  DEFINE_OP_2V(s_round_half_up_f32, UniOpVV::kRoundHalfUpF32S)
+  DEFINE_OP_2V(s_round_half_up_f64, UniOpVV::kRoundHalfUpF64S)
+  DEFINE_OP_2V(v_round_half_up_f32, UniOpVV::kRoundHalfUpF32)
+  DEFINE_OP_2V(v_round_half_up_f64, UniOpVV::kRoundHalfUpF64)
   DEFINE_OP_2V(v_rcp_f32, UniOpVV::kRcpF32)
   DEFINE_OP_2V(v_rcp_f64, UniOpVV::kRcpF64)
   DEFINE_OP_2V(s_sqrt_f32, UniOpVV::kSqrtF32S)
@@ -1743,6 +1563,10 @@ public:
   DEFINE_OP_3V(s_div_f64, UniOpVVV::kDivF64S)
   DEFINE_OP_3V(v_div_f32, UniOpVVV::kDivF32)
   DEFINE_OP_3V(v_div_f64, UniOpVVV::kDivF64)
+  DEFINE_OP_3V(s_mod_f32, UniOpVVV::kModF32S)
+  DEFINE_OP_3V(s_mod_f64, UniOpVVV::kModF64S)
+  DEFINE_OP_3V(v_mod_f32, UniOpVVV::kModF32)
+  DEFINE_OP_3V(v_mod_f64, UniOpVVV::kModF64)
   DEFINE_OP_3V(s_min_f32, UniOpVVV::kMinF32S)
   DEFINE_OP_3V(s_min_f64, UniOpVVV::kMinF64S)
   DEFINE_OP_3V(v_min_f32, UniOpVVV::kMinF32)
@@ -1856,7 +1680,6 @@ public:
   DEFINE_OP_3VI(v_insert_v256_u64, UniOpVVVI::kInsertV256_U64)
   DEFINE_OP_3VI(v_insert_v256_f64, UniOpVVVI::kInsertV256_F64)
 
-
   DEFINE_OP_4V(v_blendv_u8, UniOpVVVV::kBlendV_U8)
   DEFINE_OP_4V(v_madd_i16, UniOpVVVV::kMAddU16)
   DEFINE_OP_4V(v_madd_u16, UniOpVVVV::kMAddU16)
@@ -1944,7 +1767,7 @@ public:
   //! \name Memory Loads & Stores with Parameterized Size
   //! \{
 
-  ASMJIT_NOINLINE void v_load_iany(const Vec& dst, const Mem& src, uint32_t n_bytes, Alignment alignment) noexcept {
+  ASMJIT_NOINLINE void v_load_iany(const Vec& dst, const Mem& src, size_t n_bytes, Alignment alignment) noexcept {
     switch (n_bytes) {
       case 1: v_load8(dst, src); break;
       case 2: v_loada16(dst, src, alignment); break;
@@ -1959,7 +1782,7 @@ public:
     }
   }
 
-  ASMJIT_NOINLINE void v_store_iany(const Mem& dst, const Vec& src, uint32_t n_bytes, Alignment alignment) noexcept {
+  ASMJIT_NOINLINE void v_store_iany(const Mem& dst, const Vec& src, size_t n_bytes, Alignment alignment) noexcept {
     switch (n_bytes) {
       case 1: v_store8(dst, src); break;
       case 2: v_storea16(dst, src, alignment); break;
@@ -2003,27 +1826,6 @@ public:
     // This doesn't rely on a zero constant on AArch64, which is okay as we don't care what's shifted in.
     v_alignr_u128(dst, src, src, n);
   #endif
-  }
-
-  // d = int(floor(a / b) * b).
-  template<typename VecOrMem>
-  ASMJIT_NOINLINE void v_mod_pd(const Vec& d, const Vec& a, const VecOrMem& b) noexcept {
-#if defined(ASMJIT_UJIT_X86)
-    if (!has_sse4_1()) {
-      Vec t = new_vec128("vModTmp");
-
-      v_div_f64(d, a, b);
-      v_cvt_trunc_f64_to_i32_lo(t, d);
-      v_cvt_i32_lo_to_f64(d, t);
-      v_mul_f64(d, d, b);
-    }
-    else
-#endif // ASMJIT_UJIT_X86
-    {
-      v_div_f64(d, a, b);
-      v_trunc_f64(d, d);
-      v_mul_f64(d, d, b);
-    }
   }
 
   //! \}

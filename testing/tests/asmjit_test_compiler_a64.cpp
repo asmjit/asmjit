@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "./asmjit_test_compiler.h"
+#include "asmjit_test_compiler.h"
 
 using namespace asmjit;
 

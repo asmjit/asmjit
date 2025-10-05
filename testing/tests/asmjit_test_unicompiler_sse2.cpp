@@ -35,6 +35,10 @@ float fdiv(float a, float b) noexcept {
   return _mm_cvtss_f32(_mm_div_ss(_mm_set1_ps(a), _mm_set1_ps(b)));
 }
 
+float fsqrt(float a) noexcept {
+  return _mm_cvtss_f32(_mm_sqrt_ss(_mm_set1_ps(a)));
+}
+
 float fmadd_nofma_ref(float a, float b, float c) noexcept {
   return _mm_cvtss_f32(_mm_add_ss(_mm_mul_ss(_mm_set1_ps(a), _mm_set1_ps(b)), _mm_set1_ps(c)));
 }
@@ -53,6 +57,10 @@ double fmul(double a, double b) noexcept {
 
 double fdiv(double a, double b) noexcept {
   return _mm_cvtsd_f64(_mm_div_sd(_mm_set1_pd(a), _mm_set1_pd(b)));
+}
+
+double fsqrt(double a) noexcept {
+  return _mm_cvtsd_f64(_mm_sqrt_sd(_mm_setzero_pd(), _mm_set1_pd(a)));
 }
 
 double fmadd_nofma_ref(double a, double b, double c) noexcept {

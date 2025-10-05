@@ -1,10 +1,18 @@
-cmake_minimum_required(VERSION 3.19 FATAL_ERROR)
+# AsmJit
+# ======
+
+# To consume asmjit as a dependency, use asmjit::asmjit alias.
+
+cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
 
 # Don't create a project if it was already created by another CMakeLists.txt. This makes
 # it possible to support both add_subdirectory() and include() ways of using AsmJit as a
 # dependency.
 if (NOT CMAKE_PROJECT_NAME OR "${CMAKE_PROJECT_NAME}" STREQUAL "asmjit")
-  project(asmjit CXX)
+  project(asmjit
+    LANGUAGES CXX
+    DESCRIPTION "Low-latency machine code generation"
+    HOMEPAGE_URL "https://asmjit.com")
 endif()
 
 include(CheckCXXCompilerFlag)
@@ -194,7 +202,7 @@ function(asmjit_detect_sanitizers out)
   set(${out} "${_out_array}" PARENT_SCOPE)
 endfunction()
 
-function(asmjit_add_target target target_type)
+function(asmjit_addapp target target_type)
   set(single_val "")
   set(multi_val SOURCES LIBRARIES CFLAGS CFLAGS_DBG CFLAGS_REL)
   cmake_parse_arguments("X" "" "${single_val}" "${multi_val}" ${ARGN})
@@ -227,47 +235,41 @@ set(ASMJIT_INCLUDE_DIR "${ASMJIT_INCLUDE_DIRS}")
 
 if (NOT ASMJIT_NO_CUSTOM_FLAGS)
   if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" OR "x${CMAKE_CXX_COMPILER_FRONTEND_VARIANT}" STREQUAL "xMSVC")
-    list(APPEND ASMJIT_PRIVATE_CFLAGS
-      -MP                      # [+] Multi-Process Compilation.
-      -GF                      # [+] Eliminate duplicate strings.
-      -Zc:__cplusplus          # [+] Conforming __cplusplus definition.
-      -Zc:inline               # [+] Remove unreferenced COMDAT.
-      -Zc:strictStrings        # [+] Strict const qualification of string literals.
-      -Zc:threadSafeInit-      # [-] Thread-safe statics.
-      -W4)                     # [+] Warning level 4.
+    list(APPEND ASMJIT_PRIVATE_CFLAGS -W4)                                      # [+] Warning level 4.
 
-    list(APPEND ASMJIT_PRIVATE_CFLAGS_DBG
-      -GS)                     # [+] Buffer security-check.
+    list(APPEND ASMJIT_PRIVATE_CFLAGS -MP)                                      # [+] Multi-Process Compilation.
+    list(APPEND ASMJIT_PRIVATE_CFLAGS -GF)                                      # [+] Eliminate duplicate strings.
+    list(APPEND ASMJIT_PRIVATE_CFLAGS -Zc:__cplusplus)                          # [+] Conforming __cplusplus definition.
+    list(APPEND ASMJIT_PRIVATE_CFLAGS -Zc:inline)                               # [+] Remove unreferenced COMDAT.
+    list(APPEND ASMJIT_PRIVATE_CFLAGS -Zc:strictStrings)                        # [+] Strict const qualification of string literals.
+    list(APPEND ASMJIT_PRIVATE_CFLAGS -Zc:threadSafeInit-)                      # [-] Thread-safe statics.
 
-    list(APPEND ASMJIT_PRIVATE_CFLAGS_REL
-      -GS-                     # [-] Buffer security-check.
-      -O2                      # [+] Favor speed over size.
-      -Oi)                     # [+] Generate intrinsic functions.
-  elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "^(GNU|Clang|AppleClang)$")
-    list(APPEND ASMJIT_PRIVATE_CFLAGS -Wall -Wextra -Wconversion)
-    list(APPEND ASMJIT_PRIVATE_CFLAGS -fno-math-errno)
-    list(APPEND ASMJIT_PRIVATE_CFLAGS_REL -O2)
+    list(APPEND ASMJIT_PRIVATE_CFLAGS_DBG -GS)                                  # [+] Buffer security-check.
+    list(APPEND ASMJIT_PRIVATE_CFLAGS_REL -GS-)                                 # [-] Buffer security-check.
+    list(APPEND ASMJIT_PRIVATE_CFLAGS_REL -O2)                                  # [+] Favor speed over size.
+    list(APPEND ASMJIT_PRIVATE_CFLAGS_REL -Oi)                                  # [+] Generate intrinsic functions.
+  elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU|Clang")
+    list(APPEND ASMJIT_PRIVATE_CFLAGS -Wall -Wextra -Wconversion)               # [+] Add baseline warnings that can be used safely even with system headers.
+    asmjit_detect_cflags(ASMJIT_PRIVATE_CFLAGS -Wdouble-promotion)              # [+] Warn about double promotions.
+    asmjit_detect_cflags(ASMJIT_PRIVATE_CFLAGS -Wduplicated-cond)               # [+] Warn about duplicate conditions.
+    asmjit_detect_cflags(ASMJIT_PRIVATE_CFLAGS -Wduplicated-branches)           # [+] Warn about duplicate branches.
+    asmjit_detect_cflags(ASMJIT_PRIVATE_CFLAGS -Wlogical-op)                    # [+] Warn about suspicious uses of logical operators in expressions.
+    asmjit_detect_cflags(ASMJIT_PRIVATE_CFLAGS -Wlogical-not-parentheses)       # [+] Warn about logical not used on the left hand side operand of a comparison.
+    asmjit_detect_cflags(ASMJIT_PRIVATE_CFLAGS -Wrestrict)
 
-    # We would like also '-Wzero-as-null-pointer-constant' but it would warn when it comes to system headers.
-    asmjit_detect_cflags(ASMJIT_PRIVATE_CFLAGS
-      -Wdouble-promotion
-      -Wduplicated-cond
-      -Wduplicated-branches
-      -Wlogical-op
-      -Wrestrict
-    )
+    list(APPEND ASMJIT_PRIVATE_CFLAGS -fno-math-errno)                          # [-] Disable math functions setting errno (performance reasons).
+    list(APPEND ASMJIT_PRIVATE_CFLAGS -fno-threadsafe-statics)                  # [-] Don't add guards when initializing statics (we don't need it).
+    list(APPEND ASMJIT_PRIVATE_CFLAGS_REL -O2)                                  # [+] Compiling with -O2 in release mode is what we generally want.
+    list(APPEND ASMJIT_PRIVATE_CFLAGS_REL -fmerge-all-constants)                # [+] We don't need unique address per constant (merging improves library size).
 
     # -fno-semantic-interposition is not available on apple - the compiler issues a warning, which is not detected.
-    if (APPLE)
-      asmjit_detect_cflags(ASMJIT_PRIVATE_CFLAGS -fno-threadsafe-statics)
-    else()
-      asmjit_detect_cflags(ASMJIT_PRIVATE_CFLAGS -fno-threadsafe-statics -fno-semantic-interposition)
+    if (NOT APPLE)
+      asmjit_detect_cflags(ASMJIT_PRIVATE_CFLAGS -fno-semantic-interposition)
     endif()
 
-    # The following flags can save few bytes in the resulting binary.
-    asmjit_detect_cflags(ASMJIT_PRIVATE_CFLAGS_REL
-      -fmerge-all-constants    # Merge all constants even if it violates ISO C++.
-      -fno-enforce-eh-specs)   # Don't enforce termination if noexcept function throws.
+    if (NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "iOS")
+      asmjit_detect_cflags(ASMJIT_PRIVATE_CFLAGS_REL -fno-enforce-eh-specs)     # [-] Don't enforce termination if noexcept function throws.
+    endif()
   endif()
 endif()
 
@@ -547,9 +549,10 @@ set(ASMJIT_SRC_LIST
   asmjit/x86/x86rapass_p.h
 
   asmjit/ujit/ujitbase.h
+  asmjit/ujit/unicompiler.h
   asmjit/ujit/unicompiler_a64.cpp
   asmjit/ujit/unicompiler_x86.cpp
-  asmjit/ujit/unicompiler.h
+  asmjit/ujit/unicompiler_utils_p.h
   asmjit/ujit/uniop.h
   asmjit/ujit/vecconsttable.cpp
   asmjit/ujit/vecconsttable.h
@@ -592,12 +595,12 @@ message("   ASMJIT_PRIVATE_CFLAGS_REL=${ASMJIT_PRIVATE_CFLAGS_REL}")
 
 if (NOT ASMJIT_EMBED)
   # Add AsmJit target.
-  asmjit_add_target(asmjit "${ASMJIT_TARGET_TYPE}"
-                    SOURCES    ${ASMJIT_SRC}
-                    LIBRARIES  ${ASMJIT_DEPS}
-                    CFLAGS     ${ASMJIT_PRIVATE_CFLAGS}
-                    CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
-                    CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
+  asmjit_addapp(asmjit "${ASMJIT_TARGET_TYPE}"
+    SOURCES    ${ASMJIT_SRC}
+    LIBRARIES  ${ASMJIT_DEPS}
+    CFLAGS     ${ASMJIT_PRIVATE_CFLAGS}
+    CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
+    CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
 
   target_compile_options(asmjit INTERFACE ${ASMJIT_CFLAGS})
   target_include_directories(asmjit BEFORE INTERFACE
@@ -632,60 +635,46 @@ if (NOT ASMJIT_EMBED)
     enable_testing()
 
     # Special target that always uses embedded AsmJit.
-    asmjit_add_target(asmjit_test_unit TEST
-                      SOURCES    ${ASMJIT_SRC}
-                                 test/asmjit_test_unit.cpp
-                                 test/broken.cpp
-                                 test/broken.h
-                      LIBRARIES  ${ASMJIT_DEPS}
-                      CFLAGS     ${ASMJIT_PRIVATE_CFLAGS}
-                                 -DASMJIT_TEST
-                                 -DASMJIT_STATIC
-                      CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
-                      CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
-    target_include_directories(asmjit_test_unit BEFORE PRIVATE ${ASMJIT_INCLUDE_DIRS})
+    asmjit_addapp(asmjit_test_runner TEST
+      SOURCES    ${ASMJIT_SRC}
+                 testing/tests/asmjit_test_runner.cpp
+                 testing/tests/broken.cpp
+                 testing/tests/broken.h
+      LIBRARIES  ${ASMJIT_DEPS}
+      CFLAGS     ${ASMJIT_PRIVATE_CFLAGS}
+                 -DASMJIT_TEST
+                 -DASMJIT_STATIC
+      CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
+      CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
+    target_include_directories(asmjit_test_runner BEFORE PRIVATE ${ASMJIT_INCLUDE_DIRS})
 
-    asmjit_add_target(asmjit_test_assembler TEST
-                      SOURCES    test/asmjit_test_assembler.cpp
-                                 test/asmjit_test_assembler.h
-                                 test/asmjit_test_assembler_a64.cpp
-                                 test/asmjit_test_assembler_x64.cpp
-                                 test/asmjit_test_assembler_x86.cpp
-                      LIBRARIES  asmjit::asmjit
-                      CFLAGS     ${ASMJIT_PRIVATE_CFLAGS}
-                      CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
-                      CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
+    asmjit_addapp(asmjit_test_assembler TEST
+      SOURCES    testing/tests/asmjit_test_assembler.cpp
+                 testing/tests/asmjit_test_assembler.h
+                 testing/tests/asmjit_test_assembler_a64.cpp
+                 testing/tests/asmjit_test_assembler_x64.cpp
+                 testing/tests/asmjit_test_assembler_x86.cpp
+      LIBRARIES  asmjit::asmjit
+      CFLAGS     ${ASMJIT_PRIVATE_CFLAGS}
+      CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
+      CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
 
-    asmjit_add_target(asmjit_bench_codegen EXECUTABLE
-                      SOURCES    test/asmjit_bench_codegen.cpp
-                                 test/asmjit_bench_codegen_a64.cpp
-                                 test/asmjit_bench_codegen_x86.cpp
-                      SOURCES    test/asmjit_bench_codegen.h
-                      LIBRARIES  asmjit::asmjit
-                      CFLAGS     ${ASMJIT_PRIVATE_CFLAGS}
-                      CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
-                      CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
-
-    foreach(_target asmjit_bench_overhead
-                    asmjit_bench_regalloc
-                    asmjit_test_environment
-                    asmjit_test_emitters
-                    asmjit_test_x86_sections)
-      asmjit_add_target(${_target} TEST
-                        SOURCES    test/${_target}.cpp
-                        LIBRARIES  asmjit::asmjit
-                        CFLAGS     ${ASMJIT_PRIVATE_CFLAGS}
-                        CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
-                        CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
+    foreach(app asmjit_test_environment asmjit_test_emitters asmjit_test_x86_sections)
+      asmjit_addapp(${app} TEST
+        SOURCES    testing/tests/${app}.cpp
+        LIBRARIES  asmjit::asmjit
+        CFLAGS     ${ASMJIT_PRIVATE_CFLAGS}
+        CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
+        CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
     endforeach()
 
     if (NOT ASMJIT_NO_INTROSPECTION)
-      asmjit_add_target(asmjit_test_instinfo TEST
-                        SOURCES    test/asmjit_test_instinfo.cpp
-                        LIBRARIES  asmjit::asmjit
-                        CFLAGS     ${ASMJIT_PRIVATE_CFLAGS}
-                        CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
-                        CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
+      asmjit_addapp(asmjit_test_instinfo TEST
+        SOURCES    testing/tests/asmjit_test_instinfo.cpp
+        LIBRARIES  asmjit::asmjit
+        CFLAGS     ${ASMJIT_PRIVATE_CFLAGS}
+        CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
+        CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
     endif()
 
     if (NOT (ASMJIT_NO_BUILDER OR ASMJIT_NO_COMPILER))
@@ -727,28 +716,48 @@ if (NOT ASMJIT_EMBED)
         endif()
       endif()
 
-      set_property(SOURCE test/asmjit_test_unicompiler_avx2fma.cpp APPEND PROPERTY COMPILE_OPTIONS ${ASMJIT_AVX2FMA_CFLAGS})
-
-      asmjit_add_target(asmjit_test_compiler TEST
-                        SOURCES    test/asmjit_test_compiler.cpp
-                                   test/asmjit_test_compiler.h
-                                   test/asmjit_test_compiler_a64.cpp
-                                   test/asmjit_test_compiler_x86.cpp
-                        LIBRARIES  asmjit::asmjit
-                        CFLAGS     ${ASMJIT_PRIVATE_CFLAGS} ${ASMJIT_SSE2_CFLAGS}
-                        CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
-                        CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
-
-      asmjit_add_target(asmjit_test_unicompiler TEST
-                        SOURCES    test/asmjit_test_unicompiler.cpp
-                                   test/asmjit_test_unicompiler_sse2.cpp
-                                   test/asmjit_test_unicompiler_avx2fma.cpp
-                                   test/broken.cpp
-                        LIBRARIES  asmjit::asmjit
-                        CFLAGS     ${ASMJIT_PRIVATE_CFLAGS} ${ASMJIT_SSE2_CFLAGS}
-                        CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
-                        CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
+      asmjit_addapp(asmjit_test_compiler TEST
+        SOURCES    testing/tests/asmjit_test_compiler.cpp
+                   testing/tests/asmjit_test_compiler.h
+                   testing/tests/asmjit_test_compiler_a64.cpp
+                   testing/tests/asmjit_test_compiler_x86.cpp
+        LIBRARIES  asmjit::asmjit
+        CFLAGS     ${ASMJIT_PRIVATE_CFLAGS} ${ASMJIT_SSE2_CFLAGS}
+        CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
+        CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
     endif()
+
+    if (NOT ASMJIT_NO_UJIT)
+      asmjit_addapp(asmjit_test_unicompiler TEST
+        SOURCES    testing/tests/asmjit_test_unicompiler.cpp
+                   testing/tests/asmjit_test_unicompiler_sse2.cpp
+                   testing/tests/asmjit_test_unicompiler_avx2fma.cpp
+                   testing/tests/broken.cpp
+        LIBRARIES  asmjit::asmjit
+        CFLAGS     ${ASMJIT_PRIVATE_CFLAGS} ${ASMJIT_SSE2_CFLAGS}
+        CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
+        CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
+      set_property(SOURCE testing/tests/asmjit_test_unicompiler_avx2fma.cpp APPEND PROPERTY COMPILE_OPTIONS ${ASMJIT_AVX2FMA_CFLAGS})
+    endif()
+
+    asmjit_addapp(asmjit_bench_codegen EXECUTABLE
+      SOURCES    testing/bench/asmjit_bench_codegen.cpp
+                 testing/bench/asmjit_bench_codegen_a64.cpp
+                 testing/bench/asmjit_bench_codegen_x86.cpp
+      SOURCES    testing/bench/asmjit_bench_codegen.h
+      LIBRARIES  asmjit::asmjit
+      CFLAGS     ${ASMJIT_PRIVATE_CFLAGS}
+      CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
+      CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
+
+    foreach(app asmjit_bench_overhead asmjit_bench_regalloc)
+      asmjit_addapp(${app} TEST
+        SOURCES    testing/bench/${app}.cpp
+        LIBRARIES  asmjit::asmjit
+        CFLAGS     ${ASMJIT_PRIVATE_CFLAGS}
+        CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
+        CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
+    endforeach()
 
   endif()
 endif()

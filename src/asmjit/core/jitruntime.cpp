@@ -15,7 +15,10 @@ JitRuntime::JitRuntime(const JitAllocator::CreateParams* params) noexcept
   : _allocator(params) {
   _environment = Environment::host();
   _environment.set_object_format(ObjectFormat::kJIT);
-  _cpu_features = CpuInfo::host().features();
+
+  const CpuInfo& host_cpu = CpuInfo::host();
+  _cpu_features = host_cpu.features();
+  _cpu_hints = host_cpu.hints();
 }
 
 JitRuntime::~JitRuntime() noexcept {}

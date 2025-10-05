@@ -68,7 +68,7 @@
 
 // Include a unit testing package if this is a `asmjit_test_unit` build.
 #if defined(ASMJIT_TEST)
-  #include "../../../test/broken.h"
+  #include "../../../testing/tests/broken.h"
 #endif
 
 #endif // ASMJIT_CORE_API_BUILD_P_H_INCLUDED

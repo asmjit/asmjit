@@ -525,6 +525,59 @@ public:
     ASMJIT_X86_FEATURE(has_amx_transpose, kAMX_TRANSPOSE)
 
     #undef ASMJIT_X86_FEATURE
+
+    ASMJIT_INLINE void remove_avx() noexcept {
+      remove(kAVX                 ,
+             kAVX2                ,
+             kAVX_IFMA            ,
+             kAVX_NE_CONVERT      ,
+             kAVX_VNNI            ,
+             kAVX_VNNI_INT16      ,
+             kAVX_VNNI_INT8       ,
+             kF16C                ,
+             kFMA                 ,
+             kFMA4                ,
+             kVAES                ,
+             kVPCLMULQDQ          ,
+             kXOP);
+      remove_avx512();
+    }
+
+    ASMJIT_INLINE void remove_avx512() noexcept {
+      remove(kAVX512_BF16         ,
+             kAVX512_BITALG       ,
+             kAVX512_BW           ,
+             kAVX512_CD           ,
+             kAVX512_DQ           ,
+             kAVX512_F            ,
+             kAVX512_FP16         ,
+             kAVX512_IFMA         ,
+             kAVX512_VBMI         ,
+             kAVX512_VBMI2        ,
+             kAVX512_VL           ,
+             kAVX512_VNNI         ,
+             kAVX512_VP2INTERSECT ,
+             kAVX512_VPOPCNTDQ    ,
+             kAMX_AVX512);
+      remove_avx10();
+    }
+
+    ASMJIT_INLINE void remove_avx10() noexcept {
+      remove(kAVX10_1 | kAVX10_2);
+    }
+
+    ASMJIT_INLINE void remove_amx() noexcept {
+      remove(kAMX_AVX512          ,
+             kAMX_BF16            ,
+             kAMX_COMPLEX         ,
+             kAMX_FP16            ,
+             kAMX_FP8             ,
+             kAMX_INT8            ,
+             kAMX_MOVRS           ,
+             kAMX_TF32            ,
+             kAMX_TILE            ,
+             kAMX_TRANSPOSE);
+    }
   };
 
   //! ARM specific features data.
@@ -1104,6 +1157,39 @@ public:
   //! \}
 };
 
+//! Describe micro-architectural hints that can be used for optimization purposes and are not part of \ref CpuFeatures.
+enum class CpuHints : uint32_t {
+  //! No honts.
+  kNone = 0x0u,
+
+  //! CPU provides fast 8-bit masked loads and stores.
+  kVecMaskedOps8 = 0x00000001u,
+
+  //! CPU provides fast 16-bit masked loads and stores.
+  kVecMaskedOps16 = 0x00000002u,
+
+  //! CPU provides fast 32-bit masked loads and stores.
+  kVecMaskedOps32 = 0x00000004u,
+
+  //! CPU provides fast 64-bit masked loads and stores.
+  kVecMaskedOps64 = 0x00000008u,
+
+  //! CPU provides low-latency 32-bit multiplication (AMD CPUs).
+  kVecFastIntMul32 = 0x00000010u,
+
+  //! CPU provides low-latency 64-bit multiplication (AMD CPUs).
+  kVecFastIntMul64 = 0x00000020u,
+
+  //! CPU provides fast hardware gathers, which are faster than a sequence of loads and inserts.
+  kVecFastGather = 0x00000040u,
+
+  //! CPU has fast stores with mask.
+  //!
+  //! \note This is a hint to the compiler to emit a masked store instead of a sequence having branches.
+  kVecMaskedStore = 0x00000080u
+};
+ASMJIT_DEFINE_ENUM_FLAGS(CpuHints)
+
 //! CPU information.
 class CpuInfo {
 public:
@@ -1142,6 +1228,9 @@ public:
   //! CPU features.
   CpuFeatures _features {};
 
+  //! CPU hints.
+  CpuHints _hints {};
+
   //! \}
 
   //! \name Construction & Destruction
@@ -1166,6 +1255,12 @@ public:
   //! \note The returned reference is global - it's setup only once and then shared.
   [[nodiscard]]
   ASMJIT_API static const CpuInfo& host() noexcept;
+
+  //! Updates CPU hints based on the CPU data and features.
+  //!
+  //! \note This function is called automatically by the CPU detection logic. However, if you change the CPU features
+  //! in your own instance of \ref CpuInfo, CPU hints must be updated too, otherwise they would be out of sync.
+  ASMJIT_API static CpuHints recalculate_hints(const CpuInfo& info, const CpuFeatures& features) noexcept;
 
   //! \}
 
@@ -1297,6 +1392,16 @@ public:
   //! Removes the given CPU `feature_id` from the list of features.
   template<typename... Args>
   ASMJIT_INLINE_NODEBUG void remove_feature(Args&&... args) noexcept { return _features.remove(std::forward<Args>(args)...); }
+
+  //! Returns CPU hints.
+  [[nodiscard]]
+  ASMJIT_INLINE_NODEBUG CpuHints hints() const noexcept { return _hints; }
+
+  //! Updates CPU hints based on the CPU data and features.
+  //!
+  //! \note This function is called automatically by the CPU detection logic. However, if you change the CPU features
+  //! in your own instance of \ref CpuInfo, CPU hints must be updated too, otherwise they would be out of sync.
+  ASMJIT_INLINE void update_hints() noexcept { _hints = recalculate_hints(*this, _features); }
 
   //! \}
 };

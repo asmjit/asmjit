@@ -668,9 +668,9 @@ public:
   //! \name Sections
   //! \{
 
-  //! Switches the given `section`.
+  //! Switches to the given `section`.
   //!
-  //! Once switched, everything is added to the given `section`.
+  //! Once switched, everything is emitted to `section`.
   ASMJIT_API virtual Error section(Section* section);
 
   //! \}

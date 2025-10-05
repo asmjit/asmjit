@@ -12,7 +12,6 @@
 #include <string.h>
 
 #include "asmjit_test_assembler.h"
-#include "cmdline.h"
 
 using namespace asmjit;
 

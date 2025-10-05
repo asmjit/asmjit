@@ -3,8 +3,8 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#ifndef ASMJIT_TEST_RANDOM_H_INCLUDED
-#define ASMJIT_TEST_RANDOM_H_INCLUDED
+#ifndef TESTING_COMMONS_RANDOM_H_INCLUDED
+#define TESTING_COMMONS_RANDOM_H_INCLUDED
 
 #include <stdint.h>
 #include <string.h>
@@ -74,4 +74,4 @@ public:
 } // {anonymous}
 } // {TestUtils}
 
-#endif // ASMJIT_TEST_RANDOM_H_INCLUDED
+#endif // TESTING_COMMONS_RANDOM_H_INCLUDED

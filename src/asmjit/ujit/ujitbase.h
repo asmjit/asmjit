@@ -14,23 +14,35 @@
 
 #if !defined(ASMJIT_NO_UJIT)
 
+//! \namespace asmjit::ujit
+//! \ingroup asmjit_ujit
+//!
+//! Namespace that provides all UJIT (Universal JIT) functionality.
+
 ASMJIT_BEGIN_SUB_NAMESPACE(ujit)
 
 //! \addtogroup asmjit_ujit
 //! \{
 
+//! Backend compiler is simply an alias to a `host::Compiler`, which would be used by \ref UniCompiler.
 using BackendCompiler = host::Compiler;
+//! Condition code is simply an alias to a `host::CondCode`.
 using CondCode = host::CondCode;
+//! Target memory operand.
 using Mem = host::Mem;
+//! Target general-purpose register.
 using Gp = host::Gp;
+//! Target vector register.
 using Vec = host::Vec;
 
 #if defined(ASMJIT_UJIT_X86)
+static ASMJIT_INLINE_NODEBUG Mem mem_ptr(const Label& label, int32_t disp = 0) noexcept { return x86::ptr(label, disp); }
 static ASMJIT_INLINE_NODEBUG Mem mem_ptr(const Gp& base, int32_t disp = 0) noexcept { return x86::ptr(base, disp); }
 static ASMJIT_INLINE_NODEBUG Mem mem_ptr(const Gp& base, const Gp& index, uint32_t shift = 0, int32_t disp = 0) noexcept { return x86::ptr(base, index, shift, disp); }
 #endif
 
 #if defined(ASMJIT_UJIT_AARCH64)
+static ASMJIT_INLINE_NODEBUG Mem mem_ptr(const Label& label, int32_t disp = 0) noexcept { return a64::ptr(label, disp); }
 static ASMJIT_INLINE_NODEBUG Mem mem_ptr(const Gp& base, int32_t disp = 0) noexcept { return a64::ptr(base, disp); }
 static ASMJIT_INLINE_NODEBUG Mem mem_ptr(const Gp& base, const Gp& index, uint32_t shift = 0) noexcept { return a64::ptr(base, index, a64::lsl(shift)); }
 #endif
@@ -38,6 +50,7 @@ static ASMJIT_INLINE_NODEBUG Mem mem_ptr(const Gp& base, const Gp& index, uint32
 // Types & Enums
 // -------------
 
+//! Data alignment.
 enum class Alignment : uint32_t {};
 
 //! The behavior of a floating point scalar operation.
@@ -46,6 +59,16 @@ enum class ScalarOpBehavior : uint8_t {
   kZeroing,
   //! The rest of the elements are unchanged, elements above 128-bits are zeroed.
   kPreservingVec128
+};
+
+//! The behavior of floating point to int conversion.
+enum class FloatToIntOutsideRangeBehavior : uint8_t {
+  //! In case that the floating point is outside of the integer range, the value is the smallest integer value,
+  //! which would be `0x80`, `0x8000`, `0x80000000`, or `0x8000000000000000` depending on the target integer width.
+  kSmallestValue,
+  //! In case that the floating point is outside of the integer range, the resulting integer will be saturated. If
+  //! the floating point is NaN, the resulting integer value would be zero.
+  kSaturatedValue
 };
 
 //! The behavior of a floating point min/max instructions when comparing against NaN.
@@ -68,16 +91,21 @@ enum class FMAddOpBehavior : uint8_t {
 
 //! SIMD data width.
 enum class DataWidth : uint8_t {
+  //! 8-bit elements.
   k8 = 0,
+  //! 16-bit elements.
   k16 = 1,
+  //! 32-bit elements.
   k32 = 2,
+  //! 64-bit elements or 64-bit wide data is used.
   k64 = 3,
+  //! 128-bit elements or 128-bit wide data is used.
   k128 = 4
 };
 
 //! Vector register width.
 enum class VecWidth : uint8_t {
-  //! 128-bit vector register (baseline, SSE/AVX, NEON, ASIMD, etc...).
+  //! 128-bit vector register (baseline, SSE/AVX, NEON, etc...).
   k128 = 0,
   //! 256-bit vector register (AVX2+).
   k256 = 1,
@@ -89,9 +117,13 @@ enum class VecWidth : uint8_t {
 
 //! Broadcast width.
 enum class Bcst : uint8_t {
+  //! Broadcast 8-bit elements.
   k8 = 0,
+  //! Broadcast 16-bit elements.
   k16 = 1,
+  //! Broadcast 32-bit elements.
   k32 = 2,
+  //! Broadcast 64-bit elements.
   k64 = 3,
 
   kNA = 0xFE,
@@ -104,7 +136,7 @@ static ASMJIT_INLINE OperandSignature signature_of(VecWidth vw) noexcept {
   RegType reg_type = RegType(uint32_t(RegType::kVec128) + uint32_t(vw));
   uint32_t reg_size = 16u << uint32_t(vw);
 
-  return OperandSignature::from_reg_type_and_group(reg_type, RegGroup::kVec) | OperandSignature::from_size(reg_size);
+  return OperandSignature::from_op_type(OperandType::kReg) | OperandSignature::from_reg_type_and_group(reg_type, RegGroup::kVec) | OperandSignature::from_size(reg_size);
 }
 
 static ASMJIT_INLINE TypeId type_id_of(VecWidth vw) noexcept {
@@ -143,7 +175,7 @@ static ASMJIT_INLINE Vec clone_vec_as(const Vec& src, VecWidth vw) noexcept {
 // AsmJit Helpers
 // ==============
 
-//! Operand array used by SIMD pipeline.
+//! Operand array, mostly used for code generation that uses SIMD.
 //!
 //! Can hold up to `kMaxSize` registers, however, the number of actual registers is dynamic and depends
 //! on initialization.
@@ -151,12 +183,15 @@ class OpArray {
 public:
   using Op = Operand_;
 
+  //! Maximum number of active operands `OpArray` can hold.
   static inline constexpr size_t kMaxSize = 8;
 
   //! \name Members
   //! \{
 
+  //! Number of operands in OpArray
   size_t _size;
+  //! Underlying operand array.
   Operand_ v[kMaxSize];
 
   //! \}
@@ -405,6 +440,16 @@ public:
   ASMJIT_INLINE_NODEBUG OpArray even_odd(size_t from) const noexcept { return OpArray(*this, _size > 1u ? from : size_t(0), 2u, _size); }
 };
 
+//! Vector operand array.
+//!
+//! Used to model SIMD code generation where the code generator can use up to \ref OpArray::kMaxSize registers per
+//! `VecArray`. The advantage of `VecArray` is that it allows to parametrize the ideal number of registers at runtime
+//! and to use a single code-path to generate advanced SIMD code.
+//!
+//! In addition, \ref UniCompiler fully understands `VecArray` so it can be passed instead of a regular operand when
+//! emitting code, which greatly simplifies designing high-performance SIMD code.
+//!
+//! \note VecArray is like \ref OpArray, just the whole API works with \ref Vec instead of \ref Operand_.
 class VecArray : public OpArray {
 public:
   //! \name Construction & Destruction
@@ -587,7 +632,7 @@ static ASMJIT_INLINE void reset_var_array(T* array, size_t size) noexcept {
 
 template<typename T>
 static ASMJIT_INLINE void reset_var_struct(T* data, size_t size = sizeof(T)) noexcept {
-  reset_var_array(reinterpret_cast<asmjit::Reg*>(data), size / sizeof(asmjit::Reg));
+  reset_var_array(reinterpret_cast<Reg*>(data), size / sizeof(Reg));
 }
 
 static ASMJIT_INLINE_NODEBUG const Operand_& first_op(const Operand_& operand) noexcept { return operand; }
@@ -615,10 +660,12 @@ struct Swizzle4 {
   ASMJIT_INLINE_CONSTEXPR bool operator!=(const Swizzle4& other) const noexcept { return value != other.value; }
 };
 
+//! Constructs a backend-independent 2-element vector swizzle parameter.
 static ASMJIT_INLINE_CONSTEXPR Swizzle2 swizzle(uint8_t b, uint8_t a) noexcept {
   return Swizzle2{(uint32_t(b) << 8) | a};
 }
 
+//! Constructs a backend-independent 4-element vector swizzle parameter.
 static ASMJIT_INLINE_CONSTEXPR Swizzle4 swizzle(uint8_t d, uint8_t c, uint8_t b, uint8_t a) noexcept {
   return Swizzle4{(uint32_t(d) << 24) | (uint32_t(c) << 16) | (uint32_t(b) << 8) | a};
 }
@@ -631,6 +678,9 @@ enum class Perm2x128 : uint32_t {
   kZero = 8
 };
 
+//! Constructs a backend-independent permutation of 128-bit lanes.
+//!
+//! \note This is currently only used by AVX2 and AVX-512 backends.
 static ASMJIT_INLINE_CONSTEXPR uint8_t perm_2x128_imm(Perm2x128 hi, Perm2x128 lo) noexcept {
   return uint8_t((uint32_t(hi) << 4) | (uint32_t(lo)));
 }

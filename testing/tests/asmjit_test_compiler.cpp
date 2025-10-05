@@ -15,10 +15,10 @@
 
 #if !defined(ASMJIT_NO_COMPILER)
 
-#include "cmdline.h"
-#include "performancetimer.h"
+#include "../commons/asmjitutils.h"
+#include "../commons/cmdline.h"
+#include "../commons/performancetimer.h"
 
-#include "asmjitutils.h"
 #include "asmjit_test_compiler.h"
 
 #if !defined(ASMJIT_NO_X86)

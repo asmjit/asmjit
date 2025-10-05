@@ -152,26 +152,86 @@ public:
 
   //! Creates a new virtual register representing the given `type_id` and `signature`.
   //!
-  //! \note This function is public, but it's not generally recommended to be used by AsmJit users, use architecture
-  //! specific `new_reg()` functionality instead or functions like \ref _new_reg() and \ref _new_reg_fmt().
+  //! \note This function is public, but it's not generally recommended to be used by AsmJit users, use `new_reg()`,
+  //! `new_similar_reg()`, and architecture specific functions like \ref x86::Compiler::new_gp32(), etc...
   ASMJIT_API Error new_virt_reg(Out<VirtReg*> out, TypeId type_id, OperandSignature signature, const char* name);
 
+  //! \cond INTERNAL
+
   //! Creates a new virtual register of the given `type_id` and stores it to `out` operand.
-  ASMJIT_API Error _new_reg(Out<Reg> out, TypeId type_id, const char* name = nullptr);
+  ASMJIT_API Error _new_reg_with_name(Out<Reg> out, TypeId type_id, const char* name);
+
   //! Creates a new virtual register compatible with the provided reference register `ref`.
-  ASMJIT_API Error _new_reg(Out<Reg> out, const Reg& ref, const char* name = nullptr);
+  ASMJIT_API Error _new_reg_with_name(Out<Reg> out, const Reg& ref, const char* name);
 
   //! Creates a new virtual register of the given `type_id` and stores it to `out` operand.
   //!
   //! \note This version accepts a snprintf() format `fmt` followed by variadic arguments.
-  ASMJIT_API Error _new_reg_fmt(Out<Reg> out, TypeId type_id, const char* fmt, ...);
-  //! \overload
-  ASMJIT_INLINE Error _new_reg_fmt(Out<Reg> out, TypeId type_id) { return _new_reg(out, type_id); }
+  ASMJIT_API Error _new_reg_with_vfmt(Out<Reg> out, TypeId type_id, const char* fmt, ...);
 
   //! Creates a new virtual register compatible with the provided reference register `ref`.
   //!
   //! \note This version accepts a snprintf() format `fmt` followed by variadic arguments.
-  ASMJIT_API Error _new_reg_fmt(Out<Reg> out, const Reg& ref, const char* fmt, ...);
+  ASMJIT_API Error _new_reg_with_vfmt(Out<Reg> out, const Reg& ref, const char* fmt, ...);
+
+  template<typename RegT>
+  ASMJIT_INLINE Error _new_reg(Out<RegT> out, TypeId type_id) {
+    return _new_reg_with_name(Out<Reg>(out.value()), type_id, nullptr);
+  }
+
+  template<typename RegT, typename... Args>
+  ASMJIT_INLINE Error _new_reg(Out<RegT> out, TypeId type_id, const char* name_or_fmt, Args&&... args) {
+#ifndef ASMJIT_NO_LOGGING
+    if constexpr (sizeof...(args) == 0u) {
+      return _new_reg_with_name(Out<Reg>(out.value()), type_id, name_or_fmt);
+    }
+    else {
+      return _new_reg_with_vfmt(Out<Reg>(out.value()), type_id, name_or_fmt, std::forward<Args>(args)...);
+    }
+#else
+    Support::maybe_unused(name_or_fmt, std::forward<Args>(args)...);
+    return _new_reg_with_name(Out<Reg>(out.value()), type_id, nullptr);
+#endif
+  }
+
+  template<typename RegT>
+  ASMJIT_INLINE Error _new_reg(Out<RegT> out, const Reg& ref) {
+    return _new_reg_with_name(Out<Reg>(out.value()), ref, nullptr);
+  }
+
+  template<typename RegT, typename... Args>
+  ASMJIT_INLINE Error _new_reg(Out<RegT> out, const Reg& ref, const char* name_or_fmt, Args&&... args) {
+#ifndef ASMJIT_NO_LOGGING
+    if constexpr (sizeof...(args) == 0u) {
+      return _new_reg_with_name(Out<Reg>(out.value()), ref, name_or_fmt);
+    }
+    else {
+      return _new_reg_with_vfmt(Out<Reg>(out.value()), ref, name_or_fmt, std::forward<Args>(args)...);
+    }
+#else
+    Support::maybe_unused(name_or_fmt, std::forward<Args>(args)...);
+    return _new_reg_with_name(Out<Reg>(out.value()), ref, nullptr);
+#endif
+  }
+
+  //! \endcond
+
+  template<typename RegT, typename... Args>
+  ASMJIT_INLINE_NODEBUG RegT new_reg(TypeId type_id, Args&&... args) {
+    RegT reg(Globals::NoInit);
+    (void)_new_reg<RegT>(Out(reg), type_id, std::forward<Args>(args)...);
+    return reg;
+  }
+
+  //! Creates and returns a new register, which is similar to `ref` in terms of size and type.
+  //!
+  //! \note Optionally you can provide a name and format parameters via `args`.
+  template<typename RegT, typename... Args>
+  ASMJIT_INLINE_NODEBUG RegT new_similar_reg(const RegT& ref, Args&&... args) {
+    RegT reg(Globals::NoInit);
+    (void)_new_reg<RegT>(Out(reg), ref, std::forward<Args>(args)...);
+    return reg;
+  }
 
   //! Tests whether the given `virt_id` is a valid virtual register id.
   [[nodiscard]]

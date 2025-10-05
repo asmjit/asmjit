@@ -18,10 +18,10 @@ jobs:
 
     steps:
     - name: "Checkout"
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: "Setup node.js"
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v5
       with:
         node-version: "*"
 
@@ -104,22 +104,25 @@ jobs:
           - { title: "linux"                 , host: "ubuntu-24.04"    , arch: "x64"    , cc: "clang-19", conf: "Release", defs: "ASMJIT_TEST=1" }
           - { title: "linux"                 , host: "ubuntu-24.04-arm", arch: "arm64"  , cc: "clang-19", conf: "Debug"  , defs: "ASMJIT_TEST=1" }
           - { title: "linux"                 , host: "ubuntu-24.04-arm", arch: "arm64"  , cc: "clang-19", conf: "Release", defs: "ASMJIT_TEST=1" }
-          - { title: "macos"                 , host: "macos-13"        , arch: "x64"    , cc: "gcc-14"  , conf: "Debug"  , defs: "ASMJIT_TEST=1" }
-          - { title: "macos"                 , host: "macos-13"        , arch: "x64"    , cc: "gcc-14"  , conf: "Release", defs: "ASMJIT_TEST=1" }
-          - { title: "macos"                 , host: "macos-13"        , arch: "x64"    , cc: "clang"   , conf: "Debug"  , defs: "ASMJIT_TEST=1" }
-          - { title: "macos"                 , host: "macos-13"        , arch: "x64"    , cc: "clang"   , conf: "Release", defs: "ASMJIT_TEST=1" }
-          - { title: "macos"                 , host: "macos-14"        , arch: "arm64"  , cc: "clang"   , conf: "Debug"  , defs: "ASMJIT_TEST=1" }
-          - { title: "macos"                 , host: "macos-14"        , arch: "arm64"  , cc: "clang"   , conf: "Release", defs: "ASMJIT_TEST=1" }
+          - { title: "linux"                 , host: "ubuntu-24.04"    , arch: "x86"    , cc: "clang-20", conf: "Debug"  , defs: "ASMJIT_TEST=1" }
+          - { title: "linux"                 , host: "ubuntu-24.04"    , arch: "x86"    , cc: "clang-20", conf: "Release", defs: "ASMJIT_TEST=1" }
+          - { title: "linux"                 , host: "ubuntu-24.04"    , arch: "x64"    , cc: "clang-20", conf: "Debug"  , defs: "ASMJIT_TEST=1" }
+          - { title: "linux"                 , host: "ubuntu-24.04"    , arch: "x64"    , cc: "clang-20", conf: "Release", defs: "ASMJIT_TEST=1" }
+          - { title: "linux"                 , host: "ubuntu-24.04-arm", arch: "arm64"  , cc: "clang-20", conf: "Debug"  , defs: "ASMJIT_TEST=1" }
+          - { title: "linux"                 , host: "ubuntu-24.04-arm", arch: "arm64"  , cc: "clang-20", conf: "Release", defs: "ASMJIT_TEST=1" }
+          - { title: "macos"                 , host: "macos-15-intel"  , arch: "x64"    , cc: "gcc-14"  , conf: "Debug"  , defs: "ASMJIT_TEST=1" }
+          - { title: "macos"                 , host: "macos-15-intel"  , arch: "x64"    , cc: "gcc-14"  , conf: "Release", defs: "ASMJIT_TEST=1" }
+          - { title: "macos"                 , host: "macos-15-intel"  , arch: "x64"    , cc: "clang"   , conf: "Debug"  , defs: "ASMJIT_TEST=1" }
+          - { title: "macos"                 , host: "macos-15-intel"  , arch: "x64"    , cc: "clang"   , conf: "Release", defs: "ASMJIT_TEST=1" }
+          - { title: "macos"                 , host: "macos-15"        , arch: "arm64"  , cc: "clang"   , conf: "Debug"  , defs: "ASMJIT_TEST=1" }
+          - { title: "macos"                 , host: "macos-15"        , arch: "arm64"  , cc: "clang"   , conf: "Release", defs: "ASMJIT_TEST=1" }
           - { title: "windows"               , host: "windows-2022"    , arch: "x86"    , cc: "vs2022"  , conf: "Debug"  , defs: "ASMJIT_TEST=1" }
           - { title: "windows"               , host: "windows-2022"    , arch: "x86"    , cc: "vs2022"  , conf: "Release", defs: "ASMJIT_TEST=1" }
           - { title: "windows"               , host: "windows-2022"    , arch: "x64"    , cc: "vs2022"  , conf: "Debug"  , defs: "ASMJIT_TEST=1" }
           - { title: "windows"               , host: "windows-2022"    , arch: "x64"    , cc: "vs2022"  , conf: "Release", defs: "ASMJIT_TEST=1" }
           - { title: "windows"               , host: "windows-11-arm"  , arch: "arm64"  , cc: "vs2022"  , conf: "Debug"  , defs: "ASMJIT_TEST=1" }
           - { title: "windows"               , host: "windows-11-arm"  , arch: "arm64"  , cc: "vs2022"  , conf: "Release", defs: "ASMJIT_TEST=1" }
-
-          # Cross compiled, cannot run tests (Windows/UWP).
           - { title: "windows/uwp"           , host: "windows-2022"    , arch: "x64"    , cc: "vs2022"  , conf: "Release", defs: "ASMJIT_TEST=0,CMAKE_SYSTEM_NAME=WindowsStore,CMAKE_SYSTEM_VERSION=10.0,CMAKE_CXX_FLAGS=-D_WIN32_WINNT=0x0A00" }
-
           - { title: "freebsd"               , host: "ubuntu-latest"   , arch: "x64"    , cc: "clang"   , conf: "Release", vm: "freebsd", vm_ver: "14.2", defs: "ASMJIT_TEST=1" }
           - { title: "freebsd"               , host: "ubuntu-latest"   , arch: "arm64"  , cc: "clang"   , conf: "Release", vm: "freebsd", vm_ver: "14.2", defs: "ASMJIT_TEST=1" }
           - { title: "netbsd"                , host: "ubuntu-latest"   , arch: "x64"    , cc: "clang"   , conf: "Release", vm: "netbsd" , vm_ver: "10.1", defs: "ASMJIT_TEST=1" }
@@ -135,18 +138,18 @@ jobs:
 
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: "source"
 
       - name: "Checkout Build Actions"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: build-actions/build-actions
           path: "build-actions"
 
       - name: "Python"
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.x"
 

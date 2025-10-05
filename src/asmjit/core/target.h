@@ -25,6 +25,8 @@ public:
   Environment _environment;
   //! Target CPU features.
   CpuFeatures _cpu_features;
+  //! Target CPU hints.
+  CpuHints _cpu_hints;
 
   //! \name Construction & Destruction
   //! \{
@@ -54,6 +56,10 @@ public:
   [[nodiscard]]
   //! Returns target CPU features.
   ASMJIT_INLINE_NODEBUG const CpuFeatures& cpu_features() const noexcept { return _cpu_features; }
+
+  [[nodiscard]]
+  //! Returns target CPU hints.
+  ASMJIT_INLINE_NODEBUG CpuHints cpu_hints() const noexcept { return _cpu_hints; }
 
   //! \}
 };

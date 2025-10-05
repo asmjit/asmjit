@@ -593,6 +593,98 @@ static ASMJIT_FAVOR_SIZE void detect_x86_cpu(CpuInfo& cpu) noexcept {
   simplify_cpu_brand(cpu._brand.str);
 }
 
+static ASMJIT_FAVOR_SIZE CpuHints recalculate_hints(const CpuInfo& cpu_info, const CpuFeatures::X86& features) noexcept {
+  CpuHints hints {};
+
+  // Vendor Independent CPU Hints
+  // ----------------------------
+
+  if (features.has_avx2()) {
+    hints |= CpuHints::kVecMaskedOps32 | CpuHints::kVecMaskedOps64;
+  }
+
+  if (features.has_avx512_bw()) {
+    hints |= CpuHints::kVecMaskedOps8 | CpuHints::kVecMaskedOps16 | CpuHints::kVecMaskedOps32 | CpuHints::kVecMaskedOps64;
+  }
+
+  // Select optimization flags based on CPU vendor and micro-architecture.
+
+  // AMD Specific CPU Hints
+  // ----------------------
+
+  if (cpu_info.is_vendor("AMD")) {
+    // Zen 3+ has fast gathers, scalar loads and shuffles are faster on Zen 2 and older CPUs.
+    if (cpu_info.family_id() >= 0x19u) {
+      hints |= CpuHints::kVecFastGather;
+    }
+
+    // Zen 1+ provides low-latency VPMULLD instruction.
+    if (features.has_avx2()) {
+      hints |= CpuHints::kVecFastIntMul32;
+    }
+
+    // Zen 4+ provides low-latency VPMULLQ instruction.
+    if (features.has_avx512_dq()) {
+      hints |= CpuHints::kVecFastIntMul64;
+    }
+
+    // Zen 4+ has fast mask operations (starts with AVX-512).
+    if (features.has_avx512_f()) {
+      hints |= CpuHints::kVecMaskedStore;
+    }
+  }
+
+  // Intel Specific CPU Hints
+  // ------------------------
+
+  if (cpu_info.is_vendor("INTEL")) {
+    if (features.has_avx2()) {
+      uint32_t family_id = cpu_info.family_id();
+      uint32_t model_id = cpu_info.model_id();
+
+      // NOTE: We only want to hint fast gathers in cases the CPU is immune to DOWNFALL. The reason is that the
+      // DOWNFALL mitigation delivered via a micro-code update makes gathers almost useless in a way that scalar
+      // loads can beat it significantly (in Blend2D case scalar loads can offer up to 50% more performance).
+      // This table basically picks CPUs that are known to not be affected by DOWNFALL.
+      if (family_id == 0x06u) {
+        switch (model_id) {
+          case 0x8Fu: // Sapphire Rapids.
+          case 0x96u: // Elkhart Lake.
+          case 0x97u: // Alder Lake / Catlow.
+          case 0x9Au: // Alder Lake / Arizona Beach.
+          case 0x9Cu: // Jasper Lake.
+          case 0xAAu: // Meteor Lake.
+          case 0xACu: // Meteor Lake.
+          case 0xADu: // Granite Rapids.
+          case 0xAEu: // Granite Rapids.
+          case 0xAFu: // Sierra Forest.
+          case 0xBAu: // Raptor Lake.
+          case 0xB5u: // Arrow Lake.
+          case 0xB6u: // Grand Ridge.
+          case 0xB7u: // Raptor Lake / Catlow.
+          case 0xBDu: // Lunar Lake.
+          case 0xBEu: // Alder Lake (N).
+          case 0xBFu: // Raptor Lake.
+          case 0xC5u: // Arrow Lake.
+          case 0xC6u: // Arrow Lake.
+          case 0xCFu: // Emerald Rapids.
+          case 0xDDu: // Clearwater Forest.
+            hints |= CpuHints::kVecFastGather;
+            break;
+
+          default:
+            break;
+        }
+      }
+    }
+
+    // TODO: It seems masked stores are very expensive on consumer INTEL CPUs.
+    // hints |= CpuHints::kVecMaskedStore;
+  }
+
+  return hints;
+}
+
 } // {x86}
 
 #endif // ASMJIT_ARCH_X86
@@ -2237,6 +2329,15 @@ static ASMJIT_FAVOR_SIZE void detect_arm_cpu(CpuInfo& cpu) noexcept {
 }
 #endif
 
+static ASMJIT_FAVOR_SIZE CpuHints recalculate_hints(const CpuInfo& cpu_info, const CpuFeatures::ARM& features) noexcept {
+  Support::maybe_unused(cpu_info, features);
+
+  // Assume ARM CPUs have fast 32-bit SIMD integer multiplication.
+  CpuHints hints = CpuHints::kVecFastIntMul32;
+
+  return hints;
+}
+
 } // {arm}
 
 #endif
@@ -2261,13 +2362,25 @@ const CpuInfo& CpuInfo::host() noexcept {
 #elif ASMJIT_ARCH_ARM
     arm::detect_arm_cpu(cpu_info_local);
 #endif
-
     cpu_info_local._hw_thread_count = detect_hw_thread_count();
+    cpu_info_local.update_hints();
+
     cpu_info_global = cpu_info_local;
     cpu_info_initialized_flag.store(1, std::memory_order_seq_cst);
   }
 
   return cpu_info_global;
+}
+
+CpuHints CpuInfo::recalculate_hints(const CpuInfo& info, const CpuFeatures& features) noexcept {
+#if ASMJIT_ARCH_X86
+  return x86::recalculate_hints(info, features.x86());
+#elif ASMJIT_ARCH_ARM
+  return arm::recalculate_hints(info, features.arm());
+#else
+  Support::maybe_unused(info, features);
+  return CpuHints::kNone;
+#endif
 }
 
 ASMJIT_END_NAMESPACE

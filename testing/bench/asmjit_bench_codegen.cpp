@@ -8,8 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "asmjitutils.h"
-#include "cmdline.h"
+#include "../commons/asmjitutils.h"
+#include "../commons/cmdline.h"
 
 using namespace asmjit;
 

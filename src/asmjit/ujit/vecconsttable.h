@@ -6,7 +6,7 @@
 #ifndef ASMJIT_UJIT_VECCONSTTABLE_H_INCLUDED
 #define ASMJIT_UJIT_VECCONSTTABLE_H_INCLUDED
 
-#include "ujitbase.h"
+#include "../core/globals.h"
 
 #if !defined(ASMJIT_NO_UJIT)
 
@@ -17,6 +17,8 @@ ASMJIT_BEGIN_SUB_NAMESPACE(ujit)
 
 template<typename T, size_t W>
 struct VecConst;
+
+//! \cond
 
 //! A 64-bit vector constant of type `T` aligned to 64 bits.
 template<typename T>
@@ -30,6 +32,12 @@ struct ASMJIT_MAY_ALIAS ASMJIT_ALIGNAS(8) VecConst<T, 8> {
   static_assert(kElementCount > 0u, "Vector constant must have at least one element");
 
   ElementType data[kElementCount];
+
+  template<typename DstT>
+  ASMJIT_INLINE_NODEBUG const DstT& as() const noexcept {
+    static_assert(sizeof(DstT) <= sizeof(*this), "Size of the destination type DstT must be <= 8");
+    return *static_cast<const DstT*>(static_cast<const void*>(this));
+  }
 };
 
 //! A 128-bit vector constant of type `T` aligned to 128 bits.
@@ -44,6 +52,12 @@ struct ASMJIT_MAY_ALIAS ASMJIT_ALIGNAS(16) VecConst<T, 16> {
   static_assert(kElementCount > 0u, "Vector constant must have at least one element");
 
   ElementType data[kElementCount];
+
+  template<typename DstT>
+  ASMJIT_INLINE_NODEBUG const DstT& as() const noexcept {
+    static_assert(sizeof(DstT) <= sizeof(*this), "Size of the destination type DstT must be <= 16");
+    return *static_cast<const DstT*>(static_cast<const void*>(this));
+  }
 };
 
 //! A 256-bit vector constant of type `T` aligned to 256 bits.
@@ -58,6 +72,12 @@ struct ASMJIT_MAY_ALIAS ASMJIT_ALIGNAS(32) VecConst<T, 32> {
   static_assert(kElementCount > 0u, "Vector constant must have at least one element");
 
   ElementType data[kElementCount];
+
+  template<typename DstT>
+  ASMJIT_INLINE_NODEBUG const DstT& as() const noexcept {
+    static_assert(sizeof(DstT) <= sizeof(*this), "Size of the destination type DstT must be <= 32");
+    return *static_cast<const DstT*>(static_cast<const void*>(this));
+  }
 };
 
 //! A 512-bit vector constant of type `T` aligned to 512 bits.
@@ -72,7 +92,15 @@ struct ASMJIT_MAY_ALIAS ASMJIT_ALIGNAS(64) VecConst<T, 64> {
   static_assert(kElementCount > 0u, "Vector constant must have at least one element");
 
   ElementType data[kElementCount];
+
+  template<typename DstT>
+  ASMJIT_INLINE_NODEBUG const DstT& as() const noexcept {
+    static_assert(sizeof(DstT) <= sizeof(*this), "Size of the destination type DstT must be <= 64");
+    return *static_cast<const DstT*>(static_cast<const void*>(this));
+  }
 };
+
+//! \endcond
 
 template<typename T> using VecConst64 = VecConst<T, 8>;
 template<typename T> using VecConst128 = VecConst<T, 16>;
@@ -397,17 +425,26 @@ struct VecConstTable {
 
   VecConstNative<uint64_t> p_0000800000008000 = make_const<VecConstNative<uint64_t>>(uint64_t(0x0000800000008000u));
 
-  VecConst128<uint32_t> sign32_scalar  = make_const<VecConst128<uint32_t>>(0u, 0u, 0u, uint32_t(0x80000000u));
-  VecConst128<uint64_t> sign64_scalar  = make_const<VecConst128<uint64_t>>(uint64_t(0u), uint64_t(0x8000000000000000u));
+  VecConst128<uint32_t> sign32_scalar         = make_const<VecConst128<uint32_t>>(0u, 0u, 0u, uint32_t(0x80000000u));
+  VecConst128<uint64_t> sign64_scalar         = make_const<VecConst128<uint64_t>>(uint64_t(0u), uint64_t(0x8000000000000000u));
 
-  VecConstNative<float> f32_1          = make_const<VecConstNative<float>>(1.0f);
-  VecConstNative<float> f32_round_max  = make_const<VecConstNative<float>>(8388608.0f);
+  VecConstNative<uint64_t> f32_0_5_minus_1ulp  = make_const<VecConstNative<uint64_t>>(0x3EFFFFFF3EFFFFFFu); // 0.49999997 (0.5f - 1ulp)
+  VecConstNative<float> f32_0_5               = make_const<VecConstNative<float>>(0.5f);
+  VecConstNative<float> f32_1                 = make_const<VecConstNative<float>>(1.0f);
+  VecConstNative<float> f32_round_magic       = make_const<VecConstNative<float>>(8388608.0f);
 
-  VecConstNative<double> f64_1         = make_const<VecConstNative<double>>(1.0);
-  VecConstNative<double> f64_round_max = make_const<VecConstNative<double>>(4503599627370496.0);
+  VecConstNative<uint64_t> f64_0_5_minus_1ulp  = make_const<VecConstNative<uint64_t>>(0x3FDFFFFFFFFFFFFFu); // 0.49999999999999994 (0.5 - 1ulp).
+  VecConstNative<double> f64_0_5              = make_const<VecConstNative<double>>(0.5);
+  VecConstNative<double> f64_1                = make_const<VecConstNative<double>>(1.0);
+  VecConstNative<double> f64_round_magic      = make_const<VecConstNative<double>>(4503599627370496.0);
 };
 
 ASMJIT_VARAPI const VecConstTable vec_const_table;
+
+struct VecConstTableRef {
+  const VecConstTable& table;
+  size_t size;
+};
 
 //! \}
 

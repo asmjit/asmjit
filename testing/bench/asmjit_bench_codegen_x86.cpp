@@ -13,7 +13,7 @@
 #include <string.h>
 
 #include "asmjit_bench_codegen.h"
-#include "asmjit_test_misc.h"
+#include "../tests/asmjit_test_misc.h"
 
 using namespace asmjit;
 

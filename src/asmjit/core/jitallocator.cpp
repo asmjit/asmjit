@@ -17,7 +17,7 @@
 #include "../core/virtmem.h"
 
 #if defined(ASMJIT_TEST)
-#include "../../../test/asmjit_test_random.h"
+#include "../../../testing/commons/random.h"
 #endif // ASMJIT_TEST
 
 ASMJIT_BEGIN_NAMESPACE

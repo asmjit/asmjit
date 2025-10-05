@@ -259,7 +259,7 @@ Error BaseCompiler::new_virt_reg(Out<VirtReg*> out, TypeId type_id, OperandSigna
   return Error::kOk;
 }
 
-Error BaseCompiler::_new_reg(Out<Reg> out, TypeId type_id, const char* name) {
+Error BaseCompiler::_new_reg_with_name(Out<Reg> out, TypeId type_id, const char* name) {
   OperandSignature reg_signature;
   out->reset();
 
@@ -276,7 +276,7 @@ Error BaseCompiler::_new_reg(Out<Reg> out, TypeId type_id, const char* name) {
   return Error::kOk;
 }
 
-Error BaseCompiler::_new_reg(Out<Reg> out, const Reg& ref, const char* name) {
+Error BaseCompiler::_new_reg_with_name(Out<Reg> out, const Reg& ref, const char* name) {
   out->reset();
 
   OperandSignature reg_signature;
@@ -351,7 +351,7 @@ Error BaseCompiler::_new_reg(Out<Reg> out, const Reg& ref, const char* name) {
   return Error::kOk;
 }
 
-Error BaseCompiler::_new_reg_fmt(Out<Reg> out, TypeId type_id, const char* fmt, ...) {
+Error BaseCompiler::_new_reg_with_vfmt(Out<Reg> out, TypeId type_id, const char* fmt, ...) {
   va_list ap;
   StringTmp<256> sb;
 
@@ -362,7 +362,7 @@ Error BaseCompiler::_new_reg_fmt(Out<Reg> out, TypeId type_id, const char* fmt, 
   return _new_reg(out, type_id, sb.data());
 }
 
-Error BaseCompiler::_new_reg_fmt(Out<Reg> out, const Reg& ref, const char* fmt, ...) {
+Error BaseCompiler::_new_reg_with_vfmt(Out<Reg> out, const Reg& ref, const char* fmt, ...) {
   va_list ap;
   StringTmp<256> sb;
 

@@ -12,7 +12,7 @@
   ],
 
   "tests": [
-    { "optional": true, "cmd": ["asmjit_test_unit", "--quick"] },
+    { "optional": true, "cmd": ["asmjit_test_runner", "--quick"] },
     { "optional": true, "cmd": ["asmjit_test_environment"] },
     { "optional": true, "cmd": ["asmjit_test_assembler"] },
     { "optional": true, "cmd": ["asmjit_test_assembler", "--validate"] },

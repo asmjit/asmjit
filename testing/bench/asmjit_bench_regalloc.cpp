@@ -20,13 +20,12 @@
 #include <memory>
 #include <vector>
 
-#include "asmjitutils.h"
+#include "../commons/asmjitutils.h"
 
 #if !defined(ASMJIT_NO_COMPILER)
-  #include "cmdline.h"
-  #include "performancetimer.h"
-  #include "asmjit_test_compiler.h"
-  #include "asmjit_test_random.h"
+  #include "../commons/cmdline.h"
+  #include "../commons/performancetimer.h"
+  #include "../commons/random.h"
 #endif
 
 using namespace asmjit;

@@ -7,8 +7,9 @@
 #define ASMJIT_TEST_PERF_H_INCLUDED
 
 #include <asmjit/core.h>
-#include "asmjitutils.h"
-#include "performancetimer.h"
+
+#include "../commons/asmjitutils.h"
+#include "../commons/performancetimer.h"
 
 namespace asmjit_perf_utils {
 
