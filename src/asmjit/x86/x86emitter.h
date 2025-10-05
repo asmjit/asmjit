@@ -450,8 +450,8 @@ public:
   ASMJIT_INST_2x(cmps, Cmps, DS_ZSI, ES_ZDI)                           // ANY [EXPLICIT]
   ASMJIT_INST_3x(cmpxchg, Cmpxchg, Gp, Gp, Gp_ZAX)                     // I486 [EXPLICIT]
   ASMJIT_INST_3x(cmpxchg, Cmpxchg, Mem, Gp, Gp_ZAX)                    // I486 [EXPLICIT]
-  ASMJIT_INST_5x(cmpxchg16b, Cmpxchg16b, Mem, Gp_RDX, Gp_RAX, Gp_RCX, Gp_RBX); // CMPXCHG16B [EXPLICIT] m == EDX:EAX ? m <- ECX:EBX
-  ASMJIT_INST_5x(cmpxchg8b, Cmpxchg8b, Mem, Gp_EDX, Gp_EAX, Gp_ECX, Gp_EBX);   // CMPXCHG8B  [EXPLICIT] m == RDX:RAX ? m <- RCX:RBX
+  ASMJIT_INST_5x(cmpxchg16b, Cmpxchg16b, Mem, Gp_RDX, Gp_RAX, Gp_RCX, Gp_RBX) // CMPXCHG16B [EXPLICIT] m == EDX:EAX ? m <- ECX:EBX
+  ASMJIT_INST_5x(cmpxchg8b, Cmpxchg8b, Mem, Gp_EDX, Gp_EAX, Gp_ECX, Gp_EBX)   // CMPXCHG8B  [EXPLICIT] m == RDX:RAX ? m <- RCX:RBX
   ASMJIT_INST_1x(dec, Dec, Gp)                                         // ANY
   ASMJIT_INST_1x(dec, Dec, Mem)                                        // ANY
   ASMJIT_INST_2x(div, Div, Gp, Gp)                                     // ANY [EXPLICIT]  AH[Rem]: AL[Quot] <- AX / r8
@@ -534,7 +534,7 @@ public:
   ASMJIT_INST_2x(or_, Or, Mem, Imm)                                    // ANY
   ASMJIT_INST_1x(pop, Pop, Gp)                                         // ANY
   ASMJIT_INST_1x(pop, Pop, Mem)                                        // ANY
-  ASMJIT_INST_1x(pop, Pop, SReg);                                      // ANY
+  ASMJIT_INST_1x(pop, Pop, SReg)                                       // ANY
   ASMJIT_INST_0x(popa, Popa)                                           // X86
   ASMJIT_INST_0x(popad, Popad)                                         // X86
   ASMJIT_INST_0x(popf, Popf)                                           // ANY
