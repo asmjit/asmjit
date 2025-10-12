@@ -126,6 +126,8 @@ public:
 
   ASMJIT_API Error comment(const char* data, size_t size = SIZE_MAX) override;
 
+  ASMJIT_INLINE Error comment(Span<const char> data) { return comment(data.data(), data.size()); }
+
   //! \}
 
   //! \name Events

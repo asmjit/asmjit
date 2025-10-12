@@ -575,14 +575,11 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emit_prolog(const FuncFrame& frame) {
 ASMJIT_FAVOR_SIZE Error EmitHelper::emit_epilog(const FuncFrame& frame) {
   Emitter* emitter = _emitter->as<Emitter>();
 
-  uint32_t i;
-  uint32_t reg_id;
-
   uint32_t register_size = emitter->register_size();
   uint32_t gp_saved = frame.saved_regs(RegGroup::kGp);
 
-  Gp zsp = emitter->zsp();   // ESP|RSP register.
-  Gp zbp = emitter->zbp();   // EBP|RBP register.
+  Gp zsp = emitter->zsp();    // ESP|RSP register.
+  Gp zbp = emitter->zbp();    // EBP|RBP register.
   Gp gp_reg = emitter->zsp(); // General purpose register (temporary).
 
   // Don't emit 'pop zbp' in the pop sequence, this case is handled separately.
@@ -610,12 +607,21 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emit_epilog(const FuncFrame& frame) {
     }
   }
 
-  // Emit 'emms' and/or 'vzeroupper'.
-  if (frame.has_mmx_cleanup()) {
+  bool do_mmx_cleanup = frame.has_mmx_cleanup();
+  bool do_avx_cleanup = frame.has_avx_cleanup();
+
+  // Perform automatic AVX cleanup (VZEROUPPER) if there are dirty vector registers.
+  if (frame.has_avx_auto_cleanup() && frame.dirty_regs(RegGroup::kVec) != 0u) {
+    do_avx_cleanup = true;
+  }
+
+  // Emit 'EMMS' if MMX cleanup is enabled.
+  if (do_mmx_cleanup) {
     ASMJIT_PROPAGATE(emitter->emms());
   }
 
-  if (frame.has_avx_cleanup()) {
+  // Emit 'VZEROUPPER' if AVX cleanup is enabled.
+  if (do_avx_cleanup) {
     ASMJIT_PROPAGATE(emitter->vzeroupper());
   }
 
@@ -643,8 +649,8 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emit_epilog(const FuncFrame& frame) {
 
   // Emit 'pop gp' sequence.
   if (gp_saved) {
-    i = gp_saved;
-    reg_id = 16;
+    uint32_t i = gp_saved;
+    uint32_t reg_id = 16;
 
     do {
       reg_id--;

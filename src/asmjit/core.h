@@ -2118,7 +2118,8 @@ namespace asmjit {
 //! its own IR. Instead, it translates user calls into target-dependent instructions (or instruction sequences)
 //! and allows users to switch to target-specific assembly only where required for extra performance.
 //!
-//! \warning UJIT is still in an experimental phase, expect minor API breaks in the future.
+//! \warning UJIT is still in an experimental phase, expect minor API breaks in the future especially towards API
+//! stabilization.
 //!
 //! API Overview
 //!
@@ -2155,6 +2156,123 @@ namespace asmjit {
 //!  - \ref ujit::UniOpVVV - instruction with `[vec, vec, vec]` operands.
 //!  - \ref ujit::UniOpVVVI - instruction with `[vec, vec, vec, imm]` operands.
 //!  - \ref ujit::UniOpVVVV - instruction with `[vec, vec, vec, vec]` operands.
+//!
+//! ### UniCompiler Example
+//!
+//! Using UniCompiler is like using a regular platform-dependent AsmJit's Compiler - UniCompiler wraps its API
+//! and delegates most of non-emit calls to Compiler, however, it abstracts how instructions are emitted so it
+//! could offer universal API for both general-purpose and SIMD instructions. The following example demonstrates
+//! how to use it:
+//!
+//! ```
+//! #include <asmjit/ujit.h>
+//! #include <stdio.h>
+//!
+//! using namespace asmjit;
+//!
+//! int main() {
+//!   // Signature of the generated function.
+//!   using Func = void (*)(uint32_t* dst, const uint32_t* src1, const uint32_t* src2);
+//!
+//!   JitRuntime rt;                           // Creates a JIT runtime that holds executable code.
+//!   FileLogger logger(stdout);               // Creates a logger that prints to stdout.
+//!   CodeHolder code;                         // Creates a CodeHolder - holds code and other information.
+//!
+//!   code.init(rt.environment(),              // Initializes CodeHolder to match the JIT environment.
+//!             rt.cpu_features());
+//!   code.set_logger(&logger);                // Initializes CodeHolder's logger.
+//!
+//!   ujit::BackendCompiler backend_cc(&code); // Creates a regular backend compiler instance.
+//!   ujit::UniCompiler uc(&backend_cc,        // Creates UniCompiler with attached backend compiler.
+//!                        rt.cpu_features(),  // CPU features must be passed explicitly.
+//!                        rt.cpu_hints());    // CPU hints must be passed explicitly.
+//!
+//!   // Begin a function of the required signature (this exactly matches the Compiler use).
+//!   FuncNode* func = uc.add_func(FuncSignature::build<void, uint32_t*, const uint32_t*, const uint32_t*>());
+//!
+//!   ujit::Gp d_ptr = uc.new_gp_ptr();        // Creates a destination pointer.
+//!   ujit::Gp a_ptr = uc.new_gp_ptr();        // Creates a first source pointer.
+//!   ujit::Gp b_ptr = uc.new_gp_ptr();        // Creates a second source pointer.
+//!
+//!   func->set_arg(0, d_ptr);                 // Assigns 1st argument.
+//!   func->set_arg(1, a_ptr);                 // Assigns 2nd argument.
+//!   func->set_arg(2, b_ptr);                 // Assigns 3rd argument.
+//!
+//!   ujit::Vec v0 = uc.new_vec128();          // Creates a 128-bit vector register.
+//!   ujit::Vec v1 = uc.new_vec128();          // Creates a 128-bit vector register.
+//!
+//!   uc.v_loadu128(v0, ujit::mem_ptr(a_ptr)); // Unaligned load of 128 bits from [a_ptr] into v0.
+//!   uc.v_loadu128(v1, ujit::mem_ptr(b_ptr)); // Unaligned load of 128 bits from [b_ptr] into v1.
+//!   uc.v_add_i32(v0, v0, v1);                // Vector addition of 4 32-bit integers.
+//!   uc.v_storeu128(ujit::mem_ptr(d_ptr), v0);// Unaligned store of 128 bits from v0 to [d_ptr].
+//!
+//!   uc.end_func();                           // End of the function body.
+//!   Error err1 = uc.finalize();              // Translates and assembles the whole 'backend_cc' content.
+//!
+//!   if (err1 != Error::kOk) {
+//!     // Handle a possible error returned by AsmJit as finalize can fail. One reason could be wrong operands
+//!     // to some instruction or other platform constraints. Usually UniCompiler handles most of platform
+//!     // constraints by itself, but this error code must be checked regardless.
+//!     return 1;
+//!   }
+//!   // ----> Both BackendCompiler and UniCompiler are no longer needed from here and can be destroyed <----
+//!
+//!   Func fn;
+//!   Error err2 = rt.add(&fn, &code);         // Add the generated code to JIT runtime (executable memory).
+//!
+//!   if (err2 != Error::kOk) {
+//!     // Handle a possible error returned by AsmJit. This would be either out of executable memory or failure
+//!     // to allocate it (for example excessive user-space hardening or making the allocation of executable
+//!     // memory forbidden).
+//!     return 1;
+//!   }
+//!   // ----> CodeHolder is no longer needed from here and can be destroyed <----
+//!
+//!   // Input data.
+//!   static constexpr uint32_t a_data[4] = {1u,2u,4u,8u};
+//!   static constexpr uint32_t b_data[4] = {6u,4u,3u,1u};
+//!
+//!   // Output data.
+//!   uint32_t d_data[4] {};
+//!
+//!   // Calls the generated function.
+//!   fn(d_data, a_data, b_data);
+//!
+//!   // Prints both inputs and the output.
+//!   printf("a_data={%u,%u,%u,%u}\n", a_data[0], a_data[1], a_data[2], a_data[3]);
+//!   printf("b_data={%u,%u,%u,%u}\n", b_data[0], b_data[1], b_data[2], b_data[3]);
+//!   printf("d_data={%u,%u,%u,%u}\n", d_data[0], d_data[1], d_data[2], d_data[3]);
+//!
+//!   // Explicitly removes the function from JIT runtime.
+//!   rt.release(fn);
+//!
+//!   return 0;
+//! }
+//! ```
+//!
+//! ### Emitting Backend-Specific Code
+//!
+//! In cases, in which backend-specific code is required for performance reasons, it's possible to use the
+//! underlying backend-specific Compiler, which is provided as a `cc` member of `UniCompiler`. The next example
+//! demonstrates how to use AArch64-specific code path during code generation:
+//!
+//! ```
+//! #include <asmjit/ujit.h>
+//!
+//! using namespace asmjit;
+//!
+//! void emit_backend_specific_code(UniCompiler& uc, const ujit::Gp& a, const ujit::Gp& b, const ujit::Gp& c) {
+//! #if defined(ASMJIT_UJIT_AARCH64)
+//!   // Emit aarch64 specific code via `uc.cc`:
+//!   uc.cc->orn(a, b, c);
+//! #else
+//!   // Generic code.
+//!   ujit::Gp tmp = uc.new_similar_reg(a);
+//!   uc.not_(tmp, c);
+//!   uc.or_(a, b, tmp);
+//! #endif
+//! ```
+//!
 
 //! \cond INTERNAL
 //! \defgroup asmjit_ra RA

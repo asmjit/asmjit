@@ -170,7 +170,7 @@ public:
   }
 
   template<typename Fn>
-  Fn finish() noexcept {
+  Fn finish() {
     Fn fn;
     EXPECT_EQ(cc.finalize(), Error::kOk);
     EXPECT_EQ(rt.add(&fn, &code), Error::kOk);
@@ -188,19 +188,18 @@ public:
 // ujit::UniCompiler - Tests - Conditional Operations - Functions
 // ==============================================================
 
-static TestCondRRFunc create_func_cond_rr(JitContext& ctx, UniOpCond op, CondCode cond_code, uint32_t variation) noexcept {
+static TestCondRRFunc create_func_cond_rr(JitContext& ctx, UniOpCond op, CondCode cond_code, uint32_t variation) {
   ctx.prepare();
-  UniCompiler pc(&ctx.cc, ctx.features, ctx.cpu_hints);
 
-  FuncNode* node = ctx.cc.new_func(FuncSignature::build<uint32_t, int32_t, int32_t>());
+  UniCompiler uc(&ctx.cc, ctx.features, ctx.cpu_hints);
+  uc.init_vec_width(VecWidth::k128);
+
+  FuncNode* node = uc.add_func(FuncSignature::build<uint32_t, int32_t, int32_t>());
   EXPECT_NOT_NULL(node);
 
-  pc.init_vec_width(VecWidth::k128);
-  pc.init_function(node);
-
-  Gp a = pc.new_gp32("a");
-  Gp b = pc.new_gp32("b");
-  Gp result = pc.new_gp32("result");
+  Gp a = uc.new_gp32("a");
+  Gp b = uc.new_gp32("b");
+  Gp result = uc.new_gp32("result");
 
   node->set_arg(0, a);
   node->set_arg(1, b);
@@ -208,69 +207,68 @@ static TestCondRRFunc create_func_cond_rr(JitContext& ctx, UniOpCond op, CondCod
   switch (variation) {
     case 0: {
       // Test a conditional branch based on the given condition.
-      Label done = pc.new_label();
-      pc.mov(result, 1);
-      pc.j(done, UniCondition(op, cond_code, a, b));
-      pc.mov(result, 0);
-      pc.bind(done);
+      Label done = uc.new_label();
+      uc.mov(result, 1);
+      uc.j(done, UniCondition(op, cond_code, a, b));
+      uc.mov(result, 0);
+      uc.bind(done);
       break;
     }
 
     case 1: {
       // Test a cmov functionality.
-      Gp true_value = pc.new_gp32("true_value");
-      pc.mov(result, 0);
-      pc.mov(true_value, 1);
-      pc.cmov(result, true_value, UniCondition(op, cond_code, a, b));
+      Gp true_value = uc.new_gp32("true_value");
+      uc.mov(result, 0);
+      uc.mov(true_value, 1);
+      uc.cmov(result, true_value, UniCondition(op, cond_code, a, b));
       break;
     }
 
     case 2: {
       // Test a select functionality.
-      Gp false_value = pc.new_gp32("false_value");
-      Gp true_value = pc.new_gp32("true_value");
-      pc.mov(false_value, 0);
-      pc.mov(true_value, 1);
-      pc.select(result, true_value, false_value, UniCondition(op, cond_code, a, b));
+      Gp false_value = uc.new_gp32("false_value");
+      Gp true_value = uc.new_gp32("true_value");
+      uc.mov(false_value, 0);
+      uc.mov(true_value, 1);
+      uc.select(result, true_value, false_value, UniCondition(op, cond_code, a, b));
       break;
     }
   }
 
-  ctx.cc.ret(result);
-  ctx.cc.end_func();
+  uc.ret(result);
+  uc.end_func();
 
   return ctx.finish<TestCondRRFunc>();
 }
 
-static TestCondRIFunc create_func_cond_ri(JitContext& ctx, UniOpCond op, CondCode cond_code, Imm bImm) noexcept {
+static TestCondRIFunc create_func_cond_ri(JitContext& ctx, UniOpCond op, CondCode cond_code, Imm b_imm) {
   ctx.prepare();
-  UniCompiler pc(&ctx.cc, ctx.features, ctx.cpu_hints);
 
-  FuncNode* node = ctx.cc.new_func(FuncSignature::build<uint32_t, int32_t>());
+  UniCompiler uc(&ctx.cc, ctx.features, ctx.cpu_hints);
+  uc.init_vec_width(VecWidth::k128);
+
+  FuncNode* node = uc.add_func(FuncSignature::build<uint32_t, int32_t>());
   EXPECT_NOT_NULL(node);
 
-  pc.init_vec_width(VecWidth::k128);
-  pc.init_function(node);
-
-  Gp a = pc.new_gp32("a");
-  Gp result = pc.new_gp32("result");
-  Label done = pc.new_label();
+  Gp a = uc.new_gp32("a");
+  Gp result = uc.new_gp32("result");
+  Label done = uc.new_label();
 
   node->set_arg(0, a);
-  pc.mov(result, 1);
-  pc.j(done, UniCondition(op, cond_code, a, bImm));
-  pc.mov(result, 0);
-  pc.bind(done);
-  ctx.cc.ret(result);
+  uc.mov(result, 1);
+  uc.j(done, UniCondition(op, cond_code, a, b_imm));
+  uc.mov(result, 0);
+  uc.bind(done);
+  uc.ret(result);
 
-  ctx.cc.end_func();
+  uc.end_func();
   return ctx.finish<TestCondRIFunc>();
 }
 
 // ujit::UniCompiler - Tests - Conditional Operations - Runner
 // ===========================================================
 
-static ASMJIT_NOINLINE void test_conditional_op(JitContext& ctx, UniOpCond op, CondCode cond_code, int32_t a, int32_t b, bool expected) noexcept {
+static ASMJIT_NOINLINE void test_conditional_op(JitContext& ctx, UniOpCond op, CondCode cond_code, int32_t a, int32_t b, bool expected) {
   for (uint32_t variation = 0; variation < 3; variation++) {
     TestCondRRFunc fn_rr = create_func_cond_rr(ctx, op, cond_code, variation);
     TestCondRIFunc fn_ri = create_func_cond_ri(ctx, op, cond_code, b);
@@ -307,7 +305,7 @@ static ASMJIT_NOINLINE void test_conditional_op(JitContext& ctx, UniOpCond op, C
   }
 }
 
-static ASMJIT_NOINLINE void test_cond_ops(JitContext& ctx) noexcept {
+static ASMJIT_NOINLINE void test_cond_ops(JitContext& ctx) {
   test_conditional_op(ctx, UniOpCond::kCompare, CondCode::kEqual, 0, 0, true);
   test_conditional_op(ctx, UniOpCond::kCompare, CondCode::kEqual, 1, 1, true);
   test_conditional_op(ctx, UniOpCond::kCompare, CondCode::kEqual, 1, 2, false);
@@ -560,28 +558,27 @@ static ASMJIT_NOINLINE void test_cond_ops(JitContext& ctx) noexcept {
 // ujit::UniCompiler - Tests - M Operations - Functions
 // ====================================================
 
-static TestMFunc create_func_m(JitContext& ctx, UniOpM op) noexcept {
+static TestMFunc create_func_m(JitContext& ctx, UniOpM op) {
   ctx.prepare();
-  UniCompiler pc(&ctx.cc, ctx.features, ctx.cpu_hints);
 
-  FuncNode* node = ctx.cc.new_func(FuncSignature::build<void, void*>());
+  UniCompiler uc(&ctx.cc, ctx.features, ctx.cpu_hints);
+  uc.init_vec_width(VecWidth::k128);
+
+  FuncNode* node = uc.add_func(FuncSignature::build<void, void*>());
   EXPECT_NOT_NULL(node);
 
-  pc.init_vec_width(VecWidth::k128);
-  pc.init_function(node);
-
-  Gp ptr = pc.new_gpz("ptr");
+  Gp ptr = uc.new_gpz("ptr");
   node->set_arg(0, ptr);
-  pc.emit_m(op, mem_ptr(ptr));
+  uc.emit_m(op, mem_ptr(ptr));
 
-  ctx.cc.end_func();
+  uc.end_func();
   return ctx.finish<TestMFunc>();
 }
 
 // ujit::UniCompiler - Tests - M Operations - Runner
 // =================================================
 
-static ASMJIT_NOINLINE void test_m_ops(JitContext& ctx) noexcept {
+static ASMJIT_NOINLINE void test_m_ops(JitContext& ctx) {
   uint8_t buffer[8];
 
   TestMFunc fn_zero_u8 = create_func_m(ctx, UniOpM::kStoreZeroU8);
@@ -627,33 +624,32 @@ static ASMJIT_NOINLINE void test_m_ops(JitContext& ctx) noexcept {
 // ujit::UniCompiler - Tests - RM Operations - Functions
 // =====================================================
 
-static TestRMFunc create_func_rm(JitContext& ctx, UniOpRM op) noexcept {
+static TestRMFunc create_func_rm(JitContext& ctx, UniOpRM op) {
   ctx.prepare();
-  UniCompiler pc(&ctx.cc, ctx.features, ctx.cpu_hints);
 
-  FuncNode* node = ctx.cc.new_func(FuncSignature::build<uintptr_t, uintptr_t, void*>());
+  UniCompiler uc(&ctx.cc, ctx.features, ctx.cpu_hints);
+  uc.init_vec_width(VecWidth::k128);
+
+  FuncNode* node = uc.add_func(FuncSignature::build<uintptr_t, uintptr_t, void*>());
   EXPECT_NOT_NULL(node);
 
-  pc.init_vec_width(VecWidth::k128);
-  pc.init_function(node);
-
-  Gp reg = pc.new_gpz("reg");
-  Gp ptr = pc.new_gpz("ptr");
+  Gp reg = uc.new_gpz("reg");
+  Gp ptr = uc.new_gpz("ptr");
 
   node->set_arg(0, reg);
   node->set_arg(1, ptr);
 
-  pc.emit_rm(op, reg, mem_ptr(ptr));
-  ctx.cc.ret(reg);
+  uc.emit_rm(op, reg, mem_ptr(ptr));
+  uc.ret(reg);
 
-  ctx.cc.end_func();
+  uc.end_func();
   return ctx.finish<TestRMFunc>();
 }
 
 // ujit::UniCompiler - Tests - RM Operations - Runner
 // ==================================================
 
-static ASMJIT_NOINLINE void test_rm_ops(JitContext& ctx) noexcept {
+static ASMJIT_NOINLINE void test_rm_ops(JitContext& ctx) {
   union Mem {
     uint8_t buffer[8];
     uint16_t u8;
@@ -743,32 +739,31 @@ static ASMJIT_NOINLINE void test_rm_ops(JitContext& ctx) noexcept {
 // ujit::UniCompiler - Tests - MR Operations - Functions
 // =====================================================
 
-static TestMRFunc create_func_mr(JitContext& ctx, UniOpMR op) noexcept {
+static TestMRFunc create_func_mr(JitContext& ctx, UniOpMR op) {
   ctx.prepare();
-  UniCompiler pc(&ctx.cc, ctx.features, ctx.cpu_hints);
 
-  FuncNode* node = ctx.cc.new_func(FuncSignature::build<void, void*, uintptr_t>());
+  UniCompiler uc(&ctx.cc, ctx.features, ctx.cpu_hints);
+  uc.init_vec_width(VecWidth::k128);
+
+  FuncNode* node = uc.add_func(FuncSignature::build<void, void*, uintptr_t>());
   EXPECT_NOT_NULL(node);
 
-  pc.init_vec_width(VecWidth::k128);
-  pc.init_function(node);
-
-  Gp ptr = pc.new_gpz("ptr");
-  Gp reg = pc.new_gpz("reg");
+  Gp ptr = uc.new_gpz("ptr");
+  Gp reg = uc.new_gpz("reg");
 
   node->set_arg(0, ptr);
   node->set_arg(1, reg);
 
-  pc.emit_mr(op, mem_ptr(ptr), reg);
+  uc.emit_mr(op, mem_ptr(ptr), reg);
 
-  ctx.cc.end_func();
+  uc.end_func();
   return ctx.finish<TestMRFunc>();
 }
 
 // ujit::UniCompiler - Tests - MR Operations - Runner
 // ==================================================
 
-static ASMJIT_NOINLINE void test_mr_ops(JitContext& ctx) noexcept {
+static ASMJIT_NOINLINE void test_mr_ops(JitContext& ctx) {
   union Mem {
     uint8_t buffer[8];
     uint16_t u8;
@@ -857,29 +852,28 @@ static ASMJIT_NOINLINE void test_mr_ops(JitContext& ctx) noexcept {
 // ujit::UniCompiler - Tests - RR Operations - Functions
 // =====================================================
 
-static TestRRFunc create_func_rr(JitContext& ctx, UniOpRR op) noexcept {
+static TestRRFunc create_func_rr(JitContext& ctx, UniOpRR op) {
   ctx.prepare();
-  UniCompiler pc(&ctx.cc, ctx.features, ctx.cpu_hints);
 
-  FuncNode* node = ctx.cc.new_func(FuncSignature::build<uint32_t, uint32_t>());
+  UniCompiler uc(&ctx.cc, ctx.features, ctx.cpu_hints);
+  uc.init_vec_width(VecWidth::k128);
+
+  FuncNode* node = uc.add_func(FuncSignature::build<uint32_t, uint32_t>());
   EXPECT_NOT_NULL(node);
 
-  pc.init_vec_width(VecWidth::k128);
-  pc.init_function(node);
-
-  Gp r = pc.new_gp32("r");
+  Gp r = uc.new_gp32("r");
   node->set_arg(0, r);
-  pc.emit_2i(op, r, r);
-  ctx.cc.ret(r);
+  uc.emit_2i(op, r, r);
+  uc.ret(r);
 
-  ctx.cc.end_func();
+  uc.end_func();
   return ctx.finish<TestRRFunc>();
 }
 
 // ujit::UniCompiler - Tests - RR Operations - Runner
 // ==================================================
 
-static ASMJIT_NOINLINE void test_rr_ops(JitContext& ctx) noexcept {
+static ASMJIT_NOINLINE void test_rr_ops(JitContext& ctx) {
   TestRRFunc fn_abs = create_func_rr(ctx, UniOpRR::kAbs);
   EXPECT_EQ(fn_abs(0u), 0u);
   EXPECT_EQ(fn_abs(1u), 1u);
@@ -937,56 +931,54 @@ static ASMJIT_NOINLINE void test_rr_ops(JitContext& ctx) noexcept {
 // ujit::UniCompiler - Tests - RRR Operations - Functions
 // ======================================================
 
-static TestRRRFunc create_func_rrr(JitContext& ctx, UniOpRRR op) noexcept {
+static TestRRRFunc create_func_rrr(JitContext& ctx, UniOpRRR op) {
   ctx.prepare();
-  UniCompiler pc(&ctx.cc, ctx.features, ctx.cpu_hints);
 
-  FuncNode* node = ctx.cc.new_func(FuncSignature::build<uint32_t, uint32_t, uint32_t>());
+  UniCompiler uc(&ctx.cc, ctx.features, ctx.cpu_hints);
+  uc.init_vec_width(VecWidth::k128);
+
+  FuncNode* node = uc.add_func(FuncSignature::build<uint32_t, uint32_t, uint32_t>());
   EXPECT_NOT_NULL(node);
 
-  pc.init_vec_width(VecWidth::k128);
-  pc.init_function(node);
-
-  Gp a = pc.new_gp32("a");
-  Gp b = pc.new_gp32("b");
-  Gp result = pc.new_gp32("result");
+  Gp a = uc.new_gp32("a");
+  Gp b = uc.new_gp32("b");
+  Gp result = uc.new_gp32("result");
 
   node->set_arg(0, a);
   node->set_arg(1, b);
 
-  pc.emit_3i(op, result, a, b);
-  ctx.cc.ret(result);
+  uc.emit_3i(op, result, a, b);
+  uc.ret(result);
 
-  ctx.cc.end_func();
+  uc.end_func();
   return ctx.finish<TestRRRFunc>();
 }
 
-static TestRRIFunc create_func_rri(JitContext& ctx, UniOpRRR op, Imm bImm) noexcept {
+static TestRRIFunc create_func_rri(JitContext& ctx, UniOpRRR op, Imm bImm) {
   ctx.prepare();
-  UniCompiler pc(&ctx.cc, ctx.features, ctx.cpu_hints);
 
-  FuncNode* node = ctx.cc.new_func(FuncSignature::build<uint32_t, uint32_t>());
+  UniCompiler uc(&ctx.cc, ctx.features, ctx.cpu_hints);
+  uc.init_vec_width(VecWidth::k128);
+
+  FuncNode* node = uc.add_func(FuncSignature::build<uint32_t, uint32_t>());
   EXPECT_NOT_NULL(node);
 
-  pc.init_vec_width(VecWidth::k128);
-  pc.init_function(node);
-
-  Gp a = pc.new_gp32("a");
-  Gp result = pc.new_gp32("result");
+  Gp a = uc.new_gp32("a");
+  Gp result = uc.new_gp32("result");
 
   node->set_arg(0, a);
 
-  pc.emit_3i(op, result, a, bImm);
-  ctx.cc.ret(result);
+  uc.emit_3i(op, result, a, bImm);
+  uc.ret(result);
 
-  ctx.cc.end_func();
+  uc.end_func();
   return ctx.finish<TestRRIFunc>();
 }
 
 // ujit::UniCompiler - Tests - RRR Operations - Runner
 // ===================================================
 
-static ASMJIT_NOINLINE void test_rrr_op(JitContext& ctx, UniOpRRR op, uint32_t a, uint32_t b, uint32_t expected) noexcept {
+static ASMJIT_NOINLINE void test_rrr_op(JitContext& ctx, UniOpRRR op, uint32_t a, uint32_t b, uint32_t expected) {
   TestRRRFunc fn_rrr = create_func_rrr(ctx, op);
   uint32_t observed_rrr = fn_rrr(a, b);
   EXPECT_EQ(observed_rrr, expected)
@@ -1020,7 +1012,7 @@ static ASMJIT_NOINLINE void test_rrr_op(JitContext& ctx, UniOpRRR op, uint32_t a
   ctx.rt.reset();
 }
 
-static ASMJIT_NOINLINE void test_rrr_ops(JitContext& ctx) noexcept {
+static ASMJIT_NOINLINE void test_rrr_ops(JitContext& ctx) {
   test_rrr_op(ctx, UniOpRRR::kAnd, 0u, 0u, 0u);
   test_rrr_op(ctx, UniOpRRR::kAnd, 0xFFu, 0x11u, 0x11u);
   test_rrr_op(ctx, UniOpRRR::kAnd, 0x11u, 0xFFu, 0x11u);
@@ -1169,27 +1161,26 @@ static ASMJIT_NOINLINE void test_rrr_ops(JitContext& ctx) noexcept {
 static constexpr uint32_t kNumVariationsVV = 3;
 static constexpr uint32_t kNumVariationsVV_Broadcast = 4;
 
-static TestVVFunc create_func_vv(JitContext& ctx, VecWidth vw, UniOpVV op, Variation variation = Variation{0}) noexcept {
+static TestVVFunc create_func_vv(JitContext& ctx, VecWidth vw, UniOpVV op, Variation variation = Variation{0}) {
   ctx.prepare();
-  UniCompiler pc(&ctx.cc, ctx.features, ctx.cpu_hints);
 
-  FuncNode* node = ctx.cc.new_func(FuncSignature::build<void, void*, const void*>());
+  UniCompiler uc(&ctx.cc, ctx.features, ctx.cpu_hints);
+  uc.init_vec_width(vw);
+
+  FuncNode* node = uc.add_func(FuncSignature::build<void, void*, const void*>());
   EXPECT_NOT_NULL(node);
 
-  pc.init_vec_width(vw);
-  pc.init_function(node);
-
-  Gp dst_ptr = pc.new_gpz("dst_ptr");
-  Gp src_ptr = pc.new_gpz("src_ptr");
+  Gp dst_ptr = uc.new_gpz("dst_ptr");
+  Gp src_ptr = uc.new_gpz("src_ptr");
 
   node->set_arg(0, dst_ptr);
   node->set_arg(1, src_ptr);
 
-  Vec dst_vec = pc.new_vec_with_width(vw, "dst_vec");
+  Vec dst_vec = uc.new_vec_with_width(vw, "dst_vec");
 
   // There are some instructions that fill the high part of the register, so just zero the destination to make
   // sure that we can test this function (that the low part is actually zeroed and doesn't contain garbage).
-  pc.v_zero_i(dst_vec);
+  uc.v_zero_i(dst_vec);
 
   if (variation == 3u && (op == UniOpVV::kBroadcastU8  ||
                           op == UniOpVV::kBroadcastU8Z ||
@@ -1198,36 +1189,36 @@ static TestVVFunc create_func_vv(JitContext& ctx, VecWidth vw, UniOpVV op, Varia
                           op == UniOpVV::kBroadcastF32 ||
                           op == UniOpVV::kBroadcastF64)) {
     // This is used to test broadcasts from a GP register to a vector register.
-    Gp src_gp = pc.new_gpz("src_gp");
+    Gp src_gp = uc.new_gpz("src_gp");
 
     switch (op) {
       case UniOpVV::kBroadcastU8:
       case UniOpVV::kBroadcastU8Z:
-        pc.load_u8(src_gp, mem_ptr(src_ptr));
-        pc.emit_2v(op, dst_vec, src_gp);
+        uc.load_u8(src_gp, mem_ptr(src_ptr));
+        uc.emit_2v(op, dst_vec, src_gp);
         break;
 
       case UniOpVV::kBroadcastU16:
       case UniOpVV::kBroadcastU16Z:
-        pc.load_u16(src_gp, mem_ptr(src_ptr));
-        pc.emit_2v(op, dst_vec, src_gp);
+        uc.load_u16(src_gp, mem_ptr(src_ptr));
+        uc.emit_2v(op, dst_vec, src_gp);
         break;
 
       case UniOpVV::kBroadcastU32:
       case UniOpVV::kBroadcastF32:
-        pc.load_u32(src_gp, mem_ptr(src_ptr));
-        pc.emit_2v(op, dst_vec, src_gp);
+        uc.load_u32(src_gp, mem_ptr(src_ptr));
+        uc.emit_2v(op, dst_vec, src_gp);
         break;
 
       case UniOpVV::kBroadcastU64:
       case UniOpVV::kBroadcastF64:
         // Prevent using 64-bit registers on 32-bit architectures (that would fail).
-        if (pc.is_64bit()) {
-          pc.load_u64(src_gp, mem_ptr(src_ptr));
-          pc.emit_2v(op, dst_vec, src_gp);
+        if (uc.is_64bit()) {
+          uc.load_u64(src_gp, mem_ptr(src_ptr));
+          uc.emit_2v(op, dst_vec, src_gp);
         }
         else {
-          pc.emit_2v(op, dst_vec, mem_ptr(src_ptr));
+          uc.emit_2v(op, dst_vec, mem_ptr(src_ptr));
         }
         break;
 
@@ -1236,21 +1227,21 @@ static TestVVFunc create_func_vv(JitContext& ctx, VecWidth vw, UniOpVV op, Varia
     }
   }
   else if (variation == 2u) {
-    pc.emit_2v(op, dst_vec, mem_ptr(src_ptr));
+    uc.emit_2v(op, dst_vec, mem_ptr(src_ptr));
   }
   else if (variation == 1u) {
-    pc.v_loaduvec(dst_vec, mem_ptr(src_ptr));
-    pc.emit_2v(op, dst_vec, dst_vec);
+    uc.v_loaduvec(dst_vec, mem_ptr(src_ptr));
+    uc.emit_2v(op, dst_vec, dst_vec);
   }
   else {
-    Vec src_vec = pc.new_vec_with_width(vw, "src_vec");
-    pc.v_loaduvec(src_vec, mem_ptr(src_ptr));
-    pc.emit_2v(op, dst_vec, src_vec);
+    Vec src_vec = uc.new_vec_with_width(vw, "src_vec");
+    uc.v_loaduvec(src_vec, mem_ptr(src_ptr));
+    uc.emit_2v(op, dst_vec, src_vec);
   }
 
-  pc.v_storeuvec(mem_ptr(dst_ptr), dst_vec);
+  uc.v_storeuvec(mem_ptr(dst_ptr), dst_vec);
 
-  ctx.cc.end_func();
+  uc.end_func();
   return ctx.finish<TestVVFunc>();
 }
 
@@ -1260,55 +1251,54 @@ static TestVVFunc create_func_vv(JitContext& ctx, VecWidth vw, UniOpVV op, Varia
 //   - 2 - source is a memory operand
 static constexpr uint32_t kNumVariationsVVI = 3;
 
-static TestVVFunc create_func_vvi(JitContext& ctx, VecWidth vw, UniOpVVI op, uint32_t imm, Variation variation = Variation{0}) noexcept {
+static TestVVFunc create_func_vvi(JitContext& ctx, VecWidth vw, UniOpVVI op, uint32_t imm, Variation variation = Variation{0}) {
   ctx.prepare();
-  UniCompiler pc(&ctx.cc, ctx.features, ctx.cpu_hints);
 
-  FuncNode* node = ctx.cc.new_func(FuncSignature::build<void, void*, const void*>());
+  UniCompiler uc(&ctx.cc, ctx.features, ctx.cpu_hints);
+  uc.init_vec_width(vw);
+
+  FuncNode* node = uc.add_func(FuncSignature::build<void, void*, const void*>());
   EXPECT_NOT_NULL(node);
 
-  pc.init_vec_width(vw);
-  pc.init_function(node);
-
-  Gp dst_ptr = pc.new_gpz("dst_ptr");
-  Gp src_ptr = pc.new_gpz("src_ptr");
+  Gp dst_ptr = uc.new_gpz("dst_ptr");
+  Gp src_ptr = uc.new_gpz("src_ptr");
 
   node->set_arg(0, dst_ptr);
   node->set_arg(1, src_ptr);
 
-  Vec src_vec = pc.new_vec_with_width(vw, "src_vec");
+  Vec src_vec = uc.new_vec_with_width(vw, "src_vec");
 
   switch (variation.value) {
     default:
     case 0: {
       // There are some instructions that fill the high part of the register, so just zero the destination to make
       // sure that we can test this function (that the low part is actually zeroed and doesn't contain garbage).
-      Vec dst_vec = pc.new_vec_with_width(vw, "dst_vec");
-      pc.v_zero_i(dst_vec);
+      Vec dst_vec = uc.new_vec_with_width(vw, "dst_vec");
+      uc.v_zero_i(dst_vec);
 
-      pc.v_loaduvec(src_vec, mem_ptr(src_ptr));
-      pc.emit_2vi(op, dst_vec, src_vec, imm);
-      pc.v_storeuvec(mem_ptr(dst_ptr), dst_vec);
+      uc.v_loaduvec(src_vec, mem_ptr(src_ptr));
+      uc.emit_2vi(op, dst_vec, src_vec, imm);
+      uc.v_storeuvec(mem_ptr(dst_ptr), dst_vec);
 
       break;
     }
 
     case 1: {
-      pc.v_loaduvec(src_vec, mem_ptr(src_ptr));
-      pc.emit_2vi(op, src_vec, src_vec, imm);
-      pc.v_storeuvec(mem_ptr(dst_ptr), src_vec);
+      uc.v_loaduvec(src_vec, mem_ptr(src_ptr));
+      uc.emit_2vi(op, src_vec, src_vec, imm);
+      uc.v_storeuvec(mem_ptr(dst_ptr), src_vec);
       break;
     }
 
     case 2: {
-      Vec dst_vec = pc.new_vec_with_width(vw, "dst_vec");
-      pc.emit_2vi(op, dst_vec, mem_ptr(src_ptr), imm);
-      pc.v_storeuvec(mem_ptr(dst_ptr), dst_vec);
+      Vec dst_vec = uc.new_vec_with_width(vw, "dst_vec");
+      uc.emit_2vi(op, dst_vec, mem_ptr(src_ptr), imm);
+      uc.v_storeuvec(mem_ptr(dst_ptr), dst_vec);
       break;
     }
   }
 
-  ctx.cc.end_func();
+  uc.end_func();
   return ctx.finish<TestVVFunc>();
 }
 
@@ -1320,163 +1310,161 @@ static TestVVFunc create_func_vvi(JitContext& ctx, VecWidth vw, UniOpVVI op, uin
 //   - 4 - destination register is the same as the first source register, second source is a memory operand
 static constexpr uint32_t kNumVariationsVVV = 5;
 
-static TestVVVFunc create_func_vvv(JitContext& ctx, VecWidth vw, UniOpVVV op, Variation variation = Variation{0}) noexcept {
+static TestVVVFunc create_func_vvv(JitContext& ctx, VecWidth vw, UniOpVVV op, Variation variation = Variation{0}) {
   ctx.prepare();
-  UniCompiler pc(&ctx.cc, ctx.features, ctx.cpu_hints);
 
-  FuncNode* node = ctx.cc.new_func(FuncSignature::build<void, void*, const void*, const void*>());
+  UniCompiler uc(&ctx.cc, ctx.features, ctx.cpu_hints);
+  uc.init_vec_width(vw);
+
+  FuncNode* node = uc.add_func(FuncSignature::build<void, void*, const void*, const void*>());
   EXPECT_NOT_NULL(node);
 
-  pc.init_vec_width(vw);
-  pc.init_function(node);
-
-  Gp dst_ptr = pc.new_gpz("dst_ptr");
-  Gp src1_ptr = pc.new_gpz("src1_ptr");
-  Gp src2_ptr = pc.new_gpz("src2_ptr");
+  Gp dst_ptr = uc.new_gpz("dst_ptr");
+  Gp src1_ptr = uc.new_gpz("src1_ptr");
+  Gp src2_ptr = uc.new_gpz("src2_ptr");
 
   node->set_arg(0, dst_ptr);
   node->set_arg(1, src1_ptr);
   node->set_arg(2, src2_ptr);
 
-  Vec src1_vec = pc.new_vec_with_width(vw, "src1_vec");
-  Vec src2_vec = pc.new_vec_with_width(vw, "src2_vec");
+  Vec src1_vec = uc.new_vec_with_width(vw, "src1_vec");
+  Vec src2_vec = uc.new_vec_with_width(vw, "src2_vec");
 
   switch (variation.value) {
     default:
     case 0: {
       // There are some instructions that fill the high part of the register, so just zero the destination to make
       // sure that we can test this function (that the low part is actually zeroed and doesn't contain garbage).
-      Vec dst_vec = pc.new_vec_with_width(vw, "dst_vec");
-      pc.v_zero_i(dst_vec);
+      Vec dst_vec = uc.new_vec_with_width(vw, "dst_vec");
+      uc.v_zero_i(dst_vec);
 
-      pc.v_loaduvec(src1_vec, mem_ptr(src1_ptr));
-      pc.v_loaduvec(src2_vec, mem_ptr(src2_ptr));
-      pc.emit_3v(op, dst_vec, src1_vec, src2_vec);
-      pc.v_storeuvec(mem_ptr(dst_ptr), dst_vec);
+      uc.v_loaduvec(src1_vec, mem_ptr(src1_ptr));
+      uc.v_loaduvec(src2_vec, mem_ptr(src2_ptr));
+      uc.emit_3v(op, dst_vec, src1_vec, src2_vec);
+      uc.v_storeuvec(mem_ptr(dst_ptr), dst_vec);
 
       break;
     }
 
     case 1: {
-      pc.v_loaduvec(src1_vec, mem_ptr(src1_ptr));
-      pc.v_loaduvec(src2_vec, mem_ptr(src2_ptr));
-      pc.emit_3v(op, src1_vec, src1_vec, src2_vec);
-      pc.v_storeuvec(mem_ptr(dst_ptr), src1_vec);
+      uc.v_loaduvec(src1_vec, mem_ptr(src1_ptr));
+      uc.v_loaduvec(src2_vec, mem_ptr(src2_ptr));
+      uc.emit_3v(op, src1_vec, src1_vec, src2_vec);
+      uc.v_storeuvec(mem_ptr(dst_ptr), src1_vec);
 
       break;
     }
 
     case 2: {
-      pc.v_loaduvec(src1_vec, mem_ptr(src1_ptr));
-      pc.v_loaduvec(src2_vec, mem_ptr(src2_ptr));
-      pc.emit_3v(op, src2_vec, src1_vec, src2_vec);
-      pc.v_storeuvec(mem_ptr(dst_ptr), src2_vec);
+      uc.v_loaduvec(src1_vec, mem_ptr(src1_ptr));
+      uc.v_loaduvec(src2_vec, mem_ptr(src2_ptr));
+      uc.emit_3v(op, src2_vec, src1_vec, src2_vec);
+      uc.v_storeuvec(mem_ptr(dst_ptr), src2_vec);
 
       break;
     }
 
     case 3: {
-      Vec dst_vec = pc.new_vec_with_width(vw, "dst_vec");
-      pc.v_zero_i(dst_vec);
+      Vec dst_vec = uc.new_vec_with_width(vw, "dst_vec");
+      uc.v_zero_i(dst_vec);
 
-      pc.v_loaduvec(src1_vec, mem_ptr(src1_ptr));
-      pc.emit_3v(op, dst_vec, src1_vec, mem_ptr(src2_ptr));
-      pc.v_storeuvec(mem_ptr(dst_ptr), dst_vec);
+      uc.v_loaduvec(src1_vec, mem_ptr(src1_ptr));
+      uc.emit_3v(op, dst_vec, src1_vec, mem_ptr(src2_ptr));
+      uc.v_storeuvec(mem_ptr(dst_ptr), dst_vec);
 
       break;
     }
 
     case 4: {
-      pc.v_loaduvec(src1_vec, mem_ptr(src1_ptr));
-      pc.emit_3v(op, src1_vec, src1_vec, mem_ptr(src2_ptr));
-      pc.v_storeuvec(mem_ptr(dst_ptr), src1_vec);
+      uc.v_loaduvec(src1_vec, mem_ptr(src1_ptr));
+      uc.emit_3v(op, src1_vec, src1_vec, mem_ptr(src2_ptr));
+      uc.v_storeuvec(mem_ptr(dst_ptr), src1_vec);
 
       break;
     }
   }
 
-  ctx.cc.end_func();
+  uc.end_func();
   return ctx.finish<TestVVVFunc>();
 }
 
 static constexpr uint32_t kNumVariationsVVVI = 5;
 
-static TestVVVFunc create_func_vvvi(JitContext& ctx, VecWidth vw, UniOpVVVI op, uint32_t imm, Variation variation = Variation{0}) noexcept {
+static TestVVVFunc create_func_vvvi(JitContext& ctx, VecWidth vw, UniOpVVVI op, uint32_t imm, Variation variation = Variation{0}) {
   ctx.prepare();
-  UniCompiler pc(&ctx.cc, ctx.features, ctx.cpu_hints);
 
-  FuncNode* node = ctx.cc.new_func(FuncSignature::build<void, void*, const void*, const void*>());
+  UniCompiler uc(&ctx.cc, ctx.features, ctx.cpu_hints);
+  uc.init_vec_width(vw);
+
+  FuncNode* node = uc.add_func(FuncSignature::build<void, void*, const void*, const void*>());
   EXPECT_NOT_NULL(node);
 
-  pc.init_vec_width(vw);
-  pc.init_function(node);
-
-  Gp dst_ptr = pc.new_gpz("dst_ptr");
-  Gp src1_ptr = pc.new_gpz("src1_ptr");
-  Gp src2_ptr = pc.new_gpz("src2_ptr");
+  Gp dst_ptr = uc.new_gpz("dst_ptr");
+  Gp src1_ptr = uc.new_gpz("src1_ptr");
+  Gp src2_ptr = uc.new_gpz("src2_ptr");
 
   node->set_arg(0, dst_ptr);
   node->set_arg(1, src1_ptr);
   node->set_arg(2, src2_ptr);
 
-  Vec src1_vec = pc.new_vec_with_width(vw, "src1_vec");
-  Vec src2_vec = pc.new_vec_with_width(vw, "src2_vec");
+  Vec src1_vec = uc.new_vec_with_width(vw, "src1_vec");
+  Vec src2_vec = uc.new_vec_with_width(vw, "src2_vec");
 
   switch (variation.value) {
     default:
     case 0: {
       // There are some instructions that fill the high part of the register, so just zero the destination to make
       // sure that we can test this function (that the low part is actually zeroed and doesn't contain garbage).
-      Vec dst_vec = pc.new_vec_with_width(vw, "dst_vec");
-      pc.v_zero_i(dst_vec);
+      Vec dst_vec = uc.new_vec_with_width(vw, "dst_vec");
+      uc.v_zero_i(dst_vec);
 
-      pc.v_loaduvec(src1_vec, mem_ptr(src1_ptr));
-      pc.v_loaduvec(src2_vec, mem_ptr(src2_ptr));
-      pc.emit_3vi(op, dst_vec, src1_vec, src2_vec, imm);
-      pc.v_storeuvec(mem_ptr(dst_ptr), dst_vec);
+      uc.v_loaduvec(src1_vec, mem_ptr(src1_ptr));
+      uc.v_loaduvec(src2_vec, mem_ptr(src2_ptr));
+      uc.emit_3vi(op, dst_vec, src1_vec, src2_vec, imm);
+      uc.v_storeuvec(mem_ptr(dst_ptr), dst_vec);
 
       break;
     }
 
     case 1: {
-      pc.v_loaduvec(src1_vec, mem_ptr(src1_ptr));
-      pc.v_loaduvec(src2_vec, mem_ptr(src2_ptr));
-      pc.emit_3vi(op, src1_vec, src1_vec, src2_vec, imm);
-      pc.v_storeuvec(mem_ptr(dst_ptr), src1_vec);
+      uc.v_loaduvec(src1_vec, mem_ptr(src1_ptr));
+      uc.v_loaduvec(src2_vec, mem_ptr(src2_ptr));
+      uc.emit_3vi(op, src1_vec, src1_vec, src2_vec, imm);
+      uc.v_storeuvec(mem_ptr(dst_ptr), src1_vec);
 
       break;
     }
 
     case 2: {
-      pc.v_loaduvec(src1_vec, mem_ptr(src1_ptr));
-      pc.v_loaduvec(src2_vec, mem_ptr(src2_ptr));
-      pc.emit_3vi(op, src2_vec, src1_vec, src2_vec, imm);
-      pc.v_storeuvec(mem_ptr(dst_ptr), src2_vec);
+      uc.v_loaduvec(src1_vec, mem_ptr(src1_ptr));
+      uc.v_loaduvec(src2_vec, mem_ptr(src2_ptr));
+      uc.emit_3vi(op, src2_vec, src1_vec, src2_vec, imm);
+      uc.v_storeuvec(mem_ptr(dst_ptr), src2_vec);
 
       break;
     }
 
     case 3: {
-      Vec dst_vec = pc.new_vec_with_width(vw, "dst_vec");
-      pc.v_zero_i(dst_vec);
+      Vec dst_vec = uc.new_vec_with_width(vw, "dst_vec");
+      uc.v_zero_i(dst_vec);
 
-      pc.v_loaduvec(src1_vec, mem_ptr(src1_ptr));
-      pc.emit_3vi(op, dst_vec, src1_vec, mem_ptr(src2_ptr), imm);
-      pc.v_storeuvec(mem_ptr(dst_ptr), dst_vec);
+      uc.v_loaduvec(src1_vec, mem_ptr(src1_ptr));
+      uc.emit_3vi(op, dst_vec, src1_vec, mem_ptr(src2_ptr), imm);
+      uc.v_storeuvec(mem_ptr(dst_ptr), dst_vec);
 
       break;
     }
 
     case 4: {
-      pc.v_loaduvec(src1_vec, mem_ptr(src1_ptr));
-      pc.emit_3vi(op, src1_vec, src1_vec, mem_ptr(src2_ptr), imm);
-      pc.v_storeuvec(mem_ptr(dst_ptr), src1_vec);
+      uc.v_loaduvec(src1_vec, mem_ptr(src1_ptr));
+      uc.emit_3vi(op, src1_vec, src1_vec, mem_ptr(src2_ptr), imm);
+      uc.v_storeuvec(mem_ptr(dst_ptr), src1_vec);
 
       break;
     }
   }
 
-  ctx.cc.end_func();
+  uc.end_func();
   return ctx.finish<TestVVVFunc>();
 }
 
@@ -1487,71 +1475,70 @@ static TestVVVFunc create_func_vvvi(JitContext& ctx, VecWidth vw, UniOpVVVI op, 
 //   - 3 - destination register is the third source register
 static constexpr uint32_t kNumVariationsVVVV = 4;
 
-static TestVVVVFunc create_func_vvvv(JitContext& ctx, VecWidth vw, UniOpVVVV op, Variation variation = Variation{0}) noexcept {
+static TestVVVVFunc create_func_vvvv(JitContext& ctx, VecWidth vw, UniOpVVVV op, Variation variation = Variation{0}) {
   ctx.prepare();
-  UniCompiler pc(&ctx.cc, ctx.features, ctx.cpu_hints);
 
-  FuncNode* node = ctx.cc.new_func(FuncSignature::build<void, void*, const void*, const void*, const void*>());
+  UniCompiler uc(&ctx.cc, ctx.features, ctx.cpu_hints);
+  uc.init_vec_width(vw);
+
+  FuncNode* node = uc.add_func(FuncSignature::build<void, void*, const void*, const void*, const void*>());
   EXPECT_NOT_NULL(node);
 
-  pc.init_vec_width(vw);
-  pc.init_function(node);
-
-  Gp dst_ptr = pc.new_gpz("dst_ptr");
-  Gp src1_ptr = pc.new_gpz("src1_ptr");
-  Gp src2_ptr = pc.new_gpz("src2_ptr");
-  Gp src3_ptr = pc.new_gpz("src3_ptr");
+  Gp dst_ptr = uc.new_gpz("dst_ptr");
+  Gp src1_ptr = uc.new_gpz("src1_ptr");
+  Gp src2_ptr = uc.new_gpz("src2_ptr");
+  Gp src3_ptr = uc.new_gpz("src3_ptr");
 
   node->set_arg(0, dst_ptr);
   node->set_arg(1, src1_ptr);
   node->set_arg(2, src2_ptr);
   node->set_arg(3, src3_ptr);
 
-  Vec src1_vec = pc.new_vec_with_width(vw, "src1_vec");
-  Vec src2_vec = pc.new_vec_with_width(vw, "src2_vec");
-  Vec src3_vec = pc.new_vec_with_width(vw, "src3_vec");
+  Vec src1_vec = uc.new_vec_with_width(vw, "src1_vec");
+  Vec src2_vec = uc.new_vec_with_width(vw, "src2_vec");
+  Vec src3_vec = uc.new_vec_with_width(vw, "src3_vec");
 
-  pc.v_loaduvec(src1_vec, mem_ptr(src1_ptr));
-  pc.v_loaduvec(src2_vec, mem_ptr(src2_ptr));
-  pc.v_loaduvec(src3_vec, mem_ptr(src3_ptr));
+  uc.v_loaduvec(src1_vec, mem_ptr(src1_ptr));
+  uc.v_loaduvec(src2_vec, mem_ptr(src2_ptr));
+  uc.v_loaduvec(src3_vec, mem_ptr(src3_ptr));
 
   switch (variation.value) {
     default:
     case 0: {
       // There are some instructions that fill the high part of the register, so just zero the destination to make
       // sure that we can test this function (that the low part is actually zeroed and doesn't contain garbage).
-      Vec dst_vec = pc.new_vec_with_width(vw, "dst_vec");
-      pc.v_zero_i(dst_vec);
+      Vec dst_vec = uc.new_vec_with_width(vw, "dst_vec");
+      uc.v_zero_i(dst_vec);
 
-      pc.emit_4v(op, dst_vec, src1_vec, src2_vec, src3_vec);
-      pc.v_storeuvec(mem_ptr(dst_ptr), dst_vec);
+      uc.emit_4v(op, dst_vec, src1_vec, src2_vec, src3_vec);
+      uc.v_storeuvec(mem_ptr(dst_ptr), dst_vec);
 
       break;
     }
 
     case 1: {
-      pc.emit_4v(op, src1_vec, src1_vec, src2_vec, src3_vec);
-      pc.v_storeuvec(mem_ptr(dst_ptr), src1_vec);
+      uc.emit_4v(op, src1_vec, src1_vec, src2_vec, src3_vec);
+      uc.v_storeuvec(mem_ptr(dst_ptr), src1_vec);
 
       break;
     }
 
     case 2: {
-      pc.emit_4v(op, src2_vec, src1_vec, src2_vec, src3_vec);
-      pc.v_storeuvec(mem_ptr(dst_ptr), src2_vec);
+      uc.emit_4v(op, src2_vec, src1_vec, src2_vec, src3_vec);
+      uc.v_storeuvec(mem_ptr(dst_ptr), src2_vec);
 
       break;
     }
 
     case 3: {
-      pc.emit_4v(op, src3_vec, src1_vec, src2_vec, src3_vec);
-      pc.v_storeuvec(mem_ptr(dst_ptr), src3_vec);
+      uc.emit_4v(op, src3_vec, src1_vec, src2_vec, src3_vec);
+      uc.v_storeuvec(mem_ptr(dst_ptr), src3_vec);
 
       break;
     }
   }
 
-  ctx.cc.end_func();
+  uc.end_func();
   return ctx.finish<TestVVVVFunc>();
 }
 // ujit::UniCompiler - Tests - SIMD - Vector Overlay
@@ -4562,7 +4549,7 @@ static ASMJIT_NOINLINE void test_vecop_vvvv_failed(UniOpVVVV op, Variation varia
 // ===================================================
 
 template<VecWidth kVecWidth, UniOpVV kOp, typename GenericOp, typename Constraint>
-static ASMJIT_NOINLINE void test_vecop_vv_constraint(JitContext& ctx, Variation variation = Variation{0}) noexcept {
+static ASMJIT_NOINLINE void test_vecop_vv_constraint(JitContext& ctx, Variation variation = Variation{0}) {
   constexpr uint32_t kW = byte_width_from_vec_width(kVecWidth);
 
   TestVVFunc compiled_apply = create_func_vv(ctx, kVecWidth, kOp, variation);
@@ -4590,7 +4577,7 @@ static ASMJIT_NOINLINE void test_vecop_vv_constraint(JitContext& ctx, Variation 
 }
 
 template<VecWidth kVecWidth, UniOpVV kOp, typename GenericOp>
-static void test_vecop_vv(JitContext& ctx, Variation variation = Variation{0}) noexcept {
+static void test_vecop_vv(JitContext& ctx, Variation variation = Variation{0}) {
   return test_vecop_vv_constraint<kVecWidth, kOp, GenericOp, ConstraintNone>(ctx, variation);
 }
 
@@ -4598,7 +4585,7 @@ static void test_vecop_vv(JitContext& ctx, Variation variation = Variation{0}) n
 // ===========================================================
 
 template<VecWidth kVecWidth, UniOpVVI kOp, typename GenericOp, typename Constraint>
-static ASMJIT_NOINLINE void test_vecop_vvi_constraint(JitContext& ctx, uint32_t imm, Variation variation = Variation{0}) noexcept {
+static ASMJIT_NOINLINE void test_vecop_vvi_constraint(JitContext& ctx, uint32_t imm, Variation variation = Variation{0}) {
   constexpr uint32_t kW = byte_width_from_vec_width(kVecWidth);
 
   TestVVFunc compiled_apply = create_func_vvi(ctx, kVecWidth, kOp, imm, variation);
@@ -4626,7 +4613,7 @@ static ASMJIT_NOINLINE void test_vecop_vvi_constraint(JitContext& ctx, uint32_t 
 }
 
 template<VecWidth kVecWidth, UniOpVVI kOp, typename GenericOp>
-static void test_vecop_vvi(JitContext& ctx, uint32_t imm, Variation variation = Variation{0}) noexcept {
+static void test_vecop_vvi(JitContext& ctx, uint32_t imm, Variation variation = Variation{0}) {
   return test_vecop_vvi_constraint<kVecWidth, kOp, GenericOp, ConstraintNone>(ctx, imm, variation);
 }
 
@@ -4634,7 +4621,7 @@ static void test_vecop_vvi(JitContext& ctx, uint32_t imm, Variation variation = 
 // ===========================================================
 
 template<VecWidth kVecWidth, UniOpVVV kOp, typename GenericOp, typename Constraint>
-static ASMJIT_NOINLINE void test_vecop_vvv_constraint(JitContext& ctx, Variation variation = Variation{0}) noexcept {
+static ASMJIT_NOINLINE void test_vecop_vvv_constraint(JitContext& ctx, Variation variation = Variation{0}) {
   constexpr uint32_t kW = byte_width_from_vec_width(kVecWidth);
 
   TestVVVFunc compiled_apply = create_func_vvv(ctx, kVecWidth, kOp, variation);
@@ -4665,7 +4652,7 @@ static ASMJIT_NOINLINE void test_vecop_vvv_constraint(JitContext& ctx, Variation
 }
 
 template<VecWidth kVecWidth, UniOpVVV kOp, typename GenericOp>
-static void test_vecop_vvv(JitContext& ctx, Variation variation = Variation{0}) noexcept {
+static void test_vecop_vvv(JitContext& ctx, Variation variation = Variation{0}) {
   return test_vecop_vvv_constraint<kVecWidth, kOp, GenericOp, ConstraintNone>(ctx, variation);
 }
 
@@ -4673,7 +4660,7 @@ static void test_vecop_vvv(JitContext& ctx, Variation variation = Variation{0}) 
 // ============================================================
 
 template<VecWidth kVecWidth, UniOpVVVI kOp, typename GenericOp, typename Constraint>
-static ASMJIT_NOINLINE void test_vecop_vvvi_constraint(JitContext& ctx, uint32_t imm, Variation variation = Variation{0}) noexcept {
+static ASMJIT_NOINLINE void test_vecop_vvvi_constraint(JitContext& ctx, uint32_t imm, Variation variation = Variation{0}) {
   constexpr uint32_t kW = byte_width_from_vec_width(kVecWidth);
 
   TestVVVFunc compiled_apply = create_func_vvvi(ctx, kVecWidth, kOp, imm, variation);
@@ -4704,7 +4691,7 @@ static ASMJIT_NOINLINE void test_vecop_vvvi_constraint(JitContext& ctx, uint32_t
 }
 
 template<VecWidth kVecWidth, UniOpVVVI kOp, typename GenericOp>
-static void test_vecop_vvvi(JitContext& ctx, uint32_t imm, Variation variation = Variation{0}) noexcept {
+static void test_vecop_vvvi(JitContext& ctx, uint32_t imm, Variation variation = Variation{0}) {
   return test_vecop_vvvi_constraint<kVecWidth, kOp, GenericOp, ConstraintNone>(ctx, imm, variation);
 }
 
@@ -4712,7 +4699,7 @@ static void test_vecop_vvvi(JitContext& ctx, uint32_t imm, Variation variation =
 // ============================================================
 
 template<VecWidth kVecWidth, UniOpVVVV kOp, typename GenericOp, typename Constraint>
-static ASMJIT_NOINLINE void test_vecop_vvvv_constraint(JitContext& ctx, Variation variation = Variation{0}) noexcept {
+static ASMJIT_NOINLINE void test_vecop_vvvv_constraint(JitContext& ctx, Variation variation = Variation{0}) {
   constexpr uint32_t kW = byte_width_from_vec_width(kVecWidth);
 
   TestVVVVFunc compiled_apply = create_func_vvvv(ctx, kVecWidth, kOp, variation);
@@ -4744,7 +4731,7 @@ static ASMJIT_NOINLINE void test_vecop_vvvv_constraint(JitContext& ctx, Variatio
 }
 
 template<VecWidth kVecWidth, UniOpVVVV kOp, typename GenericOp>
-static void test_vecop_vvvv(JitContext& ctx, Variation variation = Variation{0}) noexcept {
+static void test_vecop_vvvv(JitContext& ctx, Variation variation = Variation{0}) {
   return test_vecop_vvvv_constraint<kVecWidth, kOp, GenericOp, ConstraintNone>(ctx, variation);
 }
 
@@ -4752,7 +4739,7 @@ static void test_vecop_vvvv(JitContext& ctx, Variation variation = Variation{0})
 // =========================================
 
 template<VecWidth kVecWidth>
-static ASMJIT_NOINLINE void test_simd_ops(JitContext& ctx) noexcept {
+static ASMJIT_NOINLINE void test_simd_ops(JitContext& ctx) {
   // We need to know some behaviors in advance so we can select the right test function,
   // so create a dummy compiler and extract the necessary information from it.
   ScalarOpBehavior scalar_op_behavior {};
@@ -4761,11 +4748,11 @@ static ASMJIT_NOINLINE void test_simd_ops(JitContext& ctx) noexcept {
 
   {
     ctx.prepare();
-    UniCompiler pc(&ctx.cc, ctx.features, ctx.cpu_hints);
+    UniCompiler uc(&ctx.cc, ctx.features, ctx.cpu_hints);
 
-    scalar_op_behavior = pc.scalar_op_behavior();
-    fmadd_op_behavior = pc.fmadd_op_behavior();
-    float_to_int_behavior = pc.float_to_int_outside_range_behavior();
+    scalar_op_behavior = uc.scalar_op_behavior();
+    fmadd_op_behavior = uc.fmadd_op_behavior();
+    float_to_int_behavior = uc.float_to_int_outside_range_behavior();
   }
 
   bool valgrind_fma_bug = false;
@@ -5466,7 +5453,7 @@ static ASMJIT_NOINLINE void test_simd_ops(JitContext& ctx) noexcept {
   }
 }
 
-static void test_gp_ops(JitContext& ctx) noexcept {
+static void test_gp_ops(JitContext& ctx) {
   test_cond_ops(ctx);
   test_m_ops(ctx);
   test_rm_ops(ctx);
@@ -5476,7 +5463,7 @@ static void test_gp_ops(JitContext& ctx) noexcept {
 }
 
 #if defined(ASMJIT_UJIT_X86)
-static void dump_feature_list(String& out, const CpuFeatures& features) noexcept {
+static void dump_feature_list(String& out, const CpuFeatures& features) {
 #if !defined(ASMJIT_NO_LOGGING)
   CpuFeatures::Iterator it = features.iterator();
   bool first = true;
@@ -5494,7 +5481,7 @@ static void dump_feature_list(String& out, const CpuFeatures& features) noexcept
 #endif
 }
 
-static void test_x86_ops(JitContext& ctx, const CpuFeatures& host_features) noexcept {
+static void test_x86_ops(JitContext& ctx, const CpuFeatures& host_features) {
   using Ext = CpuFeatures::X86;
 
   {
@@ -5650,7 +5637,7 @@ static void test_x86_ops(JitContext& ctx, const CpuFeatures& host_features) noex
 #endif // ASMJIT_UJIT_X86
 
 #if defined(ASMJIT_UJIT_AARCH64)
-static void test_a64_ops(JitContext& ctx, const CpuFeatures& host_features) noexcept {
+static void test_a64_ops(JitContext& ctx, const CpuFeatures& host_features) {
   ctx.features = host_features;
 
   test_gp_ops(ctx);

@@ -678,7 +678,7 @@ public:
   //! \name Labels
   //! \{
 
-  //! Creates a new label.
+  //! Creates a new anonymous label.
   [[nodiscard]]
   ASMJIT_API virtual Label new_label();
 
@@ -890,6 +890,11 @@ public:
 
   //! Emits a comment stored in `data` with an optional `size` parameter.
   ASMJIT_API virtual Error comment(const char* data, size_t size = SIZE_MAX);
+
+  //! Emits a comment passed via a `data` span.
+  ASMJIT_INLINE Error comment(Span<const char> data) {
+    return comment(data.data(), data.size());
+  }
 
   //! Emits a formatted comment specified by `fmt` and variable number of arguments.
   ASMJIT_API Error commentf(const char* fmt, ...);

@@ -96,6 +96,10 @@ public:
   //! \name Function Management
   //! \{
 
+  //! Returns the function being generated.
+  [[nodiscard]]
+  ASMJIT_INLINE_NODEBUG FuncNode* func() const noexcept { return _func; }
+
   //! Creates a new \ref FuncNode.
   ASMJIT_API Error new_func_node(Out<FuncNode*> out, const FuncSignature& signature);
   //! Creates a new \ref FuncNode adds it to the instruction stream.
@@ -105,10 +109,6 @@ public:
   ASMJIT_API Error new_func_ret_node(Out<FuncRetNode*> out, const Operand_& o0, const Operand_& o1);
   //! Creates a new \ref FuncRetNode and adds it to the instruction stream.
   ASMJIT_API Error add_func_ret_node(Out<FuncRetNode*> out, const Operand_& o0, const Operand_& o1);
-
-  //! Returns the current function.
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG FuncNode* func() const noexcept { return _func; }
 
   //! Creates a new \ref FuncNode with the given `signature` and returns it.
   ASMJIT_INLINE FuncNode* new_func(const FuncSignature& signature) {
@@ -127,7 +127,12 @@ public:
 
   //! Adds a function `node` to the instruction stream.
   ASMJIT_API FuncNode* add_func(FuncNode* ASMJIT_NONNULL(func));
-  //! Emits a sentinel that marks the end of the current function.
+
+  //! Ends the current function by emitting a sentinel that marks the end of it.
+  //!
+  //! This would close the context for generating the current function. After calling \ref end_func() the active
+  //! function node is reset and \ref func() would return `nullptr` unless another function is being started via
+  //! \ref add_func().
   ASMJIT_API Error end_func();
 
   ASMJIT_INLINE Error add_ret(const Operand_& o0, const Operand_& o1) {

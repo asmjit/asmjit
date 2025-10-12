@@ -874,7 +874,10 @@ enum class FuncAttributes : uint32_t {
   kX86_MMXCleanup = 0x00040000u,
 
   //! This flag instructs the epilog writer to emit VZEROUPPER instruction before RET (X86|X86_64).
-  kX86_AVXCleanup = 0x00080000u
+  kX86_AVXCleanup = 0x00080000u,
+
+  //! This flag instructs the epilog writer to emit VZEROUPPER only if there are dirty vector registers (X86|X86_64).
+  kX86_AVXAutoCleanup = 0x00100000u
 };
 ASMJIT_DEFINE_ENUM_FLAGS(FuncAttributes)
 
@@ -1340,6 +1343,19 @@ public:
 
   //! Disables AVX cleanup.
   ASMJIT_INLINE_NODEBUG void reset_avx_cleanup() noexcept { clear_attributes(FuncAttributes::kX86_AVXCleanup); }
+
+  //! Tests whether the function has automatic AVX cleanup - 'vzeroupper' instruction in epilog when vector registers are
+  //! used.
+  //!
+  //! \note Automatic cleanup is currently determined via dirty registers, which are provided by \ref FuncFrame.
+  [[nodiscard]]
+  ASMJIT_INLINE_NODEBUG bool has_avx_auto_cleanup() const noexcept { return has_attribute(FuncAttributes::kX86_AVXAutoCleanup); }
+
+  //! Enables AVX automatic cleanup.
+  ASMJIT_INLINE_NODEBUG void set_avx_auto_cleanup() noexcept { add_attributes(FuncAttributes::kX86_AVXAutoCleanup); }
+
+  //! Disables AVX automatic cleanup.
+  ASMJIT_INLINE_NODEBUG void reset_avx_auto_cleanup() noexcept { clear_attributes(FuncAttributes::kX86_AVXAutoCleanup); }
 
   //! Tests whether the function uses call stack.
   [[nodiscard]]

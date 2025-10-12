@@ -403,6 +403,11 @@ public:
   [[nodiscard]]
   ASMJIT_API Label new_named_label(const char* name, size_t name_size = SIZE_MAX, LabelType type = LabelType::kGlobal, uint32_t parent_id = Globals::kInvalidId) override;
 
+  [[nodiscard]]
+  ASMJIT_INLINE Label new_named_label(Span<const char> name, LabelType type = LabelType::kGlobal, uint32_t parent_id = Globals::kInvalidId) {
+    return new_named_label(name.data(), name.size(), type, parent_id);
+  }
+
   ASMJIT_API Error bind(const Label& label) override;
 
   //! \}
@@ -472,6 +477,8 @@ public:
   //! \{
 
   ASMJIT_API Error comment(const char* data, size_t size = SIZE_MAX) override;
+
+  ASMJIT_INLINE Error comment(Span<const char> data) { return comment(data.data(), data.size()); }
 
   //! \}
 

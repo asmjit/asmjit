@@ -1050,16 +1050,16 @@ Error Assembler::_emit(InstId inst_id, const Operand_& o0, const Operand_& o1, c
             o3.as<Imm>().value_as<uint64_t>() >= Support::bit_mask<uint32_t>(op_data.b_imm_size + op_data.b_imm_discard_lsb))
           goto InvalidImmediate;
 
-        uint32_t aImm = o2.as<Imm>().value_as<uint32_t>() >> op_data.a_imm_discard_lsb;
-        uint32_t bImm = o3.as<Imm>().value_as<uint32_t>() >> op_data.b_imm_discard_lsb;
+        uint32_t a_imm = o2.as<Imm>().value_as<uint32_t>() >> op_data.a_imm_discard_lsb;
+        uint32_t b_imm = o3.as<Imm>().value_as<uint32_t>() >> op_data.b_imm_discard_lsb;
 
-        if ((aImm << op_data.a_imm_discard_lsb) != o2.as<Imm>().value_as<uint32_t>() ||
-            (bImm << op_data.b_imm_discard_lsb) != o3.as<Imm>().value_as<uint32_t>())
+        if ((a_imm << op_data.a_imm_discard_lsb) != o2.as<Imm>().value_as<uint32_t>() ||
+            (b_imm << op_data.b_imm_discard_lsb) != o3.as<Imm>().value_as<uint32_t>())
           goto InvalidImmediate;
 
         opcode.reset(op_data.opcode());
-        opcode.add_imm(aImm, op_data.a_imm_offset);
-        opcode.add_imm(bImm, op_data.b_imm_offset);
+        opcode.add_imm(a_imm, op_data.a_imm_offset);
+        opcode.add_imm(b_imm, op_data.b_imm_offset);
         opcode.add_reg(o1, 5);
         opcode.add_reg(o0, 0);
         goto EmitOp;

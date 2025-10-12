@@ -215,11 +215,19 @@ public:
   //! \overload
   ASMJIT_INLINE_NODEBUG Error invoke(Out<InvokeNode*> out, uint64_t target, const FuncSignature& signature) { return invoke_(out, Imm(int64_t(target)), signature); }
 
-  //! Return.
+  //! Return from function.
+  //!
+  //! \note This doesn't end the function - it just emits a return.
   ASMJIT_INLINE_NODEBUG Error ret() { return add_ret(Operand(), Operand()); }
-  //! \overload
+
+  //! Return from function - one value.
+  //!
+  //! \note This doesn't end the function - it just emits a return.
   ASMJIT_INLINE_NODEBUG Error ret(const Reg& o0) { return add_ret(o0, Operand()); }
-  //! \overload
+
+  //! Return from function - two values / register pair.
+  //!
+  //! \note This doesn't end the function - it just emits a return.
   ASMJIT_INLINE_NODEBUG Error ret(const Reg& o0, const Reg& o1) { return add_ret(o0, o1); }
 
   //! \}

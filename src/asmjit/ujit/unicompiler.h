@@ -182,12 +182,8 @@ public:
   //! SIMD type id (AsmJit).
   TypeId _vec_type_id = TypeId::kVoid;
 
-  //! Function node.
-  FuncNode* _func_node = nullptr;
   //! Function initialization hook.
-  BaseNode* _func_init = nullptr;
-  //! Function end hook (to add 'unlikely' branches).
-  BaseNode* _func_end = nullptr;
+  BaseNode* _func_init_hook = nullptr;
 
   //! Invalid GP register.
   Gp _gp_none;
@@ -482,37 +478,279 @@ public:
 
   //! \}
 
-  //! \name Function
+  //! \name Labels
   //! \{
 
-  ASMJIT_API void init_function(FuncNode* func_node) noexcept;
+  //! Creates a new anonymous label.
+  //!
+  //! See \ref BaseEmitter::new_label() for more details.
+  [[nodiscard]]
+  ASMJIT_INLINE Label new_label() {
+    return cc->new_label();
+  }
+
+  //! Creates a new named label.
+  //!
+  //! See \ref BaseEmitter::new_named_label() for more details.
+  [[nodiscard]]
+  ASMJIT_INLINE Label new_named_label(const char* name, size_t name_size = SIZE_MAX, LabelType type = LabelType::kGlobal, uint32_t parent_id = Globals::kInvalidId) {
+    return cc->new_named_label(name, name_size, type, parent_id);
+  }
+
+  //! \overload
+  [[nodiscard]]
+  ASMJIT_INLINE Label new_named_label(Span<const char> name, LabelType type = LabelType::kGlobal, uint32_t parent_id = Globals::kInvalidId) {
+    return cc->new_named_label(name, type, parent_id);
+  }
+
+  //! Creates a new anonymous label with a name, which can only be used for debugging purposes.
+  //!
+  //! See \ref BaseEmitter::new_anonymous_label() for more details.
+  [[nodiscard]]
+  ASMJIT_INLINE_NODEBUG Label new_anonymous_label(const char* name, size_t name_size = SIZE_MAX) {
+    return cc->new_anonymous_label(name, name_size);
+  }
+
+  //! \overload
+  [[nodiscard]]
+  ASMJIT_INLINE Label new_anonymous_label(Span<const char> name) {
+    return cc->new_anonymous_label(name);
+  }
+
+  //! Creates a new external label.
+  //!
+  //! See \ref BaseEmitter::new_external_label() for more details.
+  [[nodiscard]]
+  ASMJIT_INLINE_NODEBUG Label new_external_label(const char* name, size_t name_size = SIZE_MAX) {
+    return cc->new_external_label(name, name_size);
+  }
+
+  //! \overload
+  [[nodiscard]]
+  ASMJIT_INLINE Label new_external_label(Span<const char> name) {
+    return cc->new_external_label(name);
+  }
+
+  //! Binds the `label` to the current position of the current section.
+  //!
+  //! See \ref BaseEmitter::bind() for more details.
+  ASMJIT_INLINE Error bind(const Label& label) {
+    return cc->bind(label);
+  }
 
   //! \}
 
-  //! \name Miscellaneous Helpers
+  //! \name Align
   //! \{
 
-  ASMJIT_INLINE void rename(const OpArray& op_array, const char* name) noexcept {
-    for (uint32_t i = 0; i < op_array.size(); i++) {
-      cc->rename(op_array[i].as<Reg>(), "%s%u", name, unsigned(i));
-    }
+  //! Aligns the current position to the `alignment` specified.
+  //!
+  //! See \ref BaseEmitter::align() for more details.
+  ASMJIT_INLINE Error align(AlignMode align_mode, uint32_t alignment) {
+    return cc->align(align_mode, alignment);
   }
 
-  ASMJIT_INLINE void rename(const OpArray& op_array, const char* prefix, const char* name) noexcept {
-    for (uint32_t i = 0; i < op_array.size(); i++) {
-      cc->rename(op_array[i].as<Reg>(), "%s%s%u", prefix, name, unsigned(i));
-    }
+  //! \name Embed
+  //! \{
+
+  //! Embeds raw data into the instruction stream.
+  //!
+  //! See \ref BaseEmitter::embed() for more details.
+  ASMJIT_INLINE Error embed(const void* data, size_t data_size) {
+    return cc->embed(data, data_size);
+  }
+
+  //! Embeds a typed data array.
+  //!
+  //! See \ref BaseEmitter::embed_data_array() for more details.
+  ASMJIT_INLINE Error embed_data_array(TypeId type_id, const void* data, size_t item_count, size_t repeat_count = 1) {
+    return cc->embed_data_array(type_id, data, item_count, repeat_count);
+  }
+
+  //! Embeds int8_t `value` repeated by `repeat_count`.
+  ASMJIT_INLINE Error embed_int8(int8_t value, size_t repeat_count = 1) { return cc->embed_int8(value, repeat_count); }
+  //! Embeds uint8_t `value` repeated by `repeat_count`.
+  ASMJIT_INLINE Error embed_uint8(uint8_t value, size_t repeat_count = 1) { return cc->embed_uint8(value, repeat_count); }
+  //! Embeds int16_t `value` repeated by `repeat_count`.
+  ASMJIT_INLINE Error embed_int16(int16_t value, size_t repeat_count = 1) { return cc->embed_int16(value, repeat_count); }
+  //! Embeds uint16_t `value` repeated by `repeat_count`.
+  ASMJIT_INLINE Error embed_uint16(uint16_t value, size_t repeat_count = 1) { return cc->embed_uint16(value, repeat_count); }
+  //! Embeds int32_t `value` repeated by `repeat_count`.
+  ASMJIT_INLINE Error embed_int32(int32_t value, size_t repeat_count = 1) { return cc->embed_int32(value, repeat_count); }
+  //! Embeds uint32_t `value` repeated by `repeat_count`.
+  ASMJIT_INLINE Error embed_uint32(uint32_t value, size_t repeat_count = 1) { return cc->embed_uint32(value, repeat_count); }
+  //! Embeds int64_t `value` repeated by `repeat_count`.
+  ASMJIT_INLINE Error embed_int64(int64_t value, size_t repeat_count = 1) { return cc->embed_int64(value, repeat_count); }
+  //! Embeds uint64_t `value` repeated by `repeat_count`.
+  ASMJIT_INLINE Error embed_uint64(uint64_t value, size_t repeat_count = 1) { return cc->embed_uint64(value, repeat_count); }
+  //! Embeds a 32-bit floating point `value` repeated by `repeat_count`.
+  ASMJIT_INLINE Error embed_float(float value, size_t repeat_count = 1) { return cc->embed_float(value, repeat_count); }
+  //! Embeds a 64-bit floating point `value` repeated by `repeat_count`.
+  ASMJIT_INLINE Error embed_double(double value, size_t repeat_count = 1) { return cc->embed_double(value, repeat_count); }
+
+  //! Embeds a constant pool at the current offset.
+  //!
+  //! See \ref BaseEmitter::embed_const_pool() for more details.
+  ASMJIT_INLINE Error embed_const_pool(const Label& label, const ConstPool& pool) {
+    return cc->embed_const_pool(label, pool);
+  }
+
+  //! Embeds an absolute `label` address as data.
+  //!
+  //! See \ref BaseEmitter::embed_label() for more details.
+  ASMJIT_INLINE Error embed_label(const Label& label, size_t data_size = 0) {
+    return cc->embed_label(label, data_size);
+  }
+
+  //! Embeds a delta (distance) between the `label` and `base` calculating it as `label - base`.
+  //!
+  //! See \ref BaseEmitter::embed_label_delta() for more details.
+  ASMJIT_INLINE Error embed_label_delta(const Label& label, const Label& base, size_t data_size = 0) {
+    return cc->embed_label_delta(label, base, data_size);
+  }
+
+  ASMJIT_API void embed_jump_table(Span<const Label> jump_table, const Label& jump_table_base, uint32_t entry_size);
+
+  //! \}
+
+  //! \name Comment
+  //! \{
+
+  //! Emits a comment stored in `data` with an optional `size` parameter.
+  ASMJIT_INLINE Error comment(const char* data, size_t size = SIZE_MAX) {
+    return cc->comment(data, size);
+  }
+
+  //! Emits a comment passed via a `data` span.
+  ASMJIT_INLINE Error comment(Span<const char> data) {
+    return cc->comment(data);
+  }
+
+  //! Emits a formatted comment specified by `fmt` and variable number of arguments.
+  template<typename... Args>
+  ASMJIT_INLINE Error commentf(const char* fmt, Args&&... args) {
+    return cc->commentf(fmt, std::forward<Args>(args)...);
+  }
+
+  //! Emits a formatted comment specified by `fmt` and `ap`.
+  ASMJIT_INLINE Error commentv(const char* fmt, va_list ap) {
+    return cc->commentv(fmt, ap);
   }
 
   //! \}
 
-  //! \name Utilities
+  //! \name Function Management
   //! \{
 
-  ASMJIT_INLINE Label new_label() const noexcept { return cc->new_label(); }
+  //! Returns the function being generated.
+  //!
+  //! This is just a convenience wrapper that calls \ref BaseCompiler::func().
+  [[nodiscard]]
+  ASMJIT_INLINE_NODEBUG FuncNode* func() const noexcept { return cc->func(); }
 
-  ASMJIT_INLINE void align(AlignMode align_mode, uint32_t alignment) noexcept { cc->align(align_mode, alignment); }
-  ASMJIT_INLINE void bind(const Label& label) noexcept { cc->bind(label); }
+  //! Hooks a function that is being generated by \ref BaseCompiler.
+  //!
+  //! This function is called automatically by \ref add_func_node() and \ref add_func(). However, if \ref BaseCompiler
+  //! was called instead of \ref UniCompiler to add the function node to the instruction stream, then it has to be
+  //! hooked manually.
+  ASMJIT_API void hook_func() noexcept;
+
+  //! Unhooks a function.
+  //!
+  //! In general this mostly does a cleanup of \ref UniCompiler.
+  ASMJIT_API void unhook_func() noexcept;
+
+  //! Creates a new \ref FuncNode.
+  //!
+  //! This is just a convenience wrapper that calls \ref BaseCompiler::new_func_node().
+  ASMJIT_INLINE Error new_func_node(Out<FuncNode*> out, const FuncSignature& signature) {
+    return cc->new_func_node(out, signature);
+  }
+
+  //! Creates a new \ref FuncNode adds it to the instruction stream.
+  //!
+  //! This is just a convenience wrapper that calls \ref BaseCompiler::add_func_node().
+  ASMJIT_INLINE Error add_func_node(Out<FuncNode*> out, const FuncSignature& signature) {
+    Error err = cc->add_func_node(out, signature);
+    hook_func();
+    return err;
+  }
+
+  //! Creates a new \ref FuncNode with the given `signature`, adds it to the instruction stream by using
+  //! `add_func(FuncNode* func)` overload, and returns the node.
+  ASMJIT_INLINE FuncNode* add_func(const FuncSignature& signature) {
+    FuncNode* node;
+    add_func_node(Out(node), signature);
+    hook_func();
+    return node;
+  }
+
+  //! Adds a function `node` to the instruction stream.
+  ASMJIT_INLINE FuncNode* add_func(FuncNode* ASMJIT_NONNULL(func)) {
+    FuncNode* node = cc->add_func(func);
+    hook_func();
+    return node;
+  }
+
+  //! Creates a new \ref FuncRetNode.
+  //!
+  //! This is just a convenience wrapper that calls \ref BaseCompiler::new_func_ret_node().
+  ASMJIT_INLINE Error new_func_ret_node(Out<FuncRetNode*> out, const Operand_& o0, const Operand_& o1) {
+    return cc->new_func_ret_node(out, o0, o1);
+  }
+
+  //! Creates a new \ref FuncRetNode and adds it to the instruction stream.
+  //!
+  //! This is just a convenience wrapper that calls \ref BaseCompiler::add_func_ret_node().
+  ASMJIT_INLINE Error add_func_ret_node(Out<FuncRetNode*> out, const Operand_& o0, const Operand_& o1) {
+    return cc->add_func_ret_node(out, o0, o1);
+  }
+
+  //! Ends the current function by emitting a sentinel that marks the end of it.
+  ASMJIT_INLINE Error end_func() {
+    unhook_func();
+    return cc->end_func();
+  }
+
+  //! Return from function, a convenience function that calls \ref BaseCompiler::ret().
+  //!
+  //! \note This doesn't end the function - it just emits a return.
+  ASMJIT_INLINE Error ret() { return cc->ret(); }
+
+  //! Return from function - one value.
+  //!
+  //! \note This doesn't end the function - it just emits a return.
+  ASMJIT_INLINE Error ret(const Reg& o0) { return cc->ret(o0); }
+
+  //! Return from function - two values / register pair.
+  //!
+  //! \note This doesn't end the function - it just emits a return.
+  ASMJIT_INLINE Error ret(const Reg& o0, const Reg& o1) { return cc->ret(o0, o1); }
+
+  //! \}
+
+  //! \name Function Finalization
+  //! \{
+
+  //! Calls \ref BaseCompiler::finalize().
+  ASMJIT_INLINE Error finalize() {
+    return cc->finalize();
+  }
+
+  //! \}
+
+  //! \name Function Invocation
+  //! \{
+
+  //! Creates a new \ref InvokeNode.
+  ASMJIT_INLINE Error new_invoke_node(Out<InvokeNode*> out, InstId inst_id, const Operand_& o0, const FuncSignature& signature) {
+    return cc->new_invoke_node(out, inst_id, o0, signature);
+  }
+
+  //! Creates a new \ref InvokeNode and adds it to the instruction stream.
+  ASMJIT_INLINE Error add_invoke_node(Out<InvokeNode*> out, InstId inst_id, const Operand_& o0, const FuncSignature& signature) {
+    return cc->add_invoke_node(out, inst_id, o0, signature);
+  }
 
   //! \}
 
@@ -521,82 +759,97 @@ public:
 
   //! Wraps `BackendCompiler::new_reg(type_id, args...)`.
   template<typename RegT, typename... Args>
+  [[nodiscard]]
   ASMJIT_INLINE RegT new_reg(TypeId type_id, Args&&... args) noexcept {
     return cc->new_similar_reg<RegT>(type_id, std::forward<Args>(args)...);
   }
 
   //! Wraps `BackendCompiler::new_similar_reg(ref, args...)`.
   template<typename RegT, typename... Args>
+  [[nodiscard]]
   ASMJIT_INLINE RegT new_similar_reg(const RegT& ref, Args&&... args) noexcept {
     return cc->new_similar_reg(ref, std::forward<Args>(args)...);
   }
 
   //! Wraps `BackendCompiler::new_gp32(args...)`.
   template<typename... Args>
+  [[nodiscard]]
   ASMJIT_INLINE Gp new_gp32(Args&&... args) noexcept {
     return cc->new_gp32(std::forward<Args>(args)...);
   }
 
   //! Wraps `BackendCompiler::new_gp64(args...)`.
   template<typename... Args>
+  [[nodiscard]]
   ASMJIT_INLINE Gp new_gp64(Args&&... args) noexcept {
     return cc->new_gp64(std::forward<Args>(args)...);
   }
 
   //! Wraps `BackendCompiler::new_gpz(args...)`.
   template<typename... Args>
+  [[nodiscard]]
   ASMJIT_INLINE Gp new_gpz(Args&&... args) noexcept {
     return cc->new_gpz(std::forward<Args>(args)...);
   }
 
   //! Wraps `BackendCompiler::new_gpz(args...)`.
   template<typename... Args>
+  [[nodiscard]]
   ASMJIT_INLINE Gp new_gp_ptr(Args&&... args) noexcept {
     return cc->new_gp_ptr(std::forward<Args>(args)...);
   }
 
   template<typename... Args>
+  [[nodiscard]]
   ASMJIT_INLINE Vec new_vec(Args&&... args) noexcept {
     return cc->new_vec(_vec_type_id, std::forward<Args>(args)...);
   }
 
   template<typename... Args>
+  [[nodiscard]]
   ASMJIT_INLINE Vec new_vec_with_width(VecWidth vw, Args&&... args) noexcept {
     return cc->new_reg<Vec>(VecWidthUtils::type_id_of(vw), std::forward<Args>(args)...);
   }
 
   template<typename... Args>
+  [[nodiscard]]
   ASMJIT_INLINE Vec new_vec128(Args&&... args) noexcept {
     return cc->new_vec128(std::forward<Args>(args)...);
   }
 
   template<typename... Args>
+  [[nodiscard]]
   ASMJIT_INLINE Vec new_vec128_f32x1(Args&&... args) noexcept {
     return cc->new_vec128_f32x1(std::forward<Args>(args)...);
   }
 
   template<typename... Args>
+  [[nodiscard]]
   ASMJIT_INLINE Vec new_vec128_f64x1(Args&&... args) noexcept {
     return cc->new_vec128_f64x1(std::forward<Args>(args)...);
   }
 
   template<typename... Args>
+  [[nodiscard]]
   ASMJIT_INLINE Vec new_vec128_f32x4(Args&&... args) noexcept {
     return cc->new_vec128_f32x4(std::forward<Args>(args)...);
   }
 
   template<typename... Args>
+  [[nodiscard]]
   ASMJIT_INLINE Vec new_vec128_f64x2(Args&&... args) noexcept {
     return cc->new_vec128_f64x2(std::forward<Args>(args)...);
   }
 
 #if defined(ASMJIT_UJIT_X86)
   template<typename... Args>
+  [[nodiscard]]
   ASMJIT_INLINE Vec new_vec256(Args&&... args) noexcept {
     return cc->new_vec256(std::forward<Args>(args)...);
   }
 
   template<typename... Args>
+  [[nodiscard]]
   ASMJIT_INLINE Vec new_vec512(Args&&... args) noexcept {
     return cc->new_vec512(std::forward<Args>(args)...);
   }
@@ -676,47 +929,57 @@ public:
   }
 #endif // ASMJIT_UJIT_X86
 
-  ASMJIT_API Mem tmp_stack(StackId id, uint32_t size) noexcept;
+  ASMJIT_API Mem tmp_stack(StackId id, uint32_t size);
 
   //! \}
 
-  //! \name Compiler Utilities
+  ASMJIT_API void _init_vec_const_table_ptr();
+
+  //! \name Miscellaneous Helpers
   //! \{
 
-  ASMJIT_API void embed_jump_table(const Label* jump_table, size_t jump_table_size, const Label& jump_table_base, uint32_t entry_size) noexcept;
+  ASMJIT_INLINE void rename(const OpArray& op_array, const char* name) noexcept {
+    for (uint32_t i = 0; i < op_array.size(); i++) {
+      cc->rename(op_array[i].as<Reg>(), "%s%u", name, unsigned(i));
+    }
+  }
+
+  ASMJIT_INLINE void rename(const OpArray& op_array, const char* prefix, const char* name) noexcept {
+    for (uint32_t i = 0; i < op_array.size(); i++) {
+      cc->rename(op_array[i].as<Reg>(), "%s%s%u", prefix, name, unsigned(i));
+    }
+  }
 
   //! \}
-
-  ASMJIT_API void _init_vec_const_table_ptr() noexcept;
 
   //! \name Constants (X86|X86_64)
   //! \{
 
 #if defined(ASMJIT_UJIT_X86)
-  ASMJIT_API x86::KReg k_const(uint64_t value) noexcept;
+  ASMJIT_API x86::KReg k_const(uint64_t value);
 #endif // ASMJIT_UJIT_X86
 
-  ASMJIT_API Operand simd_const(const void* c, Bcst bcst_width, VecWidth const_width) noexcept;
-  ASMJIT_API Operand simd_const(const void* c, Bcst bcst_width, const Vec& similar_to) noexcept;
-  ASMJIT_API Operand simd_const(const void* c, Bcst bcst_width, const VecArray& similar_to) noexcept;
+  ASMJIT_API Operand simd_const(const void* c, Bcst bcst_width, VecWidth const_width);
+  ASMJIT_API Operand simd_const(const void* c, Bcst bcst_width, const Vec& similar_to);
+  ASMJIT_API Operand simd_const(const void* c, Bcst bcst_width, const VecArray& similar_to);
 
-  ASMJIT_API Vec simd_vec_const(const void* c, Bcst bcst_width, VecWidth const_width) noexcept;
-  ASMJIT_API Vec simd_vec_const(const void* c, Bcst bcst_width, const Vec& similar_to) noexcept;
-  ASMJIT_API Vec simd_vec_const(const void* c, Bcst bcst_width, const VecArray& similar_to) noexcept;
+  ASMJIT_API Vec simd_vec_const(const void* c, Bcst bcst_width, VecWidth const_width);
+  ASMJIT_API Vec simd_vec_const(const void* c, Bcst bcst_width, const Vec& similar_to);
+  ASMJIT_API Vec simd_vec_const(const void* c, Bcst bcst_width, const VecArray& similar_to);
 
-  ASMJIT_API Mem simd_mem_const(const void* c, Bcst bcst_width, VecWidth const_width) noexcept;
-  ASMJIT_API Mem simd_mem_const(const void* c, Bcst bcst_width, const Vec& similar_to) noexcept;
-  ASMJIT_API Mem simd_mem_const(const void* c, Bcst bcst_width, const VecArray& similar_to) noexcept;
+  ASMJIT_API Mem simd_mem_const(const void* c, Bcst bcst_width, VecWidth const_width);
+  ASMJIT_API Mem simd_mem_const(const void* c, Bcst bcst_width, const Vec& similar_to);
+  ASMJIT_API Mem simd_mem_const(const void* c, Bcst bcst_width, const VecArray& similar_to);
 
-  ASMJIT_API Mem _get_mem_const(const void* c) noexcept;
-  ASMJIT_API Vec _new_vec_const(const void* c, bool is_unique_const) noexcept;
+  ASMJIT_API Mem _get_mem_const(const void* c);
+  ASMJIT_API Vec _new_vec_const(const void* c, bool is_unique_const);
 
 #if defined(ASMJIT_UJIT_AARCH64)
-  ASMJIT_API Vec simd_const_16b(const void* data16) noexcept;
+  ASMJIT_API Vec simd_const_16b(const void* data16);
 #endif // ASMJIT_UJIT_AARCH64
 
 #if defined(ASMJIT_UJIT_AARCH64)
-  inline Vec simd_vec_zero(const Vec& similar_to) noexcept { return simd_vec_const(&ct().p_0000000000000000, Bcst::k32, similar_to); }
+  inline Vec simd_vec_zero(const Vec& similar_to) { return simd_vec_const(&ct().p_0000000000000000, Bcst::k32, similar_to); }
 #endif // ASMJIT_UJIT_AARCH64
 
   //! \}
@@ -724,334 +987,329 @@ public:
   //! \name Emit - General Purpose Instructions
   //! \{
 
-  ASMJIT_API void emit_mov(const Gp& dst, const Operand_& src) noexcept;
-  ASMJIT_API void emit_m(UniOpM op, const Mem& m) noexcept;
-  ASMJIT_API void emit_rm(UniOpRM op, const Gp& dst, const Mem& src) noexcept;
-  ASMJIT_API void emit_mr(UniOpMR op, const Mem& dst, const Gp& src) noexcept;
-  ASMJIT_API void emit_cmov(const Gp& dst, const Operand_& sel, const UniCondition& condition) noexcept;
-  ASMJIT_API void emit_select(const Gp& dst, const Operand_& sel1_, const Operand_& sel2_, const UniCondition& condition) noexcept;
-  ASMJIT_API void emit_2i(UniOpRR op, const Gp& dst, const Operand_& src_) noexcept;
-  ASMJIT_API void emit_3i(UniOpRRR op, const Gp& dst, const Operand_& src1_, const Operand_& src2_) noexcept;
-  ASMJIT_API void emit_j(const Operand_& target) noexcept;
-  ASMJIT_API void emit_j_if(const Label& target, const UniCondition& condition) noexcept;
+  ASMJIT_API void emit_mov(const Gp& dst, const Operand_& src);
+  ASMJIT_API void emit_m(UniOpM op, const Mem& m);
+  ASMJIT_API void emit_rm(UniOpRM op, const Gp& dst, const Mem& src);
+  ASMJIT_API void emit_mr(UniOpMR op, const Mem& dst, const Gp& src);
+  ASMJIT_API void emit_cmov(const Gp& dst, const Operand_& sel, const UniCondition& condition);
+  ASMJIT_API void emit_select(const Gp& dst, const Operand_& sel1_, const Operand_& sel2_, const UniCondition& condition);
+  ASMJIT_API void emit_2i(UniOpRR op, const Gp& dst, const Operand_& src_);
+  ASMJIT_API void emit_3i(UniOpRRR op, const Gp& dst, const Operand_& src1_, const Operand_& src2_);
+  ASMJIT_API void emit_j(const Operand_& target);
+  ASMJIT_API void emit_j_if(const Label& target, const UniCondition& condition);
 
-  ASMJIT_INLINE void mov(const Gp& dst, const Gp& src) noexcept { return emit_mov(dst, src); }
-  ASMJIT_INLINE void mov(const Gp& dst, const Imm& src) noexcept { return emit_mov(dst, src); }
+  ASMJIT_INLINE void mov(const Gp& dst, const Gp& src) { return emit_mov(dst, src); }
+  ASMJIT_INLINE void mov(const Gp& dst, const Imm& src) { return emit_mov(dst, src); }
 
-  ASMJIT_INLINE void load(const Gp& dst, const Mem& src) noexcept { return emit_rm(UniOpRM::kLoadReg, dst, src); }
-  ASMJIT_INLINE void load_i8(const Gp& dst, const Mem& src) noexcept { return emit_rm(UniOpRM::kLoadI8, dst, src); }
-  ASMJIT_INLINE void load_u8(const Gp& dst, const Mem& src) noexcept { return emit_rm(UniOpRM::kLoadU8, dst, src); }
-  ASMJIT_INLINE void load_i16(const Gp& dst, const Mem& src) noexcept { return emit_rm(UniOpRM::kLoadI16, dst, src); }
-  ASMJIT_INLINE void load_u16(const Gp& dst, const Mem& src) noexcept { return emit_rm(UniOpRM::kLoadU16, dst, src); }
-  ASMJIT_INLINE void load_i32(const Gp& dst, const Mem& src) noexcept { return emit_rm(UniOpRM::kLoadI32, dst, src); }
-  ASMJIT_INLINE void load_u32(const Gp& dst, const Mem& src) noexcept { return emit_rm(UniOpRM::kLoadU32, dst, src); }
-  ASMJIT_INLINE void load_i64(const Gp& dst, const Mem& src) noexcept { return emit_rm(UniOpRM::kLoadI64, dst, src); }
-  ASMJIT_INLINE void load_u64(const Gp& dst, const Mem& src) noexcept { return emit_rm(UniOpRM::kLoadU64, dst, src); }
+  ASMJIT_INLINE void load(const Gp& dst, const Mem& src) { return emit_rm(UniOpRM::kLoadReg, dst, src); }
+  ASMJIT_INLINE void load_i8(const Gp& dst, const Mem& src) { return emit_rm(UniOpRM::kLoadI8, dst, src); }
+  ASMJIT_INLINE void load_u8(const Gp& dst, const Mem& src) { return emit_rm(UniOpRM::kLoadU8, dst, src); }
+  ASMJIT_INLINE void load_i16(const Gp& dst, const Mem& src) { return emit_rm(UniOpRM::kLoadI16, dst, src); }
+  ASMJIT_INLINE void load_u16(const Gp& dst, const Mem& src) { return emit_rm(UniOpRM::kLoadU16, dst, src); }
+  ASMJIT_INLINE void load_i32(const Gp& dst, const Mem& src) { return emit_rm(UniOpRM::kLoadI32, dst, src); }
+  ASMJIT_INLINE void load_u32(const Gp& dst, const Mem& src) { return emit_rm(UniOpRM::kLoadU32, dst, src); }
+  ASMJIT_INLINE void load_i64(const Gp& dst, const Mem& src) { return emit_rm(UniOpRM::kLoadI64, dst, src); }
+  ASMJIT_INLINE void load_u64(const Gp& dst, const Mem& src) { return emit_rm(UniOpRM::kLoadU64, dst, src); }
 
-  ASMJIT_INLINE void load_merge_u8(const Gp& dst, const Mem& src) noexcept { return emit_rm(UniOpRM::kLoadMergeU8, dst, src); }
-  ASMJIT_INLINE void load_shift_u8(const Gp& dst, const Mem& src) noexcept { return emit_rm(UniOpRM::kLoadShiftU8, dst, src); }
-  ASMJIT_INLINE void load_merge_u16(const Gp& dst, const Mem& src) noexcept { return emit_rm(UniOpRM::kLoadMergeU16, dst, src); }
-  ASMJIT_INLINE void load_shift_u16(const Gp& dst, const Mem& src) noexcept { return emit_rm(UniOpRM::kLoadShiftU16, dst, src); }
+  ASMJIT_INLINE void load_merge_u8(const Gp& dst, const Mem& src) { return emit_rm(UniOpRM::kLoadMergeU8, dst, src); }
+  ASMJIT_INLINE void load_shift_u8(const Gp& dst, const Mem& src) { return emit_rm(UniOpRM::kLoadShiftU8, dst, src); }
+  ASMJIT_INLINE void load_merge_u16(const Gp& dst, const Mem& src) { return emit_rm(UniOpRM::kLoadMergeU16, dst, src); }
+  ASMJIT_INLINE void load_shift_u16(const Gp& dst, const Mem& src) { return emit_rm(UniOpRM::kLoadShiftU16, dst, src); }
 
-  ASMJIT_INLINE void store(const Mem& dst, const Gp& src) noexcept { return emit_mr(UniOpMR::kStoreReg, dst, src); }
-  ASMJIT_INLINE void store_u8(const Mem& dst, const Gp& src) noexcept { return emit_mr(UniOpMR::kStoreU8, dst, src); }
-  ASMJIT_INLINE void store_u16(const Mem& dst, const Gp& src) noexcept { return emit_mr(UniOpMR::kStoreU16, dst, src); }
-  ASMJIT_INLINE void store_u32(const Mem& dst, const Gp& src) noexcept { return emit_mr(UniOpMR::kStoreU32, dst, src); }
-  ASMJIT_INLINE void store_u64(const Mem& dst, const Gp& src) noexcept { return emit_mr(UniOpMR::kStoreU64, dst, src); }
+  ASMJIT_INLINE void store(const Mem& dst, const Gp& src) { return emit_mr(UniOpMR::kStoreReg, dst, src); }
+  ASMJIT_INLINE void store_u8(const Mem& dst, const Gp& src) { return emit_mr(UniOpMR::kStoreU8, dst, src); }
+  ASMJIT_INLINE void store_u16(const Mem& dst, const Gp& src) { return emit_mr(UniOpMR::kStoreU16, dst, src); }
+  ASMJIT_INLINE void store_u32(const Mem& dst, const Gp& src) { return emit_mr(UniOpMR::kStoreU32, dst, src); }
+  ASMJIT_INLINE void store_u64(const Mem& dst, const Gp& src) { return emit_mr(UniOpMR::kStoreU64, dst, src); }
 
-  ASMJIT_INLINE void store_zero_reg(const Mem& dst) noexcept { return emit_m(UniOpM::kStoreZeroReg, dst); }
-  ASMJIT_INLINE void store_zero_u8(const Mem& dst) noexcept { return emit_m(UniOpM::kStoreZeroU8, dst); }
-  ASMJIT_INLINE void store_zero_u16(const Mem& dst) noexcept { return emit_m(UniOpM::kStoreZeroU16, dst); }
-  ASMJIT_INLINE void store_zero_u32(const Mem& dst) noexcept { return emit_m(UniOpM::kStoreZeroU32, dst); }
-  ASMJIT_INLINE void store_zero_u64(const Mem& dst) noexcept { return emit_m(UniOpM::kStoreZeroU64, dst); }
+  ASMJIT_INLINE void prefetch(const Mem& mem) { return emit_m(UniOpM::kPrefetch, mem); }
+  ASMJIT_INLINE void store_zero_reg(const Mem& dst) { return emit_m(UniOpM::kStoreZeroReg, dst); }
+  ASMJIT_INLINE void store_zero_u8(const Mem& dst) { return emit_m(UniOpM::kStoreZeroU8, dst); }
+  ASMJIT_INLINE void store_zero_u16(const Mem& dst) { return emit_m(UniOpM::kStoreZeroU16, dst); }
+  ASMJIT_INLINE void store_zero_u32(const Mem& dst) { return emit_m(UniOpM::kStoreZeroU32, dst); }
+  ASMJIT_INLINE void store_zero_u64(const Mem& dst) { return emit_m(UniOpM::kStoreZeroU64, dst); }
 
-  ASMJIT_INLINE void mem_add(const Mem& dst, const Gp& src) noexcept { return emit_mr(UniOpMR::kAddReg, dst, src); }
-  ASMJIT_INLINE void mem_add_u8(const Mem& dst, const Gp& src) noexcept { return emit_mr(UniOpMR::kAddU8, dst, src); }
-  ASMJIT_INLINE void mem_add_u16(const Mem& dst, const Gp& src) noexcept { return emit_mr(UniOpMR::kAddU16, dst, src); }
-  ASMJIT_INLINE void mem_add_u32(const Mem& dst, const Gp& src) noexcept { return emit_mr(UniOpMR::kAddU32, dst, src); }
-  ASMJIT_INLINE void mem_add_u64(const Mem& dst, const Gp& src) noexcept { return emit_mr(UniOpMR::kAddU64, dst, src); }
+  ASMJIT_INLINE void mem_add(const Mem& dst, const Gp& src) { return emit_mr(UniOpMR::kAddReg, dst, src); }
+  ASMJIT_INLINE void mem_add_u8(const Mem& dst, const Gp& src) { return emit_mr(UniOpMR::kAddU8, dst, src); }
+  ASMJIT_INLINE void mem_add_u16(const Mem& dst, const Gp& src) { return emit_mr(UniOpMR::kAddU16, dst, src); }
+  ASMJIT_INLINE void mem_add_u32(const Mem& dst, const Gp& src) { return emit_mr(UniOpMR::kAddU32, dst, src); }
+  ASMJIT_INLINE void mem_add_u64(const Mem& dst, const Gp& src) { return emit_mr(UniOpMR::kAddU64, dst, src); }
 
-  ASMJIT_INLINE void cmov(const Gp& dst, const Gp& sel, const UniCondition& condition) noexcept { emit_cmov(dst, sel, condition); }
-  ASMJIT_INLINE void cmov(const Gp& dst, const Mem& sel, const UniCondition& condition) noexcept { emit_cmov(dst, sel, condition); }
+  ASMJIT_INLINE void cmov(const Gp& dst, const Gp& sel, const UniCondition& condition) { emit_cmov(dst, sel, condition); }
+  ASMJIT_INLINE void cmov(const Gp& dst, const Mem& sel, const UniCondition& condition) { emit_cmov(dst, sel, condition); }
 
   template<typename Sel1, typename Sel2>
-  ASMJIT_INLINE void select(const Gp& dst, const Sel1& sel1, const Sel2& sel2, const UniCondition& condition) noexcept { emit_select(dst, sel1, sel2, condition); }
+  ASMJIT_INLINE void select(const Gp& dst, const Sel1& sel1, const Sel2& sel2, const UniCondition& condition) { emit_select(dst, sel1, sel2, condition); }
 
-  ASMJIT_INLINE void abs(const Gp& dst, const Gp& src) noexcept { emit_2i(UniOpRR::kAbs, dst, src); }
-  ASMJIT_INLINE void abs(const Gp& dst, const Mem& src) noexcept { emit_2i(UniOpRR::kAbs, dst, src); }
+  ASMJIT_INLINE void abs(const Gp& dst, const Gp& src) { emit_2i(UniOpRR::kAbs, dst, src); }
+  ASMJIT_INLINE void abs(const Gp& dst, const Mem& src) { emit_2i(UniOpRR::kAbs, dst, src); }
 
-  ASMJIT_INLINE void neg(const Gp& dst, const Gp& src) noexcept { emit_2i(UniOpRR::kNeg, dst, src); }
-  ASMJIT_INLINE void neg(const Gp& dst, const Mem& src) noexcept { emit_2i(UniOpRR::kNeg, dst, src); }
+  ASMJIT_INLINE void neg(const Gp& dst, const Gp& src) { emit_2i(UniOpRR::kNeg, dst, src); }
+  ASMJIT_INLINE void neg(const Gp& dst, const Mem& src) { emit_2i(UniOpRR::kNeg, dst, src); }
 
-  ASMJIT_INLINE void not_(const Gp& dst, const Gp& src) noexcept { emit_2i(UniOpRR::kNot, dst, src); }
-  ASMJIT_INLINE void not_(const Gp& dst, const Mem& src) noexcept { emit_2i(UniOpRR::kNot, dst, src); }
+  ASMJIT_INLINE void not_(const Gp& dst, const Gp& src) { emit_2i(UniOpRR::kNot, dst, src); }
+  ASMJIT_INLINE void not_(const Gp& dst, const Mem& src) { emit_2i(UniOpRR::kNot, dst, src); }
 
-  ASMJIT_INLINE void bswap(const Gp& dst, const Gp& src) noexcept { emit_2i(UniOpRR::kBSwap, dst, src); }
-  ASMJIT_INLINE void bswap(const Gp& dst, const Mem& src) noexcept { emit_2i(UniOpRR::kBSwap, dst, src); }
+  ASMJIT_INLINE void bswap(const Gp& dst, const Gp& src) { emit_2i(UniOpRR::kBSwap, dst, src); }
+  ASMJIT_INLINE void bswap(const Gp& dst, const Mem& src) { emit_2i(UniOpRR::kBSwap, dst, src); }
 
-  ASMJIT_INLINE void clz(const Gp& dst, const Gp& src) noexcept { emit_2i(UniOpRR::kCLZ, dst, src); }
-  ASMJIT_INLINE void clz(const Gp& dst, const Mem& src) noexcept { emit_2i(UniOpRR::kCLZ, dst, src); }
+  ASMJIT_INLINE void clz(const Gp& dst, const Gp& src) { emit_2i(UniOpRR::kCLZ, dst, src); }
+  ASMJIT_INLINE void clz(const Gp& dst, const Mem& src) { emit_2i(UniOpRR::kCLZ, dst, src); }
 
-  ASMJIT_INLINE void ctz(const Gp& dst, const Gp& src) noexcept { emit_2i(UniOpRR::kCTZ, dst, src); }
-  ASMJIT_INLINE void ctz(const Gp& dst, const Mem& src) noexcept { emit_2i(UniOpRR::kCTZ, dst, src); }
+  ASMJIT_INLINE void ctz(const Gp& dst, const Gp& src) { emit_2i(UniOpRR::kCTZ, dst, src); }
+  ASMJIT_INLINE void ctz(const Gp& dst, const Mem& src) { emit_2i(UniOpRR::kCTZ, dst, src); }
 
-  ASMJIT_INLINE void reflect(const Gp& dst, const Gp& src) noexcept { emit_2i(UniOpRR::kReflect, dst, src); }
-  ASMJIT_INLINE void reflect(const Gp& dst, const Mem& src) noexcept { emit_2i(UniOpRR::kReflect, dst, src); }
+  ASMJIT_INLINE void reflect(const Gp& dst, const Gp& src) { emit_2i(UniOpRR::kReflect, dst, src); }
+  ASMJIT_INLINE void reflect(const Gp& dst, const Mem& src) { emit_2i(UniOpRR::kReflect, dst, src); }
 
-  ASMJIT_INLINE void inc(const Gp& dst) noexcept { emit_3i(UniOpRRR::kAdd, dst, dst, Imm(1)); }
-  ASMJIT_INLINE void dec(const Gp& dst) noexcept { emit_3i(UniOpRRR::kSub, dst, dst, Imm(1)); }
+  ASMJIT_INLINE void inc(const Gp& dst) { emit_3i(UniOpRRR::kAdd, dst, dst, Imm(1)); }
+  ASMJIT_INLINE void dec(const Gp& dst) { emit_3i(UniOpRRR::kSub, dst, dst, Imm(1)); }
 
-  ASMJIT_INLINE void and_(const Gp& dst, const Gp& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kAnd, dst, src1, src2); }
-  ASMJIT_INLINE void and_(const Gp& dst, const Gp& src1, const Mem& src2) noexcept { emit_3i(UniOpRRR::kAnd, dst, src1, src2); }
-  ASMJIT_INLINE void and_(const Gp& dst, const Gp& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kAnd, dst, src1, src2); }
-  ASMJIT_INLINE void and_(const Gp& dst, const Mem& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kAnd, dst, src1, src2); }
-  ASMJIT_INLINE void and_(const Gp& dst, const Mem& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kAnd, dst, src1, src2); }
+  ASMJIT_INLINE void and_(const Gp& dst, const Gp& src1, const Gp& src2) { emit_3i(UniOpRRR::kAnd, dst, src1, src2); }
+  ASMJIT_INLINE void and_(const Gp& dst, const Gp& src1, const Mem& src2) { emit_3i(UniOpRRR::kAnd, dst, src1, src2); }
+  ASMJIT_INLINE void and_(const Gp& dst, const Gp& src1, const Imm& src2) { emit_3i(UniOpRRR::kAnd, dst, src1, src2); }
+  ASMJIT_INLINE void and_(const Gp& dst, const Mem& src1, const Gp& src2) { emit_3i(UniOpRRR::kAnd, dst, src1, src2); }
+  ASMJIT_INLINE void and_(const Gp& dst, const Mem& src1, const Imm& src2) { emit_3i(UniOpRRR::kAnd, dst, src1, src2); }
 
-  ASMJIT_INLINE void or_(const Gp& dst, const Gp& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kOr, dst, src1, src2); }
-  ASMJIT_INLINE void or_(const Gp& dst, const Gp& src1, const Mem& src2) noexcept { emit_3i(UniOpRRR::kOr, dst, src1, src2); }
-  ASMJIT_INLINE void or_(const Gp& dst, const Gp& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kOr, dst, src1, src2); }
-  ASMJIT_INLINE void or_(const Gp& dst, const Mem& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kOr, dst, src1, src2); }
-  ASMJIT_INLINE void or_(const Gp& dst, const Mem& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kOr, dst, src1, src2); }
+  ASMJIT_INLINE void or_(const Gp& dst, const Gp& src1, const Gp& src2) { emit_3i(UniOpRRR::kOr, dst, src1, src2); }
+  ASMJIT_INLINE void or_(const Gp& dst, const Gp& src1, const Mem& src2) { emit_3i(UniOpRRR::kOr, dst, src1, src2); }
+  ASMJIT_INLINE void or_(const Gp& dst, const Gp& src1, const Imm& src2) { emit_3i(UniOpRRR::kOr, dst, src1, src2); }
+  ASMJIT_INLINE void or_(const Gp& dst, const Mem& src1, const Gp& src2) { emit_3i(UniOpRRR::kOr, dst, src1, src2); }
+  ASMJIT_INLINE void or_(const Gp& dst, const Mem& src1, const Imm& src2) { emit_3i(UniOpRRR::kOr, dst, src1, src2); }
 
-  ASMJIT_INLINE void xor_(const Gp& dst, const Gp& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kXor, dst, src1, src2); }
-  ASMJIT_INLINE void xor_(const Gp& dst, const Gp& src1, const Mem& src2) noexcept { emit_3i(UniOpRRR::kXor, dst, src1, src2); }
-  ASMJIT_INLINE void xor_(const Gp& dst, const Gp& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kXor, dst, src1, src2); }
-  ASMJIT_INLINE void xor_(const Gp& dst, const Mem& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kXor, dst, src1, src2); }
-  ASMJIT_INLINE void xor_(const Gp& dst, const Mem& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kXor, dst, src1, src2); }
+  ASMJIT_INLINE void xor_(const Gp& dst, const Gp& src1, const Gp& src2) { emit_3i(UniOpRRR::kXor, dst, src1, src2); }
+  ASMJIT_INLINE void xor_(const Gp& dst, const Gp& src1, const Mem& src2) { emit_3i(UniOpRRR::kXor, dst, src1, src2); }
+  ASMJIT_INLINE void xor_(const Gp& dst, const Gp& src1, const Imm& src2) { emit_3i(UniOpRRR::kXor, dst, src1, src2); }
+  ASMJIT_INLINE void xor_(const Gp& dst, const Mem& src1, const Gp& src2) { emit_3i(UniOpRRR::kXor, dst, src1, src2); }
+  ASMJIT_INLINE void xor_(const Gp& dst, const Mem& src1, const Imm& src2) { emit_3i(UniOpRRR::kXor, dst, src1, src2); }
 
-  ASMJIT_INLINE void bic(const Gp& dst, const Gp& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kBic, dst, src1, src2); }
-  ASMJIT_INLINE void bic(const Gp& dst, const Gp& src1, const Mem& src2) noexcept { emit_3i(UniOpRRR::kBic, dst, src1, src2); }
-  ASMJIT_INLINE void bic(const Gp& dst, const Gp& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kBic, dst, src1, src2); }
-  ASMJIT_INLINE void bic(const Gp& dst, const Mem& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kBic, dst, src1, src2); }
-  ASMJIT_INLINE void bic(const Gp& dst, const Mem& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kBic, dst, src1, src2); }
+  ASMJIT_INLINE void bic(const Gp& dst, const Gp& src1, const Gp& src2) { emit_3i(UniOpRRR::kBic, dst, src1, src2); }
+  ASMJIT_INLINE void bic(const Gp& dst, const Gp& src1, const Mem& src2) { emit_3i(UniOpRRR::kBic, dst, src1, src2); }
+  ASMJIT_INLINE void bic(const Gp& dst, const Gp& src1, const Imm& src2) { emit_3i(UniOpRRR::kBic, dst, src1, src2); }
+  ASMJIT_INLINE void bic(const Gp& dst, const Mem& src1, const Gp& src2) { emit_3i(UniOpRRR::kBic, dst, src1, src2); }
+  ASMJIT_INLINE void bic(const Gp& dst, const Mem& src1, const Imm& src2) { emit_3i(UniOpRRR::kBic, dst, src1, src2); }
 
-  ASMJIT_INLINE void add(const Gp& dst, const Gp& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kAdd, dst, src1, src2); }
-  ASMJIT_INLINE void add(const Gp& dst, const Gp& src1, const Mem& src2) noexcept { emit_3i(UniOpRRR::kAdd, dst, src1, src2); }
-  ASMJIT_INLINE void add(const Gp& dst, const Gp& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kAdd, dst, src1, src2); }
-  ASMJIT_INLINE void add(const Gp& dst, const Mem& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kAdd, dst, src1, src2); }
-  ASMJIT_INLINE void add(const Gp& dst, const Mem& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kAdd, dst, src1, src2); }
+  ASMJIT_INLINE void add(const Gp& dst, const Gp& src1, const Gp& src2) { emit_3i(UniOpRRR::kAdd, dst, src1, src2); }
+  ASMJIT_INLINE void add(const Gp& dst, const Gp& src1, const Mem& src2) { emit_3i(UniOpRRR::kAdd, dst, src1, src2); }
+  ASMJIT_INLINE void add(const Gp& dst, const Gp& src1, const Imm& src2) { emit_3i(UniOpRRR::kAdd, dst, src1, src2); }
+  ASMJIT_INLINE void add(const Gp& dst, const Mem& src1, const Gp& src2) { emit_3i(UniOpRRR::kAdd, dst, src1, src2); }
+  ASMJIT_INLINE void add(const Gp& dst, const Mem& src1, const Imm& src2) { emit_3i(UniOpRRR::kAdd, dst, src1, src2); }
 
-  ASMJIT_INLINE void sub(const Gp& dst, const Gp& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kSub, dst, src1, src2); }
-  ASMJIT_INLINE void sub(const Gp& dst, const Gp& src1, const Mem& src2) noexcept { emit_3i(UniOpRRR::kSub, dst, src1, src2); }
-  ASMJIT_INLINE void sub(const Gp& dst, const Gp& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kSub, dst, src1, src2); }
-  ASMJIT_INLINE void sub(const Gp& dst, const Mem& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kSub, dst, src1, src2); }
-  ASMJIT_INLINE void sub(const Gp& dst, const Mem& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kSub, dst, src1, src2); }
+  ASMJIT_INLINE void sub(const Gp& dst, const Gp& src1, const Gp& src2) { emit_3i(UniOpRRR::kSub, dst, src1, src2); }
+  ASMJIT_INLINE void sub(const Gp& dst, const Gp& src1, const Mem& src2) { emit_3i(UniOpRRR::kSub, dst, src1, src2); }
+  ASMJIT_INLINE void sub(const Gp& dst, const Gp& src1, const Imm& src2) { emit_3i(UniOpRRR::kSub, dst, src1, src2); }
+  ASMJIT_INLINE void sub(const Gp& dst, const Mem& src1, const Gp& src2) { emit_3i(UniOpRRR::kSub, dst, src1, src2); }
+  ASMJIT_INLINE void sub(const Gp& dst, const Mem& src1, const Imm& src2) { emit_3i(UniOpRRR::kSub, dst, src1, src2); }
 
-  ASMJIT_INLINE void mul(const Gp& dst, const Gp& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kMul, dst, src1, src2); }
-  ASMJIT_INLINE void mul(const Gp& dst, const Gp& src1, const Mem& src2) noexcept { emit_3i(UniOpRRR::kMul, dst, src1, src2); }
-  ASMJIT_INLINE void mul(const Gp& dst, const Gp& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kMul, dst, src1, src2); }
-  ASMJIT_INLINE void mul(const Gp& dst, const Mem& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kMul, dst, src1, src2); }
-  ASMJIT_INLINE void mul(const Gp& dst, const Mem& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kMul, dst, src1, src2); }
+  ASMJIT_INLINE void mul(const Gp& dst, const Gp& src1, const Gp& src2) { emit_3i(UniOpRRR::kMul, dst, src1, src2); }
+  ASMJIT_INLINE void mul(const Gp& dst, const Gp& src1, const Mem& src2) { emit_3i(UniOpRRR::kMul, dst, src1, src2); }
+  ASMJIT_INLINE void mul(const Gp& dst, const Gp& src1, const Imm& src2) { emit_3i(UniOpRRR::kMul, dst, src1, src2); }
+  ASMJIT_INLINE void mul(const Gp& dst, const Mem& src1, const Gp& src2) { emit_3i(UniOpRRR::kMul, dst, src1, src2); }
+  ASMJIT_INLINE void mul(const Gp& dst, const Mem& src1, const Imm& src2) { emit_3i(UniOpRRR::kMul, dst, src1, src2); }
 
-  ASMJIT_INLINE void udiv(const Gp& dst, const Gp& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kUDiv, dst, src1, src2); }
-  ASMJIT_INLINE void udiv(const Gp& dst, const Gp& src1, const Mem& src2) noexcept { emit_3i(UniOpRRR::kUDiv, dst, src1, src2); }
-  ASMJIT_INLINE void udiv(const Gp& dst, const Gp& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kUDiv, dst, src1, src2); }
-  ASMJIT_INLINE void udiv(const Gp& dst, const Mem& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kUDiv, dst, src1, src2); }
-  ASMJIT_INLINE void udiv(const Gp& dst, const Mem& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kUDiv, dst, src1, src2); }
+  ASMJIT_INLINE void udiv(const Gp& dst, const Gp& src1, const Gp& src2) { emit_3i(UniOpRRR::kUDiv, dst, src1, src2); }
+  ASMJIT_INLINE void udiv(const Gp& dst, const Gp& src1, const Mem& src2) { emit_3i(UniOpRRR::kUDiv, dst, src1, src2); }
+  ASMJIT_INLINE void udiv(const Gp& dst, const Gp& src1, const Imm& src2) { emit_3i(UniOpRRR::kUDiv, dst, src1, src2); }
+  ASMJIT_INLINE void udiv(const Gp& dst, const Mem& src1, const Gp& src2) { emit_3i(UniOpRRR::kUDiv, dst, src1, src2); }
+  ASMJIT_INLINE void udiv(const Gp& dst, const Mem& src1, const Imm& src2) { emit_3i(UniOpRRR::kUDiv, dst, src1, src2); }
 
-  ASMJIT_INLINE void umod(const Gp& dst, const Gp& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kUMod, dst, src1, src2); }
-  ASMJIT_INLINE void umod(const Gp& dst, const Gp& src1, const Mem& src2) noexcept { emit_3i(UniOpRRR::kUMod, dst, src1, src2); }
-  ASMJIT_INLINE void umod(const Gp& dst, const Gp& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kUMod, dst, src1, src2); }
-  ASMJIT_INLINE void umod(const Gp& dst, const Mem& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kUMod, dst, src1, src2); }
-  ASMJIT_INLINE void umod(const Gp& dst, const Mem& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kUMod, dst, src1, src2); }
+  ASMJIT_INLINE void umod(const Gp& dst, const Gp& src1, const Gp& src2) { emit_3i(UniOpRRR::kUMod, dst, src1, src2); }
+  ASMJIT_INLINE void umod(const Gp& dst, const Gp& src1, const Mem& src2) { emit_3i(UniOpRRR::kUMod, dst, src1, src2); }
+  ASMJIT_INLINE void umod(const Gp& dst, const Gp& src1, const Imm& src2) { emit_3i(UniOpRRR::kUMod, dst, src1, src2); }
+  ASMJIT_INLINE void umod(const Gp& dst, const Mem& src1, const Gp& src2) { emit_3i(UniOpRRR::kUMod, dst, src1, src2); }
+  ASMJIT_INLINE void umod(const Gp& dst, const Mem& src1, const Imm& src2) { emit_3i(UniOpRRR::kUMod, dst, src1, src2); }
 
-  ASMJIT_INLINE void smin(const Gp& dst, const Gp& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kSMin, dst, src1, src2); }
-  ASMJIT_INLINE void smin(const Gp& dst, const Gp& src1, const Mem& src2) noexcept { emit_3i(UniOpRRR::kSMin, dst, src1, src2); }
-  ASMJIT_INLINE void smin(const Gp& dst, const Gp& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kSMin, dst, src1, src2); }
-  ASMJIT_INLINE void smin(const Gp& dst, const Mem& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kSMin, dst, src1, src2); }
-  ASMJIT_INLINE void smin(const Gp& dst, const Mem& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kSMin, dst, src1, src2); }
+  ASMJIT_INLINE void smin(const Gp& dst, const Gp& src1, const Gp& src2) { emit_3i(UniOpRRR::kSMin, dst, src1, src2); }
+  ASMJIT_INLINE void smin(const Gp& dst, const Gp& src1, const Mem& src2) { emit_3i(UniOpRRR::kSMin, dst, src1, src2); }
+  ASMJIT_INLINE void smin(const Gp& dst, const Gp& src1, const Imm& src2) { emit_3i(UniOpRRR::kSMin, dst, src1, src2); }
+  ASMJIT_INLINE void smin(const Gp& dst, const Mem& src1, const Gp& src2) { emit_3i(UniOpRRR::kSMin, dst, src1, src2); }
+  ASMJIT_INLINE void smin(const Gp& dst, const Mem& src1, const Imm& src2) { emit_3i(UniOpRRR::kSMin, dst, src1, src2); }
 
-  ASMJIT_INLINE void smax(const Gp& dst, const Gp& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kSMax, dst, src1, src2); }
-  ASMJIT_INLINE void smax(const Gp& dst, const Gp& src1, const Mem& src2) noexcept { emit_3i(UniOpRRR::kSMax, dst, src1, src2); }
-  ASMJIT_INLINE void smax(const Gp& dst, const Gp& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kSMax, dst, src1, src2); }
-  ASMJIT_INLINE void smax(const Gp& dst, const Mem& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kSMax, dst, src1, src2); }
-  ASMJIT_INLINE void smax(const Gp& dst, const Mem& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kSMax, dst, src1, src2); }
+  ASMJIT_INLINE void smax(const Gp& dst, const Gp& src1, const Gp& src2) { emit_3i(UniOpRRR::kSMax, dst, src1, src2); }
+  ASMJIT_INLINE void smax(const Gp& dst, const Gp& src1, const Mem& src2) { emit_3i(UniOpRRR::kSMax, dst, src1, src2); }
+  ASMJIT_INLINE void smax(const Gp& dst, const Gp& src1, const Imm& src2) { emit_3i(UniOpRRR::kSMax, dst, src1, src2); }
+  ASMJIT_INLINE void smax(const Gp& dst, const Mem& src1, const Gp& src2) { emit_3i(UniOpRRR::kSMax, dst, src1, src2); }
+  ASMJIT_INLINE void smax(const Gp& dst, const Mem& src1, const Imm& src2) { emit_3i(UniOpRRR::kSMax, dst, src1, src2); }
 
-  ASMJIT_INLINE void umin(const Gp& dst, const Gp& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kUMin, dst, src1, src2); }
-  ASMJIT_INLINE void umin(const Gp& dst, const Gp& src1, const Mem& src2) noexcept { emit_3i(UniOpRRR::kUMin, dst, src1, src2); }
-  ASMJIT_INLINE void umin(const Gp& dst, const Gp& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kUMin, dst, src1, src2); }
-  ASMJIT_INLINE void umin(const Gp& dst, const Mem& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kUMin, dst, src1, src2); }
-  ASMJIT_INLINE void umin(const Gp& dst, const Mem& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kUMin, dst, src1, src2); }
+  ASMJIT_INLINE void umin(const Gp& dst, const Gp& src1, const Gp& src2) { emit_3i(UniOpRRR::kUMin, dst, src1, src2); }
+  ASMJIT_INLINE void umin(const Gp& dst, const Gp& src1, const Mem& src2) { emit_3i(UniOpRRR::kUMin, dst, src1, src2); }
+  ASMJIT_INLINE void umin(const Gp& dst, const Gp& src1, const Imm& src2) { emit_3i(UniOpRRR::kUMin, dst, src1, src2); }
+  ASMJIT_INLINE void umin(const Gp& dst, const Mem& src1, const Gp& src2) { emit_3i(UniOpRRR::kUMin, dst, src1, src2); }
+  ASMJIT_INLINE void umin(const Gp& dst, const Mem& src1, const Imm& src2) { emit_3i(UniOpRRR::kUMin, dst, src1, src2); }
 
-  ASMJIT_INLINE void umax(const Gp& dst, const Gp& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kUMax, dst, src1, src2); }
-  ASMJIT_INLINE void umax(const Gp& dst, const Gp& src1, const Mem& src2) noexcept { emit_3i(UniOpRRR::kUMax, dst, src1, src2); }
-  ASMJIT_INLINE void umax(const Gp& dst, const Gp& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kUMax, dst, src1, src2); }
-  ASMJIT_INLINE void umax(const Gp& dst, const Mem& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kUMax, dst, src1, src2); }
-  ASMJIT_INLINE void umax(const Gp& dst, const Mem& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kUMax, dst, src1, src2); }
+  ASMJIT_INLINE void umax(const Gp& dst, const Gp& src1, const Gp& src2) { emit_3i(UniOpRRR::kUMax, dst, src1, src2); }
+  ASMJIT_INLINE void umax(const Gp& dst, const Gp& src1, const Mem& src2) { emit_3i(UniOpRRR::kUMax, dst, src1, src2); }
+  ASMJIT_INLINE void umax(const Gp& dst, const Gp& src1, const Imm& src2) { emit_3i(UniOpRRR::kUMax, dst, src1, src2); }
+  ASMJIT_INLINE void umax(const Gp& dst, const Mem& src1, const Gp& src2) { emit_3i(UniOpRRR::kUMax, dst, src1, src2); }
+  ASMJIT_INLINE void umax(const Gp& dst, const Mem& src1, const Imm& src2) { emit_3i(UniOpRRR::kUMax, dst, src1, src2); }
 
-  ASMJIT_INLINE void shl(const Gp& dst, const Gp& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kSll, dst, src1, src2); }
-  ASMJIT_INLINE void shl(const Gp& dst, const Gp& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kSll, dst, src1, src2); }
-  ASMJIT_INLINE void shl(const Gp& dst, const Mem& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kSll, dst, src1, src2); }
-  ASMJIT_INLINE void shl(const Gp& dst, const Mem& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kSll, dst, src1, src2); }
+  ASMJIT_INLINE void shl(const Gp& dst, const Gp& src1, const Gp& src2) { emit_3i(UniOpRRR::kSll, dst, src1, src2); }
+  ASMJIT_INLINE void shl(const Gp& dst, const Gp& src1, const Imm& src2) { emit_3i(UniOpRRR::kSll, dst, src1, src2); }
+  ASMJIT_INLINE void shl(const Gp& dst, const Mem& src1, const Gp& src2) { emit_3i(UniOpRRR::kSll, dst, src1, src2); }
+  ASMJIT_INLINE void shl(const Gp& dst, const Mem& src1, const Imm& src2) { emit_3i(UniOpRRR::kSll, dst, src1, src2); }
 
-  ASMJIT_INLINE void shr(const Gp& dst, const Gp& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kSrl, dst, src1, src2); }
-  ASMJIT_INLINE void shr(const Gp& dst, const Gp& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kSrl, dst, src1, src2); }
-  ASMJIT_INLINE void shr(const Gp& dst, const Mem& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kSrl, dst, src1, src2); }
-  ASMJIT_INLINE void shr(const Gp& dst, const Mem& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kSrl, dst, src1, src2); }
+  ASMJIT_INLINE void shr(const Gp& dst, const Gp& src1, const Gp& src2) { emit_3i(UniOpRRR::kSrl, dst, src1, src2); }
+  ASMJIT_INLINE void shr(const Gp& dst, const Gp& src1, const Imm& src2) { emit_3i(UniOpRRR::kSrl, dst, src1, src2); }
+  ASMJIT_INLINE void shr(const Gp& dst, const Mem& src1, const Gp& src2) { emit_3i(UniOpRRR::kSrl, dst, src1, src2); }
+  ASMJIT_INLINE void shr(const Gp& dst, const Mem& src1, const Imm& src2) { emit_3i(UniOpRRR::kSrl, dst, src1, src2); }
 
-  ASMJIT_INLINE void sar(const Gp& dst, const Gp& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kSra, dst, src1, src2); }
-  ASMJIT_INLINE void sar(const Gp& dst, const Gp& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kSra, dst, src1, src2); }
-  ASMJIT_INLINE void sar(const Gp& dst, const Mem& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kSra, dst, src1, src2); }
-  ASMJIT_INLINE void sar(const Gp& dst, const Mem& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kSra, dst, src1, src2); }
+  ASMJIT_INLINE void sar(const Gp& dst, const Gp& src1, const Gp& src2) { emit_3i(UniOpRRR::kSra, dst, src1, src2); }
+  ASMJIT_INLINE void sar(const Gp& dst, const Gp& src1, const Imm& src2) { emit_3i(UniOpRRR::kSra, dst, src1, src2); }
+  ASMJIT_INLINE void sar(const Gp& dst, const Mem& src1, const Gp& src2) { emit_3i(UniOpRRR::kSra, dst, src1, src2); }
+  ASMJIT_INLINE void sar(const Gp& dst, const Mem& src1, const Imm& src2) { emit_3i(UniOpRRR::kSra, dst, src1, src2); }
 
-  ASMJIT_INLINE void rol(const Gp& dst, const Gp& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kRol, dst, src1, src2); }
-  ASMJIT_INLINE void rol(const Gp& dst, const Gp& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kRol, dst, src1, src2); }
-  ASMJIT_INLINE void rol(const Gp& dst, const Mem& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kRol, dst, src1, src2); }
-  ASMJIT_INLINE void rol(const Gp& dst, const Mem& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kRol, dst, src1, src2); }
+  ASMJIT_INLINE void rol(const Gp& dst, const Gp& src1, const Gp& src2) { emit_3i(UniOpRRR::kRol, dst, src1, src2); }
+  ASMJIT_INLINE void rol(const Gp& dst, const Gp& src1, const Imm& src2) { emit_3i(UniOpRRR::kRol, dst, src1, src2); }
+  ASMJIT_INLINE void rol(const Gp& dst, const Mem& src1, const Gp& src2) { emit_3i(UniOpRRR::kRol, dst, src1, src2); }
+  ASMJIT_INLINE void rol(const Gp& dst, const Mem& src1, const Imm& src2) { emit_3i(UniOpRRR::kRol, dst, src1, src2); }
 
-  ASMJIT_INLINE void ror(const Gp& dst, const Gp& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kRor, dst, src1, src2); }
-  ASMJIT_INLINE void ror(const Gp& dst, const Gp& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kRor, dst, src1, src2); }
-  ASMJIT_INLINE void ror(const Gp& dst, const Mem& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kRor, dst, src1, src2); }
-  ASMJIT_INLINE void ror(const Gp& dst, const Mem& src1, const Imm& src2) noexcept { emit_3i(UniOpRRR::kRor, dst, src1, src2); }
+  ASMJIT_INLINE void ror(const Gp& dst, const Gp& src1, const Gp& src2) { emit_3i(UniOpRRR::kRor, dst, src1, src2); }
+  ASMJIT_INLINE void ror(const Gp& dst, const Gp& src1, const Imm& src2) { emit_3i(UniOpRRR::kRor, dst, src1, src2); }
+  ASMJIT_INLINE void ror(const Gp& dst, const Mem& src1, const Gp& src2) { emit_3i(UniOpRRR::kRor, dst, src1, src2); }
+  ASMJIT_INLINE void ror(const Gp& dst, const Mem& src1, const Imm& src2) { emit_3i(UniOpRRR::kRor, dst, src1, src2); }
 
-  ASMJIT_INLINE void sbound(const Gp& dst, const Gp& src1, const Gp& src2) noexcept { emit_3i(UniOpRRR::kSBound, dst, src1, src2); }
-  ASMJIT_INLINE void sbound(const Gp& dst, const Gp& src1, const Mem& src2) noexcept { emit_3i(UniOpRRR::kSBound, dst, src1, src2); }
+  ASMJIT_INLINE void sbound(const Gp& dst, const Gp& src1, const Gp& src2) { emit_3i(UniOpRRR::kSBound, dst, src1, src2); }
+  ASMJIT_INLINE void sbound(const Gp& dst, const Gp& src1, const Mem& src2) { emit_3i(UniOpRRR::kSBound, dst, src1, src2); }
 
-  ASMJIT_INLINE void j(const Gp& target) noexcept { emit_j(target); }
-  ASMJIT_INLINE void j(const Label& target) noexcept { emit_j(target); }
-  ASMJIT_INLINE void j(const Label& target, const UniCondition& condition) noexcept { emit_j_if(target, condition); }
+  ASMJIT_INLINE void j(const Gp& target) { emit_j(target); }
+  ASMJIT_INLINE void j(const Label& target) { emit_j(target); }
+  ASMJIT_INLINE void j(const Label& target, const UniCondition& condition) { emit_j_if(target, condition); }
 
-  ASMJIT_API void adds_u8(const Gp& dst, const Gp& src1, const Gp& src2) noexcept;
+  ASMJIT_API void adds_u8(const Gp& dst, const Gp& src1, const Gp& src2);
 
-  ASMJIT_API void inv_u8(const Gp& dst, const Gp& src) noexcept;
-  ASMJIT_API void div_255_u32(const Gp& dst, const Gp& src) noexcept;
-  ASMJIT_API void mul_257_hu16(const Gp& dst, const Gp& src) noexcept;
+  ASMJIT_API void inv_u8(const Gp& dst, const Gp& src);
+  ASMJIT_API void div_255_u32(const Gp& dst, const Gp& src);
+  ASMJIT_API void mul_257_hu16(const Gp& dst, const Gp& src);
 
-  ASMJIT_API void add_scaled(const Gp& dst, const Gp& a, int b) noexcept;
-  ASMJIT_API void add_ext(const Gp& dst, const Gp& src_, const Gp& idx_, uint32_t scale, int32_t disp = 0) noexcept;
+  ASMJIT_API void add_scaled(const Gp& dst, const Gp& a, int b);
+  ASMJIT_API void add_ext(const Gp& dst, const Gp& src_, const Gp& idx_, uint32_t scale, int32_t disp = 0);
 
-#if 1
-  inline void i_prefetch(const Mem& mem) noexcept { Support::maybe_unused(mem); }
-#else
-  inline void i_prefetch(const Mem& mem) noexcept { cc->prefetcht0(mem); }
-#endif
-
-  ASMJIT_API void lea(const Gp& dst, const Mem& src) noexcept;
+  ASMJIT_API void lea(const Gp& dst, const Mem& src);
 
   //! \}
 
   //! \name Emit - Vector Instructions
   //! \{
 
-  ASMJIT_API void emit_2v(UniOpVV op, const Operand_& dst_, const Operand_& src_) noexcept;
-  ASMJIT_API void emit_2v(UniOpVV op, const OpArray& dst_, const Operand_& src_) noexcept;
-  ASMJIT_API void emit_2v(UniOpVV op, const OpArray& dst_, const OpArray& src_) noexcept;
+  ASMJIT_API void emit_2v(UniOpVV op, const Operand_& dst_, const Operand_& src_);
+  ASMJIT_API void emit_2v(UniOpVV op, const OpArray& dst_, const Operand_& src_);
+  ASMJIT_API void emit_2v(UniOpVV op, const OpArray& dst_, const OpArray& src_);
 
-  ASMJIT_API void emit_2vi(UniOpVVI op, const Operand_& dst_, const Operand_& src_, uint32_t imm) noexcept;
-  ASMJIT_API void emit_2vi(UniOpVVI op, const OpArray& dst_, const Operand_& src_, uint32_t imm) noexcept;
-  ASMJIT_API void emit_2vi(UniOpVVI op, const OpArray& dst_, const OpArray& src_, uint32_t imm) noexcept;
+  ASMJIT_API void emit_2vi(UniOpVVI op, const Operand_& dst_, const Operand_& src_, uint32_t imm);
+  ASMJIT_API void emit_2vi(UniOpVVI op, const OpArray& dst_, const Operand_& src_, uint32_t imm);
+  ASMJIT_API void emit_2vi(UniOpVVI op, const OpArray& dst_, const OpArray& src_, uint32_t imm);
 
-  ASMJIT_API void emit_2vs(UniOpVR op, const Operand_& dst_, const Operand_& src_, uint32_t idx = 0) noexcept;
+  ASMJIT_API void emit_2vs(UniOpVR op, const Operand_& dst_, const Operand_& src_, uint32_t idx = 0);
 
-  ASMJIT_API void emit_vm(UniOpVM op, const Vec& dst_, const Mem& src_, Alignment alignment, uint32_t idx = 0) noexcept;
-  ASMJIT_API void emit_vm(UniOpVM op, const OpArray& dst_, const Mem& src_, Alignment alignment, uint32_t idx = 0) noexcept;
+  ASMJIT_API void emit_vm(UniOpVM op, const Vec& dst_, const Mem& src_, Alignment alignment, uint32_t idx = 0);
+  ASMJIT_API void emit_vm(UniOpVM op, const OpArray& dst_, const Mem& src_, Alignment alignment, uint32_t idx = 0);
 
-  ASMJIT_API void emit_mv(UniOpMV op, const Mem& dst_, const Vec& src_, Alignment alignment, uint32_t idx = 0) noexcept;
-  ASMJIT_API void emit_mv(UniOpMV op, const Mem& dst_, const OpArray& src_, Alignment alignment, uint32_t idx = 0) noexcept;
+  ASMJIT_API void emit_mv(UniOpMV op, const Mem& dst_, const Vec& src_, Alignment alignment, uint32_t idx = 0);
+  ASMJIT_API void emit_mv(UniOpMV op, const Mem& dst_, const OpArray& src_, Alignment alignment, uint32_t idx = 0);
 
-  ASMJIT_API void emit_3v(UniOpVVV op, const Operand_& dst_, const Operand_& src1_, const Operand_& src2_) noexcept;
-  ASMJIT_API void emit_3v(UniOpVVV op, const OpArray& dst_, const Operand_& src1_, const OpArray& src2_) noexcept;
-  ASMJIT_API void emit_3v(UniOpVVV op, const OpArray& dst_, const OpArray& src1_, const Operand_& src2_) noexcept;
-  ASMJIT_API void emit_3v(UniOpVVV op, const OpArray& dst_, const OpArray& src1_, const OpArray& src2_) noexcept;
+  ASMJIT_API void emit_3v(UniOpVVV op, const Operand_& dst_, const Operand_& src1_, const Operand_& src2_);
+  ASMJIT_API void emit_3v(UniOpVVV op, const OpArray& dst_, const Operand_& src1_, const OpArray& src2_);
+  ASMJIT_API void emit_3v(UniOpVVV op, const OpArray& dst_, const OpArray& src1_, const Operand_& src2_);
+  ASMJIT_API void emit_3v(UniOpVVV op, const OpArray& dst_, const OpArray& src1_, const OpArray& src2_);
 
-  ASMJIT_API void emit_3vi(UniOpVVVI op, const Operand_& dst_, const Operand_& src1_, const Operand_& src2_, uint32_t imm) noexcept;
-  ASMJIT_API void emit_3vi(UniOpVVVI op, const OpArray& dst_, const Operand_& src1_, const OpArray& src2_, uint32_t imm) noexcept;
-  ASMJIT_API void emit_3vi(UniOpVVVI op, const OpArray& dst_, const OpArray& src1_, const Operand_& src2_, uint32_t imm) noexcept;
-  ASMJIT_API void emit_3vi(UniOpVVVI op, const OpArray& dst_, const OpArray& src1_, const OpArray& src2_, uint32_t imm) noexcept;
+  ASMJIT_API void emit_3vi(UniOpVVVI op, const Operand_& dst_, const Operand_& src1_, const Operand_& src2_, uint32_t imm);
+  ASMJIT_API void emit_3vi(UniOpVVVI op, const OpArray& dst_, const Operand_& src1_, const OpArray& src2_, uint32_t imm);
+  ASMJIT_API void emit_3vi(UniOpVVVI op, const OpArray& dst_, const OpArray& src1_, const Operand_& src2_, uint32_t imm);
+  ASMJIT_API void emit_3vi(UniOpVVVI op, const OpArray& dst_, const OpArray& src1_, const OpArray& src2_, uint32_t imm);
 
-  ASMJIT_API void emit_4v(UniOpVVVV op, const Operand_& dst_, const Operand_& src1_, const Operand_& src2_, const Operand_& src3_) noexcept;
-  ASMJIT_API void emit_4v(UniOpVVVV op, const OpArray& dst_, const Operand_& src1_, const Operand_& src2_, const OpArray& src3_) noexcept;
-  ASMJIT_API void emit_4v(UniOpVVVV op, const OpArray& dst_, const Operand_& src1_, const OpArray& src2_, const Operand& src3_) noexcept;
-  ASMJIT_API void emit_4v(UniOpVVVV op, const OpArray& dst_, const Operand_& src1_, const OpArray& src2_, const OpArray& src3_) noexcept;
-  ASMJIT_API void emit_4v(UniOpVVVV op, const OpArray& dst_, const OpArray& src1_, const Operand_& src2_, const Operand& src3_) noexcept;
-  ASMJIT_API void emit_4v(UniOpVVVV op, const OpArray& dst_, const OpArray& src1_, const Operand_& src2_, const OpArray& src3_) noexcept;
-  ASMJIT_API void emit_4v(UniOpVVVV op, const OpArray& dst_, const OpArray& src1_, const OpArray& src2_, const Operand& src3_) noexcept;
-  ASMJIT_API void emit_4v(UniOpVVVV op, const OpArray& dst_, const OpArray& src1_, const OpArray& src2_, const OpArray& src3_) noexcept;
+  ASMJIT_API void emit_4v(UniOpVVVV op, const Operand_& dst_, const Operand_& src1_, const Operand_& src2_, const Operand_& src3_);
+  ASMJIT_API void emit_4v(UniOpVVVV op, const OpArray& dst_, const Operand_& src1_, const Operand_& src2_, const OpArray& src3_);
+  ASMJIT_API void emit_4v(UniOpVVVV op, const OpArray& dst_, const Operand_& src1_, const OpArray& src2_, const Operand& src3_);
+  ASMJIT_API void emit_4v(UniOpVVVV op, const OpArray& dst_, const Operand_& src1_, const OpArray& src2_, const OpArray& src3_);
+  ASMJIT_API void emit_4v(UniOpVVVV op, const OpArray& dst_, const OpArray& src1_, const Operand_& src2_, const Operand& src3_);
+  ASMJIT_API void emit_4v(UniOpVVVV op, const OpArray& dst_, const OpArray& src1_, const Operand_& src2_, const OpArray& src3_);
+  ASMJIT_API void emit_4v(UniOpVVVV op, const OpArray& dst_, const OpArray& src1_, const OpArray& src2_, const Operand& src3_);
+  ASMJIT_API void emit_4v(UniOpVVVV op, const OpArray& dst_, const OpArray& src1_, const OpArray& src2_, const OpArray& src3_);
 
   #define DEFINE_OP_2V(name, op) \
     template<typename Dst, typename Src> \
-    ASMJIT_INLINE void name(const Dst& dst, const Src& src) noexcept { emit_2v(op, dst, src); }
+    ASMJIT_INLINE void name(const Dst& dst, const Src& src) { emit_2v(op, dst, src); }
 
   #define DEFINE_OP_2VI(name, op) \
     template<typename Dst, typename Src> \
-    ASMJIT_INLINE void name(const Dst& dst, const Src& src, uint32_t imm) noexcept { emit_2vi(op, dst, src, imm); }
+    ASMJIT_INLINE void name(const Dst& dst, const Src& src, uint32_t imm) { emit_2vi(op, dst, src, imm); }
 
   #define DEFINE_OP_2VI_WRAP(name, imm_wrapper, op) \
     template<typename Dst, typename Src> \
-    ASMJIT_INLINE void name(const Dst& dst, const Src& src, const imm_wrapper& imm) noexcept { emit_2vi(op, dst, src, imm.value); }
+    ASMJIT_INLINE void name(const Dst& dst, const Src& src, const imm_wrapper& imm) { emit_2vi(op, dst, src, imm.value); }
 
   #define DEFINE_OP_VM_U(name, op, alignment) \
-    ASMJIT_INLINE void name(const Vec& dst, const Mem& src) noexcept { emit_vm(op, dst, src, Alignment(alignment)); } \
-    ASMJIT_INLINE void name(const VecArray& dst, const Mem& src) noexcept { emit_vm(op, dst, src, Alignment(alignment)); }
+    ASMJIT_INLINE void name(const Vec& dst, const Mem& src) { emit_vm(op, dst, src, Alignment(alignment)); } \
+    ASMJIT_INLINE void name(const VecArray& dst, const Mem& src) { emit_vm(op, dst, src, Alignment(alignment)); }
 
   #define DEFINE_OP_VM_A(name, op, default_alignment) \
-    ASMJIT_INLINE void name(const Vec& dst, const Mem& src, Alignment alignment = Alignment{default_alignment}) noexcept { emit_vm(op, dst, src, alignment); } \
-    ASMJIT_INLINE void name(const VecArray& dst, const Mem& src, Alignment alignment = Alignment{default_alignment}) noexcept { emit_vm(op, dst, src, alignment); }
+    ASMJIT_INLINE void name(const Vec& dst, const Mem& src, Alignment alignment = Alignment{default_alignment}) { emit_vm(op, dst, src, alignment); } \
+    ASMJIT_INLINE void name(const VecArray& dst, const Mem& src, Alignment alignment = Alignment{default_alignment}) { emit_vm(op, dst, src, alignment); }
 
   #define DEFINE_OP_VM_I(name, op, default_alignment) \
-    ASMJIT_INLINE void name(const Vec& dst, const Mem& src, uint32_t idx) noexcept { emit_vm(op, dst, src, Alignment(default_alignment), idx); } \
-    ASMJIT_INLINE void name(const VecArray& dst, const Mem& src, uint32_t idx) noexcept { emit_vm(op, dst, src, Alignment(default_alignment), idx); }
+    ASMJIT_INLINE void name(const Vec& dst, const Mem& src, uint32_t idx) { emit_vm(op, dst, src, Alignment(default_alignment), idx); } \
+    ASMJIT_INLINE void name(const VecArray& dst, const Mem& src, uint32_t idx) { emit_vm(op, dst, src, Alignment(default_alignment), idx); }
 
   #define DEFINE_OP_MV_U(name, op, alignment) \
-    ASMJIT_INLINE void name(const Mem& dst, const Vec& src) noexcept { emit_mv(op, dst, src, Alignment(alignment)); } \
-    ASMJIT_INLINE void name(const Mem& dst, const VecArray& src) noexcept { emit_mv(op, dst, src, Alignment(alignment)); }
+    ASMJIT_INLINE void name(const Mem& dst, const Vec& src) { emit_mv(op, dst, src, Alignment(alignment)); } \
+    ASMJIT_INLINE void name(const Mem& dst, const VecArray& src) { emit_mv(op, dst, src, Alignment(alignment)); }
 
   #define DEFINE_OP_MV_A(name, op, default_alignment) \
-    ASMJIT_INLINE void name(const Mem& dst, const Vec& src, Alignment alignment = Alignment(default_alignment)) noexcept { emit_mv(op, dst, src, alignment); } \
-    ASMJIT_INLINE void name(const Mem& dst, const VecArray& src, Alignment alignment = Alignment(default_alignment)) noexcept { emit_mv(op, dst, src, alignment); }
+    ASMJIT_INLINE void name(const Mem& dst, const Vec& src, Alignment alignment = Alignment(default_alignment)) { emit_mv(op, dst, src, alignment); } \
+    ASMJIT_INLINE void name(const Mem& dst, const VecArray& src, Alignment alignment = Alignment(default_alignment)) { emit_mv(op, dst, src, alignment); }
 
   #define DEFINE_OP_MV_I(name, op, default_alignment) \
-    ASMJIT_INLINE void name(const Mem& dst, const Vec& src, uint32_t idx) noexcept { emit_mv(op, dst, src, Alignment(default_alignment), idx); } \
-    ASMJIT_INLINE void name(const Mem& dst, const VecArray& src, uint32_t idx) noexcept { emit_mv(op, dst, src, Alignment(default_alignment), idx); }
+    ASMJIT_INLINE void name(const Mem& dst, const Vec& src, uint32_t idx) { emit_mv(op, dst, src, Alignment(default_alignment), idx); } \
+    ASMJIT_INLINE void name(const Mem& dst, const VecArray& src, uint32_t idx) { emit_mv(op, dst, src, Alignment(default_alignment), idx); }
 
   #define DEFINE_OP_3V(name, op) \
     template<typename Dst, typename Src1, typename Src2> \
-    ASMJIT_INLINE void name(const Dst& dst, const Src1& src1, const Src2& src2) noexcept { emit_3v(op, dst, src1, src2); }
+    ASMJIT_INLINE void name(const Dst& dst, const Src1& src1, const Src2& src2) { emit_3v(op, dst, src1, src2); }
 
   #define DEFINE_OP_3VI(name, op) \
     template<typename Dst, typename Src1, typename Src2> \
-    ASMJIT_INLINE void name(const Dst& dst, const Src1& src1, const Src2& src2, uint32_t imm) noexcept { emit_3vi(op, dst, src1, src2, imm); }
+    ASMJIT_INLINE void name(const Dst& dst, const Src1& src1, const Src2& src2, uint32_t imm) { emit_3vi(op, dst, src1, src2, imm); }
 
   #define DEFINE_OP_3VI_WRAP(name, imm_wrapper, op) \
     template<typename Dst, typename Src1, typename Src2> \
-    ASMJIT_INLINE void name(const Dst& dst, const Src1& src1, const Src2& src2, const imm_wrapper& imm) noexcept { emit_3vi(op, dst, src1, src2, imm.value); }
+    ASMJIT_INLINE void name(const Dst& dst, const Src1& src1, const Src2& src2, const imm_wrapper& imm) { emit_3vi(op, dst, src1, src2, imm.value); }
 
   #define DEFINE_OP_4V(name, op) \
     template<typename Dst, typename Src1, typename Src2, typename Src3> \
-    ASMJIT_INLINE void name(const Dst& dst, const Src1& src1, const Src2& src2, const Src3& src3) noexcept { emit_4v(op, dst, src1, src2, src3); }
+    ASMJIT_INLINE void name(const Dst& dst, const Src1& src1, const Src2& src2, const Src3& src3) { emit_4v(op, dst, src1, src2, src3); }
 
-  ASMJIT_INLINE void s_mov(const Gp& dst, const Vec& src) noexcept { emit_2vs(UniOpVR::kMov, dst, src); }
-  ASMJIT_INLINE void s_mov(const Vec& dst, const Gp& src) noexcept { emit_2vs(UniOpVR::kMov, dst, src); }
+  ASMJIT_INLINE void s_mov(const Gp& dst, const Vec& src) { emit_2vs(UniOpVR::kMov, dst, src); }
+  ASMJIT_INLINE void s_mov(const Vec& dst, const Gp& src) { emit_2vs(UniOpVR::kMov, dst, src); }
 
-  ASMJIT_INLINE void s_mov_u32(const Gp& dst, const Vec& src) noexcept { emit_2vs(UniOpVR::kMovU32, dst, src); }
-  ASMJIT_INLINE void s_mov_u32(const Vec& dst, const Gp& src) noexcept { emit_2vs(UniOpVR::kMovU32, dst, src); }
+  ASMJIT_INLINE void s_mov_u32(const Gp& dst, const Vec& src) { emit_2vs(UniOpVR::kMovU32, dst, src); }
+  ASMJIT_INLINE void s_mov_u32(const Vec& dst, const Gp& src) { emit_2vs(UniOpVR::kMovU32, dst, src); }
 
-  ASMJIT_INLINE void s_mov_u64(const Gp& dst, const Vec& src) noexcept { emit_2vs(UniOpVR::kMovU64, dst, src); }
-  ASMJIT_INLINE void s_mov_u64(const Vec& dst, const Gp& src) noexcept { emit_2vs(UniOpVR::kMovU64, dst, src); }
+  ASMJIT_INLINE void s_mov_u64(const Gp& dst, const Vec& src) { emit_2vs(UniOpVR::kMovU64, dst, src); }
+  ASMJIT_INLINE void s_mov_u64(const Vec& dst, const Gp& src) { emit_2vs(UniOpVR::kMovU64, dst, src); }
 
-  ASMJIT_INLINE void s_insert_u8(const Vec& dst, const Gp& src, uint32_t idx) noexcept { emit_2vs(UniOpVR::kInsertU8, dst, src, idx); }
-  ASMJIT_INLINE void s_insert_u16(const Vec& dst, const Gp& src, uint32_t idx) noexcept { emit_2vs(UniOpVR::kInsertU16, dst, src, idx); }
-  ASMJIT_INLINE void s_insert_u32(const Vec& dst, const Gp& src, uint32_t idx) noexcept { emit_2vs(UniOpVR::kInsertU32, dst, src, idx); }
-  ASMJIT_INLINE void s_insert_u64(const Vec& dst, const Gp& src, uint32_t idx) noexcept { emit_2vs(UniOpVR::kInsertU64, dst, src, idx); }
+  ASMJIT_INLINE void s_insert_u8(const Vec& dst, const Gp& src, uint32_t idx) { emit_2vs(UniOpVR::kInsertU8, dst, src, idx); }
+  ASMJIT_INLINE void s_insert_u16(const Vec& dst, const Gp& src, uint32_t idx) { emit_2vs(UniOpVR::kInsertU16, dst, src, idx); }
+  ASMJIT_INLINE void s_insert_u32(const Vec& dst, const Gp& src, uint32_t idx) { emit_2vs(UniOpVR::kInsertU32, dst, src, idx); }
+  ASMJIT_INLINE void s_insert_u64(const Vec& dst, const Gp& src, uint32_t idx) { emit_2vs(UniOpVR::kInsertU64, dst, src, idx); }
 
-  ASMJIT_INLINE void s_extract_u8(const Gp& dst, const Vec& src, uint32_t idx) noexcept { emit_2vs(UniOpVR::kExtractU8, dst, src, idx); }
-  ASMJIT_INLINE void s_extract_u16(const Gp& dst, const Vec& src, uint32_t idx) noexcept { emit_2vs(UniOpVR::kExtractU16, dst, src, idx); }
-  ASMJIT_INLINE void s_extract_u32(const Gp& dst, const Vec& src, uint32_t idx) noexcept { emit_2vs(UniOpVR::kExtractU32, dst, src, idx); }
-  ASMJIT_INLINE void s_extract_u64(const Gp& dst, const Vec& src, uint32_t idx) noexcept { emit_2vs(UniOpVR::kExtractU64, dst, src, idx); }
+  ASMJIT_INLINE void s_extract_u8(const Gp& dst, const Vec& src, uint32_t idx) { emit_2vs(UniOpVR::kExtractU8, dst, src, idx); }
+  ASMJIT_INLINE void s_extract_u16(const Gp& dst, const Vec& src, uint32_t idx) { emit_2vs(UniOpVR::kExtractU16, dst, src, idx); }
+  ASMJIT_INLINE void s_extract_u32(const Gp& dst, const Vec& src, uint32_t idx) { emit_2vs(UniOpVR::kExtractU32, dst, src, idx); }
+  ASMJIT_INLINE void s_extract_u64(const Gp& dst, const Vec& src, uint32_t idx) { emit_2vs(UniOpVR::kExtractU64, dst, src, idx); }
 
-  ASMJIT_INLINE void s_cvt_int_to_f32(const Vec& dst, const Gp& src) noexcept { emit_2vs(UniOpVR::kCvtIntToF32, dst, src); }
-  ASMJIT_INLINE void s_cvt_int_to_f32(const Vec& dst, const Mem& src) noexcept { emit_2vs(UniOpVR::kCvtIntToF32, dst, src); }
-  ASMJIT_INLINE void s_cvt_int_to_f64(const Vec& dst, const Gp& src) noexcept { emit_2vs(UniOpVR::kCvtIntToF64, dst, src); }
-  ASMJIT_INLINE void s_cvt_int_to_f64(const Vec& dst, const Mem& src) noexcept { emit_2vs(UniOpVR::kCvtIntToF64, dst, src); }
+  ASMJIT_INLINE void s_cvt_int_to_f32(const Vec& dst, const Gp& src) { emit_2vs(UniOpVR::kCvtIntToF32, dst, src); }
+  ASMJIT_INLINE void s_cvt_int_to_f32(const Vec& dst, const Mem& src) { emit_2vs(UniOpVR::kCvtIntToF32, dst, src); }
+  ASMJIT_INLINE void s_cvt_int_to_f64(const Vec& dst, const Gp& src) { emit_2vs(UniOpVR::kCvtIntToF64, dst, src); }
+  ASMJIT_INLINE void s_cvt_int_to_f64(const Vec& dst, const Mem& src) { emit_2vs(UniOpVR::kCvtIntToF64, dst, src); }
 
-  ASMJIT_INLINE void s_cvt_trunc_f32_to_int(const Gp& dst, const Vec& src) noexcept { emit_2vs(UniOpVR::kCvtTruncF32ToInt, dst, src); }
-  ASMJIT_INLINE void s_cvt_trunc_f32_to_int(const Gp& dst, const Mem& src) noexcept { emit_2vs(UniOpVR::kCvtTruncF32ToInt, dst, src); }
-  ASMJIT_INLINE void s_cvt_round_f32_to_int(const Gp& dst, const Vec& src) noexcept { emit_2vs(UniOpVR::kCvtRoundF32ToInt, dst, src); }
-  ASMJIT_INLINE void s_cvt_round_f32_to_int(const Gp& dst, const Mem& src) noexcept { emit_2vs(UniOpVR::kCvtRoundF32ToInt, dst, src); }
-  ASMJIT_INLINE void s_cvt_trunc_f64_to_int(const Gp& dst, const Vec& src) noexcept { emit_2vs(UniOpVR::kCvtTruncF64ToInt, dst, src); }
-  ASMJIT_INLINE void s_cvt_trunc_f64_to_int(const Gp& dst, const Mem& src) noexcept { emit_2vs(UniOpVR::kCvtTruncF64ToInt, dst, src); }
-  ASMJIT_INLINE void s_cvt_round_f64_to_int(const Gp& dst, const Vec& src) noexcept { emit_2vs(UniOpVR::kCvtRoundF64ToInt, dst, src); }
-  ASMJIT_INLINE void s_cvt_round_f64_to_int(const Gp& dst, const Mem& src) noexcept { emit_2vs(UniOpVR::kCvtRoundF64ToInt, dst, src); }
+  ASMJIT_INLINE void s_cvt_trunc_f32_to_int(const Gp& dst, const Vec& src) { emit_2vs(UniOpVR::kCvtTruncF32ToInt, dst, src); }
+  ASMJIT_INLINE void s_cvt_trunc_f32_to_int(const Gp& dst, const Mem& src) { emit_2vs(UniOpVR::kCvtTruncF32ToInt, dst, src); }
+  ASMJIT_INLINE void s_cvt_round_f32_to_int(const Gp& dst, const Vec& src) { emit_2vs(UniOpVR::kCvtRoundF32ToInt, dst, src); }
+  ASMJIT_INLINE void s_cvt_round_f32_to_int(const Gp& dst, const Mem& src) { emit_2vs(UniOpVR::kCvtRoundF32ToInt, dst, src); }
+  ASMJIT_INLINE void s_cvt_trunc_f64_to_int(const Gp& dst, const Vec& src) { emit_2vs(UniOpVR::kCvtTruncF64ToInt, dst, src); }
+  ASMJIT_INLINE void s_cvt_trunc_f64_to_int(const Gp& dst, const Mem& src) { emit_2vs(UniOpVR::kCvtTruncF64ToInt, dst, src); }
+  ASMJIT_INLINE void s_cvt_round_f64_to_int(const Gp& dst, const Vec& src) { emit_2vs(UniOpVR::kCvtRoundF64ToInt, dst, src); }
+  ASMJIT_INLINE void s_cvt_round_f64_to_int(const Gp& dst, const Mem& src) { emit_2vs(UniOpVR::kCvtRoundF64ToInt, dst, src); }
 
   DEFINE_OP_2V(v_mov, UniOpVV::kMov)
   DEFINE_OP_2V(v_mov_u64, UniOpVV::kMovU64)
@@ -1716,29 +1974,29 @@ public:
   #undef DEFINE_OP_2VI
   #undef DEFINE_OP_2V
 
-  template<typename DstT, typename SrcT> ASMJIT_INLINE void v_swap_u32(const DstT& dst, const SrcT& src) noexcept { v_swizzle_u32x4(dst, src, swizzle(2, 3, 0, 1)); }
-  template<typename DstT, typename SrcT> ASMJIT_INLINE void v_swap_u64(const DstT& dst, const SrcT& src) noexcept { v_swizzle_u64x2(dst, src, swizzle(0, 1)); }
-  template<typename DstT, typename SrcT> ASMJIT_INLINE void v_swap_f32(const DstT& dst, const SrcT& src) noexcept { v_swizzle_f32x4(dst, src, swizzle(2, 3, 0, 1)); }
-  template<typename DstT, typename SrcT> ASMJIT_INLINE void v_swap_f64(const DstT& dst, const SrcT& src) noexcept { v_swizzle_f64x2(dst, src, swizzle(0, 1)); }
+  template<typename DstT, typename SrcT> ASMJIT_INLINE void v_swap_u32(const DstT& dst, const SrcT& src) { v_swizzle_u32x4(dst, src, swizzle(2, 3, 0, 1)); }
+  template<typename DstT, typename SrcT> ASMJIT_INLINE void v_swap_u64(const DstT& dst, const SrcT& src) { v_swizzle_u64x2(dst, src, swizzle(0, 1)); }
+  template<typename DstT, typename SrcT> ASMJIT_INLINE void v_swap_f32(const DstT& dst, const SrcT& src) { v_swizzle_f32x4(dst, src, swizzle(2, 3, 0, 1)); }
+  template<typename DstT, typename SrcT> ASMJIT_INLINE void v_swap_f64(const DstT& dst, const SrcT& src) { v_swizzle_f64x2(dst, src, swizzle(0, 1)); }
 
-  template<typename DstT, typename SrcT> ASMJIT_INLINE void v_dup_lo_u32(const DstT& dst, const SrcT& src) noexcept { v_swizzle_u32x4(dst, src, swizzle(2, 2, 0, 0)); }
-  template<typename DstT, typename SrcT> ASMJIT_INLINE void v_dup_hi_u32(const DstT& dst, const SrcT& src) noexcept { v_swizzle_u32x4(dst, src, swizzle(3, 3, 1, 1)); }
-  template<typename DstT, typename SrcT> ASMJIT_INLINE void v_dup_lo_u64(const DstT& dst, const SrcT& src) noexcept { v_swizzle_u64x2(dst, src, swizzle(0, 0)); }
-  template<typename DstT, typename SrcT> ASMJIT_INLINE void v_dup_hi_u64(const DstT& dst, const SrcT& src) noexcept { v_swizzle_u64x2(dst, src, swizzle(1, 1)); }
-  template<typename DstT, typename SrcT> ASMJIT_INLINE void v_dup_lo_f64(const DstT& dst, const SrcT& src) noexcept { v_swizzle_f64x2(dst, src, swizzle(0, 0)); }
-  template<typename DstT, typename SrcT> ASMJIT_INLINE void v_dup_hi_f64(const DstT& dst, const SrcT& src) noexcept { v_swizzle_f64x2(dst, src, swizzle(1, 1)); }
+  template<typename DstT, typename SrcT> ASMJIT_INLINE void v_dup_lo_u32(const DstT& dst, const SrcT& src) { v_swizzle_u32x4(dst, src, swizzle(2, 2, 0, 0)); }
+  template<typename DstT, typename SrcT> ASMJIT_INLINE void v_dup_hi_u32(const DstT& dst, const SrcT& src) { v_swizzle_u32x4(dst, src, swizzle(3, 3, 1, 1)); }
+  template<typename DstT, typename SrcT> ASMJIT_INLINE void v_dup_lo_u64(const DstT& dst, const SrcT& src) { v_swizzle_u64x2(dst, src, swizzle(0, 0)); }
+  template<typename DstT, typename SrcT> ASMJIT_INLINE void v_dup_hi_u64(const DstT& dst, const SrcT& src) { v_swizzle_u64x2(dst, src, swizzle(1, 1)); }
+  template<typename DstT, typename SrcT> ASMJIT_INLINE void v_dup_lo_f64(const DstT& dst, const SrcT& src) { v_swizzle_f64x2(dst, src, swizzle(0, 0)); }
+  template<typename DstT, typename SrcT> ASMJIT_INLINE void v_dup_hi_f64(const DstT& dst, const SrcT& src) { v_swizzle_f64x2(dst, src, swizzle(1, 1)); }
 
-  template<typename T> ASMJIT_INLINE void v_zero_i(const T& dst) noexcept { v_xor_i32(dst, dst, dst); }
-  template<typename T> ASMJIT_INLINE void v_zero_f(const T& dst) noexcept { v_xor_f32(dst, dst, dst); }
-  template<typename T> ASMJIT_INLINE void v_zero_d(const T& dst) noexcept { v_xor_f64(dst, dst, dst); }
-  template<typename T> ASMJIT_INLINE void v_ones_i(const T& dst) noexcept { v_cmp_eq_u8(dst, dst, dst); }
+  template<typename T> ASMJIT_INLINE void v_zero_i(const T& dst) { v_xor_i32(dst, dst, dst); }
+  template<typename T> ASMJIT_INLINE void v_zero_f(const T& dst) { v_xor_f32(dst, dst, dst); }
+  template<typename T> ASMJIT_INLINE void v_zero_d(const T& dst) { v_xor_f64(dst, dst, dst); }
+  template<typename T> ASMJIT_INLINE void v_ones_i(const T& dst) { v_cmp_eq_u8(dst, dst, dst); }
 
   //! \}
 
   //! \name Memory Loads & Stores
   //! \{
 
-  ASMJIT_NOINLINE void v_load_u8_u16_2x(const Vec& dst, const Mem& lo, const Mem& hi) noexcept {
+  ASMJIT_NOINLINE void v_load_u8_u16_2x(const Vec& dst, const Mem& lo, const Mem& hi) {
 #if defined(ASMJIT_UJIT_X86)
     Gp reg = new_gp32("@tmp");
     Mem m_lo(lo);
@@ -1767,7 +2025,7 @@ public:
   //! \name Memory Loads & Stores with Parameterized Size
   //! \{
 
-  ASMJIT_NOINLINE void v_load_iany(const Vec& dst, const Mem& src, size_t n_bytes, Alignment alignment) noexcept {
+  ASMJIT_NOINLINE void v_load_iany(const Vec& dst, const Mem& src, size_t n_bytes, Alignment alignment) {
     switch (n_bytes) {
       case 1: v_load8(dst, src); break;
       case 2: v_loada16(dst, src, alignment); break;
@@ -1782,7 +2040,7 @@ public:
     }
   }
 
-  ASMJIT_NOINLINE void v_store_iany(const Mem& dst, const Vec& src, size_t n_bytes, Alignment alignment) noexcept {
+  ASMJIT_NOINLINE void v_store_iany(const Mem& dst, const Vec& src, size_t n_bytes, Alignment alignment) {
     switch (n_bytes) {
       case 1: v_store8(dst, src); break;
       case 2: v_storea16(dst, src, alignment); break;
@@ -1803,7 +2061,7 @@ public:
   //! \{
 
   template<typename Dst, typename Src>
-  ASMJIT_INLINE void shift_or_rotate_left(const Dst& dst, const Src& src, uint32_t n) noexcept {
+  ASMJIT_INLINE void shift_or_rotate_left(const Dst& dst, const Src& src, uint32_t n) {
   #if defined(ASMJIT_UJIT_X86)
     if ((n & 3) == 0)
       v_alignr_u128(dst, src, src, (16u - n) & 15);
@@ -1816,7 +2074,7 @@ public:
   }
 
   template<typename Dst, typename Src>
-  ASMJIT_INLINE void shift_or_rotate_right(const Dst& dst, const Src& src, uint32_t n) noexcept {
+  ASMJIT_INLINE void shift_or_rotate_right(const Dst& dst, const Src& src, uint32_t n) {
   #if defined(ASMJIT_UJIT_X86)
     if ((n & 3) == 0)
       v_alignr_u128(dst, src, src, n);
