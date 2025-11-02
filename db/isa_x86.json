@@ -3551,45 +3551,6 @@
       {"x64": "tmmultf32ps X:tmm, tmm, tmm"                                , "op": "[RMV] VEX.128.66.0F38.W0 48 11:rrr:bbb"}
     ]},
 
-    {"category": "AMX", "ext": "AMX_TRANSPOSE", "instructions": [
-      {"x64": "t2rpntlvwz0   W:tmm, W:tmm+1, tmem"                         , "op": "[RM ] VEX.128.NP.0F38.W0 6E !(11):rrr:100"},
-      {"apx": "t2rpntlvwz0   W:tmm, W:tmm+1, tmem"                         , "op": "[RM ] EVEX.128.NP.0F38.W0 6E !(11):rrr:100"},
-      {"x64": "t2rpntlvwz0t1 W:tmm, W:tmm+1, tmem"                         , "op": "[RM ] VEX.128.NP.0F38.W0 6F !(11):rrr:100"},
-      {"apx": "t2rpntlvwz0t1 W:tmm, W:tmm+1, tmem"                         , "op": "[RM ] EVEX.128.NP.0F38.W0 6F !(11):rrr:100"},
-      {"x64": "t2rpntlvwz1   W:tmm, W:tmm+1, tmem"                         , "op": "[RM ] VEX.128.66.0F38.W0 6E !(11):rrr:100"},
-      {"apx": "t2rpntlvwz1   W:tmm, W:tmm+1, tmem"                         , "op": "[RM ] EVEX.128.66.0F38.W0 6E !(11):rrr:100"},
-      {"x64": "t2rpntlvwz1t1 W:tmm, W:tmm+1, tmem"                         , "op": "[RM ] VEX.128.66.0F38.W0 6F !(11):rrr:100"},
-      {"apx": "t2rpntlvwz1t1 W:tmm, W:tmm+1, tmem"                         , "op": "[RM ] EVEX.128.66.0F38.W0 6F !(11):rrr:100"},
-      {"x64": "ttransposed   W:tmm, tmm"                                   , "op": "[RMV] VEX.128.F3.0F38.W0 5F 11:rrr:bbb"}
-    ]},
-
-    {"category": "AMX", "ext": "AMX_TRANSPOSE AMX_COMPLEX", "instructions": [
-      {"x64": "tconjtcmmimfp16ps W:tmm, tmm, tmm"                          , "op": "[RMV] VEX.128.NP.0F38.W0 6B 11:rrr:bbb"},
-      {"x64": "tconjtfp16        W:tmm, tmm"                               , "op": "[RM ] VEX.128.66.0F38.W0 6B 11:rrr:bbb"},
-      {"x64": "ttcmmimfp16ps     X:tmm, tmm, tmm"                          , "op": "[RMV] VEX.128.F2.0F38.W0 6B 11:rrr:bbb"},
-      {"x64": "ttcmmrlfp16ps     X:tmm, tmm, tmm"                          , "op": "[RMV] VEX.128.F3.0F38.W0 6B 11:rrr:bbb"}
-    ]},
-
-    {"category": "AMX", "ext": "AMX_TRANSPOSE AMX_MOVRS", "instructions": [
-      {"x64": "t2rpntlvwz0rs     W:tmm, W:tmm+1, tmem"                     , "op": "[RM ] VEX.128.NP.MAP5.W0 F8 !(11):rrr:100"},
-      {"apx": "t2rpntlvwz0rs     W:tmm, W:tmm+1, tmem"                     , "op": "[RM ] EVEX.128.NP.MAP5.W0 F8 !(11):rrr:100"},
-      {"x64": "t2rpntlvwz0rst1   W:tmm, W:tmm+1, tmem"                     , "op": "[RM ] VEX.128.NP.MAP5.W0 F9 !(11):rrr:100"},
-      {"apx": "t2rpntlvwz0rst1   W:tmm, W:tmm+1, tmem"                     , "op": "[RM ] EVEX.128.NP.MAP5.W0 F9 !(11):rrr:100"},
-      {"x64": "t2rpntlvwz1rs     W:tmm, W:tmm+1, tmem"                     , "op": "[RM ] VEX.128.66.MAP5.W0 F8 !(11):rrr:100"},
-      {"apx": "t2rpntlvwz1rs     W:tmm, W:tmm+1, tmem"                     , "op": "[RM ] EVEX.128.66.MAP5.W0 F8 !(11):rrr:100"},
-      {"x64": "t2rpntlvwz1rst1   W:tmm, W:tmm+1, tmem"                     , "op": "[RM ] VEX.128.66.MAP5.W0 F9 !(11):rrr:100"},
-      {"apx": "t2rpntlvwz1rst1   W:tmm, W:tmm+1, tmem"                     , "op": "[RM ] EVEX.128.66.MAP5.W0 F9 !(11):rrr:100"}
-    ]},
-
-    {"category": "AMX", "ext": "AMX_TRANSPOSE AMX_BF16", "instructions": [
-      {"x64": "ttdpbf16ps X:tmm, tmm, tmm"                                 , "op": "[RMV] VEX.128.F3.0F38.W0 6C 11:rrr:bbb"},
-      {"x64": "ttdpfp16ps X:tmm, tmm, tmm"                                 , "op": "[RMV] VEX.128.F2.0F38.W0 6C 11:rrr:bbb"}
-    ]},
-
-    {"category": "AMX", "ext": "AMX_TRANSPOSE AMX_TF32", "instructions": [
-      {"x64": "ttmmultf32ps X:tmm, tmm, tmm"                               , "op": "[RMV] VEX.128.NP.0F38.W0 48 11:rrr:bbb"}
-    ]},
-
     {"category": "GP GP_EXT", "ext": "APX_F", "instructions": [
       {"apx": "adc            x:r8/m8, R:r8"                               , "op": "[MR ] EVEX.ND=0.LLZ.NP.MAP4.WIG 10 /r"     , "io": "OF=W SF=W ZF=W AF=W PF=W CF=X"},
       {"apx": "adc            x:rv/mv, R:rv"                               , "op": "[MR ] EVEX.ND=0.LLZ.Pv.MAP4.Wv 11 /r"      , "io": "OF=W SF=W ZF=W AF=W PF=W CF=X"},

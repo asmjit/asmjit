@@ -5,7 +5,7 @@ AsmJit is a library for low-latency machine code generation written in C++.
 
   * [Official Home Page (asmjit.com)](https://asmjit.com)
   * [Official Repository (asmjit/asmjit)](https://github.com/asmjit/asmjit)
-  * [Public Chat Channel](https://app.gitter.im/#/room/#asmjit:gitter.im)
+  * [Public Chat Channel](https://app.element.io/#/room/#asmjit:gitter.im)
   * [Zlib License](./LICENSE.md)
 
 See [asmjit.com](https://asmjit.com) page for more details, examples, and documentation.
@@ -13,19 +13,20 @@ See [asmjit.com](https://asmjit.com) page for more details, examples, and docume
 Project Organization
 --------------------
 
-  * **`/`**         - Project root
-    * **src**       - Source code
-      * **asmjit**  - Source code and headers (always point include path in here)
-        * **core**  - Core API, backend independent except relocations
-        * **arm**   - ARM specific API, designed to be common for both AArch32 and AArch64
-        * **a64**   - AArch64 specific API, used only by AArch64 backends
-        * **x86**   - X86 specific API, used only by X86 and X64 backends
-        * **ujit**  - Universal JIT API
-    * **testing**   - Unit tests, integration tests, and benchmarks (don't embed in your project)
-      * **commons** - Common utilities shared between tests and benchmarks
-      * **bench**   - Benchmarks
-      * **tests**   - Unit tests and integration tests
-    * **tools**     - Tools used to re-regenerate generated files (instruction DB, enum strings)
+  * **`/`**              - Project root - project files and scripts, `include` path points here
+    * **asmjit**         - AsmJit source code and headers
+      * **core**         - Core API, backend independent except relocations
+      * **support**      - Support classes and functions
+      * **arm**          - ARM specific API, designed to be common for both AArch32 and AArch64
+      * **a64**          - AArch64 specific API, used only by AArch64 backends
+      * **x86**          - X86 specific API, used only by X86 and X64 backends
+      * **ujit**         - Universal JIT API
+    * **asmjit-testing** - Unit tests, integration tests, and benchmarks (don't embed in your project)
+      * **commons**      - Common utilities shared between tests and benchmarks
+      * **bench**        - Benchmarks
+      * **tests**        - Unit tests and integration tests
+    * **db**             - Instruction database
+    * **tools**          - Tools used to re-regenerate generated files (instruction DB, enum strings)
 
 Roadmap
 -------
@@ -55,11 +56,11 @@ Breaking the API is sometimes inevitable, what to do?
 
   * See [Breaking Changes Guide](https://asmjit.com/doc/group__asmjit__breaking__changes.html), which is now part of AsmJit documentation
   * See asmjit tests, they always compile and provide implementation of many use-cases:
-    * [asmjit_test_emitters.cpp](./testing/tests/asmjit_test_emitters.cpp) - Tests that demonstrate the purpose of emitters
-    * [asmjit_test_assembler_x86.cpp](./testing/tests/asmjit_test_assembler_x86.cpp) - Tests targeting AsmJit's Assembler (x86/x64)
-    * [asmjit_test_compiler_x86.cpp](./testing/tests/asmjit_test_compiler_x86.cpp) - Tests targeting AsmJit's Compiler (x86/x64)
-    * [asmjit_test_instinfo.cpp](./testing/tests/asmjit_test_instinfo.cpp) - Tests that query instruction information
-    * [asmjit_test_x86_sections.cpp](./testing/tests/asmjit_test_x86_sections.cpp) - Multiple sections test
+    * [asmjit_test_emitters.cpp](./asmjit-testing/tests/asmjit_test_emitters.cpp) - Tests that demonstrate the purpose of emitters
+    * [asmjit_test_assembler_x86.cpp](./asmjit-testing/tests/asmjit_test_assembler_x86.cpp) - Tests targeting AsmJit's Assembler (x86/x64)
+    * [asmjit_test_compiler_x86.cpp](./asmjit-testing/tests/asmjit_test_compiler_x86.cpp) - Tests targeting AsmJit's Compiler (x86/x64)
+    * [asmjit_test_instinfo.cpp](./asmjit-testing/tests/asmjit_test_instinfo.cpp) - Tests that query instruction information
+    * [asmjit_test_x86_sections.cpp](./asmjit-testing/tests/asmjit_test_x86_sections.cpp) - Multiple sections test
   * Visit our [Gitter Chat](https://app.gitter.im/#/room/#asmjit:gitter.im) if you need a quick help
 
 Support
