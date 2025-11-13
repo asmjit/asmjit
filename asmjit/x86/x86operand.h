@@ -237,7 +237,7 @@ class Vec : public UniVec {
   //! was ZMM, or XMM for whatever else input.
   [[nodiscard]]
   ASMJIT_INLINE_CONSTEXPR Vec half() const noexcept {
-    return Vec(is_vec512() ? signature_of_t<RegType::kVec256>() : signature_of_t<RegType::kVec512>(), id());
+    return Vec(is_vec512() ? signature_of_t<RegType::kVec256>() : signature_of_t<RegType::kVec128>(), id());
   }
 
   //! \}

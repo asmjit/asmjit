@@ -141,6 +141,10 @@ UNIT(x86_operand) {
   EXPECT_EQ(zmm7.ymm(), ymm7);
   EXPECT_EQ(zmm7.zmm(), zmm7);
 
+  EXPECT_EQ(xmm4.half(), xmm4);
+  EXPECT_EQ(ymm4.half(), xmm4);
+  EXPECT_EQ(zmm4.half(), ymm4);
+
   INFO("Checking x86::Mm register properties");
   EXPECT_TRUE(Mm().is_reg());
   EXPECT_TRUE(mm2.is_reg());
