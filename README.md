@@ -33,16 +33,16 @@ Roadmap
 
   * See [Roadmap](https://asmjit.com/roadmap.html) page for more details
 
-Contributing
-------------
-
-  * See [CONTRIBUTING](./CONTRIBUTING.md) page for more details
-
 Documentation
 -------------
 
   * [Documentation Index](https://asmjit.com/doc/index.html)
   * [Build Instructions](https://asmjit.com/doc/group__asmjit__build.html) (includes [CMake Integration](https://asmjit.com/doc/group__asmjit__build.html#cmake_integration))
+
+Contributing Guidelines
+-----------------------
+
+  * See [CONTRIBUTING](./CONTRIBUTING.md) page for more details
 
 Development & Testing
 ---------------------
@@ -63,11 +63,11 @@ Breaking the API is sometimes inevitable, what to do?
     * [asmjit_test_x86_sections.cpp](./asmjit-testing/tests/asmjit_test_x86_sections.cpp) - Multiple sections test
   * Visit our [Gitter Chat](https://app.gitter.im/#/room/#asmjit:gitter.im) if you need a quick help
 
-Support
--------
+Support & Funding
+-----------------
 
   * AsmJit project has both community and commercial support, see [AsmJit's Support Page](https://asmjit.com/support.html)
-  * Organizations that rely on AsmJit should support the development!
+  * If you use this software commercially, please see the [Funding Page](https://kobalicek.com/funding.html) and support the development
 
 Notable Donors List:
 

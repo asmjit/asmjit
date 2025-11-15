@@ -1021,7 +1021,7 @@ namespace asmjit {
 //! \section code_sections Code & Data Sections
 //!
 //! AsmJit allows to create multiple sections within the same \ref CodeHolder. A test-case
-//! [asmjit_test_x86_sections.cpp](https://github.com/asmjit/asmjit/blob/master/test/asmjit_test_x86_sections.cpp)
+//! [asmjit_test_x86_sections.cpp](https://github.com/asmjit/asmjit/blob/master/asmjit-testing/tests/asmjit_test_x86_sections.cpp)
 //! can be used as a reference point although the following example should also provide a useful insight:
 //!
 //! ```
@@ -1860,7 +1860,7 @@ namespace asmjit {
 //!     instruction with operands must be given as some architectures like X86 may require different features for the
 //!     same instruction based on its operands.
 //!
-//!   - <a href="https://github.com/asmjit/asmjit/blob/master/test/asmjit_test_instinfo.cpp">asmjit_test_instinfo.cpp</a>
+//!   - <a href="https://github.com/asmjit/asmjit/blob/master/asmjit-testing/tests/asmjit_test_instinfo.cpp">asmjit_test_instinfo.cpp</a>
 //!     can be also used as a reference about accessing instruction information.
 //!
 //! \section instruction_validation Instruction Validation
