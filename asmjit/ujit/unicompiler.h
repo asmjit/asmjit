@@ -761,7 +761,7 @@ public:
   template<typename RegT, typename... Args>
   [[nodiscard]]
   ASMJIT_INLINE RegT new_reg(TypeId type_id, Args&&... args) noexcept {
-    return cc->new_similar_reg<RegT>(type_id, std::forward<Args>(args)...);
+    return cc->new_reg<RegT>(type_id, std::forward<Args>(args)...);
   }
 
   //! Wraps `BackendCompiler::new_similar_reg(ref, args...)`.
