@@ -74,6 +74,7 @@ public:
 // ========================================
 
 static const char Section_address_table_name[] = ".addrtab";
+static const char Section_veneer_name[] = ".veneer";
 
 static ASMJIT_INLINE void Section_init_name(
   Section* section,
@@ -223,6 +224,7 @@ CodeHolder::CodeHolder(Span<uint8_t> static_arena_memory) noexcept
     _fixups(nullptr),
     _unresolved_fixup_count(0),
     _text_section{},
+    _veneer_section(nullptr),
     _address_table_section(nullptr) {}
 
 CodeHolder::~CodeHolder() noexcept {
@@ -566,6 +568,47 @@ Section* CodeHolder::section_by_name(const char* name, size_t name_size) const n
   }
 
   return nullptr;
+}
+
+Section* CodeHolder::ensure_veneer_section() noexcept {
+  if (_veneer_section) {
+    return _veneer_section;
+  }
+
+  new_section(Out(_veneer_section),
+             Section_veneer_name,
+             sizeof(Section_veneer_name) - 1,
+             SectionFlags::kExecutable | SectionFlags::kReadOnly,
+             16,
+             std::numeric_limits<int32_t>::max() - 1);
+  return _veneer_section;
+}
+
+Error CodeHolder::add_veneer_to_veneer_section(Out<VeneerEntry*> veneer, uint64_t address, bool is_link) noexcept {
+  VeneerEntry veneer_key(address, is_link);
+  VeneerEntry* existing = _veneer_entries.get(veneer_key);
+
+  if (existing) {
+    veneer = existing;
+    return Error::kOk;
+  }
+
+  Section* section = ensure_veneer_section();
+  if (ASMJIT_UNLIKELY(!section)) {
+    return make_error(Error::kOutOfMemory);
+  }
+
+  VeneerEntry* created = _arena.new_oneshot<VeneerEntry>(address, is_link);
+  if (ASMJIT_UNLIKELY(!created)) {
+    return make_error(Error::kOutOfMemory);
+  }
+
+  created->_offset = section->_virtual_size;
+  section->_virtual_size += 8;
+  _veneer_entries.insert(created);
+
+  veneer = created;
+  return Error::kOk;
 }
 
 Section* CodeHolder::ensure_address_table_section() noexcept {
@@ -1288,6 +1331,75 @@ Error CodeHolder::relocate_to_base(uint64_t base_address, RelocationSummary* sum
         break;
       }
 
+      case RelocType::kA64AddressEntry: {
+        size_t value_offset = size_t(re->source_offset()) + re->format().value_offset();
+        if (re->format().value_size() != 4) {
+          return make_error(Error::kInvalidRelocEntry);
+        }
+
+        // First check if a direct relative branch is possible (±128MB range).
+        value -= base_address + section_offset + source_offset + re->format().value_size();
+        int64_t signed_value = int64_t(value);
+
+        if ((signed_value & 3) == 0) {
+          int64_t scaled_offset = signed_value >> 2;
+          if (Support::is_int_n<26>(scaled_offset)) {
+            // Direct branch fits, no need for veneer.
+            break;
+          }
+        }
+
+        // Branch target is out of range, need to use a veneer.
+        // Determine if this is a BL (branch with link) or B (branch without link).
+        uint32_t instruction = Support::loadu_u32_le(buffer + value_offset);
+        uint32_t opcode_bits = instruction & 0xFC000000u;
+
+        bool is_link = (opcode_bits == 0x94000000u);
+        if (opcode_bits != 0x14000000u && !is_link) {
+          return make_error(Error::kInvalidRelocEntry);
+        }
+
+        // Create or find existing veneer for this target address.
+        VeneerEntry* veneer;
+        ASMJIT_PROPAGATE(add_veneer_to_veneer_section(Out(veneer), re->payload(), is_link));
+
+        // Now get the address table entry that should already exist.
+        AddressTableEntry* at_entry = _address_table_entries.get(re->payload());
+        if (ASMJIT_UNLIKELY(!at_entry)) {
+          return make_error(Error::kInvalidRelocEntry);
+        }
+
+        // Cannot be null as we have just matched the `AddressTableEntry`.
+        ASMJIT_ASSERT(address_table_section != nullptr);
+
+        // Assign slot to address table entry if not already assigned.
+        if (!at_entry->has_assigned_slot()) {
+          at_entry->_slot = address_table_entry_size++;
+        }
+
+        // Write the target address to the address table.
+        size_t at_entry_index = size_t(at_entry->slot()) * address_size;
+        Support::storeu_u64_le(address_table_entry_data + at_entry_index, re->payload());
+
+        // At this point we have a veneer. Redirect the branch to the veneer.
+        Section* veneer_section = _veneer_section;
+        ASMJIT_ASSERT(veneer_section != nullptr);
+        ASMJIT_ASSERT(veneer->has_assigned_offset());
+
+        uint64_t veneer_addr = base_address + veneer_section->offset() + veneer->offset();
+        uint64_t branch_addr = base_address + section_offset + source_offset;
+        int64_t veneer_displacement = int64_t(veneer_addr - branch_addr);
+
+        // Veneer must be within ±128MB of the branch.
+        if ((veneer_displacement & 3) != 0 || !Support::is_int_n<28>(veneer_displacement)) {
+          return make_error(Error::kRelocOffsetOutOfRange);
+        }
+
+        // Write the offset to branch to veneer.
+        value = uint64_t(veneer_displacement);
+        break;
+      }
+
       default:
         return make_error(Error::kInvalidRelocEntry);
     }
@@ -1295,6 +1407,72 @@ Error CodeHolder::relocate_to_base(uint64_t base_address, RelocationSummary* sum
     if (!CodeWriterUtils::write_offset(buffer + re->source_offset(), int64_t(value), re->format())) {
       return make_error(Error::kInvalidRelocEntry);
     }
+  }
+
+  // Now emit the actual veneer code if we have a veneer section.
+  if (_veneer_section && !_veneer_entries.is_empty()) {
+    Section* veneer_section = _veneer_section;
+    ASMJIT_PROPAGATE(reserve_buffer(&veneer_section->_buffer, size_t(veneer_section->virtual_size())));
+    uint8_t* veneer_data = veneer_section->_buffer.data();
+
+    // Helper lambda to emit veneer code for a single veneer entry.
+    auto emit_veneer = [&](VeneerEntry* veneer_node) -> Error {
+      ASMJIT_ASSERT(veneer_node->has_assigned_offset());
+
+      // Find the address table entry for this veneer's target.
+      AddressTableEntry* at_entry = _address_table_entries.get(veneer_node->address());
+      ASMJIT_ASSERT(at_entry != nullptr);
+      ASMJIT_ASSERT(at_entry->has_assigned_slot());
+
+      // Calculate PC-relative offset from veneer to address table.
+      uint64_t veneer_pc = base_address + veneer_section->offset() + veneer_node->offset();
+      size_t at_entry_index = size_t(at_entry->slot()) * address_size;
+      uint64_t addr_table_addr = base_address + address_table_section->offset() + at_entry_index;
+
+      int64_t ldr_displacement = int64_t(addr_table_addr - veneer_pc);
+      // LDR literal uses 19-bit signed offset scaled by 4 (word-aligned), giving ±1MB range.
+      if ((ldr_displacement & 3) != 0 || !Support::is_int_n<21>(ldr_displacement)) {
+        return make_error(Error::kRelocOffsetOutOfRange);
+      }
+
+      int64_t ldr_offset = ldr_displacement >> 2;
+
+      // Emit LDR x16, [PC, #offset]
+      // LDR (literal): 0x58000000 | (19-bit offset << 5) | Rt
+      uint32_t ldr_instr = 0x58000000u | ((uint32_t(ldr_offset) & 0x7FFFF) << 5) | 16u;
+
+      // Emit BR x16 or BLR x16
+      // BR x16: 0xD61F0200, BLR x16: 0xD63F0200
+      uint32_t br_instr = veneer_node->is_link() ? 0xD63F0200u : 0xD61F0200u;
+
+      // Write the veneer instructions.
+      size_t veneer_offset = size_t(veneer_node->offset());
+      Support::storeu_u32_le(veneer_data + veneer_offset, ldr_instr);
+      Support::storeu_u32_le(veneer_data + veneer_offset + 4, br_instr);
+
+      return Error::kOk;
+    };
+
+    // Simple manual in-order traversal of the veneer tree.
+    ArenaVector<VeneerEntry*> veneer_list;
+    ASMJIT_PROPAGATE(veneer_list.reserve_additional(_arena));
+
+    // Helper lambda for in-order traversal to collect all veneers.
+    auto traverse = [&](auto& self, VeneerEntry* node) -> void {
+      if (!node) return;
+      self(self, node->left());
+      veneer_list.append_unchecked(node);
+      self(self, node->right());
+    };
+
+    traverse(traverse, _veneer_entries.root());
+
+    // Now emit veneer code for each collected veneer.
+    for (VeneerEntry* veneer_node : veneer_list) {
+      ASMJIT_PROPAGATE(emit_veneer(veneer_node));
+    }
+
+    veneer_section->_buffer._size = size_t(veneer_section->virtual_size());
   }
 
   // Fixup the virtual size of the address table if it's the last section.

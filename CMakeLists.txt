@@ -630,6 +630,13 @@ else()
         CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
     endforeach()
 
+    asmjit_add_target(asmjit_test_assembler_a64_veneers TEST
+      SOURCES    asmjit-testing/tests/asmjit_test_assembler_a64_veneers.cpp
+      LIBRARIES  asmjit::asmjit
+      CFLAGS     ${ASMJIT_PRIVATE_CFLAGS}
+      CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
+      CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
+
     if (NOT ASMJIT_NO_INTROSPECTION)
       asmjit_add_target(asmjit_test_instinfo TEST
         SOURCES    asmjit-testing/tests/asmjit_test_instinfo.cpp
