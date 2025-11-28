@@ -227,6 +227,8 @@ public:
     EmitProlog emit_prolog;
     //! Emit epilog implementation.
     EmitEpilog emit_epilog;
+    //! Emit epilog implementation.
+    EmitEpilog emit_epilog_no_ret;
     //! Emit arguments assignment implementation.
     EmitArgsAssignment emit_args_assignment;
     //! Instruction formatter implementation.
@@ -812,6 +814,8 @@ public:
   ASMJIT_API Error emit_prolog(const FuncFrame& frame);
   //! Emits a function epilog described by the given function `frame`.
   ASMJIT_API Error emit_epilog(const FuncFrame& frame);
+  //! Emits a function epilog described by the given function `frame` without the last 'ret' instruction.
+  ASMJIT_API Error emit_epilog_no_ret(const FuncFrame& frame);
   //! Emits code that reassigns function `frame` arguments to the given `args`.
   ASMJIT_API Error emit_args_assignment(const FuncFrame& frame, const FuncArgsAssignment& args);
 

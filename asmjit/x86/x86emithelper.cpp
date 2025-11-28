@@ -667,6 +667,11 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emit_epilog(const FuncFrame& frame) {
     ASMJIT_PROPAGATE(emitter->pop(zbp));
   }
 
+  return Error::kOk;
+}
+
+Error EmitHelper::emit_ret(const FuncFrame& frame) {
+  Emitter* emitter = _emitter->as<Emitter>();
   // Emit 'ret' or 'ret x'.
   if (frame.has_callee_stack_cleanup()) {
     ASMJIT_PROPAGATE(emitter->emit(Inst::kIdRet, int(frame.callee_stack_cleanup())));
@@ -685,6 +690,12 @@ static Error ASMJIT_CDECL Emitter_emitProlog(BaseEmitter* emitter, const FuncFra
 
 static Error ASMJIT_CDECL Emitter_emitEpilog(BaseEmitter* emitter, const FuncFrame& frame) {
   EmitHelper emit_helper(emitter, frame.is_avx_enabled(), frame.is_avx512_enabled());
+  ASMJIT_PROPAGATE(emit_helper.emit_epilog(frame));
+  return emit_helper.emit_ret(frame);
+}
+
+static Error ASMJIT_CDECL Emitter_emitEpilog_no_ret(BaseEmitter* emitter, const FuncFrame& frame) {
+  EmitHelper emit_helper(emitter, frame.is_avx_enabled(), frame.is_avx512_enabled());
   return emit_helper.emit_epilog(frame);
 }
 
@@ -696,6 +707,7 @@ static Error ASMJIT_CDECL Emitter_emitArgsAssignment(BaseEmitter* emitter, const
 void init_emitter_funcs(BaseEmitter* emitter) noexcept {
   emitter->_funcs.emit_prolog = Emitter_emitProlog;
   emitter->_funcs.emit_epilog = Emitter_emitEpilog;
+  emitter->_funcs.emit_epilog_no_ret = Emitter_emitEpilog_no_ret;
   emitter->_funcs.emit_args_assignment = Emitter_emitArgsAssignment;
 
 #ifndef ASMJIT_NO_LOGGING
