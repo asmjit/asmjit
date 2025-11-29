@@ -12,6 +12,10 @@
   #include <asmjit/x86/x86archtraits_p.h>
 #endif
 
+#if !defined(ASMJIT_NO_AARCH32)
+  #include <asmjit/arm/a32archtraits_p.h>
+#endif
+
 #if !defined(ASMJIT_NO_AARCH64)
   #include <asmjit/arm/a64archtraits_p.h>
 #endif
@@ -74,7 +78,11 @@ ASMJIT_VARAPI const ArchTraits _arch_traits[uint32_t(Arch::kMaxValue) + 1] = {
   no_arch_traits,
 
   // ARM architecture
+#if !defined(ASMJIT_NO_AARCH32)
+  a32::a32_arch_traits,
+#else
   no_arch_traits,
+#endif
 
   // AArch64 architecture.
 #if !defined(ASMJIT_NO_AARCH64)
@@ -84,7 +92,11 @@ ASMJIT_VARAPI const ArchTraits _arch_traits[uint32_t(Arch::kMaxValue) + 1] = {
 #endif
 
   // ARM/Thumb architecture.
+#if !defined(ASMJIT_NO_AARCH32)
+  a32::a32_arch_traits,
+#else
   no_arch_traits,
+#endif
 
   // Reserved.
   no_arch_traits,

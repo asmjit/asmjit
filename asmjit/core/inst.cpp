@@ -11,6 +11,10 @@
   #include <asmjit/x86/x86instapi_p.h>
 #endif
 
+#if !defined(ASMJIT_NO_AARCH32)
+  #include <asmjit/arm/a32instapi_p.h>
+#endif
+
 #if !defined(ASMJIT_NO_AARCH64)
   #include <asmjit/arm/a64instapi_p.h>
 #endif
@@ -34,6 +38,11 @@ Error InstAPI::inst_id_to_string(Arch arch, InstId inst_id, InstStringifyOptions
   }
 #endif
 
+#if !defined(ASMJIT_NO_AARCH32)
+  if (Environment::is_family_aarch32(arch))
+    return a32::InstInternal::inst_id_to_string(inst_id, options, output);
+#endif
+
   return make_error(Error::kInvalidArch);
 }
 
@@ -48,6 +57,11 @@ InstId InstAPI::string_to_inst_id(Arch arch, const char* s, size_t len) noexcept
   if (Environment::is_family_aarch64(arch)) {
     return a64::InstInternal::string_to_inst_id(s, len);
   }
+#endif
+
+#if !defined(ASMJIT_NO_AARCH32)
+  if (Environment::is_family_aarch32(arch))
+    return a32::InstInternal::string_to_inst_id(s, len);
 #endif
 
   return 0;
@@ -76,6 +90,10 @@ Error InstAPI::validate(Arch arch, const BaseInst& inst, const Operand_* operand
   }
 #endif
 
+#if !defined(ASMJIT_NO_AARCH32)
+  if (Environment::is_family_aarch32(arch))
+    return a32::InstInternal::validate(inst, operands, op_count, validation_flags);
+#endif
   return make_error(Error::kInvalidArch);
 }
 #endif // !ASMJIT_NO_INTROSPECTION
@@ -101,6 +119,11 @@ Error InstAPI::query_rw_info(Arch arch, const BaseInst& inst, const Operand_* op
   }
 #endif
 
+#if !defined(ASMJIT_NO_AARCH32)
+  if (Environment::is_family_aarch32(arch))
+    return a32::InstInternal::query_rw_info(inst, operands, op_count, out);
+#endif
+
   return make_error(Error::kInvalidArch);
 }
 #endif // !ASMJIT_NO_INTROSPECTION
@@ -122,6 +145,11 @@ Error InstAPI::query_features(Arch arch, const BaseInst& inst, const Operand_* o
   }
 #endif
 
+
+#if !defined(ASMJIT_NO_AARCH32)
+  if (Environment::is_family_aarch32(arch))
+    return a32::InstInternal::query_features(inst, operands, op_count, out);
+#endif
   return make_error(Error::kInvalidArch);
 }
 #endif // !ASMJIT_NO_INTROSPECTION
