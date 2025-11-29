@@ -213,7 +213,7 @@ public:
   //! \overload
   ASMJIT_INLINE_NODEBUG Error invoke(Out<InvokeNode*> out, const Imm& target, const FuncSignature& signature) { return invoke_(out, Inst::kIdBlr, target, signature); }
   //! \overload
-  ASMJIT_INLINE_NODEBUG Error invoke(Out<InvokeNode*> out, uint64_t target, const FuncSignature& signature) { return invoke_(out, Inst::kIdBlr, Imm(int64_t(target)), signature); }
+  ASMJIT_INLINE_NODEBUG Error invoke(Out<InvokeNode*> out, uint64_t target, const FuncSignature& signature) { return invoke_(out, Inst::kIdBl, Imm(int64_t(target)), signature); }
   //! \overload
   ASMJIT_INLINE_NODEBUG Error invoke_tail(Out<InvokeNode*> out, const Gp& target, const FuncSignature& signature) { return invoke_(out, Inst::kIdBr, target, signature); }
   //! \overload
@@ -223,7 +223,7 @@ public:
   //! \overload
   ASMJIT_INLINE_NODEBUG Error invoke_tail(Out<InvokeNode*> out, const Imm& target, const FuncSignature& signature) { return invoke_(out, Inst::kIdBr, target, signature); }
   //! \overload
-  ASMJIT_INLINE_NODEBUG Error invoke_tail(Out<InvokeNode*> out, uint64_t target, const FuncSignature& signature) { return invoke_(out, Inst::kIdBr, Imm(int64_t(target)), signature); }
+  ASMJIT_INLINE_NODEBUG Error invoke_tail(Out<InvokeNode*> out, uint64_t target, const FuncSignature& signature) { return invoke_(out, Inst::kIdB, Imm(int64_t(target)), signature); }
 
   //! Return from function.
   //!
