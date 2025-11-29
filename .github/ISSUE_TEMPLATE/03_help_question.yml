@@ -7,7 +7,7 @@ body:
       value: |
         Before you hit the submit button:
           * Please see our [Contribution Guidelines](https://github.com/asmjit/asmjit/blob/master/CONTRIBUTING.md).
-          * [Gitter Chat](https://app.gitter.im/#/room/#asmjit:gitter.im) is usually faster to get answers.
+          * [Public Chat](https://app.element.io/#/room/#asmjit:matrix.org) is usually faster to get answers.
           * If you need a help, please include as much information as possible to make it clear what the intend is.
   - type: textarea
     id: issue-description
