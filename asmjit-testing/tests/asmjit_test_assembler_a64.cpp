@@ -1907,6 +1907,10 @@ static void ASMJIT_NOINLINE test_aarch64_assembler_simd(AssemblerTester<a64::Ass
   TEST_INSTRUCTION("01F4034F", fmov(v1.s4(), 0.5));
   TEST_INSTRUCTION("01F4004F", fmov(v1.s4(), 2.0));
   TEST_INSTRUCTION("01F4036F", fmov(v1.d2(), 0.5));
+  TEST_INSTRUCTION("00F4030F", fmov(v0.s2(), 0.5));
+  TEST_INSTRUCTION("00F4000F", fmov(v0.s2(), 2.0));
+  TEST_INSTRUCTION("00F4034F", fmov(v0.s4(), 0.5));
+  TEST_INSTRUCTION("00F4004F", fmov(v0.s4(), 2.0));
   TEST_INSTRUCTION("01F4006F", fmov(v1.d2(), 2.0));
   TEST_INSTRUCTION("4190C31F", fmsub(h1, h2, h3, h4));
   TEST_INSTRUCTION("4190031F", fmsub(s1, s2, s3, s4));

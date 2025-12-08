@@ -3580,7 +3580,7 @@ Case_BaseLdurStur:
             if (q > 1 || sz > 2)
               goto InvalidInstruction;
 
-            static const uint32_t sz_bits_table[3] = { B(11), B(0), B(29) };
+            static const uint32_t sz_bits_table[3] = { B(11), 0, B(29) };
             opcode.reset(0b00001111000000001111010000000000);
             opcode ^= sz_bits_table[sz];
             opcode.add_imm(q, 30);
