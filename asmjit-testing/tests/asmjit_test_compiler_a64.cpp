@@ -684,7 +684,7 @@ public:
   void compile(a64::Compiler& cc) override {
     a64::Gp v0 = cc.new_gp32("v0");
     a64::Gp v1 = cc.new_gp32("v1");
-    a64::Gp fn = cc.new_gp_ptr("fn");
+    a64::Gp fn = cc.gpz(16);
 
     FuncNode* func_node = cc.add_func(FuncSignature::build<int, int, int>());
     func_node->set_arg(0, v0);
