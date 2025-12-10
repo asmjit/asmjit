@@ -4248,6 +4248,59 @@ public:
   }
 };
 
+// x86::Compiler - X86Test_FuncTailCall
+// ==========================================
+
+class X86Test_FuncTailCall : public X86TestCase {
+public:
+  X86Test_FuncTailCall() : X86TestCase("FuncTailCall") {}
+
+  static void add(TestApp& app) {
+    app.add(new X86Test_FuncTailCall());
+  }
+
+  void compile(x86::Compiler& cc) override {
+    x86::Gp v0 = cc.new_gp32("v0");
+    x86::Gp v1 = cc.new_gp32("v1");
+
+    FuncNode* func_node = cc.add_func(FuncSignature::build<int, int, int>());
+    func_node->set_arg(0, v0);
+    func_node->set_arg(1, v1);
+
+    // Just do something.
+    cc.shl(v0, 1);
+    cc.shl(v1, 1);
+
+    // Call a function.
+    InvokeNode* invoke_node;
+    cc.invoke_tail(Out(invoke_node), imm((void*)called_fn), FuncSignature::build<int, int, int>());
+    // Swap arguments around.
+    invoke_node->set_arg(0, v1);
+    invoke_node->set_arg(1, v0);
+    invoke_node->set_ret(0, v0);
+
+    // Tail call must not get here.
+    cc.ud2();
+
+    cc.ret(v0);
+    cc.end_func();
+  }
+
+  bool run(void* _func, String& result, String& expect) override {
+    using Func = int (*)(int, int);
+    Func func = ptr_as_func<Func>(_func);
+
+    int result_ret = func(5, 10);
+    int expect_ret = called_fn(20, 10);
+
+    result.assign_format("ret=%d", result_ret);
+    expect.assign_format("ret=%d", expect_ret);
+
+    return result == expect;
+  }
+  static int called_fn(int a, int b) { return (a - b); }
+};
+
 // x86::Compiler - X86Test_VecToScalar
 // ===================================
 
@@ -4681,6 +4734,7 @@ void compiler_add_x86_tests(TestApp& app) {
   app.add_t<X86Test_FuncCallMisc5>();
   app.add_t<X86Test_FuncCallMisc6>();
   app.add_t<X86Test_FuncCallAVXClobber>();
+  app.add_t<X86Test_FuncTailCall>();
 
   // Miscellaneous tests.
   app.add_t<X86Test_VecToScalar>();

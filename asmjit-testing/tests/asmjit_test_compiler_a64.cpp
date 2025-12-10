@@ -670,6 +670,62 @@ public:
   }
 };
 
+// a64::Compiler - A86Test_FuncTailCall
+// ==========================================
+
+class A64Test_FuncTailCall : public A64TestCase {
+public:
+  A64Test_FuncTailCall() : A64TestCase("FuncTailCall") {}
+
+  static void add(TestApp& app) {
+    app.add(new A64Test_FuncTailCall());
+  }
+
+  void compile(a64::Compiler& cc) override {
+    a64::Gp v0 = cc.new_gp32("v0");
+    a64::Gp v1 = cc.new_gp32("v1");
+    a64::Gp fn = cc.new_gp_ptr("fn");
+
+    FuncNode* func_node = cc.add_func(FuncSignature::build<int, int, int>());
+    func_node->set_arg(0, v0);
+    func_node->set_arg(1, v1);
+
+    // Just do something.
+    cc.lsl(v0, v0, 1);
+    cc.lsl(v1, v1, 1);
+
+    cc.mov(fn, (uint64_t)called_fn);
+
+    // Call a function.
+    InvokeNode* invoke_node;
+    cc.invoke_tail(Out(invoke_node), fn, FuncSignature::build<int, int, int>());
+    // Swap arguments around.
+    invoke_node->set_arg(0, v1);
+    invoke_node->set_arg(1, v0);
+    invoke_node->set_ret(0, v0);
+
+    // Tail call must not get here.
+    cc.udf(Imm(0));
+
+    cc.ret(v0);
+    cc.end_func();
+  }
+
+  bool run(void* _func, String& result, String& expect) override {
+    using Func = int (*)(int, int);
+    Func func = ptr_as_func<Func>(_func);
+
+    int result_ret = func(5, 10);
+    int expect_ret = called_fn(20, 10);
+
+    result.assign_format("ret=%d", result_ret);
+    expect.assign_format("ret=%d", expect_ret);
+
+    return result == expect;
+  }
+  static int called_fn(int a, int b) { return (a - b); }
+};
+
 // a64::Compiler - Export
 // ======================
 
@@ -683,6 +739,7 @@ void compiler_add_a64_tests(TestApp& app) {
   app.add_t<A64Test_Invoke2>();
   app.add_t<A64Test_Invoke3>();
   app.add_t<A64Test_JumpTable>();
+  app.add_t<A64Test_FuncTailCall>();
 }
 
 #endif // !ASMJIT_NO_COMPILER && !ASMJIT_NO_AARCH64
