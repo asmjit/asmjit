@@ -10,7 +10,7 @@
 
 ### Asking questions
 
-  * We prefer GitHub issues to be used for reporting bugs or feature requests, but it's still okay to ask questions there as well. However, please consider joining our [Chat](https://app.element.io/#/room/#asmjit:gitter.im) to ask questions; it has an active community that can quickly respond.
+  * We prefer GitHub issues to be used for reporting bugs or feature requests, but it's still okay to ask questions there as well. However, please consider joining our [Public Chat](https://app.element.io/#/room/#asmjit:matrix.org) to ask questions; it has an active community that can quickly respond.
 
 ### Suggesting feature requests
 
@@ -26,7 +26,7 @@
 
 ### Suggesting a website content enhancement
 
-  * [AsmJit's website](https://asmjit.com) is also generated, but not from public sources at the moment. If you did find an issue on the website you can either use contact information on the [support page](https://asmjit.com/support.html) or to discuss the change on our [Chat](https://app.element.io/#/room/#asmjit:gitter.im). Alternatively, opening a regular issue is also okay.
+  * [AsmJit's website](https://asmjit.com) is also generated, but not from public sources at the moment. If you did find an issue on the website you can either use contact information on the [support page](https://asmjit.com/support.html) or to discuss the change on our [Public Chat](https://app.element.io/#/room/#asmjit:matrix.org). Alternatively, opening a regular issue is also okay.
 
 
 ## Coding Style & Consistency
