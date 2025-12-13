@@ -121,6 +121,7 @@ set(ASMJIT_SRC
   asmjit/asmjit.h
   asmjit/asmjit-scope-begin.h
   asmjit/asmjit-scope-end.h
+  asmjit/host.h
 
   asmjit/core.h
   asmjit/core/api-build_p.h
@@ -189,6 +190,7 @@ set(ASMJIT_SRC
   asmjit/core/ralocal_p.h
   asmjit/core/rapass.cpp
   asmjit/core/rapass_p.h
+  asmjit/core/rareg_p.h
   asmjit/core/rastack.cpp
   asmjit/core/rastack_p.h
   asmjit/core/string.cpp
@@ -275,11 +277,13 @@ set(ASMJIT_SRC
   asmjit/x86/x86rapass.cpp
   asmjit/x86/x86rapass_p.h
 
+  asmjit/ujit.h
   asmjit/ujit/ujitbase.h
   asmjit/ujit/unicompiler.h
   asmjit/ujit/unicompiler_a64.cpp
   asmjit/ujit/unicompiler_x86.cpp
   asmjit/ujit/unicompiler_utils_p.h
+  asmjit/ujit/unicondition.h
   asmjit/ujit/uniop.h
   asmjit/ujit/vecconsttable.cpp
   asmjit/ujit/vecconsttable.h
