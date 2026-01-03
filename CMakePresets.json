@@ -31,6 +31,7 @@
     { "name": "conf-tsan"        , "hidden": true, "cacheVariables": { "ASMJIT_SANITIZE": "thread" } },
     { "name": "conf-ubsan"       , "hidden": true, "cacheVariables": { "ASMJIT_SANITIZE": "undefined" } },
     { "name": "conf-32"          , "hidden": true, "environment": { "CFLAGS": "-m32", "CXXFLAGS": "-m32" } },
+    { "name": "conf-avx2"        , "hidden": true, "environment": { "CXXFLAGS": "-mavx2 -mbmi -mbmi2" } },
 
     { "name": "debug"            , "inherits": ["conf-debug", "conf-test", "conf-static"] },
     { "name": "debug-asan"       , "inherits": ["conf-debug", "conf-test", "conf-static", "conf-asan"] },
@@ -41,6 +42,7 @@
     { "name": "debug-shared-32"  , "inherits": ["conf-debug", "conf-test", "conf-shared", "conf-32"] },
 
     { "name": "release"          , "inherits": ["conf-release", "conf-test", "conf-static"] },
+    { "name": "release-avx2"     , "inherits": ["conf-release", "conf-test", "conf-static", "conf-avx2"] },
     { "name": "release-asan"     , "inherits": ["conf-release", "conf-test", "conf-static", "conf-asan"] },
     { "name": "release-msan"     , "inherits": ["conf-release", "conf-test", "conf-static", "conf-msan"] },
     { "name": "release-ubsan"    , "inherits": ["conf-release", "conf-test", "conf-static", "conf-ubsan"] },
