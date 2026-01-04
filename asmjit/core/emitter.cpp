@@ -268,6 +268,13 @@ Error BaseEmitter::emit_epilog(const FuncFrame& frame) {
   return _funcs.emit_epilog(this, frame);
 }
 
+Error BaseEmitter::emit_epilog_no_ret(const FuncFrame& frame) {
+  if (ASMJIT_UNLIKELY(!_code))
+    return make_error(Error::kNotInitialized);
+
+  return _funcs.emit_epilog_no_ret(this, frame);
+}
+
 Error BaseEmitter::emit_args_assignment(const FuncFrame& frame, const FuncArgsAssignment& args) {
   if (ASMJIT_UNLIKELY(!_code))
     return make_error(Error::kNotInitialized);

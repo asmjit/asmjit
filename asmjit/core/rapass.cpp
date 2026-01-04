@@ -2118,6 +2118,24 @@ Error BaseRAPass::insert_prolog_epilog() noexcept {
   ASMJIT_PROPAGATE(cc().emit_prolog(frame));
   ASMJIT_PROPAGATE(_emit_helper_ptr->emit_args_assignment(frame, _args_assignment));
 
+  for (const RABlock* block : _blocks) {
+  BaseNode* node = block->first();
+  if (!node) continue;
+
+  BaseNode* last = block->last();
+  for (;;) {
+    if (node->is_inst()) {
+      InstNode* inst = node->as<InstNode>();
+
+      if (inst->is_invoke()) {
+        ASMJIT_PROPAGATE(emit_pre_tail(inst->as<InvokeNode>()));
+      }
+    }
+    if (node == last)
+      break;
+    node = node->next();
+  }
+}
   cc().set_cursor(func()->exit_node());
   ASMJIT_PROPAGATE(cc().emit_epilog(frame));
 
@@ -2168,6 +2186,12 @@ Error BaseRAPass::emit_jump(const Label& label) noexcept {
 Error BaseRAPass::emit_pre_call(InvokeNode* invoke_node) noexcept {
   Support::maybe_unused(invoke_node);
   return make_error(Error::kOk);
+}
+
+// [[pure virtual]]
+Error BaseRAPass::emit_pre_tail(InvokeNode* invoke_node) noexcept {
+  Support::maybe_unused(invoke_node);
+  return make_error(Error::kInvalidState);
 }
 
 // BaseRAPass - Logging

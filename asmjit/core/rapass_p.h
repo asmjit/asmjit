@@ -709,6 +709,8 @@ public:
   [[nodiscard]]
   virtual Error emit_pre_call(InvokeNode* invoke_node) noexcept;
 
+  [[nodiscard]]
+  virtual Error emit_pre_tail(InvokeNode* invoke_node) noexcept;
   //! \}
 };
 
