@@ -4860,7 +4860,7 @@ EmitJmpCall:
       // If the base-address is known calculate a relative displacement and check if it fits in 32 bits (which is
       // always true in 32-bit mode). Emit relative displacement as it was a bound label if all checks are ok.
       if (base_address != Globals::kNoBaseAddress) {
-        uint64_t rel64 = jump_address - (ip + base_address) - inst32_size;
+        uint64_t rel64 = jump_address - (ip + base_address + _section->offset()) - inst32_size;
         if (Environment::is_32bit(arch()) || Support::is_int_n<32>(int64_t(rel64))) {
           rel32 = uint32_t(rel64 & 0xFFFFFFFFu);
           goto EmitJmpCallRel;
