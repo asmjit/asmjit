@@ -259,7 +259,7 @@ Error BaseAssembler::embed_label(const Label& label, size_t data_size) {
     return report_error(make_error(Error::kNotInitialized));
   }
 
-  if (ASMJIT_UNLIKELY(is_label_valid(label))) {
+  if (ASMJIT_UNLIKELY(!is_label_valid(label))) {
     return report_error(make_error(Error::kInvalidLabel));
   }
 
