@@ -6,6 +6,7 @@
 #ifndef ASMJIT_CORE_EMITTERUTILS_P_H_INCLUDED
 #define ASMJIT_CORE_EMITTERUTILS_P_H_INCLUDED
 
+#include <asmjit/core/codeholder.h>
 #include <asmjit/core/emitter.h>
 #include <asmjit/core/operand.h>
 #include <asmjit/support/support.h>
@@ -21,8 +22,6 @@ class FormatOptions;
 
 //! Utilities used by various emitters, mostly Assembler implementations.
 namespace EmitterUtils {
-
-//! Default paddings used by Emitter utils and Formatter.
 
 static constexpr Operand no_ext[3] = { {}, {}, {} };
 
@@ -61,15 +60,20 @@ static ASMJIT_INLINE void op_array_from_emit_args(Operand_ dst[Globals::kMaxOpCo
 }
 
 [[nodiscard]]
-static bool ASMJIT_INLINE_NODEBUG is_encodable_offset_32(int32_t offset, uint32_t num_bits) noexcept {
+static ASMJIT_INLINE_NODEBUG bool is_encodable_offset_32(int32_t offset, uint32_t num_bits) noexcept {
   uint32_t n_rev = 32 - num_bits;
   return Support::sar(Support::shl(offset, n_rev), n_rev) == offset;
 }
 
 [[nodiscard]]
-static bool ASMJIT_INLINE_NODEBUG is_encodable_offset_64(int64_t offset, uint32_t num_bits) noexcept {
+static ASMJIT_INLINE_NODEBUG bool is_encodable_offset_64(int64_t offset, uint32_t num_bits) noexcept {
   uint32_t n_rev = 64 - num_bits;
   return Support::sar(Support::shl(offset, n_rev), n_rev) == offset;
+}
+
+[[nodiscard]]
+static ASMJIT_INLINE_NODEBUG bool is_absolute_location(uint64_t base_address, uint64_t section_offset) noexcept {
+  return base_address != Globals::kNoBaseAddress && section_offset != Globals::kNoSectionOffset;
 }
 
 #ifndef ASMJIT_NO_LOGGING

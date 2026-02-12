@@ -5128,11 +5128,12 @@ EmitOp_Rel:
 
   if (rm_rel->is_imm()) {
     uint64_t base_address = _code->base_address();
-    uint64_t target_offset = rm_rel->as<Imm>().value_as<uint64_t>();
+    uint64_t section_offset = _section->offset();
 
+    uint64_t target_offset = rm_rel->as<Imm>().value_as<uint64_t>();
     size_t code_offset = writer.offset_from(_buffer_data);
 
-    if (base_address == Globals::kNoBaseAddress || _section->section_id() != 0) {
+    if (!EmitterUtils::is_absolute_location(base_address, section_offset)) {
       // Create a new RelocEntry as we cannot calculate the offset right now.
       RelocEntry* re;
       err = _code->new_reloc_entry(Out(re), RelocType::kAbsToRel);
@@ -5147,7 +5148,7 @@ EmitOp_Rel:
       goto EmitOp;
     }
     else {
-      uint64_t pc = base_address + code_offset;
+      uint64_t pc = base_address + section_offset + code_offset;
 
       if (offset_format.type() == OffsetType::kAArch64_ADRP) {
         pc &= ~uint64_t(4096 - 1);

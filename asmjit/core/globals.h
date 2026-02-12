@@ -111,6 +111,9 @@ static constexpr uint32_t kInvalidId = 0xFFFFFFFFu;
 //! Invalid base address.
 static constexpr uint64_t kNoBaseAddress = ~uint64_t(0);
 
+//! Invalid section offset.
+static constexpr uint64_t kNoSectionOffset = ~uint64_t(0);
+
 //! Number of virtual register groups.
 static constexpr uint32_t kNumVirtGroups = 4;
 
