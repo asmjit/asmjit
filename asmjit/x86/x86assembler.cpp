@@ -511,13 +511,15 @@ static ASMJIT_INLINE bool x86_should_use_movabs(Assembler* self, X86BufferWriter
 
     int64_t addr_value = rm_rel.offset();
     uint64_t base_address = self->code()->base_address();
+    uint64_t section_offset = self->_section->offset();
 
     // If the address type is default, it means to basically check whether relative addressing is possible. However,
-    // this is only possible when the base address is known - relative encoding uses RIP+N it has to be calculated.
-    if (rm_rel.addr_type() == Mem::AddrType::kDefault && base_address != Globals::kNoBaseAddress && !rm_rel.has_segment()) {
+    // this is only possible when the base address is known as relative encoding uses RIP+N.
+    if (rm_rel.addr_type() == Mem::AddrType::kDefault && !rm_rel.has_segment() &&
+        EmitterUtils::is_absolute_location(base_address, section_offset)) {
       uint32_t instruction_size = x86_get_movabs_inst_size_64bit(register_size, options, rm_rel);
       uint64_t virtual_offset = uint64_t(writer.offset_from(self->_buffer_data));
-      uint64_t rip64 = base_address + self->_section->offset() + virtual_offset + instruction_size;
+      uint64_t rip64 = base_address + section_offset + virtual_offset + instruction_size;
       uint64_t rel64 = uint64_t(addr_value) - rip64;
 
       if (Support::is_int_n<32>(int64_t(rel64))) {
@@ -4146,12 +4148,14 @@ EmitModSib:
       else {
         bool is_offset_int32 = rm_rel->as<Mem>().offset_hi32() == (rel_offset >> 31);
         bool is_offset_uint32 = rm_rel->as<Mem>().offset_hi32() == 0;
+
         uint64_t base_address = code()->base_address();
+        uint64_t section_offset = _section->offset();
 
         // If relative addressing was not explicitly set then we can try to guess. By guessing we check some
         // properties of the memory operand and try to base the decision on the segment prefix and the address type.
         if (addr_type == Mem::AddrType::kDefault) {
-          if (base_address == Globals::kNoBaseAddress) {
+          if (EmitterUtils::is_absolute_location(base_address, section_offset)) {
             // Prefer absolute addressing mode if the offset is 32-bit.
             addr_type = is_offset_int32 || is_offset_uint32 ? Mem::AddrType::kAbs : Mem::AddrType::kRel;
           }
@@ -4169,7 +4173,7 @@ EmitModSib:
           uint32_t kModRel32Size = 5;
           uint64_t virtual_offset = uint64_t(writer.offset_from(_buffer_data)) + imm_size + kModRel32Size;
 
-          if (base_address == Globals::kNoBaseAddress || _section->section_id() != 0) {
+          if (!EmitterUtils::is_absolute_location(base_address, section_offset)) {
             // Create a new RelocEntry as we cannot calculate the offset right now.
             err = _code->new_reloc_entry(Out(re), RelocType::kAbsToRel);
             if (ASMJIT_UNLIKELY(err != Error::kOk))
@@ -4188,7 +4192,7 @@ EmitModSib:
             goto EmitDone;
           }
           else {
-            uint64_t rip64 = base_address + _section->offset() + virtual_offset;
+            uint64_t rip64 = base_address + section_offset + virtual_offset;
             uint64_t rel64 = uint64_t(rm_rel->as<Mem>().offset()) - rip64;
 
             if (Support::is_int_n<32>(int64_t(rel64))) {
@@ -4855,12 +4859,13 @@ EmitJmpCall:
 
     if (rm_rel->is_imm()) {
       uint64_t base_address = code()->base_address();
+      uint64_t section_offset = _section->offset();
       uint64_t jump_address = rm_rel->as<Imm>().value_as<uint64_t>();
 
       // If the base-address is known calculate a relative displacement and check if it fits in 32 bits (which is
       // always true in 32-bit mode). Emit relative displacement as it was a bound label if all checks are ok.
-      if (base_address != Globals::kNoBaseAddress) {
-        uint64_t rel64 = jump_address - (ip + base_address) - inst32_size;
+      if (EmitterUtils::is_absolute_location(base_address, section_offset)) {
+        uint64_t rel64 = jump_address - (ip + base_address + section_offset) - inst32_size;
         if (Environment::is_32bit(arch()) || Support::is_int_n<32>(int64_t(rel64))) {
           rel32 = uint32_t(rel64 & 0xFFFFFFFFu);
           goto EmitJmpCallRel;
@@ -4868,14 +4873,16 @@ EmitJmpCall:
         else {
           // Relative displacement exceeds 32-bits - relocator can only insert trampoline for jmp/call, but not
           // for jcc/jecxz.
-          if (ASMJIT_UNLIKELY(!is_jmp_or_call(inst_id)))
+          if (ASMJIT_UNLIKELY(!is_jmp_or_call(inst_id))) {
             goto InvalidDisplacement;
+          }
         }
       }
 
       err = _code->new_reloc_entry(Out(re), RelocType::kAbsToRel);
-      if (ASMJIT_UNLIKELY(err != Error::kOk))
+      if (ASMJIT_UNLIKELY(err != Error::kOk)) {
         goto Failed;
+      }
 
       re->_source_offset = offset();
       re->_source_section_id = _section->section_id();
@@ -4886,28 +4893,30 @@ EmitJmpCall:
         // but allows to patch the instruction to use MOD/M and to point to a memory where the final 64-bit address
         // is stored.
         if (Environment::is_64bit(arch()) && is_jmp_or_call(inst_id)) {
-          if (!rex)
+          if (!rex) {
             writer.emit8(kX86ByteRex);
+          }
 
           err = _code->add_address_to_address_table(jump_address);
-          if (ASMJIT_UNLIKELY(err != Error::kOk))
+          if (ASMJIT_UNLIKELY(err != Error::kOk)) {
             goto Failed;
+          }
 
           re->_reloc_type = RelocType::kX64AddressEntry;
         }
 
         writer.emit8_if(0x0F, (opcode & Opcode::kMM_Mask) != 0);  // Emit 0F prefix.
-        writer.emit8(opcode.v);                                  // Emit opcode.
+        writer.emit8(opcode.v);                                   // Emit opcode.
         writer.emit8_if(encode_mod(3, op_reg, 0), op_reg != 0);   // Emit MOD.
         re->_format.reset_to_simple_value(OffsetType::kSignedOffset, 4);
         re->_format.set_leading_and_trailing_size(writer.offset_from(_buffer_ptr), imm_size);
         writer.emit32u_le(0);                                     // Emit DISP32.
       }
       else {
-        writer.emit8(opcode8);                                   // Emit opcode.
+        writer.emit8(opcode8);                                    // Emit opcode.
         re->_format.reset_to_simple_value(OffsetType::kSignedOffset, 1);
         re->_format.set_leading_and_trailing_size(writer.offset_from(_buffer_ptr), imm_size);
-        writer.emit8(0);                                         // Emit DISP8 (zero).
+        writer.emit8(0);                                          // Emit DISP8 (zero).
       }
       goto EmitDone;
     }
@@ -4920,17 +4929,18 @@ EmitJmpCall:
 EmitJmpCallRel:
     if (Support::is_int_n<8>(int32_t(rel32 + inst32_size - inst8_size)) && opcode8 && !Support::test(options, InstOptions::kLongForm)) {
       options |= InstOptions::kShortForm;
-      writer.emit8(opcode8);                                     // Emit opcode
-      writer.emit8(rel32 + inst32_size - inst8_size);              // Emit DISP8.
+      writer.emit8(opcode8);                                      // Emit opcode
+      writer.emit8(rel32 + inst32_size - inst8_size);             // Emit DISP8.
       goto EmitDone;
     }
     else {
-      if (ASMJIT_UNLIKELY(!opcode.v || Support::test(options, InstOptions::kShortForm)))
+      if (ASMJIT_UNLIKELY(!opcode.v || Support::test(options, InstOptions::kShortForm))) {
         goto InvalidDisplacement;
+      }
 
       options &= ~InstOptions::kShortForm;
       writer.emit8_if(0x0F, (opcode & Opcode::kMM_Mask) != 0);    // Emit 0x0F prefix.
-      writer.emit8(opcode.v);                                    // Emit Opcode.
+      writer.emit8(opcode.v);                                     // Emit Opcode.
       writer.emit8_if(encode_mod(3, op_reg, 0), op_reg != 0);     // Emit MOD.
       writer.emit32u_le(rel32);                                   // Emit DISP32.
       goto EmitDone;

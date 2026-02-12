@@ -86,7 +86,7 @@ static ASMJIT_INLINE void Section_init_name(
   section->_name.u32[3] = 0u;
 }
 
-static ASMJIT_INLINE void Section_init_data(Section* section, uint32_t section_id, SectionFlags flags, uint32_t alignment, int order) noexcept {
+static ASMJIT_INLINE void Section_init_data(Section* section, uint32_t section_id, SectionFlags flags, uint32_t alignment, int order, uint64_t offset) noexcept {
   section->_section_id = section_id;
 
   // These two fields are not used by sections (see \ref LabelEntry for more details about why).
@@ -96,7 +96,7 @@ static ASMJIT_INLINE void Section_init_data(Section* section, uint32_t section_i
   section->assign_flags(flags);
   section->_alignment = alignment;
   section->_order = order;
-  section->_offset = 0;
+  section->_offset = offset;
   section->_virtual_size = 0;
 }
 
@@ -123,7 +123,7 @@ static ASMJIT_INLINE Error CodeHolder_init_section_storage(CodeHolder* self) noe
 static ASMJIT_INLINE void CodeHolder_add_text_section(CodeHolder* self) noexcept {
   Section* text_section = &self->_text_section;
 
-  Section_init_data(text_section, 0u, SectionFlags::kExecutable | SectionFlags::kReadOnly | SectionFlags::kBuiltIn, 0u, 0);
+  Section_init_data(text_section, 0u, SectionFlags::kExecutable | SectionFlags::kReadOnly | SectionFlags::kBuiltIn, 0u, std::numeric_limits<int>::lowest(), 0);
   Section_init_name(text_section, '.', 't', 'e', 'x', 't');
 
   self->_sections.append_unchecked(text_section);
@@ -535,7 +535,7 @@ Error CodeHolder::new_section(Out<Section*> section_out, const char* name, size_
     alignment = 1u;
   }
 
-  Section_init_data(section, section_id, flags, alignment, order);
+  Section_init_data(section, section_id, flags, alignment, order, Globals::kNoSectionOffset);
   Section_init_buffer(section);
   memcpy(section->_name.str, name, name_size);
 
@@ -1099,14 +1099,14 @@ Error CodeHolder::flatten() noexcept {
   }
 
   // Now we know that we can assign offsets of all sections properly.
-  Section* prev = nullptr;
   offset = 0;
+  Section* prev = nullptr;
   for (Section* section : _sections_by_order) {
     uint64_t real_size = section->real_size();
     if (real_size) {
       offset = Support::align_up(offset, section->alignment());
     }
-    section->_offset = offset;
+    section->set_offset(offset);
 
     // Make sure the previous section extends a bit to cover the alignment.
     if (prev) {
@@ -1411,22 +1411,40 @@ UNIT(code_holder) {
   EXPECT_EQ(strcmp(code.label_entry_of(label_id2).name(), "NamedLabel2"), 0);
   EXPECT_EQ(code.label_id_by_name("NamedLabel2"), label_id2);
 
+  INFO("Verifying .text properties");
+  Section* section_text = code.text_section();
+  EXPECT_TRUE(section_text->has_offset());
+
   INFO("Verifying section ordering");
-  Section* section1;
-  EXPECT_EQ(code.new_section(Out(section1), "high-priority", SIZE_MAX, SectionFlags::kNone, 1, -1), Error::kOk);
-  EXPECT_EQ(code.sections()[1], section1);
-  EXPECT_EQ(code.sections_by_order()[0], section1);
+  Section* section_a;
+  EXPECT_EQ(code.new_section(Out(section_a), "high-priority", SIZE_MAX, SectionFlags::kNone, 1, -1), Error::kOk);
+  EXPECT_EQ(code.sections()[0], section_text);
+  EXPECT_EQ(code.sections()[1], section_a);
+  EXPECT_EQ(code.sections_by_order()[0], section_text);
+  EXPECT_EQ(code.sections_by_order()[1], section_a);
+  EXPECT_FALSE(section_a->has_offset());
 
-  Section* section0;
-  EXPECT_EQ(code.new_section(Out(section0), "higher-priority", SIZE_MAX, SectionFlags::kNone, 1, -2), Error::kOk);
-  EXPECT_EQ(code.sections()[2], section0);
-  EXPECT_EQ(code.sections_by_order()[0], section0);
-  EXPECT_EQ(code.sections_by_order()[1], section1);
+  Section* section_b;
+  EXPECT_EQ(code.new_section(Out(section_b), "higher-priority", SIZE_MAX, SectionFlags::kNone, 1, -2), Error::kOk);
+  EXPECT_EQ(code.sections()[0], section_text);
+  EXPECT_EQ(code.sections()[1], section_a);
+  EXPECT_EQ(code.sections()[2], section_b);
+  EXPECT_EQ(code.sections_by_order()[0], section_text);
+  EXPECT_EQ(code.sections_by_order()[1], section_b);
+  EXPECT_EQ(code.sections_by_order()[2], section_a);
+  EXPECT_FALSE(section_b->has_offset());
 
-  Section* section3;
-  EXPECT_EQ(code.new_section(Out(section3), "low-priority", SIZE_MAX, SectionFlags::kNone, 1, 2), Error::kOk);
-  EXPECT_EQ(code.sections()[3], section3);
-  EXPECT_EQ(code.sections_by_order()[3], section3);
+  Section* section_c;
+  EXPECT_EQ(code.new_section(Out(section_c), "low-priority", SIZE_MAX, SectionFlags::kNone, 1, 2), Error::kOk);
+  EXPECT_EQ(code.sections()[0], section_text);
+  EXPECT_EQ(code.sections()[1], section_a);
+  EXPECT_EQ(code.sections()[2], section_b);
+  EXPECT_EQ(code.sections()[3], section_c);
+  EXPECT_EQ(code.sections_by_order()[0], section_text);
+  EXPECT_EQ(code.sections_by_order()[1], section_b);
+  EXPECT_EQ(code.sections_by_order()[2], section_a);
+  EXPECT_EQ(code.sections_by_order()[3], section_c);
+  EXPECT_FALSE(section_c->has_offset());
 }
 #endif
 

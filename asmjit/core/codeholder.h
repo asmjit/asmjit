@@ -294,7 +294,14 @@ public:
   ASMJIT_INLINE_NODEBUG uint64_t offset() const noexcept { return _offset; }
 
   //! Set the section offset.
+  //!
+  //! \note If the section's offset hasn't been assigned, the returned value would be \ref Globals::kNoSectionOffset.
   ASMJIT_INLINE_NODEBUG void set_offset(uint64_t offset) noexcept { _offset = offset; }
+
+  //! Returns whether the section's offset has been already assigned.
+  //!
+  //! This is true for the first built-in .text section and for all sections that have been flattened.
+  ASMJIT_INLINE_NODEBUG bool has_offset() const noexcept { return _offset != Globals::kNoSectionOffset; }
 
   //! Returns the virtual size of the section.
   //!
