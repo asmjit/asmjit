@@ -435,10 +435,12 @@ Error RACFGBuilder::on_before_invoke(InvokeNode* invoke_node) noexcept {
     }
   }
 
-  // This block has function call(s).
-  _cur_block->add_flags(RABlockFlags::kHasFuncCalls);
-  _pass.func()->frame().add_attributes(FuncAttributes::kHasFuncCalls);
-  _pass.func()->frame().update_call_stack_size(fd.arg_stack_size());
+  if (invoke_node->inst_id() == Inst::kIdBlr || invoke_node->inst_id() == Inst::kIdBl) {
+    // This block has function call(s).
+    _cur_block->add_flags(RABlockFlags::kHasFuncCalls);
+    _pass.func()->frame().add_attributes(FuncAttributes::kHasFuncCalls);
+    _pass.func()->frame().update_call_stack_size(fd.arg_stack_size());
+  }
 
   return Error::kOk;
 }
@@ -904,6 +906,16 @@ Error ARMRAPass::emit_pre_call(InvokeNode* invoke_node) noexcept {
   return Error::kOk;
 }
 
+Error ARMRAPass::emit_pre_tail(InvokeNode* invoke_node) noexcept {
+  if (invoke_node->inst_id() == Inst::kIdBr || invoke_node->inst_id() == Inst::kIdB) {
+    cc().set_cursor(invoke_node->prev());
+    ASMJIT_PROPAGATE(cc().emit_epilog_no_ret(_func->frame()));
+    return Error::kOk;
+  } else if (invoke_node->inst_id() == Inst::kIdBlr || invoke_node->inst_id() == Inst::kIdBl) {
+    return Error::kOk;
+  }
+  return Error::kInvalidInstruction;  
+}
 ASMJIT_END_SUB_NAMESPACE
 
 #endif // !ASMJIT_NO_AARCH64 && !ASMJIT_NO_COMPILER

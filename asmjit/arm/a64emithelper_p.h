@@ -44,6 +44,7 @@ public:
 
   Error emit_prolog(const FuncFrame& frame);
   Error emit_epilog(const FuncFrame& frame);
+  Error emit_ret(const FuncFrame& frame);
 };
 
 void init_emitter_funcs(BaseEmitter* emitter);
