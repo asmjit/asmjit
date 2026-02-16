@@ -5136,7 +5136,15 @@ EmitOp_Rel:
     if (!EmitterUtils::is_absolute_location(base_address, section_offset)) {
       // Create a new RelocEntry as we cannot calculate the offset right now.
       RelocEntry* re;
-      err = _code->new_reloc_entry(Out(re), RelocType::kAbsToRel);
+
+      // Check if this is an unconditional branch (b/bl) with 26-bit encoding.
+      // For these, we use kA64AddressEntry to potentially use branch extension.
+      // Conditional branches cannot use the trampoline.
+      RelocType reloc_type = inst_info->_encoding == InstDB::kEncodingBaseBranchRel
+        ? RelocType::kA64AddressEntry
+        : RelocType::kAbsToRel;
+
+      err = _code->new_reloc_entry(Out(re), reloc_type);
       if (err != Error::kOk) {
         goto Failed;
       }
@@ -5144,7 +5152,16 @@ EmitOp_Rel:
       re->_source_section_id = _section->section_id();
       re->_source_offset = code_offset;
       re->_format = offset_format;
-      re->_payload = rm_rel->as<Imm>().value_as<uint64_t>() + 4u;
+      re->_payload = rm_rel->as<Imm>().value_as<uint64_t>();
+
+      // For kA64AddressEntry, add the target to the address table.
+      if (reloc_type == RelocType::kA64AddressEntry) {
+        err = _code->add_address_to_address_table(re->_payload);
+        if (ASMJIT_UNLIKELY(err != Error::kOk)) {
+          goto Failed;
+        }
+      }
+
       goto EmitOp;
     }
     else {
