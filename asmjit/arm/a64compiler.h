@@ -63,7 +63,7 @@ public:
   //!
   //! \note This is a convenience function alias of \ref new_gp32().
   template<typename... Args>
-  ASMJIT_INLINE_NODEBUG Gp new_gpw(Args&&... args) { return new_reg<Gp>(TypeId::kUIntPtr, std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG Gp new_gpw(Args&&... args) { return new_reg<Gp>(TypeId::kUInt32, std::forward<Args>(args)...); }
 
   //! Creates a new 64-bit general purpose register.
   //!
