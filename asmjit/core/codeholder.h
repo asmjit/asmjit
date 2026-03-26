@@ -130,7 +130,9 @@ enum class RelocType : uint32_t {
   //! Relocate absolute to relative.
   kAbsToRel = 5,
   //! Relocate absolute to relative or use trampoline.
-  kX64AddressEntry = 6
+  kX64AddressEntry = 6,
+  //! AArch64 address entry for branch instructions with fallback to address table.
+  kA64AddressEntry = 7
 };
 
 //! Type of the \ref Label.
@@ -330,6 +332,64 @@ public:
   //! Returns the `CodeBuffer` used by this section (const).
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const CodeBuffer& buffer() const noexcept { return _buffer; }
+
+  //! \}
+};
+
+//! Entry in a veneer table (for AArch64 branch trampolines).
+class VeneerEntry : public ArenaTreeNodeT<VeneerEntry> {
+public:
+  ASMJIT_NONCOPYABLE(VeneerEntry)
+
+  //! \name Members
+  //! \{
+
+  //! Target address.
+  uint64_t _address;
+  //! Offset in veneer section.
+  uint64_t _offset;
+  //! Whether this is a "link" veneer (as in the branch-with-link instruction).
+  bool _is_link;
+
+  //! \}
+
+  //! \name Construction & Destruction
+  //! \{
+
+  ASMJIT_INLINE_NODEBUG explicit VeneerEntry(uint64_t address, bool is_link) noexcept
+    : _address(address),
+      _offset(0xFFFFFFFFFFFFFFFFu),
+      _is_link(is_link) {}
+
+  //! \}
+
+  //! \name Accessors
+  //! \{
+
+  [[nodiscard]]
+  ASMJIT_INLINE_NODEBUG uint64_t address() const noexcept { return _address; }
+
+  [[nodiscard]]
+  ASMJIT_INLINE_NODEBUG uint64_t offset() const noexcept { return _offset; }
+
+  [[nodiscard]]
+  ASMJIT_INLINE_NODEBUG bool is_link() const noexcept { return _is_link; }
+
+  [[nodiscard]]
+  ASMJIT_INLINE_NODEBUG bool has_assigned_offset() const noexcept { return _offset != 0xFFFFFFFFFFFFFFFFu; }
+
+  // Comparison by address and type (both address and is_link must match)
+  [[nodiscard]]
+  ASMJIT_INLINE_NODEBUG bool operator<(const VeneerEntry& other) const noexcept {
+    if (_address != other._address) return _address < other._address;
+    return _is_link < other._is_link;
+  }
+
+  [[nodiscard]]
+  ASMJIT_INLINE_NODEBUG bool operator>(const VeneerEntry& other) const noexcept {
+    if (_address != other._address) return _address > other._address;
+    return _is_link > other._is_link;
+  }
 
   //! \}
 };
@@ -823,6 +883,11 @@ public:
   //! Text section - always one part of a CodeHolder itself.
   Section _text_section;
 
+  //! Pointer to a veneer section for AArch64 (or null if this section doesn't exist).
+  Section* _veneer_section;
+  //! Veneer entries.
+  ArenaTree<VeneerEntry> _veneer_entries;
+
   //! Pointer to an address table section (or null if this section doesn't exist).
   Section* _address_table_section;
   //! Address table entries.
@@ -1029,6 +1094,34 @@ public:
   //! \note Text section is always the first section in \ref CodeHolder::sections() array.
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Section* text_section() const noexcept { return _sections[0]; }
+
+  //! Tests whether '.veneer' section exists.
+  [[nodiscard]]
+  ASMJIT_INLINE_NODEBUG bool has_veneer_section() const noexcept { return _veneer_section != nullptr; }
+
+  //! Returns '.veneer' section.
+  //!
+  //! This section is used exclusively by AsmJit to store branch extension
+  //! trampolines for AArch64.
+  //!
+  //! \note This section is created on demand, the returned pointer can be null.
+  [[nodiscard]]
+  ASMJIT_INLINE_NODEBUG Section* veneer_section() const noexcept { return _veneer_section; }
+
+  //! Ensures that '.veneer' section exists (creates it if it doesn't) and
+  //! returns it. Can return `nullptr` on out of memory condition.
+  [[nodiscard]]
+  ASMJIT_API Section* ensure_veneer_section() noexcept;
+
+  //! Used to add a veneer entry to the veneer section.
+  //!
+  //! This implicitly calls `ensure_veneer_section()` and then creates `VeneerEntry` that is inserted to
+  //! `_veneer_entries`. If the address already exists with the same is_link status this operation does nothing as the
+  //! same addresses use the same slot.
+  //!
+  //! This function should be considered internal as it's used by assemblers to insert an absolute address into the
+  //! address table. Inserting address into address table without creating a particular relocation entry makes no sense.
+  ASMJIT_API Error add_veneer_to_veneer_section(Out<VeneerEntry*> veneer, uint64_t address, bool is_link) noexcept;
 
   //! Tests whether '.addrtab' section exists.
   [[nodiscard]]
