@@ -5272,7 +5272,9 @@ Error Assembler::align(AlignMode align_mode, uint32_t alignment) {
     return report_error(make_error(Error::kInvalidArgument));
   }
 
-  uint32_t i = uint32_t(Support::align_up_diff<size_t>(offset(), alignment));
+  uint32_t i = uint32_t(Support::align_up_diff<uint64_t>(
+    EmitterUtils::align_position(uint64_t(offset()), _code->base_address(), _section->offset()),
+    alignment));
   if (i == 0) {
     return Error::kOk;
   }
