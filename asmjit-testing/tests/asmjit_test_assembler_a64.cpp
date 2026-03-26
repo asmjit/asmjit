@@ -4037,6 +4037,130 @@ static void ASMJIT_NOINLINE test_aarch64_assembler_extra(AssemblerTester<a64::As
   TEST_INSTRUCTION("C167074F", movi(v1.d2(), 0xFE000000FE000000));
 }
 
+static void report_a64_custom_test(AssemblerTester<a64::Assembler>& tester, const char* test_name, bool ok, const char* detail = nullptr) noexcept {
+  tester.count++;
+
+  if (!ok) {
+    printf("  !! %s\n", test_name);
+    if (detail) {
+      printf("     %s\n", detail);
+    }
+    return;
+  }
+
+  if (tester.settings.verbose) {
+    printf("  OK [custom] <- %s\n", test_name);
+  }
+
+  tester.passed++;
+}
+
+static void ASMJIT_NOINLINE test_aarch64_assembler_align_base_address(AssemblerTester<a64::Assembler>& tester) noexcept {
+  using namespace a64;
+
+  auto run = [&](const char* test_name, bool use_base_address, uint64_t base_address, size_t expected_size, const char* expected_hex) noexcept {
+    CodeHolder code;
+    Assembler assembler;
+    String encoded;
+
+    Error err = use_base_address ? code.init(tester.env, base_address) : code.init(tester.env);
+    if (err == Error::kOk) {
+      err = code.attach(&assembler);
+    }
+
+    if (err == Error::kOk) {
+      err = assembler.nop();
+    }
+
+    if (err == Error::kOk) {
+      err = assembler.align(AlignMode::kCode, 16);
+    }
+
+    const Section* text = err == Error::kOk ? code.text_section() : nullptr;
+    if (err == Error::kOk) {
+      err = encoded.append_hex(text->data(), text->buffer_size());
+    }
+
+    bool ok = err == Error::kOk;
+    char detail[256];
+    detail[0] = '\0';
+
+    if (!ok) {
+      snprintf(detail, sizeof(detail), "unexpected error: <%s>", DebugUtils::error_as_string(err));
+    }
+    else if (text->buffer_size() != expected_size) {
+      ok = false;
+      snprintf(detail, sizeof(detail), "expected %zu bytes, got %zu bytes", expected_size, text->buffer_size());
+    }
+    else if (use_base_address && ((base_address + text->buffer_size()) & 0xFu) != 0) {
+      ok = false;
+      snprintf(detail, sizeof(detail), "buffer ended at 0x%llX instead of a 16-byte boundary",
+               (unsigned long long)(base_address + text->buffer_size()));
+    }
+    else if (encoded != expected_hex) {
+      ok = false;
+      snprintf(detail, sizeof(detail), "expected [%s], got [%s]", expected_hex, encoded.data());
+    }
+
+    report_a64_custom_test(tester, test_name, ok, detail[0] ? detail : nullptr);
+  };
+
+  auto run_in_section = [&](const char* test_name, uint64_t base_address, uint64_t section_offset, size_t expected_size, const char* expected_hex) noexcept {
+    CodeHolder code;
+    Assembler assembler;
+    Section* section = nullptr;
+    String encoded;
+
+    Error err = code.init(tester.env, base_address);
+    if (err == Error::kOk) {
+      err = code.new_section(Out(section), ".extra");
+    }
+    if (err == Error::kOk) {
+      section->set_offset(section_offset);
+      err = code.attach(&assembler);
+    }
+    if (err == Error::kOk) {
+      err = assembler.section(section);
+    }
+    if (err == Error::kOk) {
+      err = assembler.nop();
+    }
+    if (err == Error::kOk) {
+      err = assembler.align(AlignMode::kCode, 16);
+    }
+    if (err == Error::kOk) {
+      err = encoded.append_hex(section->data(), section->buffer_size());
+    }
+
+    bool ok = err == Error::kOk;
+    char detail[256];
+    detail[0] = '\0';
+
+    if (!ok) {
+      snprintf(detail, sizeof(detail), "unexpected error: <%s>", DebugUtils::error_as_string(err));
+    }
+    else if (section->buffer_size() != expected_size) {
+      ok = false;
+      snprintf(detail, sizeof(detail), "expected %zu bytes, got %zu bytes", expected_size, section->buffer_size());
+    }
+    else if (((base_address + section_offset + section->buffer_size()) & 0xFu) != 0) {
+      ok = false;
+      snprintf(detail, sizeof(detail), "section ended at 0x%llX instead of a 16-byte boundary",
+               (unsigned long long)(base_address + section_offset + section->buffer_size()));
+    }
+    else if (encoded != expected_hex) {
+      ok = false;
+      snprintf(detail, sizeof(detail), "expected [%s], got [%s]", expected_hex, encoded.data());
+    }
+
+    report_a64_custom_test(tester, test_name, ok, detail[0] ? detail : nullptr);
+  };
+
+  run("align() keeps legacy code padding without baseAddress", false, 0, 16, "1F2003D51F2003D51F2003D51F2003D5");
+  run("align() accounts for baseAddress", true, 0x1004u, 12, "1F2003D51F2003D51F2003D5");
+  run_in_section("align() accounts for section offset", 0x1000u, 0x8u, 8, "1F2003D51F2003D5");
+}
+
 bool test_aarch64_assembler(const TestSettings& settings) noexcept {
   using namespace a64;
 
@@ -4047,6 +4171,7 @@ bool test_aarch64_assembler(const TestSettings& settings) noexcept {
   test_aarch64_assembler_rel(tester);
   test_aarch64_assembler_simd(tester);
   test_aarch64_assembler_extra(tester);
+  test_aarch64_assembler_align_base_address(tester);
 
   tester.print_summary();
   return tester.did_pass();

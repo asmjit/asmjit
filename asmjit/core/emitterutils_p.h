@@ -76,6 +76,17 @@ static ASMJIT_INLINE_NODEBUG bool is_absolute_location(uint64_t base_address, ui
   return base_address != Globals::kNoBaseAddress && section_offset != Globals::kNoSectionOffset;
 }
 
+[[nodiscard]]
+static ASMJIT_INLINE_NODEBUG uint64_t align_position(uint64_t code_offset, uint64_t base_address, uint64_t section_offset) noexcept {
+  uint64_t position = code_offset;
+
+  if (is_absolute_location(base_address, section_offset)) {
+    position += base_address + section_offset;
+  }
+
+  return position;
+}
+
 #ifndef ASMJIT_NO_LOGGING
 Error finish_formatted_line(String& sb, const FormatOptions& format_options, const uint8_t* bin_data, size_t bin_size, size_t offset_size, size_t imm_size, const char* comment) noexcept;
 
@@ -104,4 +115,3 @@ Error log_instruction_failed(
 ASMJIT_END_NAMESPACE
 
 #endif // ASMJIT_CORE_EMITTERUTILS_P_H_INCLUDED
-
