@@ -19,6 +19,9 @@ using namespace asmjit;
 #define TEST_INSTRUCTION(OPCODE, ...) \
   tester.test_valid_instruction(#__VA_ARGS__, OPCODE, tester.assembler.__VA_ARGS__)
 
+#define FAIL_INSTRUCTION(ExpectedError, ...) \
+  tester.test_invalid_instruction(#__VA_ARGS__, ExpectedError, tester.assembler.__VA_ARGS__)
+
 static void ASMJIT_NOINLINE test_x64_assembler_base(AssemblerTester<x86::Assembler>& tester) noexcept {
   using namespace x86;
 
@@ -736,7 +739,13 @@ static void ASMJIT_NOINLINE test_x64_assembler_base(AssemblerTester<x86::Assembl
   TEST_INSTRUCTION("899C1180000000"                , mov(ptr(rcx, rdx, 0, 128), ebx));
   TEST_INSTRUCTION("899C1180000000"                , mov(dword_ptr(rcx, rdx, 0, 128), ebx));
   TEST_INSTRUCTION("4889D1"                        , mov(rcx, rdx));
-  TEST_INSTRUCTION("488EE2"                        , mov(fs, rdx));
+  TEST_INSTRUCTION("8EE2"                          , mov(fs, rdx));
+  TEST_INSTRUCTION("418EE7"                        , mov(fs, r15));
+  TEST_INSTRUCTION("8EE8"                          , mov(gs, rax));
+  TEST_INSTRUCTION("8EDB"                          , mov(ds, rbx));
+  FAIL_INSTRUCTION(Error::kInvalidSegment          , mov(cs, ax));
+  FAIL_INSTRUCTION(Error::kInvalidSegment          , mov(cs, bx));
+  FAIL_INSTRUCTION(Error::kInvalidSegment          , mov(cs, ptr(rax)));
   TEST_INSTRUCTION("0F22CA"                        , mov(cr1, rdx));
   TEST_INSTRUCTION("0F23CA"                        , mov(dr1, rdx));
   TEST_INSTRUCTION("48899C1180000000"              , mov(ptr(rcx, rdx, 0, 128), rbx));
@@ -18068,6 +18077,7 @@ bool test_x64_assembler(const TestSettings& settings) noexcept {
   return tester.did_pass();
 }
 
+#undef FAIL_INSTRUCTION
 #undef TEST_INSTRUCTION
 
 #endif // !ASMJIT_NO_X86

@@ -1630,8 +1630,13 @@ CaseX86M_GPB_MulDiv:
 
           // SReg <- GP
           if (o0.is_segment_reg()) {
+            // MOV Sreg, r/m16 is always 16-bit - the only prefix that matters is 66h for word size.
+            // A 32- or 64-bit GP source is accepted as a convenience, but no REX.W should be emitted.
+            if (ASMJIT_UNLIKELY(o0.id() == SReg::kIdCs))
+              goto InvalidSegment;
             opcode = 0x8E;
-            opcode.add_prefix_by_size(o1.x86_rm_size());
+            if (o1.x86_rm_size() == 2)
+              opcode |= Opcode::kPP_66;
             op_reg--;
             goto EmitX86R;
           }
@@ -1664,8 +1669,11 @@ CaseX86M_GPB_MulDiv:
 
         // SReg <- Mem
         if (o0.is_segment_reg()) {
+          if (ASMJIT_UNLIKELY(o0.id() == SReg::kIdCs))
+            goto InvalidSegment;
           opcode = 0x8E;
-          opcode.add_prefix_by_size(o1.x86_rm_size());
+          if (o1.x86_rm_size() == 2)
+            opcode |= Opcode::kPP_66;
           op_reg--;
           goto EmitX86M;
         }
