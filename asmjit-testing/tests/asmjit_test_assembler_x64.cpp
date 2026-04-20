@@ -908,6 +908,10 @@ static void ASMJIT_NOINLINE test_x64_assembler_base(AssemblerTester<x86::Assembl
   TEST_INSTRUCTION("668F841180000000"              , pop(word_ptr(rcx, rdx, 0, 128)));
   TEST_INSTRUCTION("8F841180000000"                , pop(qword_ptr(rcx, rdx, 0, 128)));
   TEST_INSTRUCTION("0FA1"                          , pop(fs));
+  TEST_INSTRUCTION("0FA9"                          , pop(gs));
+  FAIL_INSTRUCTION(Error::kInvalidSegment          , pop(es));
+  FAIL_INSTRUCTION(Error::kInvalidSegment          , pop(ss));
+  FAIL_INSTRUCTION(Error::kInvalidSegment          , pop(ds));
   TEST_INSTRUCTION("669D"                          , popf());
   TEST_INSTRUCTION("9D"                            , popfq());
   TEST_INSTRUCTION("6651"                          , push(cx));
@@ -916,6 +920,11 @@ static void ASMJIT_NOINLINE test_x64_assembler_base(AssemblerTester<x86::Assembl
   TEST_INSTRUCTION("66FFB41180000000"              , push(word_ptr(rcx, rdx, 0, 128)));
   TEST_INSTRUCTION("FFB41180000000"                , push(qword_ptr(rcx, rdx, 0, 128)));
   TEST_INSTRUCTION("0FA0"                          , push(fs));
+  TEST_INSTRUCTION("0FA8"                          , push(gs));
+  FAIL_INSTRUCTION(Error::kInvalidSegment          , push(es));
+  FAIL_INSTRUCTION(Error::kInvalidSegment          , push(cs));
+  FAIL_INSTRUCTION(Error::kInvalidSegment          , push(ss));
+  FAIL_INSTRUCTION(Error::kInvalidSegment          , push(ds));
   TEST_INSTRUCTION("669C"                          , pushf());
   TEST_INSTRUCTION("9C"                            , pushfq());
   TEST_INSTRUCTION("66680100"                      , pushw(1));

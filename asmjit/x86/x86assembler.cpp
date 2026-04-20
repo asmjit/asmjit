@@ -1936,7 +1936,7 @@ CaseX86M_GPB_MulDiv:
       if (isign3 == ENC_OPS1(Reg)) {
         if (o0.is_segment_reg()) {
           uint32_t segment = o0.id();
-          if (ASMJIT_UNLIKELY(segment >= SReg::kIdCount))
+          if (ASMJIT_UNLIKELY(segment >= SReg::kIdCount || (!is_32bit() && segment < SReg::kIdFs)))
             goto InvalidSegment;
 
           opcode = opcode_push_sreg_table[segment];
@@ -1963,7 +1963,7 @@ CaseX86M_GPB_MulDiv:
       if (isign3 == ENC_OPS1(Reg)) {
         if (o0.is_segment_reg()) {
           uint32_t segment = o0.id();
-          if (ASMJIT_UNLIKELY(segment == SReg::kIdCs || segment >= SReg::kIdCount))
+          if (ASMJIT_UNLIKELY(segment == SReg::kIdCs || segment >= SReg::kIdCount || (!is_32bit() && segment < SReg::kIdFs)))
             goto InvalidSegment;
 
           opcode = opcode_pop_sreg_table[segment];
