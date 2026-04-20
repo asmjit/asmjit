@@ -3226,6 +3226,10 @@ CaseVexRvm_R:
       const Operand_& o3 = op_ext[EmitterUtils::kOp3];
       const uint32_t isign4 = isign3 + (uint32_t(o3.op_type()) << 9);
 
+      // 4th operand goes into the is4 byte's upper nibble - only 4 bits of reg id fit.
+      if (ASMJIT_UNLIKELY(o3.is_reg() && o3.id() > 0x0Fu))
+        goto InvalidPhysId;
+
       imm_value = o3.id() << 4;
       imm_size = 1;
 
@@ -3691,6 +3695,7 @@ CaseVexVmi_AfterImm:
       const uint32_t isign4 = isign3 + (uint32_t(o3.op_type()) << 9);
 
       if (isign4 == ENC_OPS4(Reg, Reg, Reg, Reg)) {
+        if (ASMJIT_UNLIKELY(o3.id() > 0x0Fu)) goto InvalidPhysId;
         op_reg = pack_reg_and_vvvvv(o0.id(), o1.id());
         rb_reg = o2.id();
 
@@ -3700,6 +3705,7 @@ CaseVexVmi_AfterImm:
       }
 
       if (isign4 == ENC_OPS4(Reg, Reg, Reg, Mem)) {
+        if (ASMJIT_UNLIKELY(o2.id() > 0x0Fu)) goto InvalidPhysId;
         opcode.add_w();
         op_reg = pack_reg_and_vvvvv(o0.id(), o1.id());
         rm_rel = &o3;
@@ -3710,6 +3716,7 @@ CaseVexVmi_AfterImm:
       }
 
       if (isign4 == ENC_OPS4(Reg, Reg, Mem, Reg)) {
+        if (ASMJIT_UNLIKELY(o3.id() > 0x0Fu)) goto InvalidPhysId;
         op_reg = pack_reg_and_vvvvv(o0.id(), o1.id());
         rm_rel = &o2;
 
@@ -3734,6 +3741,7 @@ CaseVexVmi_AfterImm:
       imm_size = 1;
 
       if (isign4 == ENC_OPS4(Reg, Reg, Reg, Reg)) {
+        if (ASMJIT_UNLIKELY(o3.id() > 0x0Fu)) goto InvalidPhysId;
         op_reg = pack_reg_and_vvvvv(o0.id(), o1.id());
         rb_reg = o2.id();
 
@@ -3742,6 +3750,7 @@ CaseVexVmi_AfterImm:
       }
 
       if (isign4 == ENC_OPS4(Reg, Reg, Reg, Mem)) {
+        if (ASMJIT_UNLIKELY(o2.id() > 0x0Fu)) goto InvalidPhysId;
         opcode.add_w();
         op_reg = pack_reg_and_vvvvv(o0.id(), o1.id());
         rm_rel = &o3;
@@ -3751,6 +3760,7 @@ CaseVexVmi_AfterImm:
       }
 
       if (isign4 == ENC_OPS4(Reg, Reg, Mem, Reg)) {
+        if (ASMJIT_UNLIKELY(o3.id() > 0x0Fu)) goto InvalidPhysId;
         op_reg = pack_reg_and_vvvvv(o0.id(), o1.id());
         rm_rel = &o2;
 
@@ -3796,6 +3806,7 @@ CaseVexVmi_AfterImm:
 
         if (!Support::test(options, InstOptions::kX86_ModMR)) {
           // MOD/RM - Encoding preferred by LLVM.
+          if (ASMJIT_UNLIKELY(o2.id() > 0x0Fu)) goto InvalidPhysId;
           opcode.add_w();
           rb_reg = o3.id();
 
@@ -3805,6 +3816,7 @@ CaseVexVmi_AfterImm:
         }
         else {
           // MOD/MR - Alternative encoding.
+          if (ASMJIT_UNLIKELY(o3.id() > 0x0Fu)) goto InvalidPhysId;
           rb_reg = o2.id();
 
           imm_value = o3.id() << 4;
@@ -3814,6 +3826,7 @@ CaseVexVmi_AfterImm:
       }
 
       if (isign4 == ENC_OPS4(Reg, Reg, Reg, Mem)) {
+        if (ASMJIT_UNLIKELY(o2.id() > 0x0Fu)) goto InvalidPhysId;
         opcode.add_w();
         op_reg = pack_reg_and_vvvvv(o0.id(), o1.id());
         rm_rel = &o3;
@@ -3824,6 +3837,7 @@ CaseVexVmi_AfterImm:
       }
 
       if (isign4 == ENC_OPS4(Reg, Reg, Mem, Reg)) {
+        if (ASMJIT_UNLIKELY(o3.id() > 0x0Fu)) goto InvalidPhysId;
         op_reg = pack_reg_and_vvvvv(o0.id(), o1.id());
         rm_rel = &o2;
 
@@ -4581,6 +4595,11 @@ EmitVexEvexR:
       }
     }
 
+    // If EVEX-forcing bits are present (high reg id, {k}, {z}, {sae}, {er}) on a VEX-only mnemonic,
+    // the user is reaching for something this encoding can't express - reject instead of ghost-promoting to EVEX.
+    if (ASMJIT_UNLIKELY((x & kEvexBits) != 0 && !common_info->is_evex()))
+      goto InvalidPhysId;
+
     // Check if EVEX is required by checking bits in `x` :     [........|xx.x.xxx|x......x|.x.x....].
     if (x & kEvexBits) {
       uint32_t y = ((x << 4) & 0x00080000u) |               // [........|...bV...|........|........].
@@ -4694,6 +4713,11 @@ EmitVexEvexM:
         x |= kEvexForce;
       }
     }
+
+    // If EVEX-forcing bits are present (high reg id, {k}, {z}, {sae}, {er}) on a VEX-only mnemonic,
+    // the user is reaching for something this encoding can't express - reject instead of ghost-promoting to EVEX.
+    if (ASMJIT_UNLIKELY((x & kEvexBits) != 0 && !common_info->is_evex()))
+      goto InvalidPhysId;
 
     // Check if EVEX is required by checking bits in `x` :     [@.......|xx.xxxxx|x......x|...x....].
     if (x & kEvexBits) {
