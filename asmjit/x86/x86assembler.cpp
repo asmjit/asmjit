@@ -4519,6 +4519,11 @@ EmitVexOp:
 
 EmitVexEvexR:
   {
+    // Reject {k} masking on instructions that don't support it - the user's extra_reg
+    // would otherwise land in the EVEX `aaa` field and produce an illegal encoding.
+    if (ASMJIT_UNLIKELY(_extra_reg.type() == RegType::kMask && !common_info->has_avx512_k()))
+      goto InvalidKMaskUse;
+
     // Construct `x` - a complete EVEX|VEX prefix.
     uint32_t x = ((op_reg << 4) & 0xF980u) |                // [........|........|Vvvvv..R|R.......].
                  ((rb_reg << 2) & 0x0060u) |                // [........|........|........|.BB.....].
@@ -4656,6 +4661,10 @@ EmitVexEvexM:
 
   {
     uint32_t broadcast_bit = uint32_t(rm_rel->as<Mem>().has_broadcast());
+
+    // Reject {k} masking on instructions that don't support it - same guard as EmitVexEvexR.
+    if (ASMJIT_UNLIKELY(_extra_reg.type() == RegType::kMask && !common_info->has_avx512_k()))
+      goto InvalidKMaskUse;
 
     // Construct `x` - a complete EVEX|VEX prefix.
     uint32_t x = ((op_reg <<  4) & 0x0000F980u)  |          // [........|........|Vvvvv..R|R.......].
@@ -5009,6 +5018,7 @@ EmitDone:
   ERROR_HANDLER(InvalidSegment)
   ERROR_HANDLER(InvalidImmediate)
   ERROR_HANDLER(InvalidBroadcast)
+  ERROR_HANDLER(InvalidKMaskUse)
   ERROR_HANDLER(OperandSizeMismatch)
   ERROR_HANDLER(AmbiguousOperandSize)
 #undef ERROR_HANDLER
