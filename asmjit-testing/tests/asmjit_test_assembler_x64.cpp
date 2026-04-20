@@ -3816,6 +3816,7 @@ static void ASMJIT_NOINLINE test_x64_assembler_avx(AssemblerTester<x86::Assemble
   TEST_INSTRUCTION("C5E974CB"                      , vpcmpeqb(xmm1, xmm2, xmm3));
   TEST_INSTRUCTION("C5E9748C2B80000000"            , vpcmpeqb(xmm1, xmm2, ptr(rbx, rbp, 0, 128)));
   TEST_INSTRUCTION("C5E9748C2B80000000"            , vpcmpeqb(xmm1, xmm2, xmmword_ptr(rbx, rbp, 0, 128)));
+  FAIL_INSTRUCTION(Error::kInvalidPhysId           , vpcmpeqb(xmm10, xmm16, xmm0));
   TEST_INSTRUCTION("C5ED74CB"                      , vpcmpeqb(ymm1, ymm2, ymm3));
   TEST_INSTRUCTION("C5ED748C2B80000000"            , vpcmpeqb(ymm1, ymm2, ptr(rbx, rbp, 0, 128)));
   TEST_INSTRUCTION("C5ED748C2B80000000"            , vpcmpeqb(ymm1, ymm2, ymmword_ptr(rbx, rbp, 0, 128)));
@@ -3825,6 +3826,8 @@ static void ASMJIT_NOINLINE test_x64_assembler_avx(AssemblerTester<x86::Assemble
   TEST_INSTRUCTION("C5ED76CB"                      , vpcmpeqd(ymm1, ymm2, ymm3));
   TEST_INSTRUCTION("C5ED768C2B80000000"            , vpcmpeqd(ymm1, ymm2, ptr(rbx, rbp, 0, 128)));
   TEST_INSTRUCTION("C5ED768C2B80000000"            , vpcmpeqd(ymm1, ymm2, ymmword_ptr(rbx, rbp, 0, 128)));
+  FAIL_INSTRUCTION(Error::kInvalidPhysId           , vpcmpeqd(ymm8,  ymm16, ymm0));
+  FAIL_INSTRUCTION(Error::kInvalidPhysId           , vpcmpeqd(ymm13, ymm16, ymm0));
   TEST_INSTRUCTION("C4E26929CB"                    , vpcmpeqq(xmm1, xmm2, xmm3));
   TEST_INSTRUCTION("C4E269298C2B80000000"          , vpcmpeqq(xmm1, xmm2, ptr(rbx, rbp, 0, 128)));
   TEST_INSTRUCTION("C4E269298C2B80000000"          , vpcmpeqq(xmm1, xmm2, xmmword_ptr(rbx, rbp, 0, 128)));
@@ -3837,6 +3840,7 @@ static void ASMJIT_NOINLINE test_x64_assembler_avx(AssemblerTester<x86::Assemble
   TEST_INSTRUCTION("C5ED75CB"                      , vpcmpeqw(ymm1, ymm2, ymm3));
   TEST_INSTRUCTION("C5ED758C2B80000000"            , vpcmpeqw(ymm1, ymm2, ptr(rbx, rbp, 0, 128)));
   TEST_INSTRUCTION("C5ED758C2B80000000"            , vpcmpeqw(ymm1, ymm2, ymmword_ptr(rbx, rbp, 0, 128)));
+  FAIL_INSTRUCTION(Error::kInvalidPhysId           , vpcmpeqw(xmm15, xmm16, xmm0));
   TEST_INSTRUCTION("C4E37961CA01"                  , vpcmpestri(xmm1, xmm2, 1, ecx, eax, edx));
   TEST_INSTRUCTION("C4E379618C1A8000000001"        , vpcmpestri(xmm1, ptr(rdx, rbx, 0, 128), 1, ecx, eax, edx));
   TEST_INSTRUCTION("C4E379618C1A8000000001"        , vpcmpestri(xmm1, xmmword_ptr(rdx, rbx, 0, 128), 1, ecx, eax, edx));
@@ -3855,6 +3859,7 @@ static void ASMJIT_NOINLINE test_x64_assembler_avx(AssemblerTester<x86::Assemble
   TEST_INSTRUCTION("C5ED66CB"                      , vpcmpgtd(ymm1, ymm2, ymm3));
   TEST_INSTRUCTION("C5ED668C2B80000000"            , vpcmpgtd(ymm1, ymm2, ptr(rbx, rbp, 0, 128)));
   TEST_INSTRUCTION("C5ED668C2B80000000"            , vpcmpgtd(ymm1, ymm2, ymmword_ptr(rbx, rbp, 0, 128)));
+  FAIL_INSTRUCTION(Error::kInvalidPhysId           , vpcmpgtd(ymm9, ymm16, ymm0));
   TEST_INSTRUCTION("C4E26937CB"                    , vpcmpgtq(xmm1, xmm2, xmm3));
   TEST_INSTRUCTION("C4E269378C2B80000000"          , vpcmpgtq(xmm1, xmm2, ptr(rbx, rbp, 0, 128)));
   TEST_INSTRUCTION("C4E269378C2B80000000"          , vpcmpgtq(xmm1, xmm2, xmmword_ptr(rbx, rbp, 0, 128)));
