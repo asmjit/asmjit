@@ -6163,6 +6163,8 @@ static void ASMJIT_NOINLINE test_x64_assembler_avx512(AssemblerTester<x86::Assem
   TEST_INSTRUCTION("62F37D0867CA01"                , vfpclassss(k1, xmm2, 1));
   TEST_INSTRUCTION("62F37D08674C1A2001"            , vfpclassss(k1, ptr(rdx, rbx, 0, 128), 1));
   TEST_INSTRUCTION("62F37D08674C1A2001"            , vfpclassss(k1, dword_ptr(rdx, rbx, 0, 128), 1));
+  FAIL_INSTRUCTION(Error::kInvalidPhysId           , emit(Inst::kIdVfpclasssd, xmm8, xmm0, Imm(0)));
+  FAIL_INSTRUCTION(Error::kInvalidPhysId           , emit(Inst::kIdVfpclassps, ymm8, ymm0, Imm(0)));
   TEST_INSTRUCTION("62F2FD09924C1A10"              , k(k1).vgatherdpd(xmm1, ptr(rdx, xmm3, 0, 128)));
   TEST_INSTRUCTION("62F2FD29924C1A10"              , k(k1).vgatherdpd(ymm1, ptr(rdx, xmm3, 0, 128)));
   TEST_INSTRUCTION("62F2FD49924C1A10"              , k(k1).vgatherdpd(zmm1, ptr(rdx, ymm3, 0, 128)));
@@ -6618,6 +6620,9 @@ static void ASMJIT_NOINLINE test_x64_assembler_avx512(AssemblerTester<x86::Assem
   TEST_INSTRUCTION("62F36D483FCB01"                , vpcmpb(k1, zmm2, zmm3, 1));
   TEST_INSTRUCTION("62F36D483F4C2B0201"            , vpcmpb(k1, zmm2, ptr(rbx, rbp, 0, 128), 1));
   TEST_INSTRUCTION("62F36D483F4C2B0201"            , vpcmpb(k1, zmm2, zmmword_ptr(rbx, rbp, 0, 128), 1));
+  FAIL_INSTRUCTION(Error::kInvalidPhysId           , emit(Inst::kIdVpcmpb,  xmm9, xmm2, xmm3, Imm(1)));
+  FAIL_INSTRUCTION(Error::kInvalidPhysId           , emit(Inst::kIdVpcmpd,  ymm10, ymm2, ymm3, Imm(1)));
+  FAIL_INSTRUCTION(Error::kInvalidPhysId           , emit(Inst::kIdVpcmpuw, xmm15, xmm2, xmm3, Imm(1)));
   TEST_INSTRUCTION("62F36D081FCB01"                , vpcmpd(k1, xmm2, xmm3, 1));
   TEST_INSTRUCTION("62F36D081F4C2B0801"            , vpcmpd(k1, xmm2, ptr(rbx, rbp, 0, 128), 1));
   TEST_INSTRUCTION("62F36D081F4C2B0801"            , vpcmpd(k1, xmm2, xmmword_ptr(rbx, rbp, 0, 128), 1));
