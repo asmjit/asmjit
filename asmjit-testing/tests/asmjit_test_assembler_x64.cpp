@@ -2359,6 +2359,7 @@ static void ASMJIT_NOINLINE test_x64_assembler_mmx_sse(AssemblerTester<x86::Asse
   TEST_INSTRUCTION("660FD4CA"                      , paddq(xmm1, xmm2));
   TEST_INSTRUCTION("660FD48C1A80000000"            , paddq(xmm1, ptr(rdx, rbx, 0, 128)));
   TEST_INSTRUCTION("660FD48C1A80000000"            , paddq(xmm1, xmmword_ptr(rdx, rbx, 0, 128)));
+  FAIL_INSTRUCTION(Error::kInvalidPhysId           , paddq(xmm16, xmm1));
   TEST_INSTRUCTION("0FECCA"                        , paddsb(mm1, mm2));
   TEST_INSTRUCTION("0FEC8C1A80000000"              , paddsb(mm1, ptr(rdx, rbx, 0, 128)));
   TEST_INSTRUCTION("0FEC8C1A80000000"              , paddsb(mm1, qword_ptr(rdx, rbx, 0, 128)));
@@ -2902,6 +2903,8 @@ static void ASMJIT_NOINLINE test_x64_assembler_mmx_sse(AssemblerTester<x86::Asse
   TEST_INSTRUCTION("660FE9CA"                      , psubsw(xmm1, xmm2));
   TEST_INSTRUCTION("660FE98C1A80000000"            , psubsw(xmm1, ptr(rdx, rbx, 0, 128)));
   TEST_INSTRUCTION("660FE98C1A80000000"            , psubsw(xmm1, xmmword_ptr(rdx, rbx, 0, 128)));
+  FAIL_INSTRUCTION(Error::kInvalidPhysId           , psubsw(xmm21, xmm0));
+  FAIL_INSTRUCTION(Error::kInvalidPhysId           , psubsw(xmm0, xmm21));
   TEST_INSTRUCTION("0FD8CA"                        , psubusb(mm1, mm2));
   TEST_INSTRUCTION("0FD88C1A80000000"              , psubusb(mm1, ptr(rdx, rbx, 0, 128)));
   TEST_INSTRUCTION("0FD88C1A80000000"              , psubusb(mm1, qword_ptr(rdx, rbx, 0, 128)));
@@ -2974,6 +2977,7 @@ static void ASMJIT_NOINLINE test_x64_assembler_mmx_sse(AssemblerTester<x86::Asse
   TEST_INSTRUCTION("660FEFCA"                      , pxor(xmm1, xmm2));
   TEST_INSTRUCTION("660FEF8C1A80000000"            , pxor(xmm1, ptr(rdx, rbx, 0, 128)));
   TEST_INSTRUCTION("660FEF8C1A80000000"            , pxor(xmm1, xmmword_ptr(rdx, rbx, 0, 128)));
+  FAIL_INSTRUCTION(Error::kInvalidPhysId           , pxor(xmm31, xmm2));
   TEST_INSTRUCTION("0F53CA"                        , rcpps(xmm1, xmm2));
   TEST_INSTRUCTION("0F538C1A80000000"              , rcpps(xmm1, ptr(rdx, rbx, 0, 128)));
   TEST_INSTRUCTION("0F538C1A80000000"              , rcpps(xmm1, xmmword_ptr(rdx, rbx, 0, 128)));
