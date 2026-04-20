@@ -4519,6 +4519,9 @@ EmitVexOp:
 
 EmitVexEvexR:
   {
+    // Save the dest register id before masking - used by K-dest reach checks below.
+    uint32_t dst_reg_id = op_reg & 0x1Fu;
+
     // Construct `x` - a complete EVEX|VEX prefix.
     uint32_t x = ((op_reg << 4) & 0xF980u) |                // [........|........|Vvvvv..R|R.......].
                  ((rb_reg << 2) & 0x0060u) |                // [........|........|........|.BB.....].
@@ -4580,6 +4583,11 @@ EmitVexEvexR:
         x |= kEvexForce;
       }
     }
+
+    // K-dest EVEX instructions (VPCMPEQ*/VPCMPGT*/VFPCLASS*) encode the destination in a 3-bit
+    // ModRM reg field - any id > 7 can't fit and would silently truncate.
+    if (ASMJIT_UNLIKELY((x & kEvexBits) != 0 && common_info->is_evex_kreg_only() && dst_reg_id > 7u))
+      goto InvalidPhysId;
 
     // Check if EVEX is required by checking bits in `x` :     [........|xx.x.xxx|x......x|.x.x....].
     if (x & kEvexBits) {
@@ -4657,6 +4665,9 @@ EmitVexEvexM:
   {
     uint32_t broadcast_bit = uint32_t(rm_rel->as<Mem>().has_broadcast());
 
+    // Save the dest register id before masking - used by K-dest reach checks below.
+    uint32_t dst_reg_id = op_reg & 0x1Fu;
+
     // Construct `x` - a complete EVEX|VEX prefix.
     uint32_t x = ((op_reg <<  4) & 0x0000F980u)  |          // [........|........|Vvvvv..R|R.......].
                  ((rx_reg <<  3) & 0x00000040u)  |          // [........|........|........|.X......].
@@ -4694,6 +4705,11 @@ EmitVexEvexM:
         x |= kEvexForce;
       }
     }
+
+    // K-dest EVEX instructions (VPCMPEQ*/VPCMPGT*/VFPCLASS*) encode the destination in a 3-bit
+    // ModRM reg field - any id > 7 can't fit and would silently truncate.
+    if (ASMJIT_UNLIKELY((x & kEvexBits) != 0 && common_info->is_evex_kreg_only() && dst_reg_id > 7u))
+      goto InvalidPhysId;
 
     // Check if EVEX is required by checking bits in `x` :     [@.......|xx.xxxxx|x......x|...x....].
     if (x & kEvexBits) {

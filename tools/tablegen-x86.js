@@ -286,6 +286,13 @@ class GenUtils {
     if (f.Vex && f.Evex) {
       GenUtils.assignVexEvexCompatibilityFlags(f, dbInsts)
     }
+    else if (f.Evex) {
+      // EVEX-only: mark EvexKReg if the first operand is a mask register.
+      const evexInsts = dbInsts.filter((inst) => { return inst.prefix === "EVEX"; });
+      if (evexInsts.length > 0 && evexInsts[0].operands[0].reg === "k") {
+        f.EvexKReg = true;
+      }
+    }
 
     const result = Object.getOwnPropertyNames(f);
     result.sort();
