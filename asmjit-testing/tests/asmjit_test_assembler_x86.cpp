@@ -596,7 +596,7 @@ static void ASMJIT_NOINLINE test_x86_assembler_base(AssemblerTester<x86::Assembl
   TEST_INSTRUCTION("668EA41A80000000"              , mov(fs, word_ptr(edx, ebx, 0, 128)));
   TEST_INSTRUCTION("0F20D1"                        , mov(ecx, cr2));
   TEST_INSTRUCTION("0F21D1"                        , mov(ecx, dr2));
-  TEST_INSTRUCTION("0F22CA"                        , mov(cr1, edx));
+  TEST_INSTRUCTION("0F22DA"                        , mov(cr3, edx));
   TEST_INSTRUCTION("0F23CA"                        , mov(dr1, edx));
   TEST_INSTRUCTION("A4"                            , movs(byte_ptr(edi), byte_ptr(esi)));
   TEST_INSTRUCTION("66A5"                          , movs(word_ptr(edi), word_ptr(esi)));
