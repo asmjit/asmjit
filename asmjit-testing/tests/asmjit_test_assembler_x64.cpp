@@ -19,6 +19,9 @@ using namespace asmjit;
 #define TEST_INSTRUCTION(OPCODE, ...) \
   tester.test_valid_instruction(#__VA_ARGS__, OPCODE, tester.assembler.__VA_ARGS__)
 
+#define FAIL_INSTRUCTION(ExpectedError, ...) \
+  tester.test_invalid_instruction(#__VA_ARGS__, ExpectedError, tester.assembler.__VA_ARGS__)
+
 static void ASMJIT_NOINLINE test_x64_assembler_base(AssemblerTester<x86::Assembler>& tester) noexcept {
   using namespace x86;
 
@@ -18068,6 +18071,7 @@ bool test_x64_assembler(const TestSettings& settings) noexcept {
   return tester.did_pass();
 }
 
+#undef FAIL_INSTRUCTION
 #undef TEST_INSTRUCTION
 
 #endif // !ASMJIT_NO_X86
