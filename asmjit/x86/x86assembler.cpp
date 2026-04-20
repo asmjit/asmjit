@@ -1604,6 +1604,10 @@ CaseX86M_GPB_MulDiv:
 
           // GP <- CReg
           if (o1.is_control_reg()) {
+            // Valid CRs per Intel SDM are only CR0, CR2, CR3, CR4, CR8.
+            // Others are reserved and produce #UD.
+            if (ASMJIT_UNLIKELY(op_reg >= 16u || ((1u << op_reg) & 0x0000011Du) == 0u))
+              goto InvalidPhysId;
             opcode = Opcode::k000F00 | 0x20;
 
             // Use `LOCK MOV` in 32-bit mode if CR8+ register is accessed (AMD extension).
@@ -1616,6 +1620,9 @@ CaseX86M_GPB_MulDiv:
 
           // GP <- DReg
           if (o1.is_debug_reg()) {
+            // Only DR0-DR7 are available per Intel SDM.
+            if (ASMJIT_UNLIKELY(op_reg > 7u))
+              goto InvalidPhysId;
             opcode = Opcode::k000F00 | 0x21;
             goto EmitX86R;
           }
@@ -1638,6 +1645,8 @@ CaseX86M_GPB_MulDiv:
 
           // CReg <- GP
           if (o0.is_control_reg()) {
+            if (ASMJIT_UNLIKELY(op_reg >= 16u || ((1u << op_reg) & 0x0000011Du) == 0u))
+              goto InvalidPhysId;
             opcode = Opcode::k000F00 | 0x22;
 
             // Use `LOCK MOV` in 32-bit mode if CR8+ register is accessed (AMD extension).
@@ -1650,6 +1659,8 @@ CaseX86M_GPB_MulDiv:
 
           // DReg <- GP
           if (o0.is_debug_reg()) {
+            if (ASMJIT_UNLIKELY(op_reg > 7u))
+              goto InvalidPhysId;
             opcode = Opcode::k000F00 | 0x23;
             goto EmitX86R;
           }

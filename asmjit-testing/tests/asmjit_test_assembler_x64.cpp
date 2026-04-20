@@ -740,8 +740,17 @@ static void ASMJIT_NOINLINE test_x64_assembler_base(AssemblerTester<x86::Assembl
   TEST_INSTRUCTION("899C1180000000"                , mov(dword_ptr(rcx, rdx, 0, 128), ebx));
   TEST_INSTRUCTION("4889D1"                        , mov(rcx, rdx));
   TEST_INSTRUCTION("488EE2"                        , mov(fs, rdx));
-  TEST_INSTRUCTION("0F22CA"                        , mov(cr1, rdx));
+  TEST_INSTRUCTION("0F22DA"                        , mov(cr3, rdx));
   TEST_INSTRUCTION("0F23CA"                        , mov(dr1, rdx));
+  FAIL_INSTRUCTION(Error::kInvalidPhysId           , mov(cr1,  rax));
+  FAIL_INSTRUCTION(Error::kInvalidPhysId           , mov(cr5,  rax));
+  FAIL_INSTRUCTION(Error::kInvalidPhysId           , mov(cr7,  rax));
+  FAIL_INSTRUCTION(Error::kInvalidPhysId           , mov(cr9,  rax));
+  FAIL_INSTRUCTION(Error::kInvalidPhysId           , mov(cr15, rax));
+  FAIL_INSTRUCTION(Error::kInvalidPhysId           , mov(dr8,  rax));
+  FAIL_INSTRUCTION(Error::kInvalidPhysId           , mov(dr15, rax));
+  FAIL_INSTRUCTION(Error::kInvalidPhysId           , mov(rax, cr1));
+  FAIL_INSTRUCTION(Error::kInvalidPhysId           , mov(rax, dr8));
   TEST_INSTRUCTION("48899C1180000000"              , mov(ptr(rcx, rdx, 0, 128), rbx));
   TEST_INSTRUCTION("48899C1180000000"              , mov(qword_ptr(rcx, rdx, 0, 128), rbx));
   TEST_INSTRUCTION("B101"                          , mov(cl, 1));
