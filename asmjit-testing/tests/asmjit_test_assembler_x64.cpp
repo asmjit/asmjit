@@ -739,7 +739,13 @@ static void ASMJIT_NOINLINE test_x64_assembler_base(AssemblerTester<x86::Assembl
   TEST_INSTRUCTION("899C1180000000"                , mov(ptr(rcx, rdx, 0, 128), ebx));
   TEST_INSTRUCTION("899C1180000000"                , mov(dword_ptr(rcx, rdx, 0, 128), ebx));
   TEST_INSTRUCTION("4889D1"                        , mov(rcx, rdx));
-  TEST_INSTRUCTION("488EE2"                        , mov(fs, rdx));
+  TEST_INSTRUCTION("8EE2"                          , mov(fs, rdx));
+  TEST_INSTRUCTION("418EE7"                        , mov(fs, r15));
+  TEST_INSTRUCTION("8EE8"                          , mov(gs, rax));
+  TEST_INSTRUCTION("8EDB"                          , mov(ds, rbx));
+  FAIL_INSTRUCTION(Error::kInvalidSegment          , mov(cs, ax));
+  FAIL_INSTRUCTION(Error::kInvalidSegment          , mov(cs, bx));
+  FAIL_INSTRUCTION(Error::kInvalidSegment          , mov(cs, ptr(rax)));
   TEST_INSTRUCTION("0F22CA"                        , mov(cr1, rdx));
   TEST_INSTRUCTION("0F23CA"                        , mov(dr1, rdx));
   TEST_INSTRUCTION("48899C1180000000"              , mov(ptr(rcx, rdx, 0, 128), rbx));
