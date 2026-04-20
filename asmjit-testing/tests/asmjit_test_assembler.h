@@ -91,7 +91,7 @@ public:
       return false;
     }
 
-    if (err != asmjit::Error::kOk) {
+    if (err != expected_error) {
       printf("  !! %s failed with <%s>, but should have failed with <%s>\n", s, asmjit::DebugUtils::error_as_string(err), asmjit::DebugUtils::error_as_string(expected_error));
       prepare();
       return false;

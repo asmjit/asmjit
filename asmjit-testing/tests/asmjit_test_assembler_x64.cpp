@@ -19,6 +19,9 @@ using namespace asmjit;
 #define TEST_INSTRUCTION(OPCODE, ...) \
   tester.test_valid_instruction(#__VA_ARGS__, OPCODE, tester.assembler.__VA_ARGS__)
 
+#define FAIL_INSTRUCTION(ExpectedError, ...) \
+  tester.test_invalid_instruction(#__VA_ARGS__, ExpectedError, tester.assembler.__VA_ARGS__)
+
 static void ASMJIT_NOINLINE test_x64_assembler_base(AssemblerTester<x86::Assembler>& tester) noexcept {
   using namespace x86;
 
@@ -3944,6 +3947,10 @@ static void ASMJIT_NOINLINE test_x64_assembler_avx(AssemblerTester<x86::Assemble
   TEST_INSTRUCTION("C5F9C5CA01"                    , vpextrw(ecx, xmm2, 1));
   TEST_INSTRUCTION("C4E379159C118000000001"        , vpextrw(ptr(rcx, rdx, 0, 128), xmm3, 1));
   TEST_INSTRUCTION("C4E379159C118000000001"        , vpextrw(word_ptr(rcx, rdx, 0, 128), xmm3, 1));
+  FAIL_INSTRUCTION(Error::kInvalidKMaskUse         , k(k1).vpextrb(edx, xmm0, 0));
+  FAIL_INSTRUCTION(Error::kInvalidKMaskUse         , k(k1).vpextrw(edx, xmm0, 0));
+  FAIL_INSTRUCTION(Error::kInvalidKMaskUse         , k(k1).vpextrd(edx, xmm0, 0));
+  FAIL_INSTRUCTION(Error::kInvalidKMaskUse         , k(k1).vpextrq(rdx, xmm0, 0));
   TEST_INSTRUCTION("C4E259908C1A80000000"          , vpgatherdd(xmm1, ptr(rdx, xmm3, 0, 128), xmm4));
   TEST_INSTRUCTION("C4E25D908C1A80000000"          , vpgatherdd(ymm1, ptr(rdx, ymm3, 0, 128), ymm4));
   TEST_INSTRUCTION("C4E2D9908C1A80000000"          , vpgatherdq(xmm1, ptr(rdx, xmm3, 0, 128), xmm4));
@@ -4003,6 +4010,10 @@ static void ASMJIT_NOINLINE test_x64_assembler_avx(AssemblerTester<x86::Assemble
   TEST_INSTRUCTION("C5E9C4CB01"                    , vpinsrw(xmm1, xmm2, ebx, 1));
   TEST_INSTRUCTION("C5E9C48C2B8000000001"          , vpinsrw(xmm1, xmm2, ptr(rbx, rbp, 0, 128), 1));
   TEST_INSTRUCTION("C5E9C48C2B8000000001"          , vpinsrw(xmm1, xmm2, word_ptr(rbx, rbp, 0, 128), 1));
+  FAIL_INSTRUCTION(Error::kInvalidKMaskUse         , k(k1).vpinsrb(xmm0, xmm1, edx, 0));
+  FAIL_INSTRUCTION(Error::kInvalidKMaskUse         , k(k1).vpinsrw(xmm0, xmm1, edx, 0));
+  FAIL_INSTRUCTION(Error::kInvalidKMaskUse         , k(k1).vpinsrd(xmm0, xmm1, edx, 0));
+  FAIL_INSTRUCTION(Error::kInvalidKMaskUse         , k(k1).vpinsrq(xmm0, xmm1, rdx, 0));
   TEST_INSTRUCTION("C4E26904CB"                    , vpmaddubsw(xmm1, xmm2, xmm3));
   TEST_INSTRUCTION("C4E269048C2B80000000"          , vpmaddubsw(xmm1, xmm2, ptr(rbx, rbp, 0, 128)));
   TEST_INSTRUCTION("C4E269048C2B80000000"          , vpmaddubsw(xmm1, xmm2, xmmword_ptr(rbx, rbp, 0, 128)));
@@ -8250,6 +8261,8 @@ static void ASMJIT_NOINLINE test_x64_assembler_avx512_fp16(AssemblerTester<x86::
   TEST_INSTRUCTION("62F57D087E31"                  , vmovw(word_ptr(rcx), xmm6));
   TEST_INSTRUCTION("62F57D087E717F"                , vmovw(word_ptr(rcx, 254), xmm6));
   TEST_INSTRUCTION("62F57D087E7280"                , vmovw(word_ptr(rdx, -256), xmm6));
+  FAIL_INSTRUCTION(Error::kInvalidKMaskUse         , k(k1).vmovw(xmm0, edx));
+  FAIL_INSTRUCTION(Error::kInvalidKMaskUse         , k(k1).vmovw(edx, xmm0));
 }
 
 // Tests generated from 'llvm/test/MC/X86/intel-syntax-avx512.s' file to ensure compatibility with LLVM assembler.
@@ -18068,6 +18081,7 @@ bool test_x64_assembler(const TestSettings& settings) noexcept {
   return tester.did_pass();
 }
 
+#undef FAIL_INSTRUCTION
 #undef TEST_INSTRUCTION
 
 #endif // !ASMJIT_NO_X86
