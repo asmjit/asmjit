@@ -3963,6 +3963,11 @@ EmitX86OpImplicitMem:
   // ---------------------------------
 
 EmitX86R:
+  // Legacy encodings have no REX.R'|REX.B' bits, so register ids >= 16
+  // (accessible only via EVEX) can't be emitted - reject to avoid silent truncation.
+  if (ASMJIT_UNLIKELY((op_reg | rb_reg) > 0x0Fu))
+    goto InvalidPhysId;
+
   // Mandatory instruction prefix.
   writer.emit_pp(opcode.v);
 
@@ -3998,6 +4003,10 @@ EmitX86RFromM:
   rm_info = mem_info_table[rm_rel->as<Mem>().base_and_index_types()];
   if (ASMJIT_UNLIKELY(rm_rel->as<Mem>().has_offset() || (rm_info & kX86MemInfo_Index)))
     goto InvalidInstruction;
+
+  // Legacy encoding can't reach reg ids >= 16 (EVEX-only).
+  if (ASMJIT_UNLIKELY(op_reg > 0x0Fu))
+    goto InvalidPhysId;
 
   // Emit mandatory instruction prefix.
   writer.emit_pp(opcode.v);
@@ -4039,6 +4048,10 @@ EmitX86M:
   ASMJIT_ASSERT(rm_rel != nullptr);
   ASMJIT_ASSERT(rm_rel->op_type() == OperandType::kMem);
   ASMJIT_ASSERT((opcode & Opcode::kCDSHL_Mask) == 0);
+
+  // Legacy encoding can't reach reg ids >= 16 (EVEX-only).
+  if (ASMJIT_UNLIKELY(op_reg > 0x0Fu))
+    goto InvalidPhysId;
 
   // Emit override prefixes.
   rm_info = mem_info_table[rm_rel->as<Mem>().base_and_index_types()];
