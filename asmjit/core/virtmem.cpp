@@ -63,8 +63,11 @@
     #include <TargetConditionals.h>
     #if TARGET_OS_OSX
       #include <sys/utsname.h>
-      #include <libkern/OSCacheControl.h> // sys_icache_invalidate().
     #endif
+    // sys_icache_invalidate() is available on all Apple platforms
+    // (iOS, Mac Catalyst, macOS).  Without this include, Catalyst
+    // builds fail with "undeclared identifier" at the call site.
+    #include <libkern/OSCacheControl.h>
     // Older SDK doesn't define `MAP_JIT`.
     #ifndef MAP_JIT
       #define MAP_JIT 0x800
