@@ -3241,7 +3241,7 @@
     {"category": "AVX512 SIMD", "ext": "AVX512_BF16", "instructions": [
       {"any": "vcvtne2ps2bf16 W:xyz {kz}, xyz, xyz/mxyz/b32"               , "op": "[RVM] EVEX.xyz.F2.0F38.W0 72 /r"       , "tt": "fv"     , "vl": "xy"},
       {"any": "vcvtneps2bf16 W:xxy {kz}, xyz/mxyz/b32"                     , "op": "[RM ] EVEX.xyz.F3.0F38.W0 72 /r"       , "tt": "fv"     , "vl": "xy"},
-      {"any": "vdpbf16ps W:xyz {kz}, xyz, xyz/mxyz/b32"                    , "op": "[RVM] EVEX.xyz.F3.0F38.W0 52 /r"       , "tt": "fv"     , "vl": "xy"}
+      {"any": "vdpbf16ps X:xyz {kz}, xyz, xyz/mxyz/b32"                    , "op": "[RVM] EVEX.xyz.F3.0F38.W0 52 /r"       , "tt": "fv"     , "vl": "xy"}
     ]},
 
     {"category": "AVX512 SIMD", "ext": "AVX512_FP16", "instructions": [
