@@ -42,6 +42,8 @@ public:
   Error emit_epilog(const FuncFrame& frame);
 };
 
+void init_emitter_funcs(BaseEmitter* emitter);
+
 [[maybe_unused]]
 static inline void update_emitter_funcs(BaseEmitter* emitter) noexcept { Support::maybe_unused(emitter); }
 

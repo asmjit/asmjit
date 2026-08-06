@@ -20,6 +20,8 @@ Builder::Builder(CodeHolder* code) noexcept : BaseBuilder() {
                uint64_t(1) << uint32_t(Arch::kARM_BE  ) |
                uint64_t(1) << uint32_t(Arch::kThumb   ) |
                uint64_t(1) << uint32_t(Arch::kThumb_BE) ;
+  init_emitter_funcs(this);
+
   if (code)
     code->attach(this);
 }

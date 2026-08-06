@@ -20,6 +20,9 @@ using namespace asmjit;
 #define TEST_INSTRUCTION(OPCODE, ...) \
   tester.test_valid_instruction(#__VA_ARGS__, OPCODE, tester.assembler.__VA_ARGS__)
 
+#define FAIL_INSTRUCTION(ExpectedError, ...) \
+  tester.test_invalid_instruction(#__VA_ARGS__, ExpectedError, tester.assembler.__VA_ARGS__)
+
 static void ASMJIT_NOINLINE test_aarch32_assembler_base(AssemblerTester<a32::Assembler>& tester) noexcept {
   using namespace a32;
 
@@ -2807,6 +2810,39 @@ static void ASMJIT_NOINLINE test_aarch32_assembler_vec(AssemblerTester<a32::Asse
   TEST_INSTRUCTION("C421B2F3", vzip_u8(q1, q2));
 }
 
+static void ASMJIT_NOINLINE test_aarch32_assembler_shift_imm(AssemblerTester<a32::Assembler>& tester) noexcept {
+  using namespace a32;
+
+  // LSL shifts by 0..31 and encodes the amount verbatim.
+  TEST_INSTRUCTION("031082E0", add(r1, r2, r3, lsl(0)));
+  TEST_INSTRUCTION("831F82E0", add(r1, r2, r3, lsl(31)));
+  FAIL_INSTRUCTION(Error::kInvalidInstruction, add(r1, r2, r3, lsl(32)));
+
+  // LSR and ASR shift by 1..32 - there is no shift by zero, so 32 is encoded as zero.
+  TEST_INSTRUCTION("A31082E0", add(r1, r2, r3, lsr(1)));
+  TEST_INSTRUCTION("231082E0", add(r1, r2, r3, lsr(32)));
+  TEST_INSTRUCTION("C31082E0", add(r1, r2, r3, asr(1)));
+  TEST_INSTRUCTION("431082E0", add(r1, r2, r3, asr(32)));
+  FAIL_INSTRUCTION(Error::kInvalidInstruction, add(r1, r2, r3, lsr(0)));
+  FAIL_INSTRUCTION(Error::kInvalidInstruction, add(r1, r2, r3, asr(0)));
+  FAIL_INSTRUCTION(Error::kInvalidInstruction, add(r1, r2, r3, lsr(33)));
+  FAIL_INSTRUCTION(Error::kInvalidInstruction, add(r1, r2, r3, asr(33)));
+
+  // ROR rotates by 1..31 - a zero encoding would be RRX, which is a different instruction.
+  TEST_INSTRUCTION("E31082E0", add(r1, r2, r3, ror(1)));
+  TEST_INSTRUCTION("E31F82E0", add(r1, r2, r3, ror(31)));
+  FAIL_INSTRUCTION(Error::kInvalidInstruction, add(r1, r2, r3, ror(0)));
+  FAIL_INSTRUCTION(Error::kInvalidInstruction, add(r1, r2, r3, ror(32)));
+
+  // The same shift encoding is reached by instructions that have no Rn and by instructions that have no Rd.
+  TEST_INSTRUCTION("2210A0E1", mov(r1, r2, lsr(32)));
+  TEST_INSTRUCTION("4210A0E1", mov(r1, r2, asr(32)));
+  TEST_INSTRUCTION("220051E1", cmp(r1, r2, lsr(32)));
+  TEST_INSTRUCTION("420051E1", cmp(r1, r2, asr(32)));
+  FAIL_INSTRUCTION(Error::kInvalidInstruction, mov(r1, r2, ror(0)));
+  FAIL_INSTRUCTION(Error::kInvalidInstruction, cmp(r1, r2, ror(0)));
+}
+
 static void ASMJIT_NOINLINE test_aarch32_assembler_rel(AssemblerTester<a32::Assembler>& tester) noexcept {
   using namespace a32;
 
@@ -2870,12 +2906,14 @@ bool test_aarch32_assembler(const TestSettings& settings) noexcept {
 
   test_aarch32_assembler_base(tester);
   test_aarch32_assembler_vec(tester);
+  test_aarch32_assembler_shift_imm(tester);
   test_aarch32_assembler_rel(tester);
 
   tester.print_summary();
   return tester.did_pass();
 }
 
+#undef FAIL_INSTRUCTION
 #undef TEST_INSTRUCTION
 
 #endif // !ASMJIT_NO_AARCH32

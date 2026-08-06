@@ -390,6 +390,39 @@ static ASMJIT_INLINE uint32_t szFromDt(uint32_t dtBits) noexcept { return (dtBit
 static ASMJIT_INLINE uint32_t uBitFromDt(uint32_t dtBits) noexcept { return uint32_t(dtBits >= uint32_t(DataType::kU8) && dtBits <= uint32_t(DataType::kU64)); }
 static ASMJIT_INLINE uint32_t pBitFromDt(uint32_t dtBits) noexcept { return uint32_t(dtBits >= uint32_t(DataType::kP8) && dtBits <= uint32_t(DataType::kP64)); }
 
+// Encodes an immediate shift as `type` at [6:5] and `imm5` at [11:7] (see "Shift or rotate by an immediate
+// amount" in the ARM ARM). The amount is not encoded verbatim - LSR and ASR shift by 1..32 and encode 32 as
+// zero (they cannot shift by zero), and ROR rotates by 1..31 as a zero encoding would be RRX instead.
+static ASMJIT_INLINE bool encode_shift_op_imm(uint32_t shift_op, uint64_t shift_imm, Out<uint32_t> out) noexcept {
+  switch (shift_op) {
+    case uint32_t(ShiftOp::kLSL):
+      if (shift_imm > 31u) {
+        return false;
+      }
+      break;
+
+    case uint32_t(ShiftOp::kLSR):
+    case uint32_t(ShiftOp::kASR):
+      if (shift_imm - 1u > 31u) {
+        return false;
+      }
+      shift_imm &= 31u;
+      break;
+
+    case uint32_t(ShiftOp::kROR):
+      if (shift_imm - 1u > 30u) {
+        return false;
+      }
+      break;
+
+    default:
+      return false;
+  }
+
+  *out = (shift_op << 5u) | (uint32_t(shift_imm) << 7u);
+  return true;
+}
+
 struct ImmEncode {
   uint32_t _imm;
   ASMJIT_INLINE uint32_t imm() const noexcept { return _imm; }
@@ -858,6 +891,7 @@ static ASMJIT_INLINE InstId recombine_inst_id(InstId inst_id, uint32_t cc, uint3
 Assembler::Assembler(CodeHolder* code) noexcept : BaseAssembler() {
   _arch_mask = (uint64_t(1) << uint32_t(Arch::kARM  )) |
                (uint64_t(1) << uint32_t(Arch::kThumb)) ;
+  init_emitter_funcs(this);
 
   if (code) {
     code->attach(this);
@@ -985,10 +1019,10 @@ Error Assembler::_emit(InstId inst_id, const Operand_& o0, const Operand_& o1, c
       if (sgn.test<kOpRegR, kOpRegR, kOpRegR, kOpImmI>()) {
         uint32_t shift_op = o3.as<Imm>().predicate();
         uint64_t shiftImm = o3.as<Imm>().value_as<uint64_t>();
-        if (shift_op <= 3 && shiftImm <= 31u) {
+        uint32_t shift_bits;
+        if (encode_shift_op_imm(shift_op, shiftImm, Out(shift_bits))) {
           opcode = opcode_table_ptr[2];
-          opcode |= shift_op << 5u;
-          opcode |= uint32_t(shiftImm) << 7u;
+          opcode |= shift_bits;
           goto Emit_R0At12Of4_R1At16Of4_R2At0Of4_Cond;
         }
       }
@@ -1254,10 +1288,10 @@ Error Assembler::_emit(InstId inst_id, const Operand_& o0, const Operand_& o1, c
       if (sgn.test<kOpRegR, kOpRegR, kOpImmI>()) {
         uint32_t shift_op = o2.as<Imm>().predicate();
         uint64_t shiftImm = o2.as<Imm>().value_as<uint64_t>();
-        if (shift_op <= 3 && shiftImm <= 31u) {
+        uint32_t shift_bits;
+        if (encode_shift_op_imm(shift_op, shiftImm, Out(shift_bits))) {
           opcode = opcode_table_ptr[2];
-          opcode |= shift_op << 5u;
-          opcode |= uint32_t(shiftImm) << 7u;
+          opcode |= shift_bits;
           goto Emit_R0At16Of4_R1At0Of4_Cond;
         }
       }
@@ -2006,10 +2040,10 @@ Error Assembler::_emit(InstId inst_id, const Operand_& o0, const Operand_& o1, c
       if (sgn.test<kOpRegR, kOpRegR, kOpImmI>()) {
         uint32_t shift_op = o2.as<Imm>().predicate();
         uint64_t shiftImm = o2.as<Imm>().value_as<uint64_t>();
-        if (shift_op <= 3 && shiftImm <= 31u) {
+        uint32_t shift_bits;
+        if (encode_shift_op_imm(shift_op, shiftImm, Out(shift_bits))) {
           opcode = opcode_table_ptr[2];
-          opcode |= shift_op << 5u;
-          opcode |= uint32_t(shiftImm) << 7u;
+          opcode |= shift_bits;
           goto Emit_R0At12Of4_R1At0Of4_Cond;
         }
       }
