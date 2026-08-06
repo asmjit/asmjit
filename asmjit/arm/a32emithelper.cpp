@@ -375,7 +375,7 @@ static Error ASMJIT_CDECL Emitter_emit_args_assignment(BaseEmitter* emitter, con
   return make_error(Error::kInvalidState);
 }
 
-void assignEmitterFuncs(BaseEmitter* emitter) {
+void init_emitter_funcs(BaseEmitter* emitter) {
   emitter->_funcs.emit_prolog = Emitter_emit_prolog;
   emitter->_funcs.emit_epilog = Emitter_emit_epilog;
   emitter->_funcs.emit_args_assignment = Emitter_emit_args_assignment;
