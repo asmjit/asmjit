@@ -1258,10 +1258,21 @@ void UniCompiler::emit_3i(UniOpRRR op, const Gp& dst, const Operand_& src1_, con
       }
 
       case UniOpRRR::kSBound: {
-        cc->xor_(dst, dst);
-        cc->cmp(a, b);
-        cc->cmovbe(dst, a);
-        cc->cmovg(dst, b);
+        if (dst_is_a) {
+          // Zeroing dst would destroy `a`, so start from `a` and clamp in place.
+          Gp zero = new_similar_reg(dst, "@zero");
+
+          cc->xor_(zero, zero);
+          cc->cmp(dst, b);
+          cc->cmova(dst, zero);
+          cc->cmovg(dst, b);
+        }
+        else {
+          cc->xor_(dst, dst);
+          cc->cmp(a, b);
+          cc->cmovbe(dst, a);
+          cc->cmovg(dst, b);
+        }
         return;
       }
 
@@ -1294,9 +1305,16 @@ void UniCompiler::emit_3i(UniOpRRR op, const Gp& dst, const Operand_& src1_, con
         ASMJIT_ASSERT(dst.size() == b.size());
 
         InstId inst_id = legacy_logical_inst_table[size_t(op) - size_t(UniOpRRR::kAnd)];
-        if (!dst_is_a)
-          cc->mov(dst, a);
-        cc->emit(inst_id, dst, b);
+        if (dst_is_b) {
+          // Moving `a` into `dst` first would destroy `b` - these are commutative,
+          // so `dst = dst op a` is emitted instead.
+          cc->emit(inst_id, dst, a);
+        }
+        else {
+          if (!dst_is_a)
+            cc->mov(dst, a);
+          cc->emit(inst_id, dst, b);
+        }
         return;
       }
 
@@ -1453,10 +1471,11 @@ void UniCompiler::emit_3i(UniOpRRR op, const Gp& dst, const Operand_& src1_, con
           return;
         }
         else if (dst_is_b) {
+          // Shifts are not commutative, so the count has to be preserved in a
+          // temporary BEFORE `a` is moved into `dst`, which is where it lives.
           Gp tmp = new_gp32("@tmp");
-          if (!dst_is_a)
-            cc->mov(dst, a);
           cc->mov(tmp, b.r32());
+          cc->mov(dst, a);
           cc->emit(legacy_inst_id, dst, tmp.r8());
         }
         else {
@@ -1467,13 +1486,25 @@ void UniCompiler::emit_3i(UniOpRRR op, const Gp& dst, const Operand_& src1_, con
       }
 
       case UniOpRRR::kSBound: {
-        if (dst.id() == a.id()) {
+        if (dst_is_a) {
+          // Zeroing dst would destroy `a`, so start from `a` and clamp in place.
           Gp zero = new_similar_reg(dst, "@zero");
 
           cc->xor_(zero, zero);
           cc->cmp(dst, b);
           cc->cmova(dst, zero);
           cc->cmovg(dst, b);
+        }
+        else if (dst_is_b) {
+          // Zeroing dst would destroy `b`, which is read twice, so the result is
+          // accumulated in a temporary and moved into dst at the end.
+          Gp acc = new_similar_reg(dst, "@acc");
+
+          cc->xor_(acc, acc);
+          cc->cmp(a, dst);
+          cc->cmovbe(acc, a);
+          cc->cmovg(acc, dst);
+          cc->mov(dst, acc);
         }
         else {
           cc->xor_(dst, dst);

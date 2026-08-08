@@ -931,7 +931,24 @@ static ASMJIT_NOINLINE void test_rr_ops(JitContext& ctx) {
 // ujit::UniCompiler - Tests - RRR Operations - Functions
 // ======================================================
 
-static TestRRRFunc create_func_rrr(JitContext& ctx, UniOpRRR op) {
+// Which source register the destination aliases. emit_3i() has dedicated paths
+// for `dst == src1` and `dst == src2`, so each test vector is run through all
+// three shapes - a destination that aliases nothing only covers one of them.
+enum class RRRAlias : uint32_t {
+  kNone = 0,
+  kDstIsSrc1,
+  kDstIsSrc2
+};
+
+static const char* rrr_alias_name(RRRAlias alias) {
+  switch (alias) {
+    case RRRAlias::kDstIsSrc1: return "dst == src1";
+    case RRRAlias::kDstIsSrc2: return "dst == src2";
+    default: return "dst is distinct";
+  }
+}
+
+static TestRRRFunc create_func_rrr(JitContext& ctx, UniOpRRR op, RRRAlias alias) {
   ctx.prepare();
 
   UniCompiler uc(&ctx.cc, ctx.features, ctx.cpu_hints);
@@ -942,10 +959,13 @@ static TestRRRFunc create_func_rrr(JitContext& ctx, UniOpRRR op) {
 
   Gp a = uc.new_gp32("a");
   Gp b = uc.new_gp32("b");
-  Gp result = uc.new_gp32("result");
 
   node->set_arg(0, a);
   node->set_arg(1, b);
+
+  Gp result = alias == RRRAlias::kDstIsSrc1 ? a
+            : alias == RRRAlias::kDstIsSrc2 ? b
+            : uc.new_gp32("result");
 
   uc.emit_3i(op, result, a, b);
   uc.ret(result);
@@ -954,7 +974,7 @@ static TestRRRFunc create_func_rrr(JitContext& ctx, UniOpRRR op) {
   return ctx.finish<TestRRRFunc>();
 }
 
-static TestRRIFunc create_func_rri(JitContext& ctx, UniOpRRR op, Imm bImm) {
+static TestRRIFunc create_func_rri(JitContext& ctx, UniOpRRR op, Imm bImm, RRRAlias alias) {
   ctx.prepare();
 
   UniCompiler uc(&ctx.cc, ctx.features, ctx.cpu_hints);
@@ -964,9 +984,10 @@ static TestRRIFunc create_func_rri(JitContext& ctx, UniOpRRR op, Imm bImm) {
   EXPECT_NOT_NULL(node);
 
   Gp a = uc.new_gp32("a");
-  Gp result = uc.new_gp32("result");
 
   node->set_arg(0, a);
+
+  Gp result = alias == RRRAlias::kDstIsSrc1 ? a : uc.new_gp32("result");
 
   uc.emit_3i(op, result, a, bImm);
   uc.ret(result);
@@ -979,37 +1000,49 @@ static TestRRIFunc create_func_rri(JitContext& ctx, UniOpRRR op, Imm bImm) {
 // ===================================================
 
 static ASMJIT_NOINLINE void test_rrr_op(JitContext& ctx, UniOpRRR op, uint32_t a, uint32_t b, uint32_t expected) {
-  TestRRRFunc fn_rrr = create_func_rrr(ctx, op);
-  uint32_t observed_rrr = fn_rrr(a, b);
-  EXPECT_EQ(observed_rrr, expected)
-    .message("Operation failed (RRR):\n"
-            "      Input #1: %d\n"
-            "      Input #2: %d\n"
-            "      Expected: %d\n"
-            "      Observed: %d\n"
-            "Assembly:\n%s",
-            a,
-            b,
-            uint32_t(expected),
-            observed_rrr,
-            ctx.logger_content());
+  static constexpr RRRAlias rrr_aliases[3] = {
+    RRRAlias::kNone,
+    RRRAlias::kDstIsSrc1,
+    RRRAlias::kDstIsSrc2
+  };
 
-  TestRRIFunc fn_rri = create_func_rri(ctx, op, Imm(b));
-  uint32_t observed_rri = fn_rri(a);
-  EXPECT_EQ(observed_rri, expected)
-    .message("Operation failed (RRI):\n"
-            "      Input #1: %d\n"
-            "      Input #2: %d\n"
-            "      Expected: %d\n"
-            "      Observed: %d\n"
-            "Assembly:\n%s",
-            a,
-            b,
-            uint32_t(expected),
-            observed_rri,
-            ctx.logger_content());
+  for (RRRAlias alias : rrr_aliases) {
+    TestRRRFunc fn_rrr = create_func_rrr(ctx, op, alias);
+    uint32_t observed_rrr = fn_rrr(a, b);
+    EXPECT_EQ(observed_rrr, expected)
+      .message("Operation failed (RRR, %s):\n"
+              "      Input #1: %d\n"
+              "      Input #2: %d\n"
+              "      Expected: %d\n"
+              "      Observed: %d\n"
+              "Assembly:\n%s",
+              rrr_alias_name(alias),
+              a,
+              b,
+              uint32_t(expected),
+              observed_rrr,
+              ctx.logger_content());
+    ctx.rt.reset();
+  }
 
-  ctx.rt.reset();
+  for (RRRAlias alias : { RRRAlias::kNone, RRRAlias::kDstIsSrc1 }) {
+    TestRRIFunc fn_rri = create_func_rri(ctx, op, Imm(b), alias);
+    uint32_t observed_rri = fn_rri(a);
+    EXPECT_EQ(observed_rri, expected)
+      .message("Operation failed (RRI, %s):\n"
+              "      Input #1: %d\n"
+              "      Input #2: %d\n"
+              "      Expected: %d\n"
+              "      Observed: %d\n"
+              "Assembly:\n%s",
+              rrr_alias_name(alias),
+              a,
+              b,
+              uint32_t(expected),
+              observed_rri,
+              ctx.logger_content());
+    ctx.rt.reset();
+  }
 }
 
 static ASMJIT_NOINLINE void test_rrr_ops(JitContext& ctx) {
