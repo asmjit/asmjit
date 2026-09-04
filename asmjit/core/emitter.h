@@ -6,8 +6,8 @@
 #ifndef ASMJIT_CORE_EMITTER_H_INCLUDED
 #define ASMJIT_CORE_EMITTER_H_INCLUDED
 
-#include <asmjit/core/archtraits.h>
-#include <asmjit/core/codeholder.h>
+#include <asmjit/core/arch_traits.h>
+#include <asmjit/core/code_holder.h>
 #include <asmjit/core/formatter.h>
 #include <asmjit/core/inst.h>
 #include <asmjit/core/operand.h>
@@ -352,7 +352,7 @@ public:
 
   //! Tests whether the emitter has the given `flag` enabled.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool has_emitter_flag(EmitterFlags flag) const noexcept { return Support::test(_emitter_flags, flag); }
+  ASMJIT_INLINE_NODEBUG bool has_emitter_flag(EmitterFlags flag) const noexcept { return axl::test(_emitter_flags, flag); }
 
   //! Tests whether the emitter is finalized.
   [[nodiscard]]
@@ -532,7 +532,7 @@ public:
 
   //! Tests whether the encoding `option` is set.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool has_encoding_option(EncodingOptions option) const noexcept { return Support::test(_encoding_options, option); }
+  ASMJIT_INLINE_NODEBUG bool has_encoding_option(EncodingOptions option) const noexcept { return axl::test(_encoding_options, option); }
 
   //! Enables the given encoding `options`.
   ASMJIT_INLINE_NODEBUG void add_encoding_options(EncodingOptions options) noexcept { _encoding_options |= options; }
@@ -550,7 +550,7 @@ public:
 
   //! Tests whether the given `option` is present in the emitter's diagnostic options.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool has_diagnostic_option(DiagnosticOptions option) const noexcept { return Support::test(_diagnostic_options, option); }
+  ASMJIT_INLINE_NODEBUG bool has_diagnostic_option(DiagnosticOptions option) const noexcept { return axl::test(_diagnostic_options, option); }
 
   //! Activates the given diagnostic `options`.
   //!
@@ -775,7 +775,7 @@ public:
   //! example emitting generic code where you don't know whether some operand is register, memory, or immediate.
   template<typename... Args>
   ASMJIT_INLINE_NODEBUG Error emit(InstId inst_id, Args&&... operands) {
-    return _emitI(inst_id, Support::ForwardOp<Args>::forward(operands)...);
+    return _emitI(inst_id, axl::ForwardOp<Args>::forward(operands)...);
   }
 
   //! Similar to \ref emit(), but uses array of `operands` instead.

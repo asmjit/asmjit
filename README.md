@@ -15,8 +15,8 @@ Project Organization
 
   * **`/`**              - Project root - project files and scripts, `include` path points here
     * **asmjit**         - AsmJit source code and headers
+      * **axl**          - Auxiliary library - low level primitives and utilities
       * **core**         - Core API, backend independent except relocations
-      * **support**      - Support classes and functions
       * **arm**          - ARM specific API, designed to be common for both AArch32 and AArch64
       * **a64**          - AArch64 specific API, used only by AArch64 backends
       * **x86**          - X86 specific API, used only by X86 and X64 backends
@@ -59,7 +59,7 @@ Breaking the API is sometimes inevitable, what to do?
     * [asmjit_test_emitters.cpp](./asmjit-testing/tests/asmjit_test_emitters.cpp) - Tests that demonstrate the purpose of emitters
     * [asmjit_test_assembler_x86.cpp](./asmjit-testing/tests/asmjit_test_assembler_x86.cpp) - Tests targeting AsmJit's Assembler (x86/x64)
     * [asmjit_test_compiler_x86.cpp](./asmjit-testing/tests/asmjit_test_compiler_x86.cpp) - Tests targeting AsmJit's Compiler (x86/x64)
-    * [asmjit_test_instinfo.cpp](./asmjit-testing/tests/asmjit_test_instinfo.cpp) - Tests that query instruction information
+    * [asmjit_test_inst_info.cpp](./asmjit-testing/tests/asmjit_test_inst_info.cpp) - Tests that query instruction information
     * [asmjit_test_x86_sections.cpp](./asmjit-testing/tests/asmjit_test_x86_sections.cpp) - Multiple sections test
   * Visit our [Public Chat](https://app.element.io/#/room/#asmjit:matrix.org) if you need a quick help
 

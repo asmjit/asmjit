@@ -8,8 +8,8 @@
 
 #include <asmjit/core.h>
 
-#include <asmjit-testing/commons/asmjitutils.h>
-#include <asmjit-testing/commons/performancetimer.h>
+#include <asmjit-testing/commons/asmjit_utils.h>
+#include <asmjit-testing/commons/performance_timer.h>
 
 namespace asmjit_perf_utils {
 
@@ -77,7 +77,7 @@ static void bench(asmjit::CodeHolder& code, asmjit::Arch arch, uint32_t num_iter
   asmjit::Environment env(arch);
 
   PerformanceTimer timer;
-  double duration = std::numeric_limits<double>::infinity();
+  double duration = asmjit::axl::infinity<double>();
 
   code.init(env);
   code.set_error_handler(&eh);
@@ -93,7 +93,7 @@ static void bench(asmjit::CodeHolder& code, asmjit::Arch arch, uint32_t num_iter
     code.reinit();
     timer.stop();
 
-    duration = asmjit::Support::min(duration, timer.duration() * 1000);
+    duration = asmjit::axl::min(duration, timer.duration() * 1000);
   }
 
   printf("  [%-7s] %-9s %-16s | CodeSize:%5llu [B] | Time:%7.3f [us]", arch_name, emitter_name, test_name, (unsigned long long)code_size, duration);

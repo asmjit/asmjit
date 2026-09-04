@@ -6,20 +6,21 @@
 #ifndef ASMJIT_CORE_BUILDER_H_INCLUDED
 #define ASMJIT_CORE_BUILDER_H_INCLUDED
 
-#include <asmjit/core/api-config.h>
+#include <asmjit/core/build_defs.h>
 #ifndef ASMJIT_NO_BUILDER
 
+#include <asmjit/axl/arena.h>
+#include <asmjit/axl/arena_vector.h>
+#include <asmjit/axl/commons.h>
 #include <asmjit/core/assembler.h>
-#include <asmjit/core/codeholder.h>
-#include <asmjit/core/constpool.h>
+#include <asmjit/core/code_holder.h>
+#include <asmjit/core/const_pool.h>
 #include <asmjit/core/formatter.h>
+#include <asmjit/core/globals.h>
 #include <asmjit/core/inst.h>
 #include <asmjit/core/operand.h>
 #include <asmjit/core/string.h>
 #include <asmjit/core/type.h>
-#include <asmjit/support/arena.h>
-#include <asmjit/support/arenavector.h>
-#include <asmjit/support/support.h>
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -198,16 +199,16 @@ public:
   //! \{
 
   //! Arena used to allocate nodes and passes.
-  Arena _builder_arena;
+  axl::Arena _builder_arena;
   //! Arena only used by `Pass::run()`.
-  Arena _pass_arena;
+  axl::Arena _pass_arena;
 
-  //! Array of `Pass` objects.
-  ArenaVector<Pass*> _passes;
+  //! Contains all added `Pass` objects.
+  axl::ArenaVector<Pass*> _passes;
   //! Maps section indexes to `LabelNode` nodes.
-  ArenaVector<SectionNode*> _section_nodes;
+  axl::ArenaVector<SectionNode*> _section_nodes;
   //! Maps label indexes to `LabelNode` nodes.
-  ArenaVector<LabelNode*> _label_nodes;
+  axl::ArenaVector<LabelNode*> _label_nodes;
 
   //! Current node (cursor).
   BaseNode* _cursor = nullptr;
@@ -247,14 +248,14 @@ public:
   //! Allocates data required for a node.
   template<typename T, typename... Args>
   ASMJIT_INLINE Error new_node_with_size_t(Out<T*> out, size_t size, Args&&... args) {
-    ASMJIT_ASSERT(Support::is_aligned(size, Arena::kAlignment));
+    ASMJIT_ASSERT(axl::is_aligned(size, axl::Arena::kAlignment));
 
     void* ptr =_builder_arena.alloc_oneshot(size);
     if (ASMJIT_UNLIKELY(!ptr)) {
       return report_error(make_error(Error::kOutOfMemory));
     }
 
-    out = new(Support::PlacementNew{ptr}) T(std::forward<Args>(args)...);
+    out = new(axl::PlacementNew{ptr}) T(axl::forward<Args>(args)...);
     return Error::kOk;
   }
 
@@ -267,13 +268,13 @@ public:
   //! is destroyed it destroys all nodes it created so no manual memory management is required.
   template<typename T, typename... Args>
   ASMJIT_INLINE Error new_node_t(Out<T*> out, Args&&... args) {
-    void* ptr = _builder_arena.alloc_oneshot(Arena::aligned_size_of<T>());
+    void* ptr = _builder_arena.alloc_oneshot(axl::Arena::aligned_size_of<T>());
 
     if (ASMJIT_UNLIKELY(!ptr)) {
       return report_error(make_error(Error::kOutOfMemory));
     }
 
-    out = new(Support::PlacementNew{ptr}) T(std::forward<Args>(args)...);
+    out = new(axl::PlacementNew{ptr}) T(axl::forward<Args>(args)...);
     return Error::kOk;
   }
 
@@ -330,7 +331,7 @@ public:
   //! for nulls if you iterate over the vector.
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Span<SectionNode*> section_nodes() const noexcept {
-    return _section_nodes.as_span();
+    return _section_nodes.span_mut();
   }
 
   //! Tests whether the `SectionNode` of the given `section_id` was registered.
@@ -365,7 +366,7 @@ public:
   //! \note If a label of some id is not associated with the Builder/Compiler it would be null, so always check for
   //! nulls if you iterate over the vector.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG Span<LabelNode*> label_nodes() const noexcept { return _label_nodes.as_span(); }
+  ASMJIT_INLINE_NODEBUG Span<LabelNode*> label_nodes() const noexcept { return _label_nodes.span_mut(); }
 
   //! Tests whether the `LabelNode` of the given `label_id` was registered.
   [[nodiscard]]
@@ -417,7 +418,7 @@ public:
 
   //! Returns a vector of `Pass` instances that will be executed by `run_passes()`.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG Span<Pass*> passes() const noexcept { return _passes.as_span(); }
+  ASMJIT_INLINE_NODEBUG Span<Pass*> passes() const noexcept { return _passes.span_mut(); }
 
   //! Allocates and instantiates a new pass of type `T` and returns its instance. If the allocation fails `nullptr` is
   //! returned.
@@ -428,10 +429,10 @@ public:
   //! destroyed it destroys all passes it created so no manual memory management is required.
   template<typename PassT, typename... Args>
   [[nodiscard]]
-  ASMJIT_INLINE PassT* new_pass(Args&&... args) noexcept { return _builder_arena.new_oneshot<PassT>(*this, std::forward<Args>(args)...); }
+  ASMJIT_INLINE PassT* new_pass(Args&&... args) noexcept { return _builder_arena.new_oneshot<PassT>(*this, axl::forward<Args>(args)...); }
 
   template<typename T, typename... Args>
-  ASMJIT_INLINE Error add_pass(Args&&... args) { return _add_pass(new_pass<T, Args...>(std::forward<Args>(args)...)); }
+  ASMJIT_INLINE Error add_pass(Args&&... args) { return _add_pass(new_pass<T, Args...>(axl::forward<Args>(args)...)); }
 
   //! Returns `Pass` by name.
   //!
@@ -717,7 +718,7 @@ public:
 
   //! Tests whether the node has the given `flag` set.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool has_flag(NodeFlags flag) const noexcept { return Support::test(_node_flags, flag); }
+  ASMJIT_INLINE_NODEBUG bool has_flag(NodeFlags flag) const noexcept { return axl::test(_node_flags, flag); }
 
   //! Replaces node flags with `flags`.
   ASMJIT_INLINE_NODEBUG void _assign_flags(NodeFlags flags) noexcept { _node_flags = flags; }
@@ -874,7 +875,7 @@ public:
   //! This function is used internally to allocate \ref InstNode.
   [[nodiscard]]
   static ASMJIT_INLINE_CONSTEXPR size_t node_size_of_op_capacity(uint32_t op_capacity) noexcept {
-    return Arena::aligned_size(sizeof(InstNode) + op_capacity * sizeof(Operand));
+    return axl::Arena::aligned_size(sizeof(InstNode) + op_capacity * sizeof(Operand));
   }
 
   //! \}
@@ -913,10 +914,10 @@ public:
   //! \{
 
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG BaseInst& baseInst() noexcept { return _base_inst; }
+  ASMJIT_INLINE_NODEBUG BaseInst& base_inst() noexcept { return _base_inst; }
 
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG const BaseInst& baseInst() const noexcept { return _base_inst; }
+  ASMJIT_INLINE_NODEBUG const BaseInst& base_inst() const noexcept { return _base_inst; }
 
   //! \}
 
@@ -995,11 +996,11 @@ public:
 
   //! Returns operands array.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG Operand* operands_data() noexcept { return Support::offset_ptr<Operand>(this, sizeof(InstNode)); }
+  ASMJIT_INLINE_NODEBUG Operand* operands_data() noexcept { return axl::offset_ptr<Operand>(this, sizeof(InstNode)); }
 
   //! Returns operands array (const).
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG const Operand* operands_data() const noexcept { return Support::offset_ptr<Operand>(this, sizeof(InstNode)); }
+  ASMJIT_INLINE_NODEBUG const Operand* operands_data() const noexcept { return axl::offset_ptr<Operand>(this, sizeof(InstNode)); }
 
   //! Returns operand count.
   [[nodiscard]]
@@ -1347,12 +1348,12 @@ public:
   //! Returns a pointer to the data casted to `T*` - `uint8_t*` by default.
   template<typename T = uint8_t>
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint8_t* data() noexcept { return Support::offset_ptr<T>(this, sizeof(EmbedDataNode)); }
+  ASMJIT_INLINE_NODEBUG uint8_t* data() noexcept { return axl::offset_ptr<T>(this, sizeof(EmbedDataNode)); }
 
   //! Returns a pointer to the data casted to `T*` - `const uint8_t*` by default (const).
   template<typename T = uint8_t>
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG const uint8_t* data() const noexcept { return Support::offset_ptr<T>(this, sizeof(EmbedDataNode)); }
+  ASMJIT_INLINE_NODEBUG const uint8_t* data() const noexcept { return axl::offset_ptr<T>(this, sizeof(EmbedDataNode)); }
 
   //! Returns the number of (typed) items in the array.
   [[nodiscard]]
@@ -1506,7 +1507,7 @@ public:
   //! \{
 
   //! Creates a new `ConstPoolNode` instance.
-  ASMJIT_INLINE_NODEBUG ConstPoolNode(Arena& arena, uint32_t id = 0) noexcept
+  ASMJIT_INLINE_NODEBUG ConstPoolNode(axl::Arena& arena, uint32_t id = 0) noexcept
     : LabelNode(id),
       _const_pool(arena) {
 
@@ -1651,7 +1652,7 @@ public:
   //!
   //! This is the only function that is called by the `BaseBuilder` to process the code. It passes `arena`,
   //! which will be reset after the `run()` finishes.
-  ASMJIT_API virtual Error run(Arena& arena, Logger* logger);
+  ASMJIT_API virtual Error run(axl::Arena& arena, Logger* logger);
 
   //! \}
 };

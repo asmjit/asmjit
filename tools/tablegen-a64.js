@@ -189,8 +189,8 @@ class ArmTableGen extends core.TableGen {
       "asmjit/arm/a64emitter.h",
       "asmjit/arm/a64globals.h",
       "asmjit/arm/a64instdb.cpp",
-      "asmjit/arm/a64instdb.h",
-      "asmjit/arm/a64instdb_p.h"
+      "asmjit/arm/a64inst_db.h",
+      "asmjit/arm/a64inst_db_p.h"
     ]);
     this.parse();
   }

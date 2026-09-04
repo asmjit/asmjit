@@ -17,7 +17,7 @@
 // ----------------------------------------------------------------------------
 
 #include <asmjit/core.h>
-#if ASMJIT_ARCH_X86 && !defined(ASMJIT_NO_X86) && !defined(ASMJIT_NO_JIT)
+#if ASMJIT_TARGET_ARCH_X86 && !defined(ASMJIT_NO_X86) && !defined(ASMJIT_NO_JIT)
 
 #include <asmjit/x86.h>
 #include <stdio.h>
@@ -33,7 +33,7 @@ using namespace asmjit;
 static const uint8_t data_array[] = { 2, 9, 4, 7, 1, 3, 8, 5, 6, 0 };
 
 static void fail(const char* message, Error err) {
-  printf("** FAILURE: %s (%s) **\n", message, DebugUtils::error_as_string(err));
+  printf("** FAILURE: %s (%s) **\n", message, stringify_error(err));
   exit(1);
 }
 
@@ -100,7 +100,7 @@ int main() {
   printf("\nCalculating section offsets:\n");
   uint64_t offset = 0;
   for (Section* section : code.sections_by_order()) {
-    offset = Support::align_up(offset, section->alignment());
+    offset = axl::align_up(offset, section->alignment());
     section->set_offset(offset);
     offset += section->real_size();
 
@@ -166,4 +166,4 @@ int main() {
   printf("!! This test is disabled: ASMJIT_NO_JIT or unsuitable target architecture !!\n\n");
   return 0;
 }
-#endif // ASMJIT_ARCH_X86 && !ASMJIT_NO_X86 && !ASMJIT_NO_JIT
+#endif // ASMJIT_TARGET_ARCH_X86 && !ASMJIT_NO_X86 && !ASMJIT_NO_JIT

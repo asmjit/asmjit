@@ -15,9 +15,9 @@
 
 #if !defined(ASMJIT_NO_COMPILER)
 
-#include <asmjit-testing/commons/asmjitutils.h>
+#include <asmjit-testing/commons/asmjit_utils.h>
 #include <asmjit-testing/commons/cmdline.h>
-#include <asmjit-testing/commons/performancetimer.h>
+#include <asmjit-testing/commons/performance_timer.h>
 #include <asmjit-testing/tests/asmjit_test_compiler.h>
 
 #if !defined(ASMJIT_NO_X86)
@@ -79,7 +79,7 @@ public:
     : _indentation(indentation) {}
 
   Error _log(const char* data, size_t size = SIZE_MAX) noexcept override {
-    asmjit::Support::maybe_unused(size);
+    asmjit::axl::maybe_unused(size);
     print_indented(data, _indentation);
     return Error::kOk;
   }
@@ -120,7 +120,7 @@ int TestApp::run() {
 #endif // !ASMJIT_NO_LOGGING
 
   // maybe unused...
-  Support::maybe_unused(print_string_logger_content);
+  axl::maybe_unused(print_string_logger_content);
 
 #ifndef ASMJIT_NO_JIT
   JitRuntime runtime;
@@ -398,7 +398,7 @@ int main(int argc, char* argv[]) {
 #else
 
 int main(int argc, char* argv[]) {
-  Support::maybe_unused(argc, argv);
+  axl::maybe_unused(argc, argv);
 
   printf("AsmJit Compiler Test suite is disabled when compiling with ASMJIT_NO_COMPILER\n\n");
   return 0;

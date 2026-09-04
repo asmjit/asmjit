@@ -16,7 +16,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if ASMJIT_ARCH_X86
+#if ASMJIT_TARGET_ARCH_X86
   // Required for function tests that pass / return XMM registers.
   #include <emmintrin.h>
 #endif
@@ -132,71 +132,71 @@ public:
 
     switch (_arg_count) {
       case 0:
-        result_ret = ptr_as_func<Func0>(_func)();
+        result_ret = axl::ptr_as_func<Func0>(_func)();
         expect_ret = 0;
         break;
       case 1:
-        result_ret = ptr_as_func<Func1>(_func)(1);
+        result_ret = axl::ptr_as_func<Func1>(_func)(1);
         expect_ret = 1;
         break;
       case 2:
-        result_ret = ptr_as_func<Func2>(_func)(1, 2);
+        result_ret = axl::ptr_as_func<Func2>(_func)(1, 2);
         expect_ret = 1 + 2;
         break;
       case 3:
-        result_ret = ptr_as_func<Func3>(_func)(1, 2, 3);
+        result_ret = axl::ptr_as_func<Func3>(_func)(1, 2, 3);
         expect_ret = 1 + 2 + 3;
         break;
       case 4:
-        result_ret = ptr_as_func<Func4>(_func)(1, 2, 3, 4);
+        result_ret = axl::ptr_as_func<Func4>(_func)(1, 2, 3, 4);
         expect_ret = 1 + 2 + 3 + 4;
         break;
       case 5:
-        result_ret = ptr_as_func<Func5>(_func)(1, 2, 3, 4, 5);
+        result_ret = axl::ptr_as_func<Func5>(_func)(1, 2, 3, 4, 5);
         expect_ret = 1 + 2 + 3 + 4 + 5;
         break;
       case 6:
-        result_ret = ptr_as_func<Func6>(_func)(1, 2, 3, 4, 5, 6);
+        result_ret = axl::ptr_as_func<Func6>(_func)(1, 2, 3, 4, 5, 6);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6;
         break;
       case 7:
-        result_ret = ptr_as_func<Func7>(_func)(1, 2, 3, 4, 5, 6, 7);
+        result_ret = axl::ptr_as_func<Func7>(_func)(1, 2, 3, 4, 5, 6, 7);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7;
         break;
       case 8:
-        result_ret = ptr_as_func<Func8>(_func)(1, 2, 3, 4, 5, 6, 7, 8);
+        result_ret = axl::ptr_as_func<Func8>(_func)(1, 2, 3, 4, 5, 6, 7, 8);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8;
         break;
       case 9:
-        result_ret = ptr_as_func<Func9>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9);
+        result_ret = axl::ptr_as_func<Func9>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9;
         break;
       case 10:
-        result_ret = ptr_as_func<Func10>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+        result_ret = axl::ptr_as_func<Func10>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10;
         break;
       case 11:
-        result_ret = ptr_as_func<Func11>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+        result_ret = axl::ptr_as_func<Func11>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11;
         break;
       case 12:
-        result_ret = ptr_as_func<Func12>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+        result_ret = axl::ptr_as_func<Func12>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 12;
         break;
       case 13:
-        result_ret = ptr_as_func<Func13>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
+        result_ret = axl::ptr_as_func<Func13>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 12 + 13;
         break;
       case 14:
-        result_ret = ptr_as_func<Func14>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14);
+        result_ret = axl::ptr_as_func<Func14>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 12 + 13 + 14;
         break;
       case 15:
-        result_ret = ptr_as_func<Func15>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
+        result_ret = axl::ptr_as_func<Func15>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 12 + 13 + 14 + 15;
         break;
       case 16:
-        result_ret = ptr_as_func<Func16>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+        result_ret = axl::ptr_as_func<Func16>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 12 + 13 + 14 + 15 + 16;
         break;
     }
@@ -229,10 +229,10 @@ public:
   }
 
   bool run(void* _func, String& result, String& expect) override {
-    Support::maybe_unused(result, expect);
+    axl::maybe_unused(result, expect);
 
     using Func = void (*)(void);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     func();
     return true;
@@ -258,10 +258,10 @@ public:
   }
 
   bool run(void* _func, String& result, String& expect) override {
-    Support::maybe_unused(result, expect);
+    axl::maybe_unused(result, expect);
 
     using Func = void (*)(void);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     func();
     return true;
@@ -286,10 +286,10 @@ public:
   }
 
   bool run(void* _func, String& result, String& expect) override {
-    Support::maybe_unused(result, expect);
+    axl::maybe_unused(result, expect);
 
     using Func = void (*)(void);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     func();
     return true;
@@ -346,7 +346,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(int*, int);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int arr[5] = { -1, -1, -1, -1, -1 };
     int exp[5] = {  0,  0,  0,  3,  4 };
@@ -392,10 +392,10 @@ public:
   }
 
   bool run(void* _func, String& result, String& expect) override {
-    Support::maybe_unused(result, expect);
+    axl::maybe_unused(result, expect);
 
     using Func = void (*)(void);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     func();
     return true;
@@ -430,7 +430,7 @@ public:
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(void);
 
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int result_ret = func();
     int expect_ret = 0;
@@ -493,7 +493,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(void);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     func();
 
@@ -539,7 +539,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(void);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     func();
 
@@ -644,7 +644,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = float (*)(float, float, uint32_t);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     float results[4];
     float expected[4];
@@ -729,7 +729,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int results[2];
     int expected[2];
@@ -780,7 +780,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(void);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int out = func();
     int expected = 1234;
@@ -855,7 +855,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int results[2] = { func(0), func(1) };
     int expected[2] = { 1234, 4321 };
@@ -905,7 +905,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(void);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int result_ret = func();
     int expect_ret = 1 + 2 + 3 + 4;
@@ -970,7 +970,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(int*, int*);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int result_x = 0;
     int result_y = 0;
@@ -1024,7 +1024,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(uint32_t*);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     uint32_t i;
     uint32_t result_buf[32] {};
@@ -1074,7 +1074,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int8_t);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int result_ret = func(int8_t(-13));
     int expect_ret = -13;
@@ -1109,7 +1109,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int, int, int);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int result_ret = func(42, 155, 199);
     int expect_ret = 199;
@@ -1156,7 +1156,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(void*, void*, void*, void*, void*, void*, void*, void*);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     uint8_t result_buf[9] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     uint8_t expect_buf[9] = { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -1215,7 +1215,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(float, float, float, float, float, float, float, float*);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     float result_ret = 0;
     float expect_ret = 1.0f + 2.0f + 3.0f + 4.0f + 5.0f + 6.0f + 7.0f;
@@ -1266,7 +1266,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(double, double, double, double, double, double, double, double*);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     double result_ret = 0;
     double expect_ret = 1.0 + 2.0 + 3.0 + 4.0 + 5.0 + 6.0 + 7.0;
@@ -1283,7 +1283,7 @@ public:
 // x86::Compiler - X86Test_AllocArgsVec
 // ====================================
 
-#if ASMJIT_ARCH_X86
+#if ASMJIT_TARGET_ARCH_X86
 class X86Test_AllocArgsVec : public X86TestCase {
 public:
   X86Test_AllocArgsVec() : X86TestCase("AllocArgsVec") {}
@@ -1293,7 +1293,7 @@ public:
 #ifndef _WIN32
     app.add(new X86Test_AllocArgsVec());
 #else
-    Support::maybe_unused(app);
+    axl::maybe_unused(app);
 #endif
   }
 
@@ -1313,7 +1313,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = __m128i (*)(__m128i, __m128i);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     uint8_t a_data[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
     uint8_t b_data[16] = { 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 };
@@ -1333,7 +1333,7 @@ public:
     return result == expect;
   }
 };
-#endif // ASMJIT_ARCH_X86
+#endif // ASMJIT_TARGET_ARCH_X86
 
 // x86::Compiler - X86Test_AllocRetFloat1
 // ======================================
@@ -1358,7 +1358,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = float (*)(float);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     float result_ret = func(42.0f);
     float expect_ret = 42.0f;
@@ -1397,7 +1397,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = float (*)(float, float);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     float result_ret = func(1.0f, 2.0f);
     float expect_ret = 1.0f + 2.0f;
@@ -1432,7 +1432,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = double (*)(double);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     double result_ret = func(42.0);
     double expect_ret = 42.0;
@@ -1471,7 +1471,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = double (*)(double, double);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     double result_ret = func(1.0, 2.0);
     double expect_ret = 1.0 + 2.0;
@@ -1538,7 +1538,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(void);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int result_ret = func();
     int expect_ret = 32640;
@@ -1583,7 +1583,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(int*, int*, int, int);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int v0 = 4;
     int v1 = 4;
@@ -1640,7 +1640,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(int*, const int*);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int src[2] = { 4, 9 };
     int result_ret[2] = { 0, 0 };
@@ -1684,7 +1684,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int, int);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int v0 = 2999;
     int v1 = 245;
@@ -1728,7 +1728,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(int, int, char*);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     char result_buf[4] {};
     char expect_buf[4] = { 1, 0, 0, 1 };
@@ -1779,7 +1779,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(int*, int, int, int);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int v0 = 0x000000FF;
 
@@ -1846,7 +1846,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = uint32_t (*)(uint32_t*);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     uint32_t i;
     uint32_t buf[kCount];
@@ -1904,7 +1904,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = uint32_t (*)(uint32_t);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     uint32_t result_ret = func(0x12345678u);
     uint32_t expect_ret = 0x123456FFu;
@@ -1943,7 +1943,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(void*, void*, size_t);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     char dst[20] = { 0 };
     char src[20] = "Hello AsmJit!";
@@ -1994,7 +1994,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int, int);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int a = func(0, 1);
     int b = func(1, 0);
@@ -2053,7 +2053,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int, int);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int a = func(0, 1);
     int b = func(1, 0);
@@ -2112,7 +2112,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int, int);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int a = func(0, 1);
     int b = func(1, 0);
@@ -2175,7 +2175,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int, int);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int a = func(0, 1);
     int b = func(1, 0);
@@ -2234,7 +2234,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(uint32_t*, const uint32_t*, size_t);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     uint32_t i;
 
@@ -2315,7 +2315,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int, int, int);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int ret1 = func(0, 4, 5);
     int ret2 = func(1, 4, 5);
@@ -2364,7 +2364,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(void*, const void*, size_t);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     static const uint32_t dst_const_data[] = { 0x00000000, 0x10101010, 0x20100804, 0x30200003, 0x40204040, 0x5000004D, 0x60302E2C, 0x706F6E6D, 0x807F4F2F, 0x90349001, 0xA0010203, 0xB03204AB, 0xC023AFBD, 0xD0D0D0C0, 0xE0AABBCC, 0xFFFFFFFF, 0xF8F4F2F1 };
     static const uint32_t src_const_data[] = { 0xE0E0E0E0, 0xA0008080, 0x341F1E1A, 0xFEFEFEFE, 0x80302010, 0x49490A0B, 0x998F7798, 0x00000000, 0x01010101, 0xA0264733, 0xBAB0B1B9, 0xFF000000, 0xDAB0A0C1, 0xE0BACFDA, 0x99887766, 0xFFFFFF80, 0xEE0A5FEC };
@@ -2373,8 +2373,8 @@ public:
     uint32_t src_buffer_storage[kCount + 3];
 
     // Has to be aligned.
-    uint32_t* dst_buffer = (uint32_t*)Support::align_up<intptr_t>((intptr_t)dst_buffer_storage, 16);
-    uint32_t* src_buffer = (uint32_t*)Support::align_up<intptr_t>((intptr_t)src_buffer_storage, 16);
+    uint32_t* dst_buffer = (uint32_t*)axl::align_up<intptr_t>((intptr_t)dst_buffer_storage, 16);
+    uint32_t* src_buffer = (uint32_t*)axl::align_up<intptr_t>((intptr_t)src_buffer_storage, 16);
 
     memcpy(dst_buffer, dst_const_data, sizeof(dst_const_data));
     memcpy(src_buffer, src_const_data, sizeof(src_const_data));
@@ -2451,7 +2451,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = uint32_t (*)(const void*, const void*, uint32_t pred_k);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     static const uint32_t src_a[16] = { 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1 };
     static const uint32_t src_b[16] = { 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1 };
@@ -2495,7 +2495,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(void*);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     uint32_t out[16] {};
     func(out);
@@ -2546,7 +2546,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = uint32_t (*)(uint8_t, uint8_t, uint32_t);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     uint32_t arg = uint32_t(uintptr_t(_func) & 0xFFFFFFFF);
 
@@ -2600,7 +2600,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int, int, int);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int result_ret = func(3, 2, 1);
     int expect_ret = 36;
@@ -2683,7 +2683,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(void);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int result_ret = func();
     int expect_ret = 0; // Must be zero, stack addresses must be different.
@@ -2731,7 +2731,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int, int, int);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int result_ret = func(1, 42, 3);
     int expect_ret = called_fn(1, 42, 3);
@@ -2781,7 +2781,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int result_ret = func(9);
     int expect_ret = (9 * 9) * (9 * 9);
@@ -2801,7 +2801,7 @@ public:
 // x86::Compiler - X86Test_FuncCallSIMD
 // ====================================
 
-#if ASMJIT_ARCH_X86
+#if ASMJIT_TARGET_ARCH_X86
 class X86Test_FuncCallSIMD : public X86TestCase {
 public:
   bool _use_vector_call;
@@ -2862,7 +2862,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(void*, const void*, const void*);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     uint8_t a_data[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
     uint8_t b_data[16] = { 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 };
@@ -2888,7 +2888,7 @@ public:
   }
 #endif
 };
-#endif // ASMJIT_ARCH_X86
+#endif // ASMJIT_TARGET_ARCH_X86
 
 // x86::Compiler - X86Test_FuncCallLight
 // =====================================
@@ -2969,7 +2969,7 @@ public:
   bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(const void*, const void*, const void*, const void*, void*);
 
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int16_t a[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
     int16_t b[8] = { 7, 6, 5, 4, 3, 2, 1, 0 };
@@ -3052,7 +3052,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(void);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int result_ret = func();
     int expect_ret = called_fn(0x03, 0x12, 0xA0, 0x0B, 0x2F, 0x02, 0x0C, 0x12, 0x18, 0x1E);
@@ -3109,7 +3109,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(void);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int result_ret = func();
     int expect_ret = called_fn(3, 3, 3, 3, 3, 3, 3, 3, 3, 3);
@@ -3162,7 +3162,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(void);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int result_ret = func();
     int expect_ret = X86Test_FuncCallManyArgs::called_fn(0x03, 0x12, 0xA0, 0x0B, 0x2F, 0x02, 0x0C, 0x12, 0x18, 0x1E);
@@ -3228,7 +3228,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(void);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int result_ret = func();
     int expect_ret = 55;
@@ -3292,7 +3292,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int&, int&, int&, int&);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int inputs[4] = { 1, 2, 3, 4 };
     int outputs[4] = { 2, 4, 6, 8 };
@@ -3344,7 +3344,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = float (*)(float, float);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     float result_ret = func(15.5f, 2.0f);
     float expect_ret = called_fn(15.5f, 2.0f);
@@ -3393,7 +3393,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = double (*)(double, double);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     double result_ret = func(15.5, 2.0);
     double expect_ret = called_fn(15.5, 2.0);
@@ -3464,7 +3464,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int, int, int);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int arg1 = 4;
     int arg2 = 8;
@@ -3547,7 +3547,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int*);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int buffer[4] = { 127, 87, 23, 17 };
 
@@ -3600,7 +3600,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int result_ret = func(5);
     int expect_ret = 1 * 2 * 3 * 4 * 5;
@@ -3656,7 +3656,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int, int, int, int);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int result_ret = func(1, 2, 3, 4);
     int expect_ret = 1 + 2 + 3 + 4;
@@ -3724,7 +3724,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = double (*)(double, double, double, double);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     double result_ret = func(1.0, 2.0, 3.0, 4.0);
     double expect_ret = 1.0 + 2.0 + 3.0 + 4.0;
@@ -3785,7 +3785,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = uint64_t (*)(uint64_t);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     uint64_t result_ret = func(uint64_t(0xFFFFFFFF));
     uint64_t expect_ret = 0x100000000;
@@ -3847,7 +3847,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int, int);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int result_ret = func(44, 199);
     int expect_ret = 243;
@@ -3893,7 +3893,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = double (*)(const double*);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     double arg = 2;
 
@@ -3946,7 +3946,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = double (*)(const double*);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     double arg = 2;
 
@@ -3995,7 +3995,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = double (*)(void);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     double result_ret = func();
     double expect_ret = 3.14;
@@ -4053,7 +4053,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(void);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int result_ret = func();
     int expect_ret = sizeof(void*) == 4 ? 6 : 14;
@@ -4115,7 +4115,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = uint32_t (*)(uint32_t x);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     uint32_t result_ret = func(111);
     uint32_t expect_ret = 111 + 112 + 2 + (1 + 16) * 8;
@@ -4215,7 +4215,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(void*, const void*, const void*);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     size_t i;
 
@@ -4290,7 +4290,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = uint32_t (*)(uint32_t);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     uint32_t result_ret = func(1);
     uint32_t expect_ret = 2080; // 1 + 2 + 3 + ... + 64
@@ -4332,7 +4332,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(void);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int result_ret = func();
     int expect_ret = 233;
@@ -4374,7 +4374,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(void);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int result_ret = func();
     int expect_ret = 233;
@@ -4456,7 +4456,7 @@ struct X86Test_MiscMultiRet : public X86TestCase {
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int, int, int);
 
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int a = 44;
     int b = 3;
@@ -4527,7 +4527,7 @@ public:
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int, int);
 
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int result_ret = func(56, 22);
     int expect_ret = 56 + 22;
@@ -4574,7 +4574,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (ASMJIT_FASTCALL*)(int, void*);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     int result_ret = 0;
     int expect_ret = 1;
@@ -4623,7 +4623,7 @@ void compiler_add_x86_tests(TestApp& app) {
   app.add_t<X86Test_AllocArgsIntPtr>();
   app.add_t<X86Test_AllocArgsFloat>();
   app.add_t<X86Test_AllocArgsDouble>();
-#if ASMJIT_ARCH_X86
+#if ASMJIT_TARGET_ARCH_X86
   app.add_t<X86Test_AllocArgsVec>();
 #endif
   app.add_t<X86Test_AllocRetFloat1>();
@@ -4657,7 +4657,7 @@ void compiler_add_x86_tests(TestApp& app) {
   app.add_t<X86Test_FuncCallBase2>();
   app.add_t<X86Test_FuncCallStd>();
   app.add_t<X86Test_FuncCallFast>();
-#if ASMJIT_ARCH_X86
+#if ASMJIT_TARGET_ARCH_X86
   app.add_t<X86Test_FuncCallSIMD>();
 #endif
   app.add_t<X86Test_FuncCallLight>();

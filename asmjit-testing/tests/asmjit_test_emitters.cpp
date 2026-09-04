@@ -9,15 +9,15 @@
 
 #include <asmjit/core.h>
 
-#if ASMJIT_ARCH_X86 != 0
+#if ASMJIT_TARGET_ARCH_X86 != 0
   #include <asmjit/x86.h>
 #endif
 
-#if ASMJIT_ARCH_ARM == 64
+#if ASMJIT_TARGET_ARCH_ARM == 64
   #include <asmjit/a64.h>
 #endif
 
-#include <asmjit-testing/commons/asmjitutils.h>
+#include <asmjit-testing/commons/asmjit_utils.h>
 
 using namespace asmjit;
 
@@ -31,8 +31,8 @@ static void print_app_info() noexcept {
   );
 }
 
-#if !defined(ASMJIT_NO_JIT) && ((ASMJIT_ARCH_X86 != 0  && !defined(ASMJIT_NO_X86    )) || \
-                                (ASMJIT_ARCH_ARM == 64 && !defined(ASMJIT_NO_AARCH64)) )
+#if !defined(ASMJIT_NO_JIT) && ((ASMJIT_TARGET_ARCH_X86 != 0  && !defined(ASMJIT_NO_X86    )) || \
+                                (ASMJIT_TARGET_ARCH_ARM == 64 && !defined(ASMJIT_NO_AARCH64)) )
 
 // Signature of the generated function.
 using SumIntsFunc = void (*)(int* dst, const int* a, const int* b);
@@ -40,7 +40,7 @@ using SumIntsFunc = void (*)(int* dst, const int* a, const int* b);
 // X86 Backend
 // -----------
 
-#if ASMJIT_ARCH_X86 != 0
+#if ASMJIT_TARGET_ARCH_X86 != 0
 // This function works with both x86::Assembler and x86::Builder. It shows how
 // `x86::Emitter` can be used to make your code more generic.
 static void generate_func_with_emitter(x86::Emitter* emitter) noexcept {
@@ -147,7 +147,7 @@ static Error generate_func(CodeHolder& code, EmitterType emitter_type) noexcept 
 // AArch64 Backend
 // ---------------
 
-#if ASMJIT_ARCH_ARM == 64
+#if ASMJIT_TARGET_ARCH_ARM == 64
 // This function works with both a64::Assembler and a64::Builder. It shows how
 // `a64::Emitter` can be used to make your code more generic.
 static void generate_func_with_emitter(a64::Emitter* emitter) noexcept {
@@ -270,7 +270,7 @@ static uint32_t test_func(JitRuntime& rt, EmitterType emitter_type) noexcept {
 
   Error err = generate_func(code, emitter_type);
   if (err != Error::kOk) {
-    printf("** FAILURE: Failed to generate a function: %s **\n", DebugUtils::error_as_string(err));
+    printf("** FAILURE: Failed to generate a function: %s **\n", stringify_error(err));
     return 1;
   }
 
@@ -279,7 +279,7 @@ static uint32_t test_func(JitRuntime& rt, EmitterType emitter_type) noexcept {
   err = rt.add(&fn, &code);
 
   if (err != Error::kOk) {
-    printf("** FAILURE: JitRuntime::add() failed: %s **\n", DebugUtils::error_as_string(err));
+    printf("** FAILURE: JitRuntime::add() failed: %s **\n", stringify_error(err));
     return 1;
   }
 
@@ -325,4 +325,4 @@ int main() {
   printf("!! This test is disabled: <ASMJIT_NO_JIT> or unsuitable target architecture !!\n");
   return 0;
 }
-#endif // ASMJIT_ARCH_X86 && !ASMJIT_NO_X86 && !ASMJIT_NO_JIT
+#endif // ASMJIT_TARGET_ARCH_X86 && !ASMJIT_NO_X86 && !ASMJIT_NO_JIT

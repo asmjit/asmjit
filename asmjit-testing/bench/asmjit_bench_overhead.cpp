@@ -1,8 +1,8 @@
 #include <asmjit/host.h>
 
-#include <asmjit-testing/commons/asmjitutils.h>
+#include <asmjit-testing/commons/asmjit_utils.h>
 #include <asmjit-testing/commons/cmdline.h>
-#include <asmjit-testing/commons/performancetimer.h>
+#include <asmjit-testing/commons/performance_timer.h>
 
 #include <stdint.h>
 
@@ -63,7 +63,7 @@ enum class CompilerOp {
 class MyErrorHandler : public ErrorHandler {
 public:
   void handle_error(asmjit::Error err, const char* message, asmjit::BaseEmitter* origin) override {
-    Support::maybe_unused(err, origin);
+    axl::maybe_unused(err, origin);
     fprintf(stderr, "AsmJit error: %s\n", message);
   }
 };
@@ -73,7 +73,7 @@ enum class InitStrategy : uint32_t {
   kReinit
 };
 
-static inline void bench_codeholder(InitStrategy strategy, size_t count) {
+static inline void bench_code_holder(InitStrategy strategy, size_t count) {
   JitRuntime rt;
   CodeHolder code;
 
@@ -91,7 +91,7 @@ static inline void bench_codeholder(InitStrategy strategy, size_t count) {
   }
 }
 
-#if ASMJIT_ARCH_X86 != 0 && !defined(ASMJIT_NO_X86)
+#if ASMJIT_TARGET_ARCH_X86 != 0 && !defined(ASMJIT_NO_X86)
 template<typename EmitterT>
 static ASMJIT_INLINE void emit_raw_func(EmitterT& emitter) {
   emitter.mov(x86::eax, 0);
@@ -106,7 +106,7 @@ static ASMJIT_INLINE void compile_raw_func(CompilerT& cc) {
 }
 #endif
 
-#if ASMJIT_ARCH_ARM == 64 && !defined(ASMJIT_NO_AARCH64)
+#if ASMJIT_TARGET_ARCH_ARM == 64 && !defined(ASMJIT_NO_AARCH64)
 template<typename EmitterT>
 static ASMJIT_INLINE void emit_raw_func(EmitterT& emitter) {
   emitter.mov(a64::w0, 0);
@@ -380,7 +380,7 @@ static inline void test_perf_all(InitStrategy strategy, size_t n) {
   printf(header);
   printf(frame);
 
-  test_perf("CodeHolder", "Reuse Only"          , strategy, n, [](IS s, size_t n) { bench_codeholder(s, n); });
+  test_perf("CodeHolder", "Reuse Only"          , strategy, n, [](IS s, size_t n) { bench_code_holder(s, n); });
 
 #if defined(ASMJIT_HAS_HOST_BACKEND)
   test_perf("Assembler ", "Reuse Only"          , strategy, n, [](IS s, size_t n) { bench_assembler<host::Assembler>(s, n); });
@@ -424,7 +424,7 @@ int main(int argc, char* argv[]) {
 
 int main() {
   print_app_info(0);
-  printf("!!AsmJit Benchmark Reuse is currently disabled: <ASMJIT_NO_JIT> or unsuitable target architecture !!\n");
+  printf("!! asmjit_bench_overhead is currently disabled: <ASMJIT_NO_JIT> or unsuitable target architecture !!\n");
   return 0;
 }
 

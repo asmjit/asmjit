@@ -259,7 +259,7 @@ class Instruction {
     this.alt = false;          // This is an alternative form, not needed to create a signature.
     this.volatile = false;     // Instruction is volatile and should not be reordered.
     this.control = "none";     // Control flow type (none by default).
-    this.privilege = "";       // Privilege-level required to execute the instruction.
+    this.cpl = -1;             // Privilege-level required to execute the instruction.
     this.aliasOf = "";         // Instruction is an alias of another instruction
   }
 

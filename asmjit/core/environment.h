@@ -6,7 +6,7 @@
 #ifndef ASMJIT_CORE_ENVIRONMENT_H_INCLUDED
 #define ASMJIT_CORE_ENVIRONMENT_H_INCLUDED
 
-#include <asmjit/core/archtraits.h>
+#include <asmjit/core/arch_traits.h>
 
 #if defined(__APPLE__)
   #include <TargetConditionals.h>
@@ -157,7 +157,7 @@ enum class FloatABI : uint8_t {
   kSoftFloat,
 
   kHost =
-#if ASMJIT_ARCH_ARM == 32 && defined(__SOFTFP__)
+#if ASMJIT_TARGET_ARCH_ARM == 32 && defined(__SOFTFP__)
   kSoftFloat
 #else
   kHardFloat

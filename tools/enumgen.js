@@ -127,22 +127,6 @@ function compare(a, b) {
   return a < b ? -1 : a == b ? 0 : 1;
 }
 
-function compactedSize(table) {
-  var size = 0;
-  for (var i = 0; i < table.length; i++)
-    size += table[i].name.length + 1;
-  return size;
-}
-
-function indexTypeFromSize(size) {
-  if (size <= 256)
-    return 'uint8_t';
-  else if (size <= 65536)
-    return 'uint16_t';
-  else
-    return 'uint32_t';
-}
-
 function indent(s, indentation) {
   var lines = s.split(/\r?\n/g);
   if (indentation) {
@@ -178,11 +162,7 @@ function stringifyEnum(map, options) {
   }
 
   table.sort(function(a, b) { return compare(a.value, b.value); });
-
-  const unknownIndex = compactedSize(table);
   table.push({ name: "<Unknown>", value: max + 1 });
-
-  const indexType = indexTypeFromSize(compactedSize(table));
 
   function buildStringData() {
     var s = "";
@@ -195,42 +175,7 @@ function stringifyEnum(map, options) {
     return s;
   }
 
-  function buildIndexData() {
-    var index = 0;
-    var indexArray = [];
-
-    for (var i = 0; i < table.length; i++) {
-      while (indexArray.length < table[i].value)
-        indexArray.push(unknownIndex);
-
-      indexArray.push(index);
-      index += table[i].name.length + 1;
-    }
-
-    var s = "";
-    var line = "";
-    var pos = 0;
-
-    for (var i = 0; i < indexArray.length; i++) {
-      if (line)
-        line += " ";
-
-      line += `${indexArray[i]}`;
-      if (i != indexArray.length - 1)
-        line += `,`;
-
-      if (i == indexArray.length - 1 || line.length >= 72) {
-        s += `  ${line}\n`;
-        line = "";
-      }
-    }
-
-    return s;
-  }
-
-  output += `static const char ${outputPrefix}_data[] =\n` + buildStringData() + `\n`;
-  output += `static const ${indexType} ${outputPrefix}_index[] = {\n` + buildIndexData() + `};\n`;
-
+  output += `static constexpr char ${outputPrefix}_data[] =\n` + buildStringData();
   return output;
 }
 

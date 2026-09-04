@@ -767,7 +767,7 @@
       {"inst": "yield"                                                   , "t32": "1111|001|1101|0|1111|1000|0000|0000|0001"                 , "it": "any"}
     ]},
 
-    {"category": "GP GP_EXT", "level": "ARMv7+", "data": [
+    {"category": "GP", "level": "ARMv7+", "data": [
       {"inst": "clrex"                                                   , "a32": "1111|010|1011|1|1111|1111|0000|0001|1111"},
       {"inst": "dbg #immZ"                                               , "a32": "cond|001|1001|0|0000|1111|0000|1111|immZ:4"               , "ext": "ARMv8-"},
       {"inst": "dmb #immZ"                                               , "a32": "1111|010|1011|1|1111|1111|0000|0101|immZ:4"},
@@ -781,7 +781,7 @@
       {"inst": "sevl"                                                    , "a32": "cond|001|1001|0|0000|1111|0000|0000|0101"}
     ]},
 
-    {"category": "GP GP_EXT", "level": "ARMv7+", "data": [
+    {"category": "GP", "level": "ARMv7+", "data": [
       {"inst": "clrex"                                                   , "t32": "1111|001|1101|1|1111|1000|1111|0010|1111"                 , "it": "any"},
       {"inst": "dmb #immZ"                                               , "t32": "1111|001|1101|1|1111|1000|1111|0101|immZ:4"               , "it": "any"},
       {"inst": "dsb #immZ"                                               , "t32": "1111|001|1101|1|1111|1000|1111|0100|immZ:4"               , "it": "any"},
@@ -799,7 +799,7 @@
       {"inst": "sevl"                                                    , "t32": "1111|001|1101|0|1111|1000|0000|0000|0101"                 , "it": "any"}
     ]},
 
-    {"category": "GP GP_EXT", "level": "ARMv8+", "data": [
+    {"category": "GP", "level": "ARMv8+", "data": [
       {"inst": "lda Rd!=PC, [Rn!=PC]"                                    , "a32": "cond|000|1100|1|Rn|Rd|1100|1001|1111"},
       {"inst": "ldab Rd!=PC, [Rn!=PC]"                                   , "a32": "cond|000|1110|1|Rn|Rd|1100|1001|1111"},
       {"inst": "ldaex Rd!=PC, [Rn!=PC]"                                  , "a32": "cond|000|1100|1|Rn|Rd|1110|1001|1111"},
@@ -816,7 +816,7 @@
       {"inst": "stlh Rs!=PC, [Rn!=PC]"                                   , "a32": "cond|000|1111|0|Rn|1111|1100|1001|Rs"}
     ]},
 
-    {"category": "GP GP_EXT", "level": "ARMv8+", "data": [
+    {"category": "GP", "level": "ARMv8+", "data": [
       {"inst": "dcps1"                                                   , "t32": "1111|011|1100|0|1111|1000|0000|0000|0001"                 , "it": "out"},
       {"inst": "dcps2"                                                   , "t32": "1111|011|1100|0|1111|1000|0000|0000|0010"                 , "it": "out"},
       {"inst": "dcps3"                                                   , "t32": "1111|011|1100|0|1111|1000|0000|0000|0011"                 , "it": "out"},
@@ -836,37 +836,37 @@
       {"inst": "stlh Rs!=PC, [Rn!=PC]"                                   , "t32": "1110|100|0110|0|Rn|Rs|1111|1001|1111"                     , "it": "any"}
     ]},
 
-    {"category": "GP GP_EXT", "ext": "IDIVA", "data": [
+    {"category": "GP", "ext": "IDIVA", "data": [
       {"inst": "sdiv Rd!=PC, Rn!=PC, Rm!=PC"                             , "a32": "cond|011|1000|1|Rd|1111|Rm|0001|Rn"},
       {"inst": "udiv Rd!=PC, Rn!=PC, Rm!=PC"                             , "a32": "cond|011|1001|1|Rd|1111|Rm|0001|Rn"}
     ]},
 
-    {"category": "GP GP_EXT", "ext": "IDIVT", "data": [
+    {"category": "GP", "ext": "IDIVT", "data": [
       {"inst": "sdiv Rd!=XX, Rn!=XX, Rm!=XX"                             , "t32": "1111|101|1100|1|Rn|1111|Rd|1111|Rm"                       , "it": "any"},
       {"inst": "udiv Rd!=XX, Rn!=XX, Rm!=XX"                             , "t32": "1111|101|1101|1|Rn|1111|Rd|1111|Rm"                       , "it": "any"}
     ]},
 
-    {"category": "GP GP_EXT", "data": [
+    {"category": "GP", "data": [
       {"inst": "csdb"                                                    , "a32": "cond|001|1001|0|0000|1111|0000|0001|0100"},
       {"inst": "ssbb"                                                    , "a32": "1111|010|1011|1|1111|1111|0000|0100|0000"},
       {"inst": "pssbb"                                                   , "a32": "1111|010|1011|1|1111|1111|0000|0100|0100"}
     ]},
 
-    {"category": "GP GP_EXT", "data": [
+    {"category": "GP", "data": [
       {"inst": "csdb"                                                    , "t32": "1111|001|1101|0|1111|1000|0000|0001|0100"                 , "it": "out"},
       {"inst": "ssbb"                                                    , "t32": "1111|001|1101|1|1111|1000|1111|0100|0000"                 , "it": "any"},
       {"inst": "pssbb"                                                   , "t32": "1111|001|1101|1|1111|1000|1111|0100|0100"                 , "it": "any"}
     ]},
 
-    {"category": "GP GP_EXT", "ext": "CLRBHB", "data": [
+    {"category": "GP", "ext": "CLRBHB", "data": [
       {"inst": "clrbhb"                                                  , "a32": "cond|001|1001|0|0000|1111|0000|0001|0110"}
     ]},
 
-    {"category": "GP GP_EXT", "ext": "CLRBHB", "data": [
+    {"category": "GP", "ext": "CLRBHB", "data": [
       {"inst": "clrbhb"                                                  , "t32": "1111|001|1101|0|1111|1000|0000|0001|0110"                 , "it": "any"}
     ]},
 
-    {"category": "GP GP_EXT CRYPTO_HASH", "ext": "CRC32", "data": [
+    {"category": "GP CRYPTO_HASH", "ext": "CRC32", "data": [
       {"inst": "crc32b Rd!=PC, Rn!=PC, Rm!=PC"                           , "a32": "cond|000|1000|0|Rn|Rd|0000|0100|Rm"},
       {"inst": "crc32h Rd!=PC, Rn!=PC, Rm!=PC"                           , "a32": "cond|000|1001|0|Rn|Rd|0000|0100|Rm"},
       {"inst": "crc32w Rd!=PC, Rn!=PC, Rm!=PC"                           , "a32": "cond|000|1010|0|Rn|Rd|0000|0100|Rm"},
@@ -875,7 +875,7 @@
       {"inst": "crc32cw Rd!=PC, Rn!=PC, Rm!=PC"                          , "a32": "cond|000|1010|0|Rn|Rd|0010|0100|Rm"}
     ]},
 
-    {"category": "GP GP_EXT CRYPTO_HASH", "ext": "CRC32", "data": [
+    {"category": "GP CRYPTO_HASH", "ext": "CRC32", "data": [
       {"inst": "crc32b Rd!=PC, Rn!=PC, Rm!=PC"                           , "t32": "1111|101|0110|0|Rn|1111|Rd|10|00|Rm"                      , "it": "out"},
       {"inst": "crc32h Rd!=PC, Rn!=PC, Rm!=PC"                           , "t32": "1111|101|0110|0|Rn|1111|Rd|10|01|Rm"                      , "it": "out"},
       {"inst": "crc32w Rd!=PC, Rn!=PC, Rm!=PC"                           , "t32": "1111|101|0110|0|Rn|1111|Rd|10|10|Rm"                      , "it": "out"},
@@ -884,35 +884,35 @@
       {"inst": "crc32cw Rd!=PC, Rn!=PC, Rm!=PC"                          , "t32": "1111|101|0110|1|Rn|1111|Rd|10|10|Rm"                      , "it": "out"}
     ]},
 
-    {"category": "GP GP_EXT", "ext": "PAN", "data": [
+    {"category": "GP", "ext": "PAN", "data": [
       {"inst": "setpan #immZ"                                            , "a32": "1111|000|1000|1|0000|0000|00|immZ:1|0|0000|0000"}
     ]},
 
-    {"category": "GP GP_EXT", "ext": "PAN", "data": [
+    {"category": "GP", "ext": "PAN", "data": [
       {"inst": "setpan #immZ"                                            , "t16": "1011|0110|0001|immZ:1|000"                                , "it": "out"}
     ]},
 
-    {"category": "GP GP_EXT", "ext": "RAS", "data": [
+    {"category": "GP", "ext": "RAS", "data": [
       {"inst": "esb"                                                     , "a32": "cond|001|1001|0|0000|1111|0000|0001|0000"}
     ]},
 
-    {"category": "GP GP_EXT", "ext": "RAS", "data": [
+    {"category": "GP", "ext": "RAS", "data": [
       {"inst": "esb"                                                     , "t32": "1111|001|1101|0|1111|1000|0000|0001|0000"                 , "it": "any"}
     ]},
 
-    {"category": "GP GP_EXT", "ext": "SB", "data": [
+    {"category": "GP", "ext": "SB", "data": [
       {"inst": "sb"                                                      , "a32": "1111|010|1011|1|1111|1111|0000|0111|0000"}
     ]},
 
-    {"category": "GP GP_EXT", "ext": "SB", "data": [
+    {"category": "GP", "ext": "SB", "data": [
       {"inst": "sb"                                                      , "t32": "1111|001|1101|1|1111|1000|1111|0111|0000"                 , "it": "out"}
     ]},
 
-    {"category": "GP GP_EXT", "ext": "SECURITY", "data": [
+    {"category": "GP", "ext": "SECURITY", "data": [
       {"inst": "smc #immZ"                                               , "a32": "cond|000|1011|0|000000000000|0111|immZ:4"}
     ]},
 
-    {"category": "GP GP_EXT", "ext": "SECURITY", "data": [
+    {"category": "GP", "ext": "SECURITY", "data": [
       {"inst": "smc #immZ"                                               , "t32": "1111|011|1111|1|immZ:4|1000|000000000000"                 , "it": "any"}
     ]},
 

@@ -7,8 +7,8 @@
 #define ASMJIT_CORE_LOGGING_H_INCLUDED
 
 #include <asmjit/core/inst.h>
-#include <asmjit/core/string.h>
 #include <asmjit/core/formatter.h>
+#include <asmjit/core/string.h>
 
 #ifndef ASMJIT_NO_LOGGING
 

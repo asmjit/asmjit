@@ -113,71 +113,71 @@ public:
 
     switch (_arg_count) {
       case 0:
-        result_ret = ptr_as_func<Func0>(_func)();
+        result_ret = axl::ptr_as_func<Func0>(_func)();
         expect_ret = 0;
         break;
       case 1:
-        result_ret = ptr_as_func<Func1>(_func)(1);
+        result_ret = axl::ptr_as_func<Func1>(_func)(1);
         expect_ret = 1;
         break;
       case 2:
-        result_ret = ptr_as_func<Func2>(_func)(1, 2);
+        result_ret = axl::ptr_as_func<Func2>(_func)(1, 2);
         expect_ret = 1 + 2;
         break;
       case 3:
-        result_ret = ptr_as_func<Func3>(_func)(1, 2, 3);
+        result_ret = axl::ptr_as_func<Func3>(_func)(1, 2, 3);
         expect_ret = 1 + 2 + 3;
         break;
       case 4:
-        result_ret = ptr_as_func<Func4>(_func)(1, 2, 3, 4);
+        result_ret = axl::ptr_as_func<Func4>(_func)(1, 2, 3, 4);
         expect_ret = 1 + 2 + 3 + 4;
         break;
       case 5:
-        result_ret = ptr_as_func<Func5>(_func)(1, 2, 3, 4, 5);
+        result_ret = axl::ptr_as_func<Func5>(_func)(1, 2, 3, 4, 5);
         expect_ret = 1 + 2 + 3 + 4 + 5;
         break;
       case 6:
-        result_ret = ptr_as_func<Func6>(_func)(1, 2, 3, 4, 5, 6);
+        result_ret = axl::ptr_as_func<Func6>(_func)(1, 2, 3, 4, 5, 6);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6;
         break;
       case 7:
-        result_ret = ptr_as_func<Func7>(_func)(1, 2, 3, 4, 5, 6, 7);
+        result_ret = axl::ptr_as_func<Func7>(_func)(1, 2, 3, 4, 5, 6, 7);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7;
         break;
       case 8:
-        result_ret = ptr_as_func<Func8>(_func)(1, 2, 3, 4, 5, 6, 7, 8);
+        result_ret = axl::ptr_as_func<Func8>(_func)(1, 2, 3, 4, 5, 6, 7, 8);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8;
         break;
       case 9:
-        result_ret = ptr_as_func<Func9>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9);
+        result_ret = axl::ptr_as_func<Func9>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9;
         break;
       case 10:
-        result_ret = ptr_as_func<Func10>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+        result_ret = axl::ptr_as_func<Func10>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10;
         break;
       case 11:
-        result_ret = ptr_as_func<Func11>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+        result_ret = axl::ptr_as_func<Func11>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11;
         break;
       case 12:
-        result_ret = ptr_as_func<Func12>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+        result_ret = axl::ptr_as_func<Func12>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 12;
         break;
       case 13:
-        result_ret = ptr_as_func<Func13>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
+        result_ret = axl::ptr_as_func<Func13>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 12 + 13;
         break;
       case 14:
-        result_ret = ptr_as_func<Func14>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14);
+        result_ret = axl::ptr_as_func<Func14>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 12 + 13 + 14;
         break;
       case 15:
-        result_ret = ptr_as_func<Func15>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
+        result_ret = axl::ptr_as_func<Func15>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 12 + 13 + 14 + 15;
         break;
       case 16:
-        result_ret = ptr_as_func<Func16>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+        result_ret = axl::ptr_as_func<Func16>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 12 + 13 + 14 + 15 + 16;
         break;
     }
@@ -234,7 +234,7 @@ public:
     // NOTE: It's a byte-add, so uint8_t(255+1) == 0.
     uint32_t ref[4] = { 99, 18, 35, 0 };
 
-    ptr_as_func<Func>(_func)(dst, a_src, b_src);
+    axl::ptr_as_func<Func>(_func)(dst, a_src, b_src);
 
     result.assign_format("ret={%u, %u, %u, %u}", dst[0], dst[1], dst[2], dst[3]);
     expect.assign_format("ret={%u, %u, %u, %u}", ref[0], ref[1], ref[2], ref[3]);
@@ -286,7 +286,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(void);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     result.assign_format("ret={%d}", func());
     expect.assign_format("ret={%d}", calc_sum());
@@ -334,7 +334,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(void);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     result.assign_format("ret={%d}", func());
     expect.assign_format("ret={%d}", 3);
@@ -379,7 +379,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(void* p, size_t n);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     uint8_t array[16];
     func(array, 16);
@@ -435,7 +435,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = uint32_t (*)(uint32_t, uint32_t);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     uint32_t x = 49;
     uint32_t y = 7;
@@ -487,7 +487,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = double (*)(double, double);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     double x = 49;
     double y = 7;
@@ -539,7 +539,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = double (*)(double, double);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     double x = 49;
     double y = 7;
@@ -648,7 +648,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = float (*)(float, float, uint32_t);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     float dst[4];
     float ref[4];

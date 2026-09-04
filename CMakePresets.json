@@ -23,7 +23,8 @@
       "cacheVariables": { "CMAKE_BUILD_TYPE": "Release", "CMAKE_INTERPROCEDURAL_OPTIMIZATION": "ON" }
     },
 
-    { "name": "conf-test"        , "hidden": true, "cacheVariables": { "ASMJIT_TEST": "ON" } },
+    { "name": "conf-dbgen"       , "hidden": true, "cacheVariables": { "ASMJIT_DBGEN": "ON", "ASMJIT_DBGEN_ONLY": "ON" } },
+    { "name": "conf-test"        , "hidden": true, "cacheVariables": { "ASMJIT_TEST": "ON", "ASMJIT_DBGEN": "ON" } },
     { "name": "conf-static"      , "hidden": true, "cacheVariables": { "ASMJIT_STATIC": "ON" } },
     { "name": "conf-shared"      , "hidden": true, "cacheVariables": { "ASMJIT_STATIC": "OFF" } },
     { "name": "conf-asan"        , "hidden": true, "cacheVariables": { "ASMJIT_SANITIZE": "address" } },
@@ -31,9 +32,10 @@
     { "name": "conf-tsan"        , "hidden": true, "cacheVariables": { "ASMJIT_SANITIZE": "thread" } },
     { "name": "conf-ubsan"       , "hidden": true, "cacheVariables": { "ASMJIT_SANITIZE": "undefined" } },
     { "name": "conf-32"          , "hidden": true, "environment": { "CFLAGS": "-m32", "CXXFLAGS": "-m32" } },
-    { "name": "conf-avx2"        , "hidden": true, "environment": { "CXXFLAGS": "-mavx2 -mbmi -mbmi2" } },
+    { "name": "conf-avx2"        , "hidden": true, "environment": { "CXXFLAGS": "-mavx2 -mbmi -mbmi2 -mlzcnt -mpopcnt" } },
 
     { "name": "debug"            , "inherits": ["conf-debug", "conf-test", "conf-static"] },
+    { "name": "debug-avx2"       , "inherits": ["conf-debug", "conf-test", "conf-static", "conf-avx2"] },
     { "name": "debug-asan"       , "inherits": ["conf-debug", "conf-test", "conf-static", "conf-asan"] },
     { "name": "debug-msan"       , "inherits": ["conf-debug", "conf-test", "conf-static", "conf-msan"] },
     { "name": "debug-ubsan"      , "inherits": ["conf-debug", "conf-test", "conf-static", "conf-ubsan"] },
@@ -48,6 +50,10 @@
     { "name": "release-ubsan"    , "inherits": ["conf-release", "conf-test", "conf-static", "conf-ubsan"] },
     { "name": "release-32"       , "inherits": ["conf-release", "conf-test", "conf-static", "conf-32"] },
     { "name": "release-shared"   , "inherits": ["conf-release", "conf-test", "conf-shared"] },
-    { "name": "release-shared-32", "inherits": ["conf-release", "conf-test", "conf-shared", "conf-32"] }
+    { "name": "release-shared-32", "inherits": ["conf-release", "conf-test", "conf-shared", "conf-32"] },
+    { "name": "release-unity"    , "inherits": ["conf-release", "conf-test", "conf-shared"], "cacheVariables": {"CMAKE_UNITY_BUILD": "ON"} },
+
+    { "name": "debug-dbgen"      , "inherits": ["conf-debug", "conf-dbgen"] },
+    { "name": "release-dbgen"    , "inherits": ["conf-release", "conf-dbgen"] }
   ]
 }

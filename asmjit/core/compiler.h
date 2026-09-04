@@ -6,19 +6,20 @@
 #ifndef ASMJIT_CORE_COMPILER_H_INCLUDED
 #define ASMJIT_CORE_COMPILER_H_INCLUDED
 
-#include <asmjit/core/api-config.h>
+#include <asmjit/core/build_defs.h>
 #ifndef ASMJIT_NO_COMPILER
 
+#include <asmjit/axl/arena.h>
+#include <asmjit/axl/arena_vector.h>
+#include <asmjit/axl/commons.h>
 #include <asmjit/core/assembler.h>
 #include <asmjit/core/builder.h>
-#include <asmjit/core/constpool.h>
-#include <asmjit/core/compilerdefs.h>
+#include <asmjit/core/const_pool.h>
+#include <asmjit/core/compiler_defs.h>
 #include <asmjit/core/func.h>
+#include <asmjit/core/globals.h>
 #include <asmjit/core/inst.h>
 #include <asmjit/core/operand.h>
-#include <asmjit/support/arena.h>
-#include <asmjit/support/arenavector.h>
-#include <asmjit/support/support.h>
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -59,9 +60,9 @@ public:
   //! Current function.
   FuncNode* _func;
   //! Stores array of `VirtReg` pointers.
-  ArenaVector<VirtReg*> _virt_regs;
+  axl::ArenaVector<VirtReg*> _virt_regs;
   //! Stores jump annotations.
-  ArenaVector<JumpAnnotation*> _jump_annotations;
+  axl::ArenaVector<JumpAnnotation*> _jump_annotations;
 
   //! Local and global constant pools.
   //!
@@ -86,10 +87,10 @@ public:
   //! \overload
   template<typename PassT, typename... Args>
   [[nodiscard]]
-  ASMJIT_INLINE PassT* new_pass(Args&&... args) noexcept { return _builder_arena.new_oneshot<PassT>(*this, std::forward<Args>(args)...); }
+  ASMJIT_INLINE PassT* new_pass(Args&&... args) noexcept { return _builder_arena.new_oneshot<PassT>(*this, axl::forward<Args>(args)...); }
 
   template<typename T, typename... Args>
-  ASMJIT_INLINE Error add_pass(Args&&... args) { return _add_pass(new_pass<T, Args...>(std::forward<Args>(args)...)); }
+  ASMJIT_INLINE Error add_pass(Args&&... args) { return _add_pass(new_pass<T, Args...>(axl::forward<Args>(args)...)); }
 
   //! \}
 
@@ -191,10 +192,10 @@ public:
       return _new_reg_with_name(Out<Reg>(out.value()), type_id, name_or_fmt);
     }
     else {
-      return _new_reg_with_vfmt(Out<Reg>(out.value()), type_id, name_or_fmt, std::forward<Args>(args)...);
+      return _new_reg_with_vfmt(Out<Reg>(out.value()), type_id, name_or_fmt, axl::forward<Args>(args)...);
     }
 #else
-    Support::maybe_unused(name_or_fmt, std::forward<Args>(args)...);
+    axl::maybe_unused(name_or_fmt, axl::forward<Args>(args)...);
     return _new_reg_with_name(Out<Reg>(out.value()), type_id, nullptr);
 #endif
   }
@@ -211,10 +212,10 @@ public:
       return _new_reg_with_name(Out<Reg>(out.value()), ref, name_or_fmt);
     }
     else {
-      return _new_reg_with_vfmt(Out<Reg>(out.value()), ref, name_or_fmt, std::forward<Args>(args)...);
+      return _new_reg_with_vfmt(Out<Reg>(out.value()), ref, name_or_fmt, axl::forward<Args>(args)...);
     }
 #else
-    Support::maybe_unused(name_or_fmt, std::forward<Args>(args)...);
+    axl::maybe_unused(name_or_fmt, axl::forward<Args>(args)...);
     return _new_reg_with_name(Out<Reg>(out.value()), ref, nullptr);
 #endif
   }
@@ -224,7 +225,7 @@ public:
   template<typename RegT, typename... Args>
   ASMJIT_INLINE_NODEBUG RegT new_reg(TypeId type_id, Args&&... args) {
     RegT reg(Globals::NoInit);
-    (void)_new_reg<RegT>(Out(reg), type_id, std::forward<Args>(args)...);
+    (void)_new_reg<RegT>(Out(reg), type_id, axl::forward<Args>(args)...);
     return reg;
   }
 
@@ -234,7 +235,7 @@ public:
   template<typename RegT, typename... Args>
   ASMJIT_INLINE_NODEBUG RegT new_similar_reg(const RegT& ref, Args&&... args) {
     RegT reg(Globals::NoInit);
-    (void)_new_reg<RegT>(Out(reg), ref, std::forward<Args>(args)...);
+    (void)_new_reg<RegT>(Out(reg), ref, axl::forward<Args>(args)...);
     return reg;
   }
 
@@ -269,9 +270,9 @@ public:
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG VirtReg* virt_reg_by_index(uint32_t index) const noexcept { return _virt_regs[index]; }
 
-  //! Returns an array of all virtual registers managed by the Compiler.
+  //! Returns an array of all virtual registers managed by the Compiler (const).
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG Span<VirtReg*> virt_regs() const noexcept { return _virt_regs.as_span(); }
+  ASMJIT_INLINE_NODEBUG Span<VirtReg*> virt_regs() const noexcept { return _virt_regs.span_mut(); }
 
   //! \name Stack
   //! \{
@@ -314,7 +315,7 @@ public:
   //! \{
 
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG Span<JumpAnnotation*> jump_annotations() const noexcept { return _jump_annotations.as_span(); }
+  ASMJIT_INLINE_NODEBUG Span<JumpAnnotation*> jump_annotations() const noexcept { return _jump_annotations.span_mut(); }
 
   ASMJIT_API Error new_jump_node(Out<JumpNode*> out, InstId inst_id, InstOptions inst_options, const Operand_& o0, JumpAnnotation* annotation);
   ASMJIT_API Error emit_annotated_jump(InstId inst_id, const Operand_& o0, JumpAnnotation* annotation);
@@ -354,7 +355,7 @@ public:
   //! Annotation identifier.
   uint32_t _annotation_id;
   //! Vector of label identifiers, see \ref label_ids().
-  ArenaVector<uint32_t> _label_ids;
+  axl::ArenaVector<uint32_t> _label_ids;
 
   //! \}
 
@@ -380,7 +381,7 @@ public:
 
   //! Returns a vector of label identifiers that lists all targets of the jump.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG Span<uint32_t> label_ids() const noexcept { return _label_ids.as_span(); }
+  ASMJIT_INLINE_NODEBUG Span<const uint32_t> label_ids() const noexcept { return _label_ids.span(); }
 
   //! Tests whether the given `label` is a target of this JumpAnnotation.
   [[nodiscard]]
@@ -843,10 +844,10 @@ public:
   //! \{
 
   //! Calls `run_on_function()` on each `FuncNode` node found.
-  ASMJIT_API Error run(Arena& arena, Logger* logger) override;
+  ASMJIT_API Error run(axl::Arena& arena, Logger* logger) override;
 
   //! Called once per `FuncNode`.
-  ASMJIT_API virtual Error run_on_function(Arena& arena, Logger* logger, FuncNode* func);
+  ASMJIT_API virtual Error run_on_function(axl::Arena& arena, Logger* logger, FuncNode* func);
 
   //! \}
 };

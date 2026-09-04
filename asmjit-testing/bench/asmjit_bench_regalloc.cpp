@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #include <asmjit/core.h>
@@ -13,11 +13,11 @@
   #include <asmjit/a64.h>
 #endif // !ASMJIT_NO_AARCH64
 
-#include <asmjit-testing/commons/asmjitutils.h>
+#include <asmjit-testing/commons/asmjit_utils.h>
 
 #if !defined(ASMJIT_NO_COMPILER)
   #include <asmjit-testing/commons/cmdline.h>
-  #include <asmjit-testing/commons/performancetimer.h>
+  #include <asmjit-testing/commons/performance_timer.h>
   #include <asmjit-testing/commons/random.h>
 #endif
 
@@ -461,9 +461,9 @@ bool BenchRegAllocApp::run_arch(Arch arch) {
     size_t label_count = code.label_count();
     size_t virt_reg_count = cc->virt_regs().size();
 
-    ArenaStatistics code_holder_stats = code._arena.statistics();
-    ArenaStatistics compiler_stats = cc->_builder_arena.statistics();
-    ArenaStatistics pass_stats = cc->_pass_arena.statistics();
+    axl::ArenaUsage code_holder_usage = code._arena.usage();
+    axl::ArenaUsage compiler_usage = cc->_builder_arena.usage();
+    axl::ArenaUsage passes_usage = cc->_pass_arena.usage();
 
     printf(
       "| %-7s| %10u | %6zu | %8zu | %9zu | %9zu | %9zu | %9zu | %12.3f | %12.3f |",
@@ -472,15 +472,15 @@ bool BenchRegAllocApp::run_arch(Arch arch) {
       label_count,
       virt_reg_count,
       code_size,
-      (code_holder_stats.reserved_size() + 1023) / 1024,
-      (compiler_stats.reserved_size() + 1023) / 1024,
-      (pass_stats.reserved_size() + 1023) / 1024,
+      (code_holder_usage.reserved_size() + 1023) / 1024,
+      (compiler_usage.reserved_size() + 1023) / 1024,
+      (passes_usage.reserved_size() + 1023) / 1024,
       emit_time,
       finalize_time
     );
 
     if (err != Error::kOk) {
-      printf(" (err: %s)", DebugUtils::error_as_string(err));
+      printf(" (err: %s)", stringify_error(err));
     }
 
     printf("\n");

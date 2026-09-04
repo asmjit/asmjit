@@ -3,14 +3,15 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#include <asmjit/core/api-build_p.h>
+#include <asmjit/core/build_export_p.h>
+
 #include <asmjit/core/assembler.h>
-#include <asmjit/core/codewriter_p.h>
-#include <asmjit/core/constpool.h>
-#include <asmjit/core/emitterutils_p.h>
+#include <asmjit/core/code_writer_p.h>
+#include <asmjit/core/const_pool.h>
+#include <asmjit/core/emitter_utils_p.h>
 #include <asmjit/core/formatter.h>
+#include <asmjit/core/globals.h>
 #include <asmjit/core/logger.h>
-#include <asmjit/support/support.h>
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -30,7 +31,7 @@ Error BaseAssembler::set_offset(size_t offset) {
     return report_error(make_error(Error::kNotInitialized));
   }
 
-  size_t size = Support::max<size_t>(_section->buffer_size(), this->offset());
+  size_t size = axl::max<size_t>(_section->buffer_size(), this->offset());
   if (ASMJIT_UNLIKELY(offset > size)) {
     return report_error(make_error(Error::kInvalidArgument));
   }
@@ -168,12 +169,12 @@ Error BaseAssembler::embed_data_array(TypeId type_id, const void* data, size_t i
   }
 
   uint32_t type_size = TypeUtils::size_of(final_type_id);
-  Support::FastUInt8 of = 0;
+  axl::OverflowFlag of {};
 
-  size_t data_size = Support::mul_overflow(item_count, size_t(type_size), &of);
-  size_t total_size = Support::mul_overflow(data_size, repeat_count, &of);
+  size_t data_size = axl::mul_overflow(item_count, size_t(type_size), of);
+  size_t total_size = axl::mul_overflow(data_size, repeat_count, of);
 
-  if (ASMJIT_UNLIKELY(of)) {
+  if (ASMJIT_UNLIKELY(axl::did_overflow(of))) {
     return report_error(make_error(Error::kOutOfMemory));
   }
 
@@ -241,7 +242,7 @@ Error BaseAssembler::embed_const_pool(const Label& label, const ConstPool& pool)
 
 #ifndef ASMJIT_NO_LOGGING
   if (_logger) {
-    uint32_t data_size_log2 = Support::min<uint32_t>(Support::ctz(pool.min_item_size()), 3);
+    uint32_t data_size_log2 = axl::min<uint32_t>(axl::ctz(pool.min_item_size()), 3);
     uint32_t data_size = 1 << data_size_log2;
 
     StringTmp<512> sb;
@@ -270,7 +271,7 @@ Error BaseAssembler::embed_label(const Label& label, size_t data_size) {
     data_size = register_size();
   }
 
-  if (ASMJIT_UNLIKELY(!Support::is_power_of_2_up_to(data_size, 8u))) {
+  if (ASMJIT_UNLIKELY(!axl::is_power_of_2_up_to(data_size, 8u))) {
     return report_error(make_error(Error::kInvalidOperandSize));
   }
 
@@ -326,7 +327,7 @@ Error BaseAssembler::embed_label_delta(const Label& label, const Label& base, si
     return report_error(make_error(Error::kNotInitialized));
   }
 
-  if (ASMJIT_UNLIKELY(!Support::bool_and(_code->is_label_valid(label), _code->is_label_valid(base)))) {
+  if (ASMJIT_UNLIKELY(!axl::bool_and(_code->is_label_valid(label), _code->is_label_valid(base)))) {
     return report_error(make_error(Error::kInvalidLabel));
   }
 
@@ -337,7 +338,7 @@ Error BaseAssembler::embed_label_delta(const Label& label, const Label& base, si
     data_size = register_size();
   }
 
-  if (ASMJIT_UNLIKELY(!Support::is_power_of_2_up_to(data_size, 8u))) {
+  if (ASMJIT_UNLIKELY(!axl::is_power_of_2_up_to(data_size, 8u))) {
     return report_error(make_error(Error::kInvalidOperandSize));
   }
 
@@ -411,7 +412,7 @@ Error BaseAssembler::comment(const char* data, size_t size) {
   _logger->log("\n", 1);
   return Error::kOk;
 #else
-  Support::maybe_unused(data, size);
+  axl::maybe_unused(data, size);
   return Error::kOk;
 #endif
 }

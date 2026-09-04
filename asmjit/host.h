@@ -9,7 +9,7 @@
 #include <asmjit/core.h>
 
 // Detect 'X86' or 'X86_64' host architectures.
-#if ASMJIT_ARCH_X86 != 0 && !defined(ASMJIT_NO_X86)
+#if ASMJIT_TARGET_ARCH_X86 != 0 && !defined(ASMJIT_NO_X86)
 
 #include <asmjit/x86.h>
 
@@ -20,7 +20,7 @@ ASMJIT_END_NAMESPACE
 #endif
 
 // Detect 'AArch64' host architecture.
-#if ASMJIT_ARCH_ARM == 64 && !defined(ASMJIT_NO_AARCH64)
+#if ASMJIT_TARGET_ARCH_ARM == 64 && !defined(ASMJIT_NO_AARCH64)
 
 #include <asmjit/a64.h>
 

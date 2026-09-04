@@ -17,7 +17,6 @@ Fields:
 
   - `category` - describes a single or multiple categories this instruction belongs to. In general the database is written in a way to provide "baseline" and "extended" categories, so have the following categories used to distinguish between different set of instructions:
     - `GP` - General purpose instructions.
-    - `GP_EXT` - Extensions to general purpose instructions (such as BMI, POPCNT, etc...).
     - `MMX` - MMX and 3DNOW instructions (in general instructions using MM registers).
     - `SSE` - SSE to SSE4.2 instructions, including other extensions that don't use VEX/EVEX prefixes.
     - `AVX` - AVX, AVX2, and other instructions that use SIMD registers (XMM, YMM) and VEX prefix.
@@ -59,14 +58,11 @@ Instruction signature is composed of the following components:
 ```
 
   - `[<PREFIX>|<OPTIONS>]` (optional) - prefixes and other options:
-    - `[bnd]`       - instruction supports `bnd` prefix (deprecated).
-    - `[lock]`      - instruction supports `lock` prefix.
-    - `[xacquire]`  - instruction supports `xacquire` prefix.
-    - `[xacqrel]`   - instruction supports both `xacquire` and `xrelease` prefixes.
-    - `[xrelease]`  - instruction supports `xrelease` prefix.
-    - `[rep]`       - instruction supports `rep` prefix (or `repe`).
-    - `[repne]`     - instruction supports `repne` prefix.
-    - `[repIgnore]` - instruction supports `rep` prefix, which is ignored during execution (to support for example `rep ret`).
+    - `[lock]`          - instruction supports `lock` prefix.
+    - `[lock_implicit]` - instruction supports `lock` prefix, but it's considered implicit.
+    - `[rep]`           - instruction supports `rep` prefix (or `repe`).
+    - `[repne]`         - instruction supports `repne` prefix.
+    - `[rep_ignored]`   - instruction supports `rep` prefix, which is ignored during execution (to support for example `rep ret`).
 
   - `<INSTRUCTION_NAME>|<ALIASES>` (required) - the name of the instruction possibly followed by aliases if the instruction has them
     - if the instruction has aliases, they will be recognized in AsmJit API (the API will provide aliases), but will not have a separate instruction identifier
@@ -89,7 +85,6 @@ Instruction signature is composed of the following components:
         - `dreg` - Debug register.
         - `st(x)` - FPU register.
         - `rip` - Instruction pointer register (used during addressing).
-        - `bnd` - Bounds register (deprecated).
       - Memory:
         - `mem` - Memory operand without size specified.
         - `m8-m512` - Memory operand of a specified size.
@@ -138,7 +133,7 @@ Instruction signature is composed of the following components:
         - `xxx/mxxx`  - either `xmm[31:0]/m32`, `xmm[63:0]/m64`, or `xmm/m128` register operand.
         - `xxy/mxxy`  - either `xmm[63:0]/m64`, `xmm/m128`, or `ymm/m256` register operand.
         - `xyz/mxyz`  - either `xmm/m128`, `ymm/m256`, or `zmm/m512` register operand.
-        - All registers must match, example: `vvfmadd132pd X:xyz {kz}, xyz, xyz/mxyz/b64 {er}` - either all `xmm/m128`, `ymm/m256`, or `zmm/m512`.
+        - All registers must match, example: `vvfmadd132pd X:xyz {k|z}, xyz, xyz/mxyz/b64 {er}` - either all `xmm/m128`, `ymm/m256`, or `zmm/m512`.
         - Embedded rounding `{er}` and `{sae}` are grouped - in AVX512 case only 512-bit operations can use `{er}/{sae}`; in AVX10.2 case both 256-bit and 512-bit operations can use `{er}/{sae}`, but not 128-bit operations - the assembler or the tool processing this data must be aware of this architectural constraint.
         - Why `xyz/mxyz`? This notation is not used by instruction manuals, but we have found it easy to use and understand.
 

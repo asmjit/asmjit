@@ -5,15 +5,15 @@
 
 #include <asmjit/core.h>
 
-#if !defined(ASMJIT_NO_X86) && ASMJIT_ARCH_X86 != 0
+#if !defined(ASMJIT_NO_X86) && ASMJIT_TARGET_ARCH_X86 != 0
   #include <asmjit/x86.h>
 #endif
 
-#if !defined(ASMJIT_NO_AARCH64) && ASMJIT_ARCH_ARM == 64
+#if !defined(ASMJIT_NO_AARCH64) && ASMJIT_TARGET_ARCH_ARM == 64
   #include <asmjit/a64.h>
 #endif
 
-#include <asmjit-testing/commons/asmjitutils.h>
+#include <asmjit-testing/commons/asmjit_utils.h>
 
 using namespace asmjit;
 
@@ -33,13 +33,13 @@ static void print_app_info() {
 }
 
 const char* stringify_bool(bool b) noexcept { return b ? "true" : "false"; };
-const char* stringify_result(Error err) noexcept { return err == Error::kOk ? "success" : DebugUtils::error_as_string(err); };
+const char* stringify_result(Error err) noexcept { return err == Error::kOk ? "success" : stringify_error(err); };
 
 using VoidFunc = void (ASMJIT_CDECL*)(void);
 
 #if !defined(ASMJIT_NO_JIT)
 
-#if !defined(ASMJIT_NO_X86) && ASMJIT_ARCH_X86 != 0
+#if !defined(ASMJIT_NO_X86) && ASMJIT_TARGET_ARCH_X86 != 0
 #define TEST_ENVIRONMENT_HAS_JIT
 
 static void emit_void_function(CodeHolder& code) noexcept {
@@ -48,7 +48,7 @@ static void emit_void_function(CodeHolder& code) noexcept {
 }
 #endif
 
-#if !defined(ASMJIT_NO_AARCH64) && ASMJIT_ARCH_ARM == 64
+#if !defined(ASMJIT_NO_AARCH64) && ASMJIT_TARGET_ARCH_ARM == 64
 #define TEST_ENVIRONMENT_HAS_JIT
 
 static void emit_void_function(CodeHolder& code) noexcept {
@@ -68,7 +68,7 @@ static size_t write_empty_function_at(void* ptr, size_t size) noexcept {
   CodeHolder code;
   Error err = code.init(Environment::host());
   if (err != Error::kOk) {
-    printf(  "Failed to initialize CodeHolder (%s)\n", DebugUtils::error_as_string(err));
+    printf(  "Failed to initialize CodeHolder (%s)\n", stringify_error(err));
     return 0;
   }
 
@@ -287,7 +287,7 @@ static void print_jit_runtime_info_and_test_execution() noexcept {
 
 int main() {
   print_app_info();
-  print_build_options();
+  print_build_info();
   print_cpu_info();
 
 #if !defined(ASMJIT_NO_JIT)
