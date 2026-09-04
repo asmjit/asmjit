@@ -492,9 +492,11 @@ ASMJIT_INLINE_NODEBUG T trailing_bits_run(auto n) noexcept {
   if constexpr (sizeof(T) == 4u) {
     return T(_bzhi_u32(bit_ones<uint32_t>, uint32_t(n)));
   }
+#if ASMJIT_TARGET_ARCH_BITS >= 64
   else if constexpr (sizeof(T) == 8u) {
     return T(_bzhi_u64(bit_ones<uint64_t>, uint32_t(n)));
   }
+#endif
 #endif
   return T(trailing_bits_run_const<T>(n));
 }
