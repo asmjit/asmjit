@@ -3,8 +3,8 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#ifndef ASMJIT_BUILD_DEFS_H_INCLUDED
-#define ASMJIT_BUILD_DEFS_H_INCLUDED
+#ifndef ASMJIT_CORE_BUILD_DEFS_H_INCLUDED
+#define ASMJIT_CORE_BUILD_DEFS_H_INCLUDED
 
 // AsmJit Library & ABI Version
 // ============================
@@ -16,7 +16,7 @@
 #define ASMJIT_LIBRARY_MAKE_VERSION(major, minor, patch) ((major << 16) | (minor << 8) | (patch))
 
 //! AsmJit library version, see \ref ASMJIT_LIBRARY_MAKE_VERSION for a version format reference.
-#define ASMJIT_LIBRARY_VERSION ASMJIT_LIBRARY_MAKE_VERSION(1, 21, 0)
+#define ASMJIT_LIBRARY_VERSION ASMJIT_LIBRARY_MAKE_VERSION(1, 22, 0)
 
 //! \def ASMJIT_ABI_NAMESPACE
 //!
@@ -27,7 +27,7 @@
 //! AsmJit default, which makes it possible to use multiple AsmJit libraries within a single project, totally
 //! controlled by users. This is useful especially in cases in which some of such library comes from third party.
 #if !defined(ASMJIT_ABI_NAMESPACE)
-  #define ASMJIT_ABI_NAMESPACE v1_21
+  #define ASMJIT_ABI_NAMESPACE v1_22
 #endif // !ASMJIT_ABI_NAMESPACE
 
 //! \}
@@ -711,4 +711,4 @@ ASMJIT_END_SUB_NAMESPACE
 #define ASMJIT_BASE_CLASS(TYPE)
 #endif
 
-#endif // ASMJIT_BUILD_DEFS_H_INCLUDED
+#endif // ASMJIT_CORE_BUILD_DEFS_H_INCLUDED

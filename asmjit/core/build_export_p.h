@@ -4,8 +4,8 @@
 // SPDX-License-Identifier: Zlib
 
 // This file must be included by every AsmJit '.cpp' file
-#ifndef ASMJIT_BUILD_EXPORT_P_H_INCLUDED
-#define ASMJIT_BUILD_EXPORT_P_H_INCLUDED
+#ifndef ASMJIT_CORE_BUILD_EXPORT_P_H_INCLUDED
+#define ASMJIT_CORE_BUILD_EXPORT_P_H_INCLUDED
 
 #define ASMJIT_EXPORTS
 
@@ -71,4 +71,4 @@
   #include <asmjit-testing/tests/zero_test.h>
 #endif
 
-#endif // ASMJIT_BUILD_EXPORT_P_H_INCLUDED
+#endif // ASMJIT_CORE_BUILD_EXPORT_P_H_INCLUDED

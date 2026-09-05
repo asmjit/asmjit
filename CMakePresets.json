@@ -23,8 +23,7 @@
       "cacheVariables": { "CMAKE_BUILD_TYPE": "Release", "CMAKE_INTERPROCEDURAL_OPTIMIZATION": "ON" }
     },
 
-    { "name": "conf-dbgen"       , "hidden": true, "cacheVariables": { "ASMJIT_DBGEN": "ON", "ASMJIT_DBGEN_ONLY": "ON" } },
-    { "name": "conf-test"        , "hidden": true, "cacheVariables": { "ASMJIT_TEST": "ON", "ASMJIT_DBGEN": "ON" } },
+    { "name": "conf-test"        , "hidden": true, "cacheVariables": { "ASMJIT_TEST": "ON" } },
     { "name": "conf-static"      , "hidden": true, "cacheVariables": { "ASMJIT_STATIC": "ON" } },
     { "name": "conf-shared"      , "hidden": true, "cacheVariables": { "ASMJIT_STATIC": "OFF" } },
     { "name": "conf-asan"        , "hidden": true, "cacheVariables": { "ASMJIT_SANITIZE": "address" } },
@@ -51,9 +50,6 @@
     { "name": "release-32"       , "inherits": ["conf-release", "conf-test", "conf-static", "conf-32"] },
     { "name": "release-shared"   , "inherits": ["conf-release", "conf-test", "conf-shared"] },
     { "name": "release-shared-32", "inherits": ["conf-release", "conf-test", "conf-shared", "conf-32"] },
-    { "name": "release-unity"    , "inherits": ["conf-release", "conf-test", "conf-shared"], "cacheVariables": {"CMAKE_UNITY_BUILD": "ON"} },
-
-    { "name": "debug-dbgen"      , "inherits": ["conf-debug", "conf-dbgen"] },
-    { "name": "release-dbgen"    , "inherits": ["conf-release", "conf-dbgen"] }
+    { "name": "release-unity"    , "inherits": ["conf-release", "conf-test", "conf-shared"], "cacheVariables": {"CMAKE_UNITY_BUILD": "ON"} }
   ]
 }
