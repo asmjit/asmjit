@@ -276,13 +276,14 @@ namespace asmjit {
 //!
 //! \section api_changes API Changes
 //!
-//! ### Changes committed at <???>
+//! ### Changes committed at 2026-09-04
 //!
 //! Core changes:
 //!
-//!   - Renamed 'support' library to 'axl' (aka aux library)
+//!   - Renamed 'support' library to 'axl' (aux library)
 //!   - Renamed ASMJIT_ARCH_XXX to ASMJIT_TARGET_ARCH_XXX
 //!   - Renamed ASMJIT_ARCH_BITS to ASMJIT_TARGET_ARCH_BITS
+//!   - Moved some classes to `axl` library - for example `asmjit::Arena` is now `asmjit::axl::Arena`
 //!
 //! ### Changes committed at 2025-09-06
 //!
