@@ -8,7 +8,7 @@
 
 #include <asmjit/axl/build_integration.h>
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (defined(_M_IX86) || defined(_M_X64))
   #include <intrin.h>
 #elif defined(__BMI2__)
   #include <x86intrin.h>
@@ -687,8 +687,6 @@ ASMJIT_INLINE_NODEBUG uint32_t byteswap32(uint32_t x) noexcept {
 ASMJIT_INLINE_NODEBUG uint64_t byteswap64(uint64_t x) noexcept {
 #if defined(__GNUC__)
   return uint64_t(__builtin_bswap64(uint64_t(x)));
-#elif defined(_MSC_VER)
-  return uint64_t(_byteswap_uint64(uint64_t(x)));
 #else
   return (uint64_t(byteswap32(uint32_t(uint64_t(x) >> 32        )))      ) |
          (uint64_t(byteswap32(uint32_t(uint64_t(x) & 0xFFFFFFFFu))) << 32) ;
@@ -1473,7 +1471,7 @@ ASMJIT_INLINE void fill_bytes_small(void* array, size_t size, uint8_t value) noe
       static_cast<uint8_t*>(array)[i] = value;
     }
   }
-#elif defined(_MSC_VER) && ASMJIT_TARGET_ARCH_X86
+#elif defined(_MSC_VER) && (defined(_M_IX86) || defined(_M_X64))
   __stosb(static_cast<unsigned char *>(array), static_cast<unsigned char>(value), size);
 #else
   memset(array, value, size);
@@ -1518,7 +1516,7 @@ ASMJIT_INLINE void fill_items(T* array, size_t size, T value) noexcept {
 ASMJIT_INLINE void copy_bytes_small(void* dst, const void* src, size_t n) noexcept {
 #if defined(__GNUC__)
   if (!__builtin_constant_p(n)) {
-#if BL_TARGET_ARCH_X86 && !defined(__SANITIZE_MEMORY__)
+#if ASMJIT_TARGET_ARCH_X86 && !defined(__SANITIZE_MEMORY__)
     size_t unused;
     __asm__ __volatile__(
       "rep movsb" : "=&D"(dst), "=&S"(src), "=&c"(unused)
@@ -1537,7 +1535,7 @@ ASMJIT_INLINE void copy_bytes_small(void* dst, const void* src, size_t n) noexce
       static_cast<uint8_t*>(dst)[i] = static_cast<const uint8_t*>(src)[i];
     }
   }
-#elif defined(_MSC_VER) && BL_TARGET_ARCH_X86
+#elif defined(_MSC_VER) && (defined(_M_IX86) || defined(_M_X64))
   __movsb(static_cast<unsigned char *>(dst), static_cast<const unsigned char *>(src), n);
 #else
   ASMJIT_NOUNROLL
