@@ -70,6 +70,7 @@ option(ASMJIT_NO_CUSTOM_FLAGS  "Disable extra compilation flags added by AsmJit 
 option(ASMJIT_NO_ABI_NAMESPACE "Disable the use of inline ABI namespace {asmjit::v...}" OFF)
 option(ASMJIT_NO_SHM_OPEN      "Disable the use of shm_open() (some platforms have better options)" OFF)
 option(ASMJIT_NO_X86           "Disable X86/X64 backend" OFF)
+option(ASMJIT_NO_AARCH32       "Disable AArch32 backend" OFF)
 option(ASMJIT_NO_AARCH64       "Disable AArch64 backend" OFF)
 option(ASMJIT_NO_FOREIGN       "Disable all foreign backends (enables only a backend that matches the target)" OFF)
 option(ASMJIT_NO_JIT           "Disable VirtMem, JitAllocator, and JitRuntime at build time" OFF)
@@ -271,12 +272,29 @@ asmjit_define_sources(ASMJIT_SRC
   asmjit/core/virt_mem.h
   asmjit/core/virt_mem_test.cpp
 
+  asmjit/a32.h
   asmjit/a64.h
   asmjit/arm.h
   asmjit/arm/arm_formatter.cpp
   asmjit/arm/arm_formatter_p.h
   asmjit/arm/arm_globals.h
   asmjit/arm/arm_utils.h
+  asmjit/arm/a32_arch_traits_p.h
+  asmjit/arm/a32_assembler.cpp
+  asmjit/arm/a32_assembler.h
+  asmjit/arm/a32_builder.cpp
+  asmjit/arm/a32_builder.h
+  asmjit/arm/a32_emit_helper.cpp
+  asmjit/arm/a32_emit_helper_p.h
+  asmjit/arm/a32_emitter.h
+  asmjit/arm/a32_formatter.cpp
+  asmjit/arm/a32_formatter_p.h
+  asmjit/arm/a32_globals.h
+  asmjit/arm/a32_inst_api.cpp
+  asmjit/arm/a32_inst_api_p.h
+  asmjit/arm/a32_inst_db.cpp
+  asmjit/arm/a32_inst_db_p.h
+  asmjit/arm/a32_operand.h
   asmjit/arm/a64_arch_traits_p.h
   asmjit/arm/a64_assembler.cpp
   asmjit/arm/a64_assembler.h
@@ -563,6 +581,7 @@ if (ASMJIT_NO_SHM_OPEN)
 endif()
 
 foreach(build_option ASMJIT_NO_X86
+                     ASMJIT_NO_AARCH32
                      ASMJIT_NO_AARCH64
                      ASMJIT_NO_FOREIGN
                      ASMJIT_NO_ABI_NAMESPACE
@@ -681,6 +700,7 @@ if (TRUE)
       asmjit_add_target(asmjit_test_assembler TEST
         SOURCES    asmjit-testing/tests/asmjit_test_assembler.cpp
                    asmjit-testing/tests/asmjit_test_assembler.h
+                   asmjit-testing/tests/asmjit_test_assembler_a32.cpp
                    asmjit-testing/tests/asmjit_test_assembler_a64.cpp
                    asmjit-testing/tests/asmjit_test_assembler_x64.cpp
                    asmjit-testing/tests/asmjit_test_assembler_x86.cpp
@@ -758,6 +778,7 @@ if (TRUE)
 
       asmjit_add_target(asmjit_bench_codegen EXECUTABLE
         SOURCES    asmjit-testing/bench/asmjit_bench_codegen.cpp
+                   asmjit-testing/bench/asmjit_bench_codegen_a32.cpp
                    asmjit-testing/bench/asmjit_bench_codegen_a64.cpp
                    asmjit-testing/bench/asmjit_bench_codegen_x86.cpp
         SOURCES    asmjit-testing/bench/asmjit_bench_codegen.h

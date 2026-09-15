@@ -261,6 +261,10 @@ static ASMJIT_INLINE_NODEBUG uint32_t data_type_size(DataType dt) noexcept {
 
 ASMJIT_END_SUB_NAMESPACE
 
+ASMJIT_BEGIN_SUB_NAMESPACE(a32)
+using namespace arm;
+ASMJIT_END_SUB_NAMESPACE
+
 ASMJIT_BEGIN_SUB_NAMESPACE(a64)
 using namespace arm;
 ASMJIT_END_SUB_NAMESPACE

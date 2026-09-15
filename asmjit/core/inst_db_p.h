@@ -3,8 +3,8 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#ifndef ASMJIT_CORE_INSTDB_P_H_INCLUDED
-#define ASMJIT_CORE_INSTDB_P_H_INCLUDED
+#ifndef ASMJIT_CORE_INST_DB_P_H_INCLUDED
+#define ASMJIT_CORE_INST_DB_P_H_INCLUDED
 
 #include <asmjit/core/inst.h>
 #include <asmjit/core/string.h>
@@ -38,4 +38,4 @@ uint32_t find_alias(const char* s, size_t len, const uint32_t* name_table, const
 
 ASMJIT_END_NAMESPACE
 
-#endif // ASMJIT_CORE_INSTDB_P_H_INCLUDED
+#endif // ASMJIT_CORE_INST_DB_P_H_INCLUDED

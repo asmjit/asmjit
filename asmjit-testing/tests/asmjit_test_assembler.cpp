@@ -20,6 +20,10 @@ bool test_x86_assembler(const TestSettings& settings) noexcept;
 bool test_x64_assembler(const TestSettings& settings) noexcept;
 #endif
 
+#if !defined(ASMJIT_NO_AARCH32)
+bool test_aarch32_assembler(const TestSettings& settings) noexcept;
+#endif
+
 #if !defined(ASMJIT_NO_AARCH64)
 bool test_aarch64_assembler(const TestSettings& settings) noexcept;
 #endif
@@ -47,6 +51,9 @@ static void print_app_usage(const TestSettings& settings) noexcept {
   printf("  --arch=x86     32-bit X86 architecture (X86)\n");
   printf("  --arch=x64     64-bit X86 architecture (X86_64)\n");
 #endif
+#if !defined(ASMJIT_NO_AARCH32)
+  printf("  --arch=aarch32 32-bit ARM architecture (AArch32)\n");
+#endif
 #if !defined(ASMJIT_NO_AARCH64)
   printf("  --arch=aarch64 64-bit ARM architecture (AArch64)\n");
 #endif
@@ -68,34 +75,52 @@ int main(int argc, char* argv[]) {
   }
 
   const char* arch = cmd_line.value_of("--arch", "all");
+
   bool x86_failed = false;
   bool x64_failed = false;
+  bool aarch32_failed = false;
   bool aarch64_failed = false;
 
 #if !defined(ASMJIT_NO_X86)
-  if ((strcmp(arch, "all") == 0 || strcmp(arch, "x86") == 0))
+  if ((strcmp(arch, "all") == 0 || strcmp(arch, "x86") == 0)) {
     x86_failed = !test_x86_assembler(settings);
+  }
 
-  if ((strcmp(arch, "all") == 0 || strcmp(arch, "x64") == 0))
+  if ((strcmp(arch, "all") == 0 || strcmp(arch, "x64") == 0)) {
     x64_failed = !test_x64_assembler(settings);
+  }
+#endif
+
+#if !defined(ASMJIT_NO_AARCH32)
+  if ((strcmp(arch, "all") == 0 || strcmp(arch, "aarch32") == 0)) {
+    aarch32_failed = !test_aarch32_assembler(settings);
+  }
 #endif
 
 #if !defined(ASMJIT_NO_AARCH64)
-  if ((strcmp(arch, "all") == 0 || strcmp(arch, "aarch64") == 0))
+  if ((strcmp(arch, "all") == 0 || strcmp(arch, "aarch64") == 0)) {
     aarch64_failed = !test_aarch64_assembler(settings);
+  }
 #endif
 
-  bool failed = x86_failed || x64_failed || aarch64_failed;
+  bool failed = x86_failed || x64_failed || aarch32_failed || aarch64_failed;
 
   if (failed) {
-    if (x86_failed)
+    if (x86_failed) {
       printf("** X86 test suite failed **\n");
+    }
 
-    if (x64_failed)
+    if (x64_failed) {
       printf("** X64 test suite failed **\n");
+    }
 
-    if (aarch64_failed)
+    if (aarch32_failed) {
+      printf("** AArch32 test suite failed **\n");
+    }
+
+    if (aarch64_failed) {
       printf("** AArch64 test suite failed **\n");
+    }
 
     printf("** FAILURE **\n");
   }

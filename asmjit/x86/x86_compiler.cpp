@@ -18,7 +18,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
 Compiler::Compiler(CodeHolder* code) noexcept : BaseCompiler() {
   _arch_mask = (uint64_t(1) << uint32_t(Arch::kX86)) |
-              (uint64_t(1) << uint32_t(Arch::kX64)) ;
+               (uint64_t(1) << uint32_t(Arch::kX64)) ;
   init_emitter_funcs(this);
 
   if (code) {

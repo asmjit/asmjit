@@ -28,6 +28,10 @@ static void print_app_info() noexcept {
 void benchmark_x86_emitters(uint32_t num_iterations, bool test_x86, bool test_x64) noexcept;
 #endif
 
+#if !defined(ASMJIT_NO_AARCH32)
+void benchmark_aarch32_emitters(uint32_t num_iterations);
+#endif
+
 #if !defined(ASMJIT_NO_AARCH64)
 void benchmark_aarch64_emitters(uint32_t num_iterations);
 #endif
@@ -49,6 +53,9 @@ int main(int argc, char* argv[]) {
   printf("  --arch=x86     32-bit X86 architecture (X86)\n");
   printf("  --arch=x64     64-bit X86 architecture (X86_64)\n");
 #endif
+#if !defined(ASMJIT_NO_AARCH32)
+  printf("  --arch=aarch32 32-bit ARM architecture (AArch32)\n");
+#endif
 #if !defined(ASMJIT_NO_AARCH64)
   printf("  --arch=aarch64 64-bit ARM architecture (AArch64)\n");
 #endif
@@ -68,6 +75,14 @@ int main(int argc, char* argv[]) {
 
   if (test_x86 || test_x64) {
     benchmark_x86_emitters(num_iterations, test_x86, test_x64);
+  }
+#endif
+
+#if !defined(ASMJIT_NO_AARCH32)
+  bool test_aarch32 = strcmp(arch, "all") == 0 || strcmp(arch, "aarch32") == 0;
+
+  if (test_aarch32) {
+    benchmark_aarch32_emitters(num_iterations);
   }
 #endif
 
