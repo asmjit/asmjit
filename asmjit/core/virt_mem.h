@@ -52,6 +52,31 @@ struct Info {
 [[nodiscard]]
 ASMJIT_API Info info() noexcept;
 
+//! Virtual memory allocation limits.
+struct Limits {
+  //! Physical memory size calculated as `num_pages * page_size`.
+  //!
+  //! \note The value could be `SIZE_MAX` if it failed to reasonably calculate the value or the result
+  //! is actually higher than what `size_t` can represent (32-bit process running under a 64-bit kernel).
+  size_t physical_memory_size;
+
+  //! Address space limit. On operating systems that have a `getrlimit()` C-API function the value of
+  //! `address_space_limit` equals `getrlimit(RLIMIT_AS)` rounded down to page size (except when it equals
+  //! `SIZE_MAX`).
+  //!
+  //! \note The value could be `SIZE_MAX` in case `getrlimit()` fails or reports a larger value than `SIZE_MAX`.
+  size_t address_space_limit;
+
+  //! This is the maximum size in bytes of files that the process may create. On operating systems that have a
+  //! `getrlimit()` C-API function the value of `file_size_limit` equals `getrlimit(RLIMIT_FSIZE)` rounded down
+  //! to page size (except when it equals `SIZE_MAX`).
+  //!
+  //! \note The value could be `SIZE_MAX` in case `getrlimit()` fails or reports a larger value than `SIZE_MAX`.
+  //!
+  //! \remarks This applies to file descriptors including `memfd`, which is used to create dual-mapping on Linux.
+  size_t file_size_limit;
+};
+
 //! Returns the size of the smallest large page supported.
 //!
 //! AsmJit only uses the smallest large page at the moment as these are usually perfectly sized for executable
@@ -61,6 +86,24 @@ ASMJIT_API Info info() noexcept;
 //! or not accessible to the process.
 [[nodiscard]]
 ASMJIT_API size_t large_page_size() noexcept;
+
+//! Returns virtual memory allocation limits queried now.
+//!
+//! \remarks Virtual memory limits can be shrunk at runtime, which means that every call to `limits()` would
+//! return fresh limits queried via `sysconf()`, `GlobalMemoryStatusEx()`, and related functions.
+[[nodiscard]]
+ASMJIT_API Limits limits() noexcept;
+
+//! Returns a limit for dual mapped memory regions.
+//!
+//! This limit can be calculated from values returned by `limit()` - however, `limit()` may use multiple
+//! system calls to fill the whole `Limit` struct, whereas `dual_mapping_size_limit()` is only interested
+//! in `getrlimit(RLIMIT_AS)` && `getrlimit(RLIMIT_FSIZE)`.
+//!
+//! When no limit is known, `SIZE_MAX` is returned. When dual-mapping is disabled or unavailable, zero is
+//! returned.
+[[nodiscard]]
+ASMJIT_API size_t dual_mapping_size_limit() noexcept;
 
 //! Virtual memory access and mmap-specific flags.
 enum class MemoryFlags : uint32_t {
@@ -205,7 +248,16 @@ struct DualMapping {
 //! \ref VirtMem::release_dual_mapping() to release it when it's no longer needed. Never use `VirtMem::release()` to
 //! release the memory returned by `alloc_dual_mapping()` as that would fail on Windows.
 //!
-//! \remarks Both pointers in `dm` would be set to `nullptr` if the function fails.
+//! Both pointers in `dm` would be set to `nullptr` if the function fails.
+//!
+//! \remarks There are some important restrictions that users using this function should understand. Operating systems
+//! can support limiting the size of files a process can create, which means that when a dual memory mapped region
+//! needs file backing, these restrictions would apply to such regions as well. AsmJit needs to reserve the space by
+//! using either `ftruncate()` or `posix_fallocate()`, which both can generate `SIGXFSZ` signal when the request is
+//! greater than allowed. To workaround this, AsmJit would always read `getrlimit(RLIMIT_FSIZE` before attempting to
+//! allocate memory and return `Error::kTooLarge` proactively to avoid dealing with signals. We recommend calling
+//! \ref `VirtMem::limits()` and inspecting it before attempting to use `alloc_dual_mapping()` to make sure the request
+//! is not too large.
 [[nodiscard]]
 ASMJIT_API Error alloc_dual_mapping(Out<DualMapping> dm, size_t size, MemoryFlags flags) noexcept;
 

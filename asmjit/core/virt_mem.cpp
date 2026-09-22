@@ -19,6 +19,7 @@
   #include <errno.h>
   #include <fcntl.h>
   #include <sys/mman.h>
+  #include <sys/resource.h>
   #include <sys/stat.h>
   #include <sys/types.h>
   #include <unistd.h>
@@ -184,6 +185,39 @@ static void detect_vm_info(Info& vm_info) noexcept {
 
 static size_t detect_large_page_size() noexcept {
   return ::GetLargePageMinimum();
+}
+
+static size_t size_from_u64(uint64_t value) noexcept {
+  if constexpr (sizeof(size_t) < sizeof(uint64_t)) {
+    constexpr size_t kMax = axl::bit_ones<size_t>;
+    return value <= kMax ? static_cast<size_t>(value) : kMax;
+  }
+  else {
+    return static_cast<size_t>(value);
+  }
+}
+
+Limits limits() noexcept {
+  Limits out {
+    .physical_memory_size = SIZE_MAX,
+    .address_space_limit = SIZE_MAX,
+    .file_size_limit = SIZE_MAX
+  };
+
+  MEMORYSTATUSEX status {};
+  status.dwLength = sizeof(status);
+
+  if (GlobalMemoryStatusEx(&status)) {
+    out.physical_memory_size = size_from_u64(status.ullTotalPhys);
+    out.address_space_limit = size_from_u64(status.ullTotalVirtual);
+  }
+
+  return out;
+}
+
+size_t dual_mapping_size_limit() noexcept {
+  Limits vmem_limits = limits();
+  return vmem_limits.address_space_limit;
 }
 
 static bool has_dual_mapping_support() noexcept {
@@ -354,6 +388,17 @@ Error release_dual_mapping(DualMapping& dm, size_t size) noexcept {
 
 #if !defined(_WIN32)
 
+// Virtual Memory [Unix] - Constants
+// =================================
+
+#if defined(RLIMIT_AS)
+static constexpr auto kRLimitAS = RLIMIT_AS;
+#else
+static constexpr auto kRLimitAS = RLIMIT_DATA;
+#endif
+
+static constexpr auto kRLimitFileSize = RLIMIT_FSIZE;
+
 // Virtual Memory [Unix] - Utilities
 // =================================
 
@@ -391,7 +436,12 @@ static KernelVersion get_kernel_version() noexcept {
 
   return out;
 }
-#endif // get_kernel_version
+#endif
+
+[[maybe_unused]]
+static size_t make_page_mask(size_t page_size) noexcept {
+  return ~(page_size - 1u);
+}
 
 // Translates libc errors specific to VirtualMemory mapping to `asmjit::Error`.
 [[maybe_unused]]
@@ -461,10 +511,16 @@ static inline int mm_max_prot_from_memory_flags(MemoryFlags memory_flags) noexce
 }
 
 static void detect_vm_info(Info& vm_info) noexcept {
-  uint32_t page_size = uint32_t(::getpagesize());
+# if defined(_SC_PAGESIZE)
+  auto page_size = sysconf(_SC_PAGESIZE);
+# elif defined(_SC_PAGE_SIZE)
+  auto page_size = sysconf(_SC_PAGE_SIZE);
+# else
+  auto page_size = getpagesize();
+# endif
 
-  vm_info.page_size = page_size;
-  vm_info.page_granularity = axl::max<uint32_t>(page_size, 65536);
+  vm_info.page_size = page_size > 0 ? uint32_t(page_size) : 4096u;
+  vm_info.page_granularity = axl::max<uint32_t>(vm_info.page_size, 65536);
 }
 
 static size_t detect_large_page_size() noexcept {
@@ -475,30 +531,95 @@ static size_t detect_large_page_size() noexcept {
   // TODO: Does it return unsigned?
   return (getpagesizes(page_size.data(), 2) < 2) ? 0 : uint32_t(page_size[1]);
 #elif defined(__linux__)
+  StringTmp<128> path;
+
+  // The Linux provided directories in `/sys/kernel/mm/hugepages/...` use kB units, so 1 equals KiB.
+  [[maybe_unused]] constexpr uint32_t KiB = 1;
+  [[maybe_unused]] constexpr uint32_t MiB = 1024;
+  [[maybe_unused]] constexpr uint32_t GiB = 1024 * 1024;
+
+  // NOTE: The table must distinguish between 32-bit and 64-bit targets as 32-bit targets cannot have
+  // more than 2GiB pages (as 4 GiB cannot really be stored in a 32-bit `size_t`). In practice there
+  // are probably no 32-bit targets that would offer 2 GiB pages.
+#if ASMJIT_TARGET_ARCH_X86 != 0
+  static constexpr uint32_t known_pages_kib[] = { 2 * MiB, 1 * GiB };
+#elif ASMJIT_TARGET_ARCH_ARM == 64
+  static constexpr uint32_t known_pages_kib[] = { 64 * KiB, 2 * MiB, 32 * MiB, 512 * MiB, 1 * GiB, 16 * GiB };
+#elif ASMJIT_TARGET_ARCH_BITS == 32
+  static constexpr uint32_t known_pages_kib[] = { 1 * MiB, 2 * MiB, 16 * MiB, 1 * GiB, 2 * GiB };
+#else
+  static constexpr uint32_t known_pages_kib[] = { 1 * MiB, 2 * MiB, 16 * MiB, 1 * GiB, 2 * GiB, 16 * GiB };
+#endif
+
   StringTmp<128> storage;
-
-  if (OSUtils::read_file("/sys/kernel/mm/transparent_hugepage/hpage_pmd_size", storage, 16) != Error::kOk || storage.is_empty()) {
-    return 0u;
-  }
-
-  // The first value should be the size of the page (hpage_pmd_size).
-  size_t large_page_size = 0;
-
-  const char* buf = storage.data();
-  size_t buf_size = storage.size();
-
-  for (size_t i = 0; i < buf_size; i++) {
-    uint32_t digit = uint32_t(uint8_t(buf[i]) - uint8_t('0'));
-    if (digit >= 10u) {
-      break;
+  for (uint32_t known_page : known_pages_kib) {
+    path.assign_format("/sys/kernel/mm/hugepages/hugepages-%ukB", known_page);
+    struct stat sbuf;
+    if (stat(path.data(), &sbuf) == 0 && S_ISDIR(sbuf.st_mode)) {
+      return static_cast<size_t>(known_page) * 1024u;
     }
-    large_page_size = large_page_size * 10 + digit;
+  }
+  return 0u;
+#else
+  return 0u;
+#endif
+}
+
+static size_t read_resource_limit(auto resource, size_t page_size) noexcept {
+  struct rlimit rlim;
+  if (getrlimit(resource, &rlim) == 0) {
+    if (rlim.rlim_cur == RLIM_INFINITY) {
+      return SIZE_MAX;
+    }
+
+    if constexpr (sizeof(rlim.rlim_cur) > sizeof(size_t)) {
+      if (rlim.rlim_cur > SIZE_MAX) {
+        return SIZE_MAX;
+      }
+    }
+
+    return static_cast<size_t>(rlim.rlim_cur) & make_page_mask(page_size);
+  }
+  else {
+    return SIZE_MAX;
+  }
+}
+
+Limits limits() noexcept {
+  size_t page_size = info().page_size;
+
+  Limits out {
+    .physical_memory_size = SIZE_MAX,
+    .address_space_limit = SIZE_MAX,
+    .file_size_limit = SIZE_MAX
+  };
+
+  // None can be cached. Number of physical pages depends on installed memory, which can support hotplug, and
+  // process limits can be lowered by syscalls, so we always have to get a fresh value instead of caching it.
+  long num_pages = sysconf(_SC_PHYS_PAGES);
+  if (num_pages > 0) {
+    out.physical_memory_size = axl::mul_saturate<size_t>(static_cast<size_t>(num_pages), page_size);
   }
 
-  if (axl::is_power_of_2(large_page_size))
-    return large_page_size;
-  else
-    return 0u;
+  out.address_space_limit = read_resource_limit(kRLimitAS, page_size);
+  out.file_size_limit = read_resource_limit(kRLimitFileSize, page_size);
+
+  return out;
+}
+
+size_t dual_mapping_size_limit() noexcept {
+#if defined(ASMJIT_ANONYMOUS_MEMORY_USE_REMAPDUP) || \
+    defined(ASMJIT_ANONYMOUS_MEMORY_USE_MACH_VM_REMAP) || \
+    defined(ASMJIT_ANONYMOUS_MEMORY_USE_FD)
+  size_t page_size = info().page_size;
+  size_t address_space_limit = read_resource_limit(kRLimitAS, page_size);
+
+#if defined(ASMJIT_ANONYMOUS_MEMORY_USE_FD)
+  size_t file_size_limit = read_resource_limit(kRLimitFileSize, page_size);
+  return axl::min(file_size_limit, address_space_limit);
+#else
+  return address_space_limit;
+#endif
 #else
   return 0u;
 #endif
@@ -563,6 +684,13 @@ static uint64_t generate_random_bits(uintptr_t stack_ptr, uint32_t attempt) noex
   return bits + uint64_t(++internal_counter) * 10619863;
 }
 
+[[maybe_unused]]
+static inline int default_open_flags() noexcept { return O_RDWR | O_CREAT | O_EXCL | O_CLOEXEC; }
+
+// shm_open() should automatically use O_CLOEXEC on a comforming implementation.
+[[maybe_unused]]
+static inline int default_shm_open_flags() noexcept { return O_RDWR | O_CREAT | O_EXCL; }
+
 class AnonymousMemory {
 public:
   enum FileType : uint32_t {
@@ -587,7 +715,7 @@ public:
 
   inline int fd() const noexcept { return _fd; }
 
-  Error open(bool prefer_tmp_over_dev_shm) noexcept {
+  Error open(bool prefer_tmp_over_dev_shm, [[maybe_unused]] size_t lp_size = 0u) noexcept {
 #if defined(__linux__) && defined(__NR_memfd_create)
     // Linux specific 'memfd_create' - if the syscall returns `ENOSYS` it means
     // it's not available and we will never call it again (would be pointless).
@@ -598,17 +726,22 @@ public:
 
     // Zero initialized, if ever changed to '1' that would mean the syscall is not
     // available and we must use `shm_open()` and `shm_unlink()` (or regular `open()`).
-    static volatile uint32_t memfd_create_not_supported;
+    static std::atomic<uint32_t> memfd_create_not_supported;
 
-    if (!memfd_create_not_supported) {
-      _fd = (int)syscall(__NR_memfd_create, "vmem", MFD_CLOEXEC | get_mfd_exec_flag());
+    if (!memfd_create_not_supported.load(std::memory_order::relaxed)) {
+      uint32_t flags = get_mfd_exec_flag() | MFD_CLOEXEC;
+      if (lp_size != 0u) {
+        flags |= uint32_t(MFD_HUGETLB) | (uint32_t(axl::ctz(lp_size)) << MFD_HUGE_SHIFT);
+      }
+
+      _fd = (int)syscall(__NR_memfd_create, "vmem", flags);
       if (ASMJIT_LIKELY(_fd >= 0)) {
         return Error::kOk;
       }
 
       int e = errno;
       if (e == ENOSYS) {
-        memfd_create_not_supported = 1;
+        memfd_create_not_supported.store(1, std::memory_order::relaxed);
       }
       else {
         return make_error(asmjit_error_from_errno(e));
@@ -616,10 +749,14 @@ public:
     }
 #endif // __linux__ && __NR_memfd_create
 
+    if (lp_size != 0) {
+      return make_error(Error::kFeatureNotEnabled);
+    }
+
 #if defined(ASMJIT_HAS_SHM_OPEN) && defined(SHM_ANON)
     // Originally FreeBSD extension, apparently works in other BSDs too.
     axl::maybe_unused(prefer_tmp_over_dev_shm);
-    _fd = ::shm_open(SHM_ANON, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
+    _fd = ::shm_open(SHM_ANON, default_shm_open_flags(), S_IRUSR | S_IWUSR);
 
     if (ASMJIT_LIKELY(_fd >= 0)) {
       return Error::kOk;
@@ -639,9 +776,9 @@ public:
       uint64_t bits = generate_random_bits((uintptr_t)this, i);
 
       if (use_tmp) {
-        _tmp_name.assign(get_tmp_dir());
-        _tmp_name.append_format(shm_format_string, (unsigned long long)bits);
-        _fd = ASMJIT_FILE64_API(::open)(_tmp_name.data(), O_RDWR | O_CREAT | O_EXCL, 0);
+        ASMJIT_PROPAGATE(_tmp_name.assign(get_tmp_dir()));
+        ASMJIT_PROPAGATE(_tmp_name.append_format(shm_format_string, (unsigned long long)bits));
+        _fd = ASMJIT_FILE64_API(::open)(_tmp_name.data(), default_open_flags(), 0);
         if (ASMJIT_LIKELY(_fd >= 0)) {
           _file_type = kFileTypeTmp;
           return Error::kOk;
@@ -649,8 +786,8 @@ public:
       }
 #if defined(ASMJIT_HAS_SHM_OPEN)
       else {
-        _tmp_name.assign_format(shm_format_string, (unsigned long long)bits);
-        _fd = ::shm_open(_tmp_name.data(), O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
+        ASMJIT_PROPAGATE(_tmp_name.assign_format(shm_format_string, (unsigned long long)bits));
+        _fd = ::shm_open(_tmp_name.data(), default_shm_open_flags(), S_IRUSR | S_IWUSR);
         if (ASMJIT_LIKELY(_fd >= 0)) {
           _file_type = kFileTypeShm;
           return Error::kOk;
@@ -703,24 +840,23 @@ public:
 };
 
 #if ASMJIT_VM_SHM_DETECT
-static Error detect_anonymous_memory_strategy(Out<AnonymousMemoryStrategy> strategy_out) noexcept {
+static Error detect_anonymous_memory_strategy(Out<AnonymousMemoryStrategy> strategy_out, size_t page_size) noexcept {
   AnonymousMemory anon_mem;
-  Info vm_info = info();
 
   ASMJIT_PROPAGATE(anon_mem.open(false));
-  ASMJIT_PROPAGATE(anon_mem.allocate(vm_info.page_size));
+  ASMJIT_PROPAGATE(anon_mem.allocate(page_size));
 
-  void* ptr = mmap(nullptr, vm_info.page_size, PROT_READ | PROT_EXEC, MAP_SHARED, anon_mem.fd(), 0);
+  void* ptr = mmap(nullptr, page_size, PROT_READ | PROT_EXEC, MAP_SHARED, anon_mem.fd(), 0);
   if (ptr == MAP_FAILED) {
     int e = errno;
-    if (e == EINVAL) {
+    if (e == EINVAL || e == EPERM) {
       *strategy_out = AnonymousMemoryStrategy::kTmpDir;
       return Error::kOk;
     }
     return make_error(asmjit_error_from_errno(e));
   }
   else {
-    munmap(ptr, vm_info.page_size);
+    munmap(ptr, page_size);
     *strategy_out = AnonymousMemoryStrategy::kDevShm;
     return Error::kOk;
   }
@@ -734,7 +870,16 @@ static Error get_anonymous_memory_strategy(AnonymousMemoryStrategy* strategy_out
 
   AnonymousMemoryStrategy strategy = static_cast<AnonymousMemoryStrategy>(cached_strategy.load());
   if (strategy == AnonymousMemoryStrategy::kUnknown) {
-    ASMJIT_PROPAGATE(detect_anonymous_memory_strategy(Out(strategy)));
+    Info vm_info = info();
+    size_t file_size_limit = read_resource_limit(kRLimitFileSize, vm_info.page_size);
+
+    if (file_size_limit < vm_info.page_size) {
+      // Do not cache anything if we cannot map a single page, just return kTmpDir.
+      *strategy_out = AnonymousMemoryStrategy::kTmpDir;
+      return Error::kOk;
+    }
+
+    ASMJIT_PROPAGATE(detect_anonymous_memory_strategy(Out(strategy), vm_info.page_size));
     cached_strategy.store(static_cast<uint32_t>(strategy));
   }
 
@@ -1093,15 +1238,36 @@ static Error alloc_dual_mapping_using_mach_vm_remap(Out<DualMapping> dm_out, siz
 
 #if defined(ASMJIT_ANONYMOUS_MEMORY_USE_FD)
 static Error alloc_dual_mapping_using_file(Out<DualMapping> dm, size_t size, MemoryFlags memory_flags) noexcept {
+  Info vm_info = info();
+  size_t file_size_limit = read_resource_limit(kRLimitFileSize, vm_info.page_size);
+
+  if (size > file_size_limit) {
+    return make_error(Error::kTooLarge);
+  }
+
+  bool use_large_pages = axl::test(memory_flags, MemoryFlags::kMMapLargePages);
+  size_t lp_size = 0u;
+
+  if (use_large_pages) {
+    lp_size = large_page_size();
+    if (lp_size == 0u) {
+      return make_error(Error::kFeatureNotEnabled);
+    }
+
+    if (!axl::is_aligned(size, lp_size)) {
+      return make_error(Error::kInvalidArgument);
+    }
+  }
+
   bool prefer_tmp_over_dev_shm = axl::test(memory_flags, MemoryFlags::kMappingPreferTmp);
-  if (!prefer_tmp_over_dev_shm) {
+  if (!prefer_tmp_over_dev_shm && lp_size == 0u) {
     AnonymousMemoryStrategy strategy;
     ASMJIT_PROPAGATE(get_anonymous_memory_strategy(&strategy));
     prefer_tmp_over_dev_shm = (strategy == AnonymousMemoryStrategy::kTmpDir);
   }
 
   AnonymousMemory anon_mem;
-  ASMJIT_PROPAGATE(anon_mem.open(prefer_tmp_over_dev_shm));
+  ASMJIT_PROPAGATE(anon_mem.open(prefer_tmp_over_dev_shm, lp_size));
   ASMJIT_PROPAGATE(anon_mem.allocate(size));
 
   void* ptr[2];
@@ -1182,17 +1348,22 @@ void flush_instruction_cache(void* p, size_t size) noexcept {
 
 Info info() noexcept {
   static std::atomic<uint32_t> vm_info_initialized;
-  static Info vm_info;
+  static std::atomic<uint32_t> page_size;
+  static std::atomic<uint32_t> page_granularity;
 
   if (!vm_info_initialized.load()) {
     Info local_mem_info;
     detect_vm_info(local_mem_info);
 
-    vm_info = local_mem_info;
-    vm_info_initialized.store(1u);
+    page_size.store(local_mem_info.page_size, std::memory_order::relaxed);
+    page_granularity.store(local_mem_info.page_granularity, std::memory_order::relaxed);
+    vm_info_initialized.store(1u, std::memory_order::seq_cst);
   }
 
-  return vm_info;
+  return {
+    page_size.load(std::memory_order::relaxed),
+    page_granularity.load(std::memory_order::relaxed)
+  };
 }
 
 size_t large_page_size() noexcept {

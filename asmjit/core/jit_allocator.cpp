@@ -518,6 +518,17 @@ static ASMJIT_INLINE size_t JitAllocator_calculate_ideal_block_size(JitAllocator
     }
   }
 
+  if (axl::test(impl->options, JitAllocatorOptions::kUseDualMapping)) {
+    size_t dm_limit = VirtMem::dual_mapping_size_limit();
+    if (block_size > dm_limit) {
+      block_size = dm_limit;
+      if (allocation_size > block_size) {
+        return 0;
+      }
+    }
+
+  }
+
   return block_size;
 }
 
@@ -601,7 +612,7 @@ static Error JitAllocator_new_block(JitAllocatorPrivateImpl* impl, JitAllocatorB
     virt_mem.rw = virt_mem.rx;
   }
 
-  uint32_t area_size = uint32_t((block_size + pool->granularity - 1) >> pool->granularity_log2);
+  uint32_t area_size = uint32_t(block_size >> pool->granularity_log2);
   uint32_t bit_word_count = (area_size + kBitWordSizeInBits - 1u) / kBitWordSizeInBits;
   uint8_t* block_ptr = static_cast<uint8_t*>(::malloc(sizeof(JitAllocatorBlock) + size_t(bit_word_count) * 2u * sizeof(BitWord)));
 

@@ -689,7 +689,12 @@ if (TRUE)
         CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
         CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
 
-      foreach(app asmjit_test_cpu_info asmjit_test_environment asmjit_test_emitters asmjit_test_x86_sections asmjit_test_struct_sizes)
+      foreach(app asmjit_test_cpu_info
+                  asmjit_test_environment
+                  asmjit_test_emitters
+                  asmjit_test_rlimit
+                  asmjit_test_x86_sections
+                  asmjit_test_struct_sizes)
         asmjit_add_target(${app} TEST
           SOURCES    asmjit-testing/tests/${app}.cpp
           LIBRARIES  asmjit::asmjit

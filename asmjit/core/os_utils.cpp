@@ -22,7 +22,7 @@ Error OSUtils::read_file(const char* name, String& dst, size_t max_size) noexcep
     return make_error(Error::kOutOfMemory);
   }
 
-  int fd = ASMJIT_FILE64_API(::open)(name, O_RDONLY);
+  int fd = ASMJIT_FILE64_API(::open)(name, O_RDONLY | O_CLOEXEC);
   if (fd < 0) {
     dst.clear();
     return make_error(Error::kFailedToOpenFile);
