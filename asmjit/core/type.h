@@ -7,7 +7,6 @@
 #define ASMJIT_CORE_TYPE_H_INCLUDED
 
 #include <asmjit/core/globals.h>
-#include <asmjit/support/support.h>
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -152,7 +151,6 @@ enum class TypeId : uint8_t {
 
   kMaxValue = 255
 };
-ASMJIT_DEFINE_ENUM_COMPARE(TypeId)
 
 //! Type identifier utilities.
 namespace TypeUtils {
@@ -174,7 +172,7 @@ static ASMJIT_INLINE_NODEBUG uint32_t size_of(TypeId type_id) noexcept { return 
 //! Tests whether a given type `type_id` is between `a` and `b`.
 [[nodiscard]]
 static ASMJIT_INLINE_CONSTEXPR bool is_between(TypeId type_id, TypeId a, TypeId b) noexcept {
-  return Support::is_between(uint32_t(type_id), uint32_t(a), uint32_t(b));
+  return axl::is_between(uint32_t(type_id), uint32_t(a), uint32_t(b));
 }
 
 //! Tests whether a given type `type_id` is \ref TypeId::kVoid.

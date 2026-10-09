@@ -1560,21 +1560,6 @@ static void ASMJIT_NOINLINE test_x64_assembler_base_ext(AssemblerTester<x86::Ass
   TEST_INSTRUCTION("C4E2F0F3CA"                    , blsr(rcx, rdx));
   TEST_INSTRUCTION("C4E2F0F38C1A80000000"          , blsr(rcx, ptr(rdx, rbx, 0, 128)));
   TEST_INSTRUCTION("C4E2F0F38C1A80000000"          , blsr(rcx, qword_ptr(rdx, rbx, 0, 128)));
-  TEST_INSTRUCTION("F30F1ACA"                      , bndcl(bnd1, rdx));
-  TEST_INSTRUCTION("F30F1A8C1A80000000"            , bndcl(bnd1, ptr(rdx, rbx, 0, 128)));
-  TEST_INSTRUCTION("F30F1A8C1A80000000"            , bndcl(bnd1, qword_ptr(rdx, rbx, 0, 128)));
-  TEST_INSTRUCTION("F20F1BCA"                      , bndcn(bnd1, rdx));
-  TEST_INSTRUCTION("F20F1B8C1A80000000"            , bndcn(bnd1, ptr(rdx, rbx, 0, 128)));
-  TEST_INSTRUCTION("F20F1B8C1A80000000"            , bndcn(bnd1, qword_ptr(rdx, rbx, 0, 128)));
-  TEST_INSTRUCTION("F20F1ACA"                      , bndcu(bnd1, rdx));
-  TEST_INSTRUCTION("F20F1A8C1A80000000"            , bndcu(bnd1, ptr(rdx, rbx, 0, 128)));
-  TEST_INSTRUCTION("F20F1A8C1A80000000"            , bndcu(bnd1, qword_ptr(rdx, rbx, 0, 128)));
-  TEST_INSTRUCTION("0F1A8C1A80000000"              , bndldx(bnd1, ptr(rdx, rbx, 0, 128)));
-  TEST_INSTRUCTION("F30F1B8C1A80000000"            , bndmk(bnd1, ptr(rdx, rbx, 0, 128)));
-  TEST_INSTRUCTION("660F1ACA"                      , bndmov(bnd1, bnd2));
-  TEST_INSTRUCTION("660F1A8C1A80000000"            , bndmov(bnd1, ptr(rdx, rbx, 0, 128)));
-  TEST_INSTRUCTION("660F1B9C1180000000"            , bndmov(ptr(rcx, rdx, 0, 128), bnd3));
-  TEST_INSTRUCTION("0F1B9C1180000000"              , bndstx(ptr(rcx, rdx, 0, 128), bnd3));
   TEST_INSTRUCTION("C4E260F5CA"                    , bzhi(ecx, edx, ebx));
   TEST_INSTRUCTION("C4E258F58C1A80000000"          , bzhi(ecx, ptr(rdx, rbx, 0, 128), esp));
   TEST_INSTRUCTION("C4E258F58C1A80000000"          , bzhi(ecx, dword_ptr(rdx, rbx, 0, 128), esp));
@@ -17977,8 +17962,6 @@ static void ASMJIT_NOINLINE test_x64_assembler_extra(AssemblerTester<x86::Assemb
 
   TEST_INSTRUCTION("F00118"                        , lock().add(ptr(rax), ebx));
   TEST_INSTRUCTION("F0480FC138"                    , lock().xadd(ptr(rax), rdi));
-  TEST_INSTRUCTION("F2F0480108"                    , xacquire().lock().add(qword_ptr(rax), rcx));
-  TEST_INSTRUCTION("F3F0480108"                    , xrelease().lock().add(qword_ptr(rax), rcx));
 
   // MOD RM & MR tests.
   TEST_INSTRUCTION("01CB"                          , mod_mr().add(ebx, ecx));

@@ -113,71 +113,71 @@ public:
 
     switch (_arg_count) {
       case 0:
-        result_ret = ptr_as_func<Func0>(_func)();
+        result_ret = axl::ptr_as_func<Func0>(_func)();
         expect_ret = 0;
         break;
       case 1:
-        result_ret = ptr_as_func<Func1>(_func)(1);
+        result_ret = axl::ptr_as_func<Func1>(_func)(1);
         expect_ret = 1;
         break;
       case 2:
-        result_ret = ptr_as_func<Func2>(_func)(1, 2);
+        result_ret = axl::ptr_as_func<Func2>(_func)(1, 2);
         expect_ret = 1 + 2;
         break;
       case 3:
-        result_ret = ptr_as_func<Func3>(_func)(1, 2, 3);
+        result_ret = axl::ptr_as_func<Func3>(_func)(1, 2, 3);
         expect_ret = 1 + 2 + 3;
         break;
       case 4:
-        result_ret = ptr_as_func<Func4>(_func)(1, 2, 3, 4);
+        result_ret = axl::ptr_as_func<Func4>(_func)(1, 2, 3, 4);
         expect_ret = 1 + 2 + 3 + 4;
         break;
       case 5:
-        result_ret = ptr_as_func<Func5>(_func)(1, 2, 3, 4, 5);
+        result_ret = axl::ptr_as_func<Func5>(_func)(1, 2, 3, 4, 5);
         expect_ret = 1 + 2 + 3 + 4 + 5;
         break;
       case 6:
-        result_ret = ptr_as_func<Func6>(_func)(1, 2, 3, 4, 5, 6);
+        result_ret = axl::ptr_as_func<Func6>(_func)(1, 2, 3, 4, 5, 6);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6;
         break;
       case 7:
-        result_ret = ptr_as_func<Func7>(_func)(1, 2, 3, 4, 5, 6, 7);
+        result_ret = axl::ptr_as_func<Func7>(_func)(1, 2, 3, 4, 5, 6, 7);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7;
         break;
       case 8:
-        result_ret = ptr_as_func<Func8>(_func)(1, 2, 3, 4, 5, 6, 7, 8);
+        result_ret = axl::ptr_as_func<Func8>(_func)(1, 2, 3, 4, 5, 6, 7, 8);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8;
         break;
       case 9:
-        result_ret = ptr_as_func<Func9>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9);
+        result_ret = axl::ptr_as_func<Func9>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9;
         break;
       case 10:
-        result_ret = ptr_as_func<Func10>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+        result_ret = axl::ptr_as_func<Func10>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10;
         break;
       case 11:
-        result_ret = ptr_as_func<Func11>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+        result_ret = axl::ptr_as_func<Func11>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11;
         break;
       case 12:
-        result_ret = ptr_as_func<Func12>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+        result_ret = axl::ptr_as_func<Func12>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 12;
         break;
       case 13:
-        result_ret = ptr_as_func<Func13>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
+        result_ret = axl::ptr_as_func<Func13>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 12 + 13;
         break;
       case 14:
-        result_ret = ptr_as_func<Func14>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14);
+        result_ret = axl::ptr_as_func<Func14>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 12 + 13 + 14;
         break;
       case 15:
-        result_ret = ptr_as_func<Func15>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
+        result_ret = axl::ptr_as_func<Func15>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 12 + 13 + 14 + 15;
         break;
       case 16:
-        result_ret = ptr_as_func<Func16>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+        result_ret = axl::ptr_as_func<Func16>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 12 + 13 + 14 + 15 + 16;
         break;
     }
@@ -234,7 +234,7 @@ public:
     // NOTE: It's a byte-add, so uint8_t(255+1) == 0.
     uint32_t ref[4] = { 99, 18, 35, 0 };
 
-    ptr_as_func<Func>(_func)(dst, a_src, b_src);
+    axl::ptr_as_func<Func>(_func)(dst, a_src, b_src);
 
     result.assign_format("ret={%u, %u, %u, %u}", dst[0], dst[1], dst[2], dst[3]);
     expect.assign_format("ret={%u, %u, %u, %u}", ref[0], ref[1], ref[2], ref[3]);
@@ -286,7 +286,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(void);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     result.assign_format("ret={%d}", func());
     expect.assign_format("ret={%d}", calc_sum());
@@ -334,7 +334,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(void);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     result.assign_format("ret={%d}", func());
     expect.assign_format("ret={%d}", 3);
@@ -379,7 +379,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(void* p, size_t n);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     uint8_t array[16];
     func(array, 16);
@@ -424,7 +424,7 @@ public:
     cc.mov(fn, (uint64_t)called_fn);
 
     InvokeNode* invoke_node;
-    cc.invoke(Out(invoke_node), fn, FuncSignature::build<uint32_t, uint32_t, uint32_t>());
+    cc.invoke(Out(invoke_node), fn, FuncSignature::build<uint32_t, uint32_t, uint32_t>(), pauth_c_func());
     invoke_node->set_arg(0, x);
     invoke_node->set_arg(1, y);
     invoke_node->set_ret(0, r);
@@ -435,7 +435,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = uint32_t (*)(uint32_t, uint32_t);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     uint32_t x = 49;
     uint32_t y = 7;
@@ -476,7 +476,7 @@ public:
     cc.mov(fn, (uint64_t)called_fn);
 
     InvokeNode* invoke_node;
-    cc.invoke(Out(invoke_node), fn, FuncSignature::build<double, double, double>());
+    cc.invoke(Out(invoke_node), fn, FuncSignature::build<double, double, double>(), pauth_c_func());
     invoke_node->set_arg(0, x);
     invoke_node->set_arg(1, y);
     invoke_node->set_ret(0, r);
@@ -487,7 +487,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = double (*)(double, double);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     double x = 49;
     double y = 7;
@@ -528,7 +528,7 @@ public:
     cc.mov(fn, (uint64_t)called_fn);
 
     InvokeNode* invoke_node;
-    cc.invoke(Out(invoke_node), fn, FuncSignature::build<double, double, double>());
+    cc.invoke(Out(invoke_node), fn, FuncSignature::build<double, double, double>(), pauth_c_func());
     invoke_node->set_arg(0, y);
     invoke_node->set_arg(1, x);
     invoke_node->set_ret(0, r);
@@ -539,7 +539,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = double (*)(double, double);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     double x = 49;
     double y = 7;
@@ -555,6 +555,133 @@ public:
   }
 };
 
+// a64::Compiler - A64Test_Invoke4
+// ===============================
+
+class A64Test_Invoke4 : public A64TestCase {
+public:
+  A64Test_Invoke4()
+    : A64TestCase("Invoke4") {}
+
+  static void add(TestApp& app) {
+    app.add(new A64Test_Invoke4());
+  }
+
+  void compile(a64::Compiler& cc) override {
+    FuncNode* called_fn = cc.new_func(FuncSignature::build<uint32_t, uint32_t, uint32_t>());
+    FuncNode* main_fn = cc.add_func(FuncSignature::build<uint32_t, uint32_t, uint32_t>());
+
+    {
+      a64::Gp v1 = cc.new_gp32("v1");
+      a64::Gp v2 = cc.new_gp32("v2");
+
+      InvokeNode* invoke_node;
+      cc.invoke(Out(invoke_node), called_fn->label(), FuncSignature::build<uint32_t, uint32_t, uint32_t>());
+
+      main_fn->set_arg(0, v1);
+      main_fn->set_arg(1, v2);
+
+      invoke_node->set_ret(0, v1);
+      invoke_node->set_arg(0, v1);
+      invoke_node->set_arg(1, v2);
+
+      cc.ret(v1);
+      cc.end_func();
+    }
+
+    {
+      a64::Gp v1 = cc.new_gp32("v1");
+      a64::Gp v2 = cc.new_gp32("v2");
+
+      cc.add_func(called_fn);
+
+      called_fn->set_arg(0, v1);
+      called_fn->set_arg(1, v2);
+
+      cc.add(v1, v1, v2);
+      cc.ret(v1);
+      cc.end_func();
+    }
+  }
+
+  bool run(void* _func, String& result, String& expect) override {
+    using Func = uint32_t (*)(uint32_t, uint32_t);
+    Func func = axl::ptr_as_func<Func>(_func);
+
+    result.assign_format("ret={%u}", func(10, 32));
+    expect.assign_format("ret={%u}", 42);
+
+    return result == expect;
+  }
+};
+
+// a64::Compiler - A64Test_Invoke5
+// ===============================
+
+class A64Test_Invoke5 : public A64TestCase {
+public:
+  A64Test_Invoke5()
+    : A64TestCase("Invoke5") {}
+
+  static void add(TestApp& app) {
+    app.add(new A64Test_Invoke5());
+  }
+
+  void compile(a64::Compiler& cc) override {
+    static constexpr uint32_t kRegCount = 2;
+
+    cc.add_func(FuncSignature::build<uint32_t>());
+
+    a64::Gp fn = cc.new_gp_ptr("fn");
+    a64::Gp out = cc.new_gp32("out");
+    a64::Gp gpr[kRegCount];
+
+    Label L_Done = cc.new_label();
+    Label L_Failed = cc.new_label();
+
+    cc.mov(fn, (uint64_t)called_fn);
+
+    for (uint32_t i = 0; i < kRegCount; i++) {
+      gpr[i] = cc.new_gp32("reg%u", i);
+      cc.mov(gpr[i], i + 1000u);
+    }
+
+    cc.virt_reg_by_reg(gpr[kRegCount - 1])->set_home_id_hint(a64::Gp::kIdLr);
+
+    InvokeNode* invoke_node;
+    cc.invoke(Out(invoke_node), fn, FuncSignature::build<uint32_t>(), pauth_c_func());
+    invoke_node->set_ret(0, out);
+
+    for (uint32_t i = 0; i < kRegCount; i++) {
+      cc.cmp(gpr[i], i + 1000u);
+      cc.b_ne(L_Failed);
+    }
+
+    cc.b(L_Done);
+
+    cc.bind(L_Failed);
+    cc.mov(out, 0xFFFFFFFFu);
+
+    cc.bind(L_Done);
+    cc.ret(out);
+    cc.end_func();
+  }
+
+  bool run(void* _func, String& result, String& expect) override {
+    using Func = uint32_t (*)(void);
+    Func func = axl::ptr_as_func<Func>(_func);
+
+    result.assign_format("ret={%u}", func());
+    expect.assign_format("ret={%u}", called_fn());
+
+    return result == expect;
+  }
+
+  static uint32_t called_fn() {
+    return 42;
+  }
+};
+
 // a64::Compiler - A64Test_JumpTable
 // =================================
 
@@ -565,7 +692,7 @@ public:
   A64Test_JumpTable(bool annotated)
     : A64TestCase("A64Test_JumpTable"),
       _annotated(annotated) {
-    _name.assign_format("JumpTable {%s}", annotated ? "Annotated" : "Unknown Target");
+    _name.assign_format("JumpTable {%s}", annotated ? "Annotated" : "Not Annotated");
   }
 
   enum Operator {
@@ -648,7 +775,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = float (*)(float, float, uint32_t);
-    Func func = ptr_as_func<Func>(_func);
+    Func func = axl::ptr_as_func<Func>(_func);
 
     float dst[4];
     float ref[4];
@@ -738,6 +865,8 @@ void compiler_add_a64_tests(TestApp& app) {
   app.add_t<A64Test_Invoke1>();
   app.add_t<A64Test_Invoke2>();
   app.add_t<A64Test_Invoke3>();
+  app.add_t<A64Test_Invoke4>();
+  app.add_t<A64Test_Invoke5>();
   app.add_t<A64Test_JumpTable>();
   app.add_t<A64Test_FuncTailCall>();
 }

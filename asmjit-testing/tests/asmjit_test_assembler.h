@@ -58,7 +58,7 @@ public:
 
     if (err != asmjit::Error::kOk) {
       printf("  !! %s\n"
-             "    <%s>\n", s, asmjit::DebugUtils::error_as_string(err));
+             "    <%s>\n", s, asmjit::stringify_error(err));
       prepare();
       return false;
     }
@@ -86,19 +86,19 @@ public:
     count++;
 
     if (err == asmjit::Error::kOk) {
-      printf("  !! %s passed, but should have failed with <%s> error\n", s, asmjit::DebugUtils::error_as_string(expected_error));
+      printf("  !! %s passed, but should have failed with <%s> error\n", s, asmjit::stringify_error(expected_error));
       prepare();
       return false;
     }
 
     if (err != asmjit::Error::kOk) {
-      printf("  !! %s failed with <%s>, but should have failed with <%s>\n", s, asmjit::DebugUtils::error_as_string(err), asmjit::DebugUtils::error_as_string(expected_error));
+      printf("  !! %s failed with <%s>, but should have failed with <%s>\n", s, asmjit::stringify_error(err), asmjit::stringify_error(expected_error));
       prepare();
       return false;
     }
 
     if (settings.verbose)
-      printf("  OK [%s] <- %s\n", asmjit::DebugUtils::error_as_string(err), s);
+      printf("  OK [%s] <- %s\n", asmjit::stringify_error(err), s);
 
     passed++;
     prepare();

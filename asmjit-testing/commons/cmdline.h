@@ -3,8 +3,8 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#ifndef CMDLINE_H_INCLUDED
-#define CMDLINE_H_INCLUDED
+#ifndef ASMJIT_TESTING_COMMONS_CMDLINE_H_INCLUDED
+#define ASMJIT_TESTING_COMMONS_CMDLINE_H_INCLUDED
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -60,4 +60,4 @@ public:
   }
 };
 
-#endif // CMDLINE_H_INCLUDED
+#endif // ASMJIT_TESTING_COMMONS_CMDLINE_H_INCLUDED

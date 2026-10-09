@@ -202,10 +202,6 @@ class GenUtils {
   static flagsOf(dbInsts) {
     const f = Object.create(null);
 
-    let mib = dbInsts.length > 0 && /^(?:bndldx|bndstx)$/.test(dbInsts[0].name);
-    if (mib)
-      f.Mib = true;
-
     let mmx = false;
     let vec = false;
 
@@ -236,14 +232,15 @@ class GenUtils {
       const dbInst = dbInsts[i];
       const operands = dbInst.operands;
 
-      if (dbInst.prefixes.lock           ) f.Lock            = true;
-      if (dbInst.prefixes.xacquire       ) f.XAcquire        = true;
-      if (dbInst.prefixes.xrelease       ) f.XRelease        = true;
-      if (dbInst.prefixes.bnd            ) f.Rep             = true;
-      if (dbInst.prefixes.rep            ) f.Rep             = true;
-      if (dbInst.prefixes.repne          ) f.Rep             = true;
-      if (dbInst.prefixes.repIgnore      ) f.RepIgnored      = true;
-      if (dbInst.k === "zeroing"         ) f.Avx512ImplicitZ = true;
+      if (dbInst.prefixes.lock       ) f.Lock            = true;
+      if (dbInst.prefixes.rep        ) f.Rep             = true;
+      if (dbInst.prefixes.repne      ) f.Rep             = true;
+      if (dbInst.prefixes.rep_ignored) f.RepIgnored      = true;
+      // TODO[DBGEN]
+      if (dbInst.prefixes.k_zeroing  ) {
+        f.Avx512ImplicitZ = true;
+      }
+      // if (dbInst.prefixes.k_blending ) f.Avx512ImplicitZ = true;
 
       if (dbInst.category.FPU) {
         for (let j = 0; j < operands.length; j++) {
@@ -469,7 +466,7 @@ class X86TableGen extends core.TableGen {
   // --------------------------------------------------------------------------
 
   parse() {
-    const data = this.dataOfFile("asmjit/x86/x86instdb.cpp");
+    const data = this.dataOfFile("asmjit/x86/x86_inst_db.cpp");
     const re = new RegExp(
       "INST\\(" +
         "([A-Za-z0-9_]+)\\s*"              + "," +  // [01] Instruction.
@@ -777,10 +774,10 @@ class X86TableGen extends core.TableGen {
 
   onBeforeRun() {
     this.load([
-      "asmjit/x86/x86globals.h",
-      "asmjit/x86/x86instdb.cpp",
-      "asmjit/x86/x86instdb.h",
-      "asmjit/x86/x86instdb_p.h"
+      "asmjit/x86/x86_globals.h",
+      "asmjit/x86/x86_inst_db.cpp",
+      "asmjit/x86/x86_inst_db.h",
+      "asmjit/x86/x86_inst_db_p.h"
     ]);
     this.parse();
   }
@@ -990,11 +987,11 @@ class AltOpcodeTable extends core.Task {
 // [tablegen.x86.InstSignatureTable]
 // ============================================================================
 
-const RegOp = ArrayUtils.toDict(["al", "ah", "ax", "eax", "rax", "cl", "r8lo", "r8hi", "r16", "r32", "r64", "xmm", "ymm", "zmm", "mm", "k", "sreg", "creg", "dreg", "st", "bnd"]);
+const RegOp = ArrayUtils.toDict(["al", "ah", "ax", "eax", "rax", "cl", "r8lo", "r8hi", "r16", "r32", "r64", "xmm", "ymm", "zmm", "mm", "k", "sreg", "creg", "dreg", "st"]);
 const MemOp = ArrayUtils.toDict(["m8", "m16", "m32", "m48", "m64", "m80", "m128", "m256", "m512", "m1024"]);
 
 const cmpOp = StringUtils.makePriorityCompare([
-  "RegGpbLo", "RegGpbHi", "RegGpw", "RegGpd", "RegGpq", "RegXmm", "RegYmm", "RegZmm", "RegMm", "RegKReg", "RegSReg", "RegCReg", "RegDReg", "RegSt", "RegBnd", "RegTmm",
+  "RegGpbLo", "RegGpbHi", "RegGpw", "RegGpd", "RegGpq", "RegXmm", "RegYmm", "RegZmm", "RegMm", "RegKReg", "RegSReg", "RegCReg", "RegDReg", "RegSt", "RegTmm",
   "MemUnspecified", "Mem8", "Mem16", "Mem32", "Mem48", "Mem64", "Mem80", "Mem128", "Mem256", "Mem512", "Mem1024",
   "Vm32x", "Vm32y", "Vm32z", "Vm64x", "Vm64y", "Vm64z",
   "ImmI4", "ImmU4", "ImmI8", "ImmU8", "ImmI16", "ImmU16", "ImmI32", "ImmU32", "ImmI64", "ImmU64",
@@ -1111,7 +1108,6 @@ class OSignature {
         case "creg"    : opFlags.RegCReg = true; break;
         case "dreg"    : opFlags.RegDReg = true; break;
         case "sreg"    : opFlags.RegSReg = true; break;
-        case "bnd"     : opFlags.RegBnd = true; break;
         case "st"      : opFlags.RegSt = true; break;
         case "k"       : opFlags.RegKReg = true; break;
         case "mm"      : opFlags.RegMm = true; break;
@@ -1131,8 +1127,7 @@ class OSignature {
         case "m512"    : opFlags.Mem512 = true; break;
         case "m1024"   : opFlags.Mem1024 = true; break;
 
-        case "mem"     : opFlags.MemUnspecified = true; break;
-        case "mib"     : opFlags.MemUnspecified = true; opFlags.FlagMib = true; break;
+        case "m"       : opFlags.MemUnspecified = true; break;
         case "tmem"    : opFlags.MemUnspecified = true; opFlags.FlagTMem = true; break;
 
         case "memBase" : opFlags.FlagMemBase = true; break;
@@ -1307,7 +1302,7 @@ class SignatureArray extends Array {
 
         if (mem) {
           // Stop if the memory operand has implicit-size or if there is more than one.
-          if (aOp.flags.mem || memPos >= 0) {
+          if (aOp.flags.m || memPos >= 0) {
             memPos = -1;
             break;
           }
@@ -1350,7 +1345,7 @@ class SignatureArray extends Array {
 
         if (hasMatch) {
           const bOp = bInst[memPos];
-          if (bOp.flags.mem) continue;
+          if (bOp.flags.m) continue;
 
           const mem = ObjectUtils.findKey(bOp.flags, MemOp);
           if (mem === memOp) {
@@ -1392,7 +1387,7 @@ class SignatureArray extends Array {
                 // then keep this implicit as it won't do any harm. These instructions
                 // cannot be mixed and it will make implicit the 32-bit one in cases
                 // where X64 introduced 64-bit ones like `cvtsi2ss`.
-                if (!/^(bndcl|bndcn|bndcu|ptwrite|(v)?cvtsi2ss|(v)?cvtsi2sd|vcvtusi2ss|vcvtusi2sd)$/.test(instName))
+                if (!/^(ptwrite|(v)?cvtsi2ss|(v)?cvtsi2sd|vcvtusi2ss|vcvtusi2sd)$/.test(instName))
                   implicit = false;
               }
               else {
@@ -1407,7 +1402,7 @@ class SignatureArray extends Array {
       for (let bIndex = 0; bIndex < sameSizeSet.length; bIndex++) {
         const bInst = sameSizeSet[bIndex];
         if (implicit) {
-          bInst[memPos].flags.mem = true;
+          bInst[memPos].flags.m = true;
         }
 
         if (!implicit) {
@@ -1628,23 +1623,21 @@ class InstSignatureTable extends core.Task {
           if (inst.name === "mov" && mem.startsWith("moff"))
             break;
 
-          if (reg === "seg") reg = "sreg";
-          if (reg === "st(i)") reg = "st";
-          if (reg === "st(0)") reg = "st0";
+          if (reg === "sti") reg = "st";
 
-          if (mem === "moff8") mem = "m8";
-          if (mem === "moff16") mem = "m16";
-          if (mem === "moff32") mem = "m32";
-          if (mem === "moff64") mem = "m64";
+          if (mem === "m8_abs") mem = "m8";
+          if (mem === "m16_abs") mem = "m16";
+          if (mem === "m32_abs") mem = "m32";
+          if (mem === "m64_abs") mem = "m64";
 
-          if (mem === "m32fp") mem = "m32";
-          if (mem === "m64fp") mem = "m64";
-          if (mem === "m80fp") mem = "m80";
-          if (mem === "m80bcd") mem = "m80";
-          if (mem === "m80dec") mem = "m80";
-          if (mem === "m16int") mem = "m16";
-          if (mem === "m32int") mem = "m32";
-          if (mem === "m64int") mem = "m64";
+          if (mem === "m32_fp") mem = "m32";
+          if (mem === "m64_fp") mem = "m64";
+          if (mem === "m80_fp") mem = "m80";
+          if (mem === "m80_bcd") mem = "m80";
+          if (mem === "m80_dec") mem = "m80";
+          if (mem === "m16_int") mem = "m16";
+          if (mem === "m32_int") mem = "m32";
+          if (mem === "m64_int") mem = "m64";
 
           if (mem === "m16_16") mem = "m32";
           if (mem === "m16_32") mem = "m48";
@@ -1675,16 +1668,16 @@ class InstSignatureTable extends core.Task {
               case "outsb": op.flags.m8 = true; break;
               case "outsw": op.flags.m16 = true; break;
               case "outsd": op.flags.m32 = true; break;
-              case "clzero": op.flags.mem = true; op.flags.m512 = true; break;
-              case "enqcmd": op.flags.mem = true; op.flags.m512 = true; break;
-              case "enqcmds": op.flags.mem = true; op.flags.m512 = true; break;
-              case "movdir64b": op.flags.mem = true; op.flags.m512 = true; break;
-              case "maskmovq": op.flags.mem = true; op.flags.m64 = true; break;
-              case "maskmovdqu": op.flags.mem = true; op.flags.m128 = true; break;
-              case "vmaskmovdqu": op.flags.mem = true; op.flags.m128 = true; break;
-              case "monitor": op.flags.mem = true; break;
-              case "monitorx": op.flags.mem = true; break;
-              case "umonitor": op.flags.mem = true; break;
+              case "clzero": op.flags.m = true; op.flags.m512 = true; break;
+              case "enqcmd": op.flags.m = true; op.flags.m512 = true; break;
+              case "enqcmds": op.flags.m = true; op.flags.m512 = true; break;
+              case "movdir64b": op.flags.m = true; op.flags.m512 = true; break;
+              case "maskmovq": op.flags.m = true; op.flags.m64 = true; break;
+              case "maskmovdqu": op.flags.m = true; op.flags.m128 = true; break;
+              case "vmaskmovdqu": op.flags.m = true; op.flags.m128 = true; break;
+              case "monitor": op.flags.m = true; break;
+              case "monitorx": op.flags.m = true; break;
+              case "umonitor": op.flags.m = true; break;
               default: console.log(`UNKNOWN MEM IN INSTRUCTION '${inst.name}'`); break;
             }
 
@@ -1716,13 +1709,13 @@ class InstSignatureTable extends core.Task {
             op.flags[mem] = true;
             // HACK: Allow LEA to use any memory size.
             if (/^(lea)$/.test(inst.name)) {
-              op.flags.mem = true;
+              op.flags.m = true;
               Object.assign(op.flags, MemOp);
             }
 
             // HACK: These instructions specify explicit memory size, but it's just informational.
             if (/^(call|enqcmd|enqcmds|lcall|ljmp|movdir64b)$/.test(inst.name)) {
-              op.flags.mem = true;
+              op.flags.m = true;
             }
           }
 
@@ -2322,7 +2315,6 @@ class InstRWInfoTable extends core.Task {
       case "lods@1": return toMap(['MemBaseRW', 'MemBasePostModify']);
       case "stos@0": return toMap(['MemBaseRW', 'MemBasePostModify']);
       case "scas@1": return toMap(['MemBaseRW', 'MemBasePostModify']);
-      case "bndstx@0": return toMap(['MemBaseWrite', 'MemIndexWrite']);
 
       default:
         return {};

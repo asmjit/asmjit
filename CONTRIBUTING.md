@@ -81,7 +81,7 @@
 
   * ABI changes happen, but they are usually accumulated and committed within a short time window to not break it often. In general we prefer to break ABI once a year, or once 6 months if there is something that has a high priority. There are no hard rules though.
 
-  * AsmJit uses an `inline namespace`, which should make it impossible to link to AsmJit library that is ABI incompatible. When ABI break happens both AsmJit version and ABI namespace are changed, see [asmjit/core/api-config.h](./src/asmjit/core/api-config.h) for more details.
+  * AsmJit uses an `inline namespace`, which should make it impossible to link to AsmJit library that is ABI incompatible. When ABI break happens both AsmJit version and ABI namespace are changed, see [asmjit/build_defs.h](./asmjit/build_defs.h) for more details.
 
   * What is an ABI break?
 

@@ -3746,7 +3746,7 @@ static void generate_avx512_sequence_internal_reg_mem(
   const x86::KReg& kA, const x86::KReg& kB, const x86::KReg& kC,
   const x86::Vec& vec_a, const x86::Vec& vec_b, const x86::Vec& vec_c, const x86::Vec& vec_d) {
 
-  Support::maybe_unused(kC);
+  axl::maybe_unused(kC);
 
   x86::Gp gpd = gp.r32();
   x86::Gp gpq = gp.r64();
@@ -5225,7 +5225,7 @@ static void benchmark_x86_function(Arch arch, uint32_t num_iterations, const cha
   printf("\n");
 }
 
-void benchmark_x86_emitters(uint32_t num_iterations, bool test_x86, bool test_x64) {
+void benchmark_x86_emitters(uint32_t num_iterations, bool test_x86, bool test_x64) noexcept {
   uint32_t i = 0;
   uint32_t n = 0;
 

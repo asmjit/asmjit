@@ -6,12 +6,14 @@
 #ifndef ASMJIT_CORE_STRING_H_INCLUDED
 #define ASMJIT_CORE_STRING_H_INCLUDED
 
-#include <asmjit/support/span.h>
-#include <asmjit/support/support.h>
+#include <asmjit/axl/commons.h>
+#include <asmjit/axl/inplace_string.h>
+#include <asmjit/axl/span.h>
+#include <asmjit/core/error.h>
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_utilities
+//! \addtogroup asmjit_core
 //! \{
 
 //! Format flags used by \ref String API.
@@ -28,33 +30,6 @@ enum class StringFormatFlags : uint32_t {
   kSigned = 0x80000000u
 };
 ASMJIT_DEFINE_ENUM_FLAGS(StringFormatFlags)
-
-//! Fixed string - only useful for strings that would never exceed `N - 1` characters; always null-terminated.
-template<size_t N>
-union FixedString {
-  //! \name Constants
-  //! \{
-
-  static inline constexpr uint32_t kNumUInt32Words = uint32_t((N + sizeof(uint32_t) - 1) / sizeof(uint32_t));
-
-  //! \}
-
-  //! \name Members
-  //! \{
-
-  char str[kNumUInt32Words * sizeof(uint32_t)];
-  uint32_t u32[kNumUInt32Words];
-
-  //! \}
-
-  //! \name Utilities
-  //! \{
-
-  [[nodiscard]]
-  inline bool equals(const char* other) const noexcept { return strcmp(str, other) == 0; }
-
-  //! \}
-};
 
 //! A simple non-reference counted string that uses small string optimization (SSO).
 //!
@@ -211,10 +186,10 @@ public:
   ASMJIT_INLINE_NODEBUG const char* end() const noexcept { return data() + size(); }
 
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG Span<char> as_span() noexcept { return Span<char>(data(), size()); }
+  ASMJIT_INLINE_NODEBUG Span<const char> span() const noexcept { return Span<const char>(data(), size()); }
 
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG Span<const char> as_span() const noexcept { return Span<const char>(data(), size()); }
+  ASMJIT_INLINE_NODEBUG Span<char> span_mut() noexcept { return Span<char>(data(), size()); }
 
   //! \}
 
@@ -223,7 +198,7 @@ public:
 
   //! Swaps the content of this string with `other`.
   ASMJIT_INLINE_NODEBUG void swap(String& other) noexcept {
-    std::swap(_raw, other._raw);
+    axl::swap(_raw, other._raw);
   }
 
   //! Clears the content of the string.
@@ -285,7 +260,7 @@ public:
   //! Replaces the current of the string by a formatted string `fmt`.
   template<typename... Args>
   ASMJIT_INLINE_NODEBUG Error assign_format(const char* fmt, Args&&... args) noexcept {
-    return _op_format(ModifyOp::kAssign, fmt, std::forward<Args>(args)...);
+    return _op_format(ModifyOp::kAssign, fmt, axl::forward<Args>(args)...);
   }
 
   //! Replaces the current of the string by a formatted string `fmt` (va_list version).
@@ -338,7 +313,7 @@ public:
   //! Appends a formatted string `fmt` with `args`.
   template<typename... Args>
   ASMJIT_INLINE_NODEBUG Error append_format(const char* fmt, Args&&... args) noexcept {
-    return _op_format(ModifyOp::kAppend, fmt, std::forward<Args>(args)...);
+    return _op_format(ModifyOp::kAppend, fmt, axl::forward<Args>(args)...);
   }
 
   //! Appends a formatted string `fmt` (va_list version).
@@ -391,7 +366,7 @@ public:
   ASMJIT_NONCOPYABLE(StringTmp)
 
   //! Embedded data.
-  char _embedded_data[Support::align_up(N + 1, sizeof(size_t))];
+  char _embedded_data[axl::align_up(N + 1, sizeof(size_t))];
 
   //! \name Construction & Destruction
   //! \{

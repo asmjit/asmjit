@@ -5,7 +5,7 @@
 
 #include <asmjit/core.h>
 
-#include <asmjit-testing/commons/asmjitutils.h>
+#include <asmjit-testing/commons/asmjit_utils.h>
 #include <asmjit-testing/commons/cmdline.h>
 #include <asmjit-testing/tests/asmjit_test_assembler.h>
 

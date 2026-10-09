@@ -15,9 +15,9 @@
 
 #if !defined(ASMJIT_NO_COMPILER)
 
-#include <asmjit-testing/commons/asmjitutils.h>
+#include <asmjit-testing/commons/asmjit_utils.h>
 #include <asmjit-testing/commons/cmdline.h>
-#include <asmjit-testing/commons/performancetimer.h>
+#include <asmjit-testing/commons/performance_timer.h>
 #include <asmjit-testing/tests/asmjit_test_compiler.h>
 
 #if !defined(ASMJIT_NO_X86)
@@ -79,7 +79,7 @@ public:
     : _indentation(indentation) {}
 
   Error _log(const char* data, size_t size = SIZE_MAX) noexcept override {
-    asmjit::Support::maybe_unused(size);
+    asmjit::axl::maybe_unused(size);
     print_indented(data, _indentation);
     return Error::kOk;
   }
@@ -120,7 +120,7 @@ int TestApp::run() {
 #endif // !ASMJIT_NO_LOGGING
 
   // maybe unused...
-  Support::maybe_unused(print_string_logger_content);
+  axl::maybe_unused(print_string_logger_content);
 
 #ifndef ASMJIT_NO_JIT
   JitRuntime runtime;
@@ -293,15 +293,16 @@ int TestApp::run() {
 #ifndef ASMJIT_NO_JIT
       if (runnable) {
         void* func = nullptr;
-        if (err == Error::kOk)
+        if (err == Error::kOk) {
           err = runtime.add(&func, &code);
+        }
 
         if (err == Error::kOk && _dump_hex) {
           String sb;
           sb.append_hex((void*)func, code.code_size());
           printf("  [Hex Dump]:\n");
           for (size_t i = 0; i < sb.size(); i += 76) {
-            printf("    %.60s\n", sb.data() + i);
+            printf("    %.76s\n", sb.data() + i);
           }
         }
 
@@ -313,12 +314,14 @@ int TestApp::run() {
           StringTmp<128> expect;
 
           if (test->run(func, result, expect)) {
-            if (!_verbose)
+            if (!_verbose) {
               printf("%s[RUN OK]\n", status_separator);
+            }
           }
           else {
-            if (!_verbose)
+            if (!_verbose) {
               printf("%s[RUN FAILED]\n", status_separator);
+            }
 
             print_string_logger_content();
             printf("  [Output]\n");
@@ -327,14 +330,16 @@ int TestApp::run() {
             _num_failed++;
           }
 
-          if (_dump_asm)
+          if (_dump_asm) {
             printf("\n");
+          }
 
           runtime.release(func);
         }
         else {
-          if (!_verbose)
+          if (!_verbose) {
             printf("%s[COMPILE FAILED]\n", status_separator);
+          }
 
           print_string_logger_content();
           printf("  [Status]\n");
@@ -398,7 +403,7 @@ int main(int argc, char* argv[]) {
 #else
 
 int main(int argc, char* argv[]) {
-  Support::maybe_unused(argc, argv);
+  axl::maybe_unused(argc, argv);
 
   printf("AsmJit Compiler Test suite is disabled when compiling with ASMJIT_NO_COMPILER\n\n");
   return 0;

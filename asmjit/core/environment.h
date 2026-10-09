@@ -6,7 +6,7 @@
 #ifndef ASMJIT_CORE_ENVIRONMENT_H_INCLUDED
 #define ASMJIT_CORE_ENVIRONMENT_H_INCLUDED
 
-#include <asmjit/core/archtraits.h>
+#include <asmjit/core/arch_traits.h>
 
 #if defined(__APPLE__)
   #include <TargetConditionals.h>
@@ -129,8 +129,11 @@ enum class PlatformABI : uint8_t {
   //! Darwin ABI.
   kDarwin,
 
+  //! Darwin ABI that uses ARM64E (Apple Silicon ABI with pointer authentication).
+  kDarwinARM64E,
+
   //! Maximum value of `PlatformABI`.
-  kMaxValue,
+  kMaxValue = kDarwinARM64E,
 
   //! Host ABI detected at compile-time.
   kHost =
@@ -144,6 +147,8 @@ enum class PlatformABI : uint8_t {
     kGNU
 #elif defined(__ANDROID__)
     kAndroid
+#elif defined(__APPLE__) && defined(__arm64e__)
+    kDarwinARM64E
 #elif defined(__APPLE__)
     kDarwin
 #else
@@ -157,7 +162,7 @@ enum class FloatABI : uint8_t {
   kSoftFloat,
 
   kHost =
-#if ASMJIT_ARCH_ARM == 32 && defined(__SOFTFP__)
+#if ASMJIT_TARGET_ARCH_ARM == 32 && defined(__SOFTFP__)
   kSoftFloat
 #else
   kHardFloat
@@ -464,15 +469,29 @@ public:
 
   //! Tests whether the ABI is MSVC.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool is_msvc_abi() const noexcept { return _platform_abi == PlatformABI::kMSVC; }
+  ASMJIT_INLINE_NODEBUG bool is_msvc_abi() const noexcept {
+    return _platform_abi == PlatformABI::kMSVC;
+  }
 
   //! Tests whether the ABI is GNU.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool is_gnu_abi() const noexcept { return _platform_abi == PlatformABI::kGNU; }
+  ASMJIT_INLINE_NODEBUG bool is_gnu_abi() const noexcept {
+    return _platform_abi == PlatformABI::kGNU;
+  }
 
-  //! Tests whether the ABI is GNU.
+  //! Tests whether the ABI is Darwin (APPLE).
+  //!
+  //! \note This function returns true on all Apple ABIs, which includes generic Darwin and ARM64E.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool is_darwin_abi() const noexcept { return _platform_abi == PlatformABI::kDarwin; }
+  ASMJIT_INLINE_NODEBUG bool is_darwin_abi() const noexcept {
+    return _platform_abi >= PlatformABI::kDarwin && _platform_abi <= PlatformABI::kDarwinARM64E;
+  }
+
+  //! Tests whether the ABI is ARM64E (ARM64E is a Darwin ABI that enforces pointer authentication - PAUTH).
+  [[nodiscard]]
+  ASMJIT_INLINE_NODEBUG bool is_arm64e_abi() const noexcept {
+    return _platform_abi == PlatformABI::kDarwinARM64E;
+  }
 
   //! Returns a calculated stack alignment for this environment.
   [[nodiscard]]
@@ -612,8 +631,7 @@ public:
   //! \}
 };
 
-static_assert(sizeof(Environment) == 8,
-              "Environment must occupy exactly 8 bytes.");
+static_assert(sizeof(Environment) == 8, "Environment must occupy exactly 8 bytes.");
 
 //! \}
 

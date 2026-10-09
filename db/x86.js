@@ -97,7 +97,6 @@ const RegSize = Object.freeze({
   "ymm" : 256,
   "zmm" : 512,
   "tmm" : 512, // Maximum size (64 bytes).
-  "bnd" : 128,
   "k"   : 64,
   "st"  : 80
 });
@@ -156,16 +155,15 @@ const CpuRegisters = buildCpuRegs({
   "r64" : { "kind": "gp"  , "any": "r64"  , "names": ["rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi", "r8-15"] },
   "rxx" : { "kind": "gp"                  , "names": ["zax", "zcx", "zdx", "zbx", "zsp", "zbp", "zsi", "zdi"] },
   "sreg": { "kind": "sreg", "any": "sreg" , "names": ["es", "cs", "ss", "ds", "fs", "gs" ] },
-  "creg": { "kind": "creg", "any": "creg" , "names": ["cr0-15"]  },
-  "dreg": { "kind": "dreg", "any": "dreg" , "names": ["dr0-15"]  },
-  "bnd" : { "kind": "bnd" , "any": "bnd"  , "names": ["bnd0-3"]  },
-  "st"  : { "kind": "st"  , "any": "st(i)", "names": ["st(0-7)"] },
-  "mm"  : { "kind": "mm"  , "any": "mm"   , "names": ["mm0-7"]   },
-  "k"   : { "kind": "k"   , "any": "k"    , "names": ["k0-7"]    },
+  "creg": { "kind": "creg", "any": "creg" , "names": ["cr0-15"] },
+  "dreg": { "kind": "dreg", "any": "dreg" , "names": ["dr0-15"] },
+  "st"  : { "kind": "st"  , "any": "sti"  , "names": ["st0-7"] },
+  "mm"  : { "kind": "mm"  , "any": "mm"   , "names": ["mm0-7"] },
+  "k"   : { "kind": "k"   , "any": "k"    , "names": ["k0-7"] },
   "xmm" : { "kind": "vec" , "any": "xmm"  , "names": ["xmm0-31"] },
   "ymm" : { "kind": "vec" , "any": "ymm"  , "names": ["ymm0-31"] },
   "zmm" : { "kind": "vec" , "any": "zmm"  , "names": ["zmm0-31"] },
-  "tmm" : { "kind": "tile", "any": "tmm"  , "names": ["tmm0-7"]  }
+  "tmm" : { "kind": "tile", "any": "tmm"  , "names": ["tmm0-7"] }
 });
 
 // asmdb.x86.Utils
@@ -181,7 +179,7 @@ class Utils {
     let prefixes = [];
     if (s.startsWith("[")) {
       const prefixEnd = Parsing.matchClosingChar(s, 0);
-      prefixes = s.substring(1, prefixEnd).replace("xacqrel", "xacquire|xrelease").split("|");
+      prefixes = s.substring(1, prefixEnd).split("|");
 
       s = s.substring(prefixEnd + 1).trim();
     }
@@ -217,9 +215,9 @@ class Utils {
   // Get whether the string `s` describes a register operand.
   static isRegOp(s) { return s && Object.hasOwn(CpuRegisters, s); }
   // Get whether the string `s` describes a memory operand.
-  static isMemOp(s) { return s && /^(?:mem|mib|tmem|moff||(?:m(?:off)?\d+(?:dec|bcd|fp|int)?)|(?:m16_\d+)|(?:vm\d+(?:x|y|z)))$/.test(s); }
+  static isMemOp(s) { return s && /^(?:m|tmem|(?:m\d+(?:_abs|_dec|_bcd|_fp|_int)?)|(?:m16_\d+)|(?:vm\d+(?:x|y|z)))$/.test(s); }
   // Get whether the string `s` describes an immediate operand.
-  static isImmOp(s) { return s && /^(?:1|imm4|imm8|imm16|imm32|imm64|imms8|imms32|immu16|immu32|immv|if|p16_16|p16_32|dfv)$/.test(s); }
+  static isImmOp(s) { return s && /^(?:1|imm4|imm8|imm16|imm32|imm64|imms8|imms32|immu16|immu32|immv|addr64|if|p16_16|p16_32|dfv)$/.test(s); }
   // Get whether the string `s` describes a relative displacement (label).
   static isRelOp(s) { return s && /^rel\d+$/.test(s); }
 
@@ -258,6 +256,7 @@ class Utils {
       case "imms32": return 32;
       case "immu16": return 16;
       case "immu32": return 32;
+      case "addr64": return 64;
       case "ib"    :
       case "ub"    : return 8;
       case "iw"    :
@@ -364,18 +363,30 @@ class Operand extends base.Operand {
       let op = this._substituteGroupOp(origOp, groupIndex);
 
       // Handle range suffix [A] or [A:B]:
-      const mRange = /\[(\d+)\s*(?:\:\s*(\d+)\s*)?\]$/.exec(op);
-      if (mRange) {
-        const a = parseInt(mRange[1], 10);
-        const b = parseInt(mRange[2] || String(a), 10);
+      const mRange1 = /\[(\d+)\s*(?:\:\s*(\d+)\s*)?\]$/.exec(op);
+      if (mRange1) {
+        const a = parseInt(mRange1[1], 10);
+        const b = parseInt(mRange1[2] || String(a), 10);
 
-        if (a < b)
+        if (a < b) {
           FAIL(`Operand '${origOp}' contains invalid range '[${a}:${b}]'`)
+        }
 
         this.rwxIndex = b;
         this.rwxWidth = a - b + 1;
 
-        op = op.substring(0, op.length - mRange[0].length);
+        op = op.substring(0, op.length - mRange1[0].length);
+      }
+
+      // Handle range suffix @:
+      const mRange2 = /\@(\d+)$/.exec(op);
+      if (mRange2) {
+        const w = parseInt(mRange2[1], 10);
+
+        this.rwxIndex = 0;
+        this.rwxWidth = w;
+
+        op = op.substring(0, op.length - mRange2[0].length);
       }
 
       // Handle a segment specification if this is an implicit register performing memory access.
@@ -415,9 +426,9 @@ class Operand extends base.Operand {
         this.setAccess(access);
 
         // Handle memory size.
-        const mOff = /^m(?:off)?(\d+)/.exec(op);
+        const mOff = /^m(\d+)/.exec(op);
         this.memSize = mOff ? parseInt(mOff[1], 10) : 0;
-        this.memOff = op.indexOf("moff") === 0;
+        this.memOff = op.indexOf("_abs") !== -1;
 
         const mSeg = /^m16_(\d+)/.exec(op);
         if (mSeg) {
@@ -432,7 +443,7 @@ class Operand extends base.Operand {
           this.vsibSize = parseInt(mVM[1], 10);
         }
 
-        type.push("mem");
+        type.push("m");
         continue;
       }
 
@@ -496,7 +507,7 @@ class Operand extends base.Operand {
   }
 
 
-  isFixedReg() { return this.reg && this.reg !== this.regType && this.reg !== "st(i)"; }
+  isFixedReg() { return this.reg && this.reg !== this.regType && this.reg !== "sti"; }
   isFixedMem() { return this.memSegment && this.isFixedReg(); }
 
   isPartialOp() {
@@ -547,7 +558,7 @@ class Instruction extends base.Instruction {
     });
 
     this.prefix = "";             // Prefix - "", "3DNOW", "EVEX", "VEX", "XOP".
-    this.privilege = "L3";        // Privilege level required to execute the instruction.
+    this.cpl = 3;                 // Privilege level required to execute the instruction.
     this.groupPattern = "";       // Group pattern in case the instruction was created from a group such as "ry", "rv", "xy", "xyz".
     this.groupIndex = -1;         // Group index.
 
@@ -564,7 +575,7 @@ class Instruction extends base.Instruction {
 
     this.k = "";                  // AVX-512 K function ("", "blend", "zeroing").
     this.kmask = false;           // AVX-512 merging {k}.
-    this.zmask = false;           // AVX-512 zeroing {kz}, implies {k}.
+    this.zmask = false;           // AVX-512 zeroing {k|z}, implies {k}.
     this.er = false;              // AVX-512 embedded rounding {er}, implies {sae}.
     this.sae = false;             // AVX-512 suppress all exceptions {sae} support.
 
@@ -592,9 +603,12 @@ class Instruction extends base.Instruction {
     if (data.tt)
       this.tupleType = data.tt;
 
-    const em = data.op.match(/^\[\s*(\w+)\s*\](.*)$/);
-    const encodingField = em ? em[1] : "NONE";
-    const opcodeField = em ? em[2] : data.op;
+    const em = data.op.match(/^\s*(\w+)\s*:(.*)$/);
+    if (!em) {
+      FAIL(`Cannot parse opcode field: '${data.op}'`)
+    }
+    const encodingField = em[1];
+    const opcodeField = em[2];
 
     this._assignOperands(data.operands, groupIndex);
     this._assignEncoding(encodingField);
@@ -622,28 +636,35 @@ class Instruction extends base.Instruction {
         this._combineAttribute("prefixes", value);
         return;
 
-      case "fpuStack":
+      case "fpu":
         this.fpuStack = value;
         switch (value) {
-          case "dec"  : this.fpuTop = -1; break;
-          case "inc"  : this.fpuTop =  1; break;
-          case "pop"  : this.fpuTop =  1; break;
-          case "pop2x": this.fpuTop =  2; break;
-          case "push" : this.fpuTop = -1; break;
+          case "dec" : this.fpuTop = -1; break;
+          case "inc" : this.fpuTop =  1; break;
+          case "pop" : this.fpuTop =  1; break;
+          case "pop2": this.fpuTop =  2; break;
+          case "push": this.fpuTop = -1; break;
           default:
             FAIL(`Invalid fpuStack value '${value}'`);
         }
-        return;
-
-      case "kz":
-        this.zmask = true;
-        this.kmask = true;
         return;
 
       case "k":
         this.kmask = true;
         if (typeof value === "string")
           super._assignAttribute(key, value);
+        return;
+
+      case "k_zeroing":
+        this._combineAttribute("prefixes", "k_zeroing");
+        return;
+
+      case "k_blending":
+        this._combineAttribute("prefixes", "k_blending");
+        return;
+
+      case "z":
+        this.zmask = true;
         return;
 
       case "er":
@@ -678,7 +699,9 @@ class Instruction extends base.Instruction {
         break;
 
       // Get the `flag` and remove it from `s`.
-      this._assignAttribute(s.substring(a + 1, b), true);
+      for (let f of s.substring(a + 1, b).split("|")) {
+        this._assignAttribute(f, true);
+      }
       s = s.substring(0, a) + s.substring(b + 1);
     }
 
@@ -1045,7 +1068,7 @@ class Instruction extends base.Instruction {
       this.groupIndex = -1;
     }
 
-    if (this.privilege === "L0")
+    if (this.cpl === 0)
       this.category.SYSTEM = true;
 
     let immCount = this.immCount;
@@ -1195,11 +1218,11 @@ class ISA extends base.ISA {
           continue;
 
         const apx = arch === "apx";
+        const sgn = Utils.splitInstructionSignature(record.inst);
+        const data = MapUtils.cloneExcept(MapUtils.cloneExcept(record, "inst"), arch);
 
-        const sgn = Utils.splitInstructionSignature(record[arch]);
-        const data = MapUtils.cloneExcept(record, arch);
-
-        mergeGroupData(data, group)
+        data.op = record[arch];
+        mergeGroupData(data, group);
 
         for (let j = 0; j < sgn.names.length; j++) {
           data.name = sgn.names[j];
@@ -1219,9 +1242,6 @@ class ISA extends base.ISA {
 
             if (apx) {
               instruction.ext["APX_F"] = true;
-              if (instruction.category.GP) {
-                instruction.category.GP_EXT = true
-              }
             }
 
             this._addInstruction(instruction);

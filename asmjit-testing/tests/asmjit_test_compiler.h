@@ -17,7 +17,7 @@ public:
     : _err(asmjit::Error::kOk) {}
 
   void handle_error(asmjit::Error err, const char* message, asmjit::BaseEmitter* origin) override {
-    asmjit::Support::maybe_unused(origin);
+    asmjit::axl::maybe_unused(origin);
     _err = err;
     _message.assign(message);
   }
