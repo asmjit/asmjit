@@ -2195,7 +2195,7 @@ Error BaseRAPass::emit_pre_call(InvokeNode* invoke_node) noexcept {
 
 // [[pure virtual]]
 Error BaseRAPass::emit_pre_tail(InvokeNode* invoke_node) noexcept {
-  Support::maybe_unused(invoke_node);
+  axl::maybe_unused(invoke_node);
   return make_error(Error::kInvalidState);
 }
 
