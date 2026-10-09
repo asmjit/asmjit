@@ -797,7 +797,7 @@ public:
   }
 };
 
-// a64::Compiler - A86Test_FuncTailCall
+// a64::Compiler - A64Test_FuncTailCall
 // ==========================================
 
 class A64Test_FuncTailCall : public A64TestCase {

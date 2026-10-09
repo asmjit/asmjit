@@ -464,7 +464,8 @@ Error RACFGBuilder::on_before_invoke(InvokeNode* invoke_node) noexcept {
   // Decide which instruction to use - AArch64 provides different instructions for relative/indirect calls.
   // In addition, if the function invocation uses PAUTH, patch the instruction to the correct BLRxxx id.
   if (invoke_node->op(0).is_reg()) {
-    InstId inst_id = Inst::kIdBlr;
+    bool is_tail_call = invoke_node->inst_id() == Inst::kIdBr || invoke_node->inst_id() == Inst::kIdB;
+    InstId inst_id = is_tail_call ? Inst::kIdBr : Inst::kIdBlr;
 
     if (invoke_node->has_authentication()) {
       if (_pass.func()->frame().has_attribute(FuncAttributes::kPtrAuth)) {
@@ -475,12 +476,12 @@ Error RACFGBuilder::on_before_invoke(InvokeNode* invoke_node) noexcept {
           }
 
           case uint8_t(PAuthKey::kAArch64ASIA): {
-            inst_id = Inst::kIdBlraaz;
+            inst_id = is_tail_call ? Inst::kIdBraaz : Inst::kIdBlraaz;
             break;
           }
 
           case uint8_t(PAuthKey::kAArch64ASIB): {
-            inst_id = Inst::kIdBlrabz;
+            inst_id = is_tail_call ? Inst::kIdBrabz : Inst::kIdBlrabz;
             break;
           }
 
@@ -961,14 +962,23 @@ Error ARMRAPass::emit_pre_call(InvokeNode* invoke_node) noexcept {
 }
 
 Error ARMRAPass::emit_pre_tail(InvokeNode* invoke_node) noexcept {
-  if (invoke_node->inst_id() == Inst::kIdBr || invoke_node->inst_id() == Inst::kIdB) {
-    cc().set_cursor(invoke_node->prev());
-    ASMJIT_PROPAGATE(cc().emit_epilog_no_ret(_func->frame()));
-    return Error::kOk;
-  } else if (invoke_node->inst_id() == Inst::kIdBlr || invoke_node->inst_id() == Inst::kIdBl) {
-    return Error::kOk;
+  switch (invoke_node->inst_id()) {
+    case Inst::kIdB:
+    case Inst::kIdBr:
+    case Inst::kIdBraaz:
+    case Inst::kIdBrabz:
+      cc().set_cursor(invoke_node->prev());
+      return cc().emit_epilog_no_ret(_func->frame());
+
+    case Inst::kIdBl:
+    case Inst::kIdBlr:
+    case Inst::kIdBlraaz:
+    case Inst::kIdBlrabz:
+      return Error::kOk;
+
+    default:
+      return Error::kInvalidInstruction;
   }
-  return Error::kInvalidInstruction;  
 }
 ASMJIT_END_SUB_NAMESPACE
 
