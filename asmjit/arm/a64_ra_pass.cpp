@@ -378,8 +378,15 @@ Error RACFGBuilder::on_instruction(InstNode* inst, InstControlFlow& control_type
 Error RACFGBuilder::on_before_invoke(InvokeNode* invoke_node) noexcept {
   const FuncDetail& fd = invoke_node->detail();
   uint32_t arg_count = invoke_node->arg_count();
+  bool is_tail_call = invoke_node->inst_id() == Inst::kIdBr || invoke_node->inst_id() == Inst::kIdB;
 
-  cc().set_cursor(invoke_node->prev());
+  // The callee reuses the incoming argument area of the current function, which must be large enough.
+  if (is_tail_call && fd.arg_stack_size() > _pass.func()->detail().arg_stack_size()) {
+    return make_error(Error::kInvalidState);
+  }
+
+  BaseNode* prev_node = invoke_node->prev();
+  cc().set_cursor(prev_node);
 
   for (uint32_t arg_index = 0; arg_index < arg_count; arg_index++) {
     const FuncValuePack& arg_pack = fd.arg_pack(arg_index);
@@ -426,6 +433,23 @@ Error RACFGBuilder::on_before_invoke(InvokeNode* invoke_node) noexcept {
     }
   }
 
+  // Stack arguments of a tail call are relocated to the incoming argument area once the frame is known.
+  if (is_tail_call) {
+    for (BaseNode* node = prev_node->next(); node != invoke_node; node = node->next()) {
+      if (!node->is_inst()) {
+        continue;
+      }
+
+      InstNode* inst = node->as<InstNode>();
+      for (const Operand& op : inst->operands()) {
+        if (op.is_mem() && op.as<Mem>().has_base_reg() && !op.as<Mem>().is_reg_home() && op.as<Mem>().base_id() == _pass._sp.id()) {
+          ASMJIT_PROPAGATE(_pass.add_tail_stack_arg_store(inst));
+          break;
+        }
+      }
+    }
+  }
+
   cc().set_cursor(invoke_node);
 
   if (fd.has_ret()) {
@@ -464,7 +488,6 @@ Error RACFGBuilder::on_before_invoke(InvokeNode* invoke_node) noexcept {
   // Decide which instruction to use - AArch64 provides different instructions for relative/indirect calls.
   // In addition, if the function invocation uses PAUTH, patch the instruction to the correct BLRxxx id.
   if (invoke_node->op(0).is_reg()) {
-    bool is_tail_call = invoke_node->inst_id() == Inst::kIdBr || invoke_node->inst_id() == Inst::kIdB;
     InstId inst_id = is_tail_call ? Inst::kIdBr : Inst::kIdBlr;
 
     if (invoke_node->has_authentication()) {

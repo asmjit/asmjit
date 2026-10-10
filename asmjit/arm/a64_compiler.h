@@ -345,6 +345,16 @@ public:
   ASMJIT_INLINE_NODEBUG Error invoke(Out<InvokeNode*> out, const Imm& target, const FuncSignature& signature, const PAuthInfo& pauth_info) { return invoke_(out, Inst::kIdBl, target, signature, pauth_info); }
   //! \overload
   ASMJIT_INLINE_NODEBUG Error invoke(Out<InvokeNode*> out, uint64_t target, const FuncSignature& signature, const PAuthInfo& pauth_info) { return invoke_(out, Inst::kIdBl, Imm(int64_t(target)), signature, pauth_info); }
+  //! \overload
+  ASMJIT_INLINE_NODEBUG Error invoke_tail(Out<InvokeNode*> out, const Gp& target, const FuncSignature& signature, const PAuthInfo& pauth_info) { return invoke_(out, Inst::kIdBr, target, signature, pauth_info); }
+  //! \overload
+  ASMJIT_INLINE_NODEBUG Error invoke_tail(Out<InvokeNode*> out, const Mem& target, const FuncSignature& signature, const PAuthInfo& pauth_info) { return invoke_(out, Inst::kIdB, target, signature, pauth_info); }
+  //! \overload
+  ASMJIT_INLINE_NODEBUG Error invoke_tail(Out<InvokeNode*> out, const Label& target, const FuncSignature& signature, const PAuthInfo& pauth_info) { return invoke_(out, Inst::kIdB, target, signature, pauth_info); }
+  //! \overload
+  ASMJIT_INLINE_NODEBUG Error invoke_tail(Out<InvokeNode*> out, const Imm& target, const FuncSignature& signature, const PAuthInfo& pauth_info) { return invoke_(out, Inst::kIdB, target, signature, pauth_info); }
+  //! \overload
+  ASMJIT_INLINE_NODEBUG Error invoke_tail(Out<InvokeNode*> out, uint64_t target, const FuncSignature& signature, const PAuthInfo& pauth_info) { return invoke_(out, Inst::kIdB, Imm(int64_t(target)), signature, pauth_info); }
 
   //! Return from function.
   //!

@@ -4301,6 +4301,67 @@ public:
   static int called_fn(int a, int b) { return (a - b); }
 };
 
+// x86::Compiler - X86Test_FuncTailCallPermute
+// ===========================================
+
+// Tail call that reverses 8 arguments - the outgoing stack arguments overlap the incoming ones (parallel move).
+class X86Test_FuncTailCallPermute : public X86TestCase {
+public:
+  X86Test_FuncTailCallPermute(bool preserve_fp)
+    : _preserve_fp(preserve_fp) {
+    _name.assign_format("FuncTailCallPermute {PreserveFP=%c}", preserve_fp ? 'Y' : 'N');
+  }
+
+  static void add(TestApp& app) {
+    app.add(new X86Test_FuncTailCallPermute(false));
+    app.add(new X86Test_FuncTailCallPermute(true));
+  }
+
+  void compile(x86::Compiler& cc) override {
+    FuncSignature signature = FuncSignature::build<int, int, int, int, int, int, int, int, int>();
+    FuncNode* func_node = cc.add_func(signature);
+
+    if (_preserve_fp) {
+      func_node->frame().set_preserved_fp();
+    }
+
+    x86::Gp args[8];
+    for (uint32_t i = 0; i < 8; i++) {
+      args[i] = cc.new_gp32("a%u", i);
+      func_node->set_arg(i, args[i]);
+    }
+
+    InvokeNode* invoke_node;
+    cc.invoke_tail(Out(invoke_node), imm((void*)called_fn), signature);
+
+    for (uint32_t i = 0; i < 8; i++) {
+      invoke_node->set_arg(i, args[7 - i]);
+    }
+
+    cc.ud2();
+    cc.end_func();
+  }
+
+  bool run(void* _func, String& result, String& expect) override {
+    using Func = int (*)(int, int, int, int, int, int, int, int);
+    Func func = axl::ptr_as_func<Func>(_func);
+
+    int result_ret = func(1, 2, 3, 4, 5, 6, 7, 8);
+    int expect_ret = called_fn(8, 7, 6, 5, 4, 3, 2, 1);
+
+    result.assign_format("ret=%d", result_ret);
+    expect.assign_format("ret=%d", expect_ret);
+
+    return result == expect;
+  }
+
+  static int called_fn(int a0, int a1, int a2, int a3, int a4, int a5, int a6, int a7) {
+    return a0 * 10000000 + a1 * 1000000 + a2 * 100000 + a3 * 10000 + a4 * 1000 + a5 * 100 + a6 * 10 + a7;
+  }
+
+  bool _preserve_fp;
+};
+
 // x86::Compiler - X86Test_VecToScalar
 // ===================================
 
@@ -4735,6 +4796,7 @@ void compiler_add_x86_tests(TestApp& app) {
   app.add_t<X86Test_FuncCallMisc6>();
   app.add_t<X86Test_FuncCallAVXClobber>();
   app.add_t<X86Test_FuncTailCall>();
+  app.add_t<X86Test_FuncTailCallPermute>();
 
   // Miscellaneous tests.
   app.add_t<X86Test_VecToScalar>();

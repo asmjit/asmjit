@@ -2132,18 +2132,20 @@ Error BaseRAPass::_update_tail_stack_arg_stores() noexcept {
   // Tail call stack arguments are stored at `[sp + arg.stack_offset()]` by the CFG builder, which is the layout
   // the callee sees on entry. Relocate them to the current function's incoming argument area, which the callee
   // will reuse after the epilog has been emitted.
+  //
+  // SP-relative addressing is preferred as it's valid on all architectures when the stack is not dynamically aligned.
   uint32_t base_id = _sp.id();
   int32_t base_offset = 0;
 
-  if (frame.has_preserved_fp()) {
+  if (!frame.has_dynamic_alignment()) {
+    base_offset = int32_t(frame.sa_offset_from_sp());
+  }
+  else if (frame.has_preserved_fp() && !_arch_traits->has_link_reg()) {
     base_id = _fp.id();
     base_offset = int32_t(frame.sa_offset_from_sa());
   }
-  else if (frame.has_dynamic_alignment()) {
-    return make_error(Error::kInvalidState);
-  }
   else {
-    base_offset = int32_t(frame.sa_offset_from_sp());
+    return make_error(Error::kInvalidState);
   }
 
   for (InstNode* node : _tail_stack_arg_stores) {

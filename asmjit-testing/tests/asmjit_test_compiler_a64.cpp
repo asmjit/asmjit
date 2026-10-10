@@ -825,7 +825,7 @@ public:
 
     // Call a function.
     InvokeNode* invoke_node;
-    cc.invoke_tail(Out(invoke_node), fn, FuncSignature::build<int, int, int>());
+    cc.invoke_tail(Out(invoke_node), fn, FuncSignature::build<int, int, int>(), pauth_c_func());
     // Swap arguments around.
     invoke_node->set_arg(0, v1);
     invoke_node->set_arg(1, v0);
@@ -853,6 +853,85 @@ public:
   static int called_fn(int a, int b) { return (a - b); }
 };
 
+// a64::Compiler - A64Test_FuncTailCallPermute
+// ===========================================
+
+// Tail call that reverses 16 arguments - 8 are passed in registers and 8 on the stack, so the outgoing stack arguments
+// overlap the incoming ones and register and stack arguments are exchanged (parallel move).
+class A64Test_FuncTailCallPermute : public A64TestCase {
+public:
+  static inline constexpr uint32_t kArgCount = 16;
+
+  A64Test_FuncTailCallPermute(bool preserve_fp)
+    : _preserve_fp(preserve_fp) {
+    _name.assign_format("FuncTailCallPermute {PreserveFP=%c}", preserve_fp ? 'Y' : 'N');
+  }
+
+  static void add(TestApp& app) {
+    app.add(new A64Test_FuncTailCallPermute(false));
+    app.add(new A64Test_FuncTailCallPermute(true));
+  }
+
+  void compile(a64::Compiler& cc) override {
+    FuncSignature signature(CallConvId::kCDecl);
+    signature.set_ret_t<int>();
+    for (uint32_t i = 0; i < kArgCount; i++) {
+      signature.add_arg_t<int>();
+    }
+
+    FuncNode* func_node = cc.add_func(signature);
+
+    if (_preserve_fp) {
+      func_node->frame().set_preserved_fp();
+    }
+
+    a64::Gp args[kArgCount];
+    for (uint32_t i = 0; i < kArgCount; i++) {
+      args[i] = cc.new_gp32("a%u", i);
+      func_node->set_arg(i, args[i]);
+    }
+
+    a64::Gp fn = cc.gpz(16);
+    cc.mov(fn, (uint64_t)called_fn);
+
+    InvokeNode* invoke_node;
+    cc.invoke_tail(Out(invoke_node), fn, signature, pauth_c_func());
+
+    for (uint32_t i = 0; i < kArgCount; i++) {
+      invoke_node->set_arg(i, args[kArgCount - 1 - i]);
+    }
+
+    cc.udf(Imm(0));
+    cc.end_func();
+  }
+
+  bool run(void* _func, String& result, String& expect) override {
+    using Func = int (*)(int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int);
+    Func func = axl::ptr_as_func<Func>(_func);
+
+    int result_ret = func(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+    int expect_ret = called_fn(16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1);
+
+    result.assign_format("ret=%d", result_ret);
+    expect.assign_format("ret=%d", expect_ret);
+
+    return result == expect;
+  }
+
+  // Position-weighted sum - any misplaced argument changes the result.
+  static int called_fn(int a0, int a1, int a2, int a3, int a4, int a5, int a6, int a7,
+                       int a8, int a9, int a10, int a11, int a12, int a13, int a14, int a15) {
+    int args[kArgCount] = { a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15 };
+    int sum = 0;
+    for (uint32_t i = 0; i < kArgCount; i++) {
+      sum += args[i] * int(i + 1) * int(i + 1);
+    }
+    return sum;
+  }
+
+  bool _preserve_fp;
+};
+
 // a64::Compiler - Export
 // ======================
 
@@ -869,6 +948,7 @@ void compiler_add_a64_tests(TestApp& app) {
   app.add_t<A64Test_Invoke5>();
   app.add_t<A64Test_JumpTable>();
   app.add_t<A64Test_FuncTailCall>();
+  app.add_t<A64Test_FuncTailCallPermute>();
 }
 
 #endif // !ASMJIT_NO_COMPILER && !ASMJIT_NO_AARCH64
