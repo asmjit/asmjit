@@ -959,7 +959,7 @@ Error RALocalAllocator::alloc_instruction(InstNode* node) noexcept {
         if (lead->is_out_consecutive()) {
           uint32_t best_score = 0;
           uint32_t best_lead_reg = 0xFFFFFFFF;
-          RegMask allocable_regs = _available_regs[group] & ~(out_regs | avoid_regs);
+          RegMask allocable_regs = _available_regs[group] & ~(out_regs | avoid_regs | live_regs);
 
           axl::BitWordIterator<uint32_t> it(lead->out_reg_mask());
           while (it.has_next()) {
