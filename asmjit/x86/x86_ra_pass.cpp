@@ -559,8 +559,23 @@ Error RACFGBuilder::on_instruction(InstNode* inst, InstControlFlow& cf, RAInstBu
 Error RACFGBuilder::on_before_invoke(InvokeNode* invoke_node) noexcept {
   const FuncDetail& fd = invoke_node->detail();
   uint32_t arg_count = invoke_node->arg_count();
+  bool is_tail_call = invoke_node->inst_id() == Inst::kIdJmp;
 
-  cc().set_cursor(invoke_node->prev());
+  if (is_tail_call && fd.arg_stack_size() != 0) {
+    // The callee reuses the incoming argument area of the current function, which must be large enough. If either
+    // side pops its arguments the sizes must match exactly, as the callee returns directly to our caller.
+    const FuncDetail& func_fd = _pass.func()->detail();
+    bool callee_pops = fd.has_flag(CallConvFlags::kCalleePopsStack);
+    bool func_pops = func_fd.has_flag(CallConvFlags::kCalleePopsStack);
+
+    if (fd.arg_stack_size() > func_fd.arg_stack_size() ||
+        ((callee_pops || func_pops) && (callee_pops != func_pops || fd.arg_stack_size() != func_fd.arg_stack_size()))) {
+      return make_error(Error::kInvalidState);
+    }
+  }
+
+  BaseNode* prev_node = invoke_node->prev();
+  cc().set_cursor(prev_node);
   RegType native_reg_type = cc()._gp_signature.reg_type();
 
   for (uint32_t arg_index = 0; arg_index < arg_count; arg_index++) {
@@ -595,6 +610,11 @@ Error RACFGBuilder::on_before_invoke(InvokeNode* invoke_node) noexcept {
               continue;
             }
 
+            // Vectors passed indirectly live in the outgoing call area, which is released by a tail call.
+            if (is_tail_call) {
+              return make_error(Error::kInvalidState);
+            }
+
             Reg indirect_reg;
             ASMJIT_PROPAGATE(move_vec_to_ptr(invoke_node, arg, reg.as<Vec>(), Out(indirect_reg)));
             invoke_node->_args[arg_index][value_index] = indirect_reg;
@@ -615,6 +635,10 @@ Error RACFGBuilder::on_before_invoke(InvokeNode* invoke_node) noexcept {
 
               ASMJIT_PROPAGATE(move_reg_to_stack_arg(invoke_node, arg, reg));
               continue;
+            }
+
+            if (is_tail_call) {
+              return make_error(Error::kInvalidState);
             }
 
             Reg indirect_reg;
@@ -639,8 +663,25 @@ Error RACFGBuilder::on_before_invoke(InvokeNode* invoke_node) noexcept {
     }
   }
 
+  // Stack arguments of a tail call are relocated to the incoming argument area once the frame is known.
+  if (is_tail_call) {
+    for (BaseNode* node = prev_node->next(); node != invoke_node; node = node->next()) {
+      if (!node->is_inst()) {
+        continue;
+      }
+
+      InstNode* inst = node->as<InstNode>();
+      for (const Operand& op : inst->operands()) {
+        if (op.is_mem() && op.as<Mem>().has_base_reg() && !op.as<Mem>().is_reg_home() && op.as<Mem>().base_id() == _pass._sp.id()) {
+          ASMJIT_PROPAGATE(_pass.add_tail_stack_arg_store(inst));
+          break;
+        }
+      }
+    }
+  }
+
   cc().set_cursor(invoke_node);
-  if (fd.has_flag(CallConvFlags::kCalleePopsStack) && fd.arg_stack_size() != 0) {
+  if (!is_tail_call && fd.has_flag(CallConvFlags::kCalleePopsStack) && fd.arg_stack_size() != 0) {
     ASMJIT_PROPAGATE(cc().sub(cc().zsp(), fd.arg_stack_size()));
   }
 
