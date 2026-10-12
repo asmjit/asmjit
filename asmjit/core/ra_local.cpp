@@ -958,14 +958,14 @@ Error RALocalAllocator::alloc_instruction(InstNode* node) noexcept {
         RATiedReg* lead = consecutive_regs[0];
         if (lead->is_out_consecutive()) {
           uint32_t best_score = 0;
-          uint32_t best_lead_reg = 0xFFFFFFFF;
-          RegMask allocable_regs = _available_regs[group] & ~(out_regs | avoid_regs);
+          uint32_t best_lead_reg = 0xFFFFFFFFu;
+          RegMask allocable_regs = _available_regs[group] & ~avoid_regs;
 
           axl::BitWordIterator<uint32_t> it(lead->out_reg_mask());
           while (it.has_next()) {
             uint32_t reg_index = it.next();
             if (axl::bit_test(lead->out_reg_mask(), reg_index)) {
-              uint32_t score = 15;
+              uint32_t score = 100;
 
               for (i = 0; i < consecutive_count; i++) {
                 uint32_t consecutive_index = reg_index + i;
@@ -974,6 +974,7 @@ Error RALocalAllocator::alloc_instruction(InstNode* node) noexcept {
                   break;
                 }
 
+                score -= uint32_t(axl::bit_test(live_regs, consecutive_index)) << 2;
                 RAWorkReg* work_reg = consecutive_regs[i]->work_reg();
                 score += uint32_t(work_reg->home_reg_id() == consecutive_index);
               }
@@ -992,7 +993,10 @@ Error RALocalAllocator::alloc_instruction(InstNode* node) noexcept {
           for (i = 0; i < consecutive_count; i++) {
             uint32_t consecutive_index = best_lead_reg + i;
             RATiedReg* tied_reg = consecutive_regs[i];
+
+            // Reserve the whole sequence before allocating other OUT registers.
             tied_reg->set_out_id(consecutive_index);
+            avoid_regs |= axl::bit_mask<RegMask>(consecutive_index);
           }
         }
       }
@@ -1030,6 +1034,11 @@ Error RALocalAllocator::alloc_instruction(InstNode* node) noexcept {
           else {
             phys_id = decide_on_assignment(group, work_reg, RAAssignment::kPhysNone, allocable_regs & ~live_regs);
           }
+        }
+        else if (tied_reg->is_out_consecutive() && _cur_assignment.is_phys_assigned(group, phys_id)) {
+          // Consecutive OUT ids were selected above and may still be occupied by live registers.
+          RAWorkId spill_work_id = _cur_assignment.phys_to_work_id(group, phys_id);
+          ASMJIT_PROPAGATE(on_spill_reg(group, work_reg_by_id(spill_work_id), spill_work_id, phys_id));
         }
 
         // OUTs are CLOBBERed thus cannot be ASSIGNed right now.

@@ -690,7 +690,7 @@ public:
   bool _annotated;
 
   A64Test_JumpTable(bool annotated)
-    : A64TestCase("A64Test_JumpTable"),
+    : A64TestCase("JumpTable"),
       _annotated(annotated) {
     _name.assign_format("JumpTable {%s}", annotated ? "Annotated" : "Not Annotated");
   }
@@ -797,6 +797,76 @@ public:
   }
 };
 
+// a64::Compiler - A64Test_ConsecutiveAllocation
+// =============================================
+
+class A64Test_ConsecutiveOutAllocation : public A64TestCase {
+public:
+  A64Test_ConsecutiveOutAllocation()
+    : A64TestCase("ConsecutiveOutAllocation") {}
+
+  static void add(TestApp& app) {
+    app.add(new A64Test_ConsecutiveOutAllocation());
+  }
+
+  void compile(a64::Compiler& cc) override {
+    FuncNode* func_node = cc.add_func(FuncSignature::build<void, void*, const void*>());
+
+    a64::Gp src = cc.new_gp_ptr();
+    a64::Gp dst = cc.new_gp_ptr();
+
+    func_node->set_arg(0, dst);
+    func_node->set_arg(1, src);
+
+    a64::Vec v[] = {
+      cc.new_vec_q(),
+      cc.new_vec_q(),
+      cc.new_vec_q(),
+      cc.new_vec_q()
+    };
+
+    cc.ld2(v[0].b16(), v[1].b16(), a64::ptr(src));
+    cc.add(src, src, 32);
+    cc.ld2(v[2].b16(), v[3].b16(), a64::ptr(src));
+
+    for (int i = 0; i < 4; ++i) {
+      cc.str(v[i], a64::ptr(dst, i * 16));
+    }
+
+    cc.end_func();
+  }
+
+  bool run(void* _func, String& result, String& expect) override {
+    using Func = void (*)(void*, const void*);
+    Func func = ptr_as_func<Func>(_func);
+
+    uint8_t src_buffer[64];
+    uint8_t dst_buffer[64];
+
+    for (uint32_t i = 0; i < 64u; i++) {
+      src_buffer[i] = static_cast<uint8_t>(i);
+    }
+
+    func(dst_buffer, src_buffer);
+
+    result.assign("ret={");
+    expect.assign("ret={");
+
+    for (uint32_t i = 0; i < 64u; i++) {
+      if (i != 0) {
+        result.append(", ");
+        expect.append(", ");
+      }
+      result.append_format("%u", dst_buffer[i]);
+      // Each LD2 deinterleaves 32 bytes into an even-byte vector followed by an odd-byte vector.
+      uint32_t src_index = (i / 32u) * 32u + (i % 16u) * 2u + (i / 16u) % 2u;
+      expect.append_format("%u", src_buffer[src_index]);
+    }
+
+    return result == expect;
+  }
+};
+
 // a64::Compiler - Export
 // ======================
 
@@ -812,6 +882,7 @@ void compiler_add_a64_tests(TestApp& app) {
   app.add_t<A64Test_Invoke4>();
   app.add_t<A64Test_Invoke5>();
   app.add_t<A64Test_JumpTable>();
+  app.add_t<A64Test_ConsecutiveOutAllocation>();
 }
 
 #endif // !ASMJIT_NO_COMPILER && !ASMJIT_NO_AARCH64
