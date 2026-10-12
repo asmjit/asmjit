@@ -100,6 +100,7 @@ public:
 
   Error emit_jump(const Label& label) noexcept override;
   Error emit_pre_call(InvokeNode* invoke_node) noexcept override;
+  Error emit_pre_tail(InvokeNode* invoke_node) noexcept override;
 
   //! \}
 };

@@ -134,6 +134,10 @@ public:
   FuncArgsAssignment _args_assignment {};
   //! Some StackArgs have to be assigned to StackSlots.
   uint32_t _num_stack_args_to_stack_slots = 0;
+  //! Instructions that store tail call stack arguments - their `[sp + offset]` memory operands are relative to the
+  //! callee's argument area and are relocated to the current function's incoming argument area once the frame is
+  //! finalized.
+  axl::ArenaVector<InstNode*> _tail_stack_arg_stores {};
 
   //! Maximum name-size computed from all WorkRegs.
   uint32_t _max_work_reg_name_size = 0;
@@ -629,6 +633,13 @@ public:
   [[nodiscard]]
   Error _update_stack_args() noexcept;
 
+  //! Registers an instruction that stores a tail call stack argument (see `_tail_stack_arg_stores`).
+  [[nodiscard]]
+  ASMJIT_INLINE Error add_tail_stack_arg_store(InstNode* node) noexcept { return _tail_stack_arg_stores.append(arena(), node); }
+
+  [[nodiscard]]
+  Error _update_tail_stack_arg_stores() noexcept;
+
   [[nodiscard]]
   Error insert_prolog_epilog() noexcept;
 
@@ -711,6 +722,8 @@ public:
   [[nodiscard]]
   virtual Error emit_pre_call(InvokeNode* invoke_node) noexcept;
 
+  [[nodiscard]]
+  virtual Error emit_pre_tail(InvokeNode* invoke_node) noexcept;
   //! \}
 };
 

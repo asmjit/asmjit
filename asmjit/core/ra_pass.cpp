@@ -115,6 +115,7 @@ static void RAPass_cleanup_after_function(BaseRAPass* pass) noexcept {
   pass->_blocks.reset();
   pass->_exits.reset();
   pass->_pov.reset();
+  pass->_tail_stack_arg_stores.reset();
   pass->_instruction_count = 0;
   pass->_created_block_count = 0;
 
@@ -2039,12 +2040,21 @@ Error BaseRAPass::update_stack_frame() noexcept {
     ASMJIT_PROPAGATE(_update_stack_args());
   }
 
+  if (!_tail_stack_arg_stores.is_empty()) {
+    ASMJIT_PROPAGATE(_update_tail_stack_arg_stores());
+  }
+
   return Error::kOk;
 }
 
 Error BaseRAPass::_mark_stack_args_to_keep() noexcept {
   FuncFrame& frame = func()->frame();
   bool has_sa_reg = frame.has_preserved_fp() || !frame.has_dynamic_alignment();
+
+  // Tail calls overwrite the incoming argument area, so stack arguments cannot be kept there.
+  if (!_tail_stack_arg_stores.is_empty()) {
+    has_sa_reg = false;
+  }
 
   axl::ArenaVector<RAWorkReg*>& work_regs = _work_regs;
   size_t num_work_regs = work_reg_count();
@@ -2116,6 +2126,45 @@ Error BaseRAPass::_update_stack_args() noexcept {
   return Error::kOk;
 }
 
+Error BaseRAPass::_update_tail_stack_arg_stores() noexcept {
+  const FuncFrame& frame = func()->frame();
+
+  // Tail call stack arguments are stored at `[sp + arg.stack_offset()]` by the CFG builder, which is the layout
+  // the callee sees on entry. Relocate them to the current function's incoming argument area, which the callee
+  // will reuse after the epilog has been emitted.
+  //
+  // SP-relative addressing is preferred as it's valid on all architectures when the stack is not dynamically aligned.
+  uint32_t base_id = _sp.id();
+  int32_t base_offset = 0;
+
+  if (!frame.has_dynamic_alignment()) {
+    base_offset = int32_t(frame.sa_offset_from_sp());
+  }
+  else if (frame.has_preserved_fp() && !_arch_traits->has_link_reg()) {
+    base_id = _fp.id();
+    base_offset = int32_t(frame.sa_offset_from_sa());
+  }
+  else {
+    return make_error(Error::kInvalidState);
+  }
+
+  for (InstNode* node : _tail_stack_arg_stores) {
+    for (Operand& op : node->operands()) {
+      if (!op.is_mem()) {
+        continue;
+      }
+
+      BaseMem& mem = op.as<BaseMem>();
+      if (mem.has_base_reg() && !mem.is_reg_home() && mem.base_id() == _sp.id()) {
+        mem.set_base_id(base_id);
+        mem.add_offset(base_offset);
+      }
+    }
+  }
+
+  return Error::kOk;
+}
+
 Error BaseRAPass::insert_prolog_epilog() noexcept {
   FuncFrame& frame = _func->frame();
 
@@ -2123,6 +2172,24 @@ Error BaseRAPass::insert_prolog_epilog() noexcept {
   ASMJIT_PROPAGATE(cc().emit_prolog(frame));
   ASMJIT_PROPAGATE(_emit_helper_ptr->emit_args_assignment(frame, _args_assignment));
 
+  for (const RABlock* block : _blocks) {
+  BaseNode* node = block->first();
+  if (!node) continue;
+
+  BaseNode* last = block->last();
+  for (;;) {
+    if (node->is_inst()) {
+      InstNode* inst = node->as<InstNode>();
+
+      if (inst->is_invoke()) {
+        ASMJIT_PROPAGATE(emit_pre_tail(inst->as<InvokeNode>()));
+      }
+    }
+    if (node == last)
+      break;
+    node = node->next();
+  }
+}
   cc().set_cursor(func()->exit_node());
   ASMJIT_PROPAGATE(cc().emit_epilog(frame));
 
@@ -2173,6 +2240,12 @@ Error BaseRAPass::emit_jump(const Label& label) noexcept {
 Error BaseRAPass::emit_pre_call(InvokeNode* invoke_node) noexcept {
   axl::maybe_unused(invoke_node);
   return make_error(Error::kOk);
+}
+
+// [[pure virtual]]
+Error BaseRAPass::emit_pre_tail(InvokeNode* invoke_node) noexcept {
+  axl::maybe_unused(invoke_node);
+  return make_error(Error::kInvalidState);
 }
 
 // BaseRAPass - Logging

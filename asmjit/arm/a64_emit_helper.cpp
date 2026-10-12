@@ -491,6 +491,15 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emit_epilog(const FuncFrame& frame) {
     }
   }
 
+  return Error::kOk;
+}
+
+Error EmitHelper::emit_ret(const FuncFrame& frame) {
+  PrologEpilogInfo pei;
+  ASMJIT_PROPAGATE(pei.init(frame));
+
+  Emitter* emitter = _emitter->as<Emitter>();
+
   if (pei.pauth_ret != Inst::kIdNone) {
     ASMJIT_PROPAGATE(emitter->emit(pei.pauth_ret));
   }
@@ -508,7 +517,24 @@ static Error ASMJIT_CDECL Emitter_emit_prolog(BaseEmitter* emitter, const FuncFr
 
 static Error ASMJIT_CDECL Emitter_emit_epilog(BaseEmitter* emitter, const FuncFrame& frame) {
   EmitHelper emit_helper(emitter);
-  return emit_helper.emit_epilog(frame);
+  ASMJIT_PROPAGATE(emit_helper.emit_epilog(frame));
+  return emit_helper.emit_ret(frame);
+}
+
+static Error ASMJIT_CDECL Emitter_emit_epilog_no_ret(BaseEmitter* emitter, const FuncFrame& frame) {
+  EmitHelper emit_helper(emitter);
+  ASMJIT_PROPAGATE(emit_helper.emit_epilog(frame));
+
+  // There is no 'retab' to authenticate LR signed by the prolog ('pacibsp'), so authenticate it explicitly as
+  // the tail-called function would otherwise return to a signed (non-canonical) address.
+  PrologEpilogInfo pei;
+  ASMJIT_PROPAGATE(pei.init(frame));
+
+  if (pei.pauth_entry == Inst::kIdPacibsp) {
+    ASMJIT_PROPAGATE(emitter->as<Emitter>()->emit(Inst::kIdAutibsp));
+  }
+
+  return Error::kOk;
 }
 
 static Error ASMJIT_CDECL Emitter_emit_args_assignment(BaseEmitter* emitter, const FuncFrame& frame, const FuncArgsAssignment& args) {
@@ -519,6 +545,7 @@ static Error ASMJIT_CDECL Emitter_emit_args_assignment(BaseEmitter* emitter, con
 void init_emitter_funcs(BaseEmitter* emitter) {
   emitter->_funcs.emit_prolog = Emitter_emit_prolog;
   emitter->_funcs.emit_epilog = Emitter_emit_epilog;
+  emitter->_funcs.emit_epilog_no_ret = Emitter_emit_epilog_no_ret;
   emitter->_funcs.emit_args_assignment = Emitter_emit_args_assignment;
 
 #ifndef ASMJIT_NO_LOGGING

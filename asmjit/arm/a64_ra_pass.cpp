@@ -378,8 +378,15 @@ Error RACFGBuilder::on_instruction(InstNode* inst, InstControlFlow& control_type
 Error RACFGBuilder::on_before_invoke(InvokeNode* invoke_node) noexcept {
   const FuncDetail& fd = invoke_node->detail();
   uint32_t arg_count = invoke_node->arg_count();
+  bool is_tail_call = invoke_node->inst_id() == Inst::kIdBr || invoke_node->inst_id() == Inst::kIdB;
 
-  cc().set_cursor(invoke_node->prev());
+  // The callee reuses the incoming argument area of the current function, which must be large enough.
+  if (is_tail_call && fd.arg_stack_size() > _pass.func()->detail().arg_stack_size()) {
+    return make_error(Error::kInvalidState);
+  }
+
+  BaseNode* prev_node = invoke_node->prev();
+  cc().set_cursor(prev_node);
 
   for (uint32_t arg_index = 0; arg_index < arg_count; arg_index++) {
     const FuncValuePack& arg_pack = fd.arg_pack(arg_index);
@@ -426,6 +433,23 @@ Error RACFGBuilder::on_before_invoke(InvokeNode* invoke_node) noexcept {
     }
   }
 
+  // Stack arguments of a tail call are relocated to the incoming argument area once the frame is known.
+  if (is_tail_call) {
+    for (BaseNode* node = prev_node->next(); node != invoke_node; node = node->next()) {
+      if (!node->is_inst()) {
+        continue;
+      }
+
+      InstNode* inst = node->as<InstNode>();
+      for (const Operand& op : inst->operands()) {
+        if (op.is_mem() && op.as<Mem>().has_base_reg() && !op.as<Mem>().is_reg_home() && op.as<Mem>().base_id() == _pass._sp.id()) {
+          ASMJIT_PROPAGATE(_pass.add_tail_stack_arg_store(inst));
+          break;
+        }
+      }
+    }
+  }
+
   cc().set_cursor(invoke_node);
 
   if (fd.has_ret()) {
@@ -454,15 +478,17 @@ Error RACFGBuilder::on_before_invoke(InvokeNode* invoke_node) noexcept {
     }
   }
 
-  // This block has function call(s).
-  _cur_block->add_flags(RABlockFlags::kHasFuncCalls);
-  _pass.func()->frame().add_attributes(FuncAttributes::kHasFuncCalls);
-  _pass.func()->frame().update_call_stack_size(fd.arg_stack_size());
+  if (invoke_node->inst_id() == Inst::kIdBlr || invoke_node->inst_id() == Inst::kIdBl) {
+    // This block has function call(s).
+    _cur_block->add_flags(RABlockFlags::kHasFuncCalls);
+    _pass.func()->frame().add_attributes(FuncAttributes::kHasFuncCalls);
+    _pass.func()->frame().update_call_stack_size(fd.arg_stack_size());
+  }
 
   // Decide which instruction to use - AArch64 provides different instructions for relative/indirect calls.
   // In addition, if the function invocation uses PAUTH, patch the instruction to the correct BLRxxx id.
   if (invoke_node->op(0).is_reg()) {
-    InstId inst_id = Inst::kIdBlr;
+    InstId inst_id = is_tail_call ? Inst::kIdBr : Inst::kIdBlr;
 
     if (invoke_node->has_authentication()) {
       if (_pass.func()->frame().has_attribute(FuncAttributes::kPtrAuth)) {
@@ -473,12 +499,12 @@ Error RACFGBuilder::on_before_invoke(InvokeNode* invoke_node) noexcept {
           }
 
           case uint8_t(PAuthKey::kAArch64ASIA): {
-            inst_id = Inst::kIdBlraaz;
+            inst_id = is_tail_call ? Inst::kIdBraaz : Inst::kIdBlraaz;
             break;
           }
 
           case uint8_t(PAuthKey::kAArch64ASIB): {
-            inst_id = Inst::kIdBlrabz;
+            inst_id = is_tail_call ? Inst::kIdBrabz : Inst::kIdBlrabz;
             break;
           }
 
@@ -958,6 +984,25 @@ Error ARMRAPass::emit_pre_call(InvokeNode* invoke_node) noexcept {
   return Error::kOk;
 }
 
+Error ARMRAPass::emit_pre_tail(InvokeNode* invoke_node) noexcept {
+  switch (invoke_node->inst_id()) {
+    case Inst::kIdB:
+    case Inst::kIdBr:
+    case Inst::kIdBraaz:
+    case Inst::kIdBrabz:
+      cc().set_cursor(invoke_node->prev());
+      return cc().emit_epilog_no_ret(_func->frame());
+
+    case Inst::kIdBl:
+    case Inst::kIdBlr:
+    case Inst::kIdBlraaz:
+    case Inst::kIdBlrabz:
+      return Error::kOk;
+
+    default:
+      return Error::kInvalidInstruction;
+  }
+}
 ASMJIT_END_SUB_NAMESPACE
 
 #endif // !ASMJIT_NO_AARCH64 && !ASMJIT_NO_COMPILER
