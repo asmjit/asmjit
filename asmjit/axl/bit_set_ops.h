@@ -3,8 +3,8 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#ifndef ASMJIT_AXL_BIT_SET_UTILS_H_INCLUDED
-#define ASMJIT_AXL_BIT_SET_UTILS_H_INCLUDED
+#ifndef ASMJIT_AXL_BIT_SET_OPS_H_INCLUDED
+#define ASMJIT_AXL_BIT_SET_OPS_H_INCLUDED
 
 #include <asmjit/axl/commons.h>
 #include <asmjit/axl/span.h>
@@ -13,6 +13,23 @@ ASMJIT_BEGIN_SUB_NAMESPACE(axl)
 
 //! \addtogroup asmjit_axl
 //! \{
+
+namespace {
+
+// BitCount <-> WordCount Conversion
+// =================================
+
+template<typename T>
+[[nodiscard]]
+ASMJIT_INLINE_CONSTEXPR size_t word_count_from_bit_count(size_t bit_count) noexcept {
+  return (bit_count + bit_size_of<T> - 1) / bit_size_of<T>;
+}
+
+template<typename T>
+[[nodiscard]]
+ASMJIT_INLINE_CONSTEXPR size_t bit_count_from_word_count(size_t word_count) noexcept {
+  return word_count * bit_size_of<T>;
+}
 
 // BitWordIterator
 // ===============
@@ -33,6 +50,8 @@ ASMJIT_BEGIN_SUB_NAMESPACE(axl)
 template<typename T>
 class BitWordIterator {
 public:
+  T _bit_word {};
+
   ASMJIT_INLINE_NODEBUG explicit BitWordIterator(T bit_word) noexcept
     : _bit_word(bit_word) {}
 
@@ -48,8 +67,6 @@ public:
     _bit_word &= T(_bit_word - 1);
     return index;
   }
-
-  T _bit_word;
 };
 
 // BitVectorOps
@@ -387,8 +404,10 @@ public:
   }
 };
 
+} // {anonymous}
+
 //! \}
 
 ASMJIT_END_SUB_NAMESPACE
 
-#endif // ASMJIT_AXL_BIT_SET_UTILS_H_INCLUDED
+#endif // ASMJIT_AXL_BIT_SET_OPS_H_INCLUDED

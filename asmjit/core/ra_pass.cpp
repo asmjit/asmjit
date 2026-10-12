@@ -8,7 +8,7 @@
 
 #include <asmjit/axl/algorithm.h>
 #include <asmjit/axl/arena_vector.h>
-#include <asmjit/axl/bit_set_utils.h>
+#include <asmjit/axl/bit_set_ops.h>
 #include <asmjit/axl/inplace_array.h>
 #include <asmjit/axl/inplace_stack.h>
 #include <asmjit/axl/commons.h>
@@ -1527,7 +1527,7 @@ ASMJIT_FAVOR_SPEED Error BaseRAPass::bin_pack(RegGroup group) noexcept {
       while (i < stop) {
         RAWorkReg* work_reg = consecutive_regs[i].work_reg;
         if (work_reg->has_immediate_consecutives()) {
-          axl::ArenaBitSet::ForEachBitSet it(work_reg->immediate_consecutives());
+          axl::BitVectorIterator<axl::BitWord> it(work_reg->immediate_consecutives().span());
           while (it.has_next()) {
             RAWorkId consecutive_work_id = RAWorkId(it.next());
             RAWorkReg* consecutive_reg = work_reg_by_id(consecutive_work_id);

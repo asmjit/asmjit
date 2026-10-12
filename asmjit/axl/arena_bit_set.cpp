@@ -17,7 +17,7 @@ Error ArenaBitSet::copy_from(Arena& arena, const ArenaBitSet& other) noexcept {
 
   if (!new_size) {
     _size = 0;
-    return kResultSuccess;
+    return kSuccess;
   }
 
   if (new_size > _capacity) {
@@ -58,7 +58,7 @@ Error ArenaBitSet::copy_from(Arena& arena, const ArenaBitSet& other) noexcept {
   _size = uint32_t(new_size);
   _copy_bits(data, other.data(), _words_per_bits(uint32_t(new_size)));
 
-  return kResultSuccess;
+  return kSuccess;
 }
 
 Error ArenaBitSet::_resize(Arena& arena, size_t new_size, size_t ideal_capacity, bool new_bits_value) noexcept {
@@ -77,7 +77,7 @@ Error ArenaBitSet::_resize(Arena& arena, size_t new_size, size_t ideal_capacity,
     }
 
     _size = uint32_t(new_size);
-    return kResultSuccess;
+    return kSuccess;
   }
 
   size_t old_size = _size;
@@ -160,7 +160,7 @@ Error ArenaBitSet::_resize(Arena& arena, size_t new_size, size_t ideal_capacity,
   }
 
   _size = uint32_t(new_size);
-  return kResultSuccess;
+  return kSuccess;
 }
 
 Error ArenaBitSet::_append(Arena& arena, bool value) noexcept {

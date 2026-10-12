@@ -940,8 +940,8 @@ namespace asmjit {
 //!   int in_b[4] = { 1, 5, 2, 8 };
 //!   int out[4];
 //!
-//!   // This code uses AsmJit's axl::ptr_as_func<> to cast between void* and SumIntsFunc.
-//!   SumIntsFunc fn = axl::ptr_as_func<SumIntsFunc>(span.rx());
+//!   // This code uses AsmJit's ptr_as_func<> to cast between void* and SumIntsFunc.
+//!   SumIntsFunc fn = ptr_as_func<SumIntsFunc>(span.rx());
 //!   fn(out, in_a, in_b);
 //!
 //!   // Prints {5 8 4 9}
@@ -2276,7 +2276,7 @@ namespace asmjit {
 #include <asmjit/axl/arena_string.h>
 #include <asmjit/axl/arena_tree.h>
 #include <asmjit/axl/arena_vector.h>
-#include <asmjit/axl/bit_set_utils.h>
+#include <asmjit/axl/bit_set_ops.h>
 #include <asmjit/axl/commons.h>
 #include <asmjit/axl/inplace_bit_set.h>
 #include <asmjit/axl/inplace_queue.h>

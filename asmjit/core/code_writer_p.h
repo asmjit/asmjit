@@ -6,6 +6,7 @@
 #ifndef ASMJIT_CORE_CODE_WRITER_P_H_INCLUDED
 #define ASMJIT_CORE_CODE_WRITER_P_H_INCLUDED
 
+#include <asmjit/axl/mem_ops.h>
 #include <asmjit/core/assembler.h>
 #include <asmjit/core/code_buffer.h>
 #include <asmjit/core/globals.h>

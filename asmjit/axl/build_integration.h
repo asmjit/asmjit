@@ -10,7 +10,7 @@
 //
 // <Result> type:
 //   - Result (could be using a Result type from upper namespace if compatible)
-//   - kResultSuccess - a successful result (usually a zero constant)
+//   - kSuccess - a successful result (usually a zero constant)
 //   - make_out_of_memory() - makes an out of memory result
 
 #include <asmjit/core/build_defs.h>
@@ -21,10 +21,10 @@ ASMJIT_BEGIN_SUB_NAMESPACE(axl)
 
 using Result = Error;
 
-static constexpr Result kResultSuccess = Result::kOk;
+static constexpr Result kSuccess = Result::kOk;
 
 [[nodiscard]]
-static constexpr Error make_out_of_memory() noexcept { return Error::kOutOfMemory; }
+static constexpr Result make_out_of_memory() noexcept { return make_error(Error::kOutOfMemory); }
 
 ASMJIT_END_SUB_NAMESPACE
 

@@ -159,8 +159,8 @@ asmjit_define_sources(ASMJIT_AXL_SRC
   asmjit/axl/arena_vector.cpp
   asmjit/axl/arena_vector.h
   asmjit/axl/arena_vector_test.cpp
-  asmjit/axl/bit_set_utils.h
-  asmjit/axl/bit_set_utils_test.cpp
+  asmjit/axl/bit_set_ops.h
+  asmjit/axl/bit_set_ops_test.cpp
   asmjit/axl/commons.h
   asmjit/axl/commons_test.cpp
   asmjit/axl/inplace_array.h

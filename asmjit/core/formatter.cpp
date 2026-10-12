@@ -6,6 +6,7 @@
 #include <asmjit/core/build_export_p.h>
 #ifndef ASMJIT_NO_LOGGING
 
+#include <asmjit/axl/mem_ops.h>
 #include <asmjit/core/arch_traits.h>
 #include <asmjit/core/builder.h>
 #include <asmjit/core/code_holder.h>

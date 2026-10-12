@@ -1208,6 +1208,7 @@ public:
   //!
   //! \note This function is called automatically by the CPU detection logic. However, if you change the CPU features
   //! in your own instance of \ref CpuInfo, CPU hints must be updated too, otherwise they would be out of sync.
+  [[nodiscard]]
   ASMJIT_API static CpuHints recalculate_hints(const CpuInfo& info, const CpuFeatures& features) noexcept;
 
   //! \}

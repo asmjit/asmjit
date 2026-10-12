@@ -85,13 +85,13 @@ public:
   //! and `dst` is explicitly set to `nullptr`  (this means that you don't have to set it to null before calling `add()`).
   template<typename Func>
   ASMJIT_INLINE_NODEBUG Error add(Func* dst, CodeHolder* code) noexcept {
-    return _add(axl::func_ptr_cast_impl<void**, Func*>(dst), code);
+    return _add(func_ptr_cast_impl<void**, Func*>(dst), code);
   }
 
   //! Releases `p` which was obtained by calling `add()`.
   template<typename Func>
   ASMJIT_INLINE_NODEBUG Error release(Func p) noexcept {
-    return _release(axl::func_ptr_cast_impl<void*, Func>(p));
+    return _release(func_ptr_cast_impl<void*, Func>(p));
   }
 
   //! Type-unsafe version of `add()`.

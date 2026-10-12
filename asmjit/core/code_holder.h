@@ -708,8 +708,8 @@ public:
 //!
 //!   using Fn = uint32_t(*)(void);
 //!
-//!   Fn fn1 = axl::ptr_as_func<Fn>(module, func1_offset);
-//!   Fn fn2 = axl::ptr_as_func<Fn>(module, func2_offset);
+//!   Fn fn1 = ptr_as_func<Fn>(module, func1_offset);
+//!   Fn fn2 = ptr_as_func<Fn>(module, func2_offset);
 //!
 //!   printf("fn1()=%u fn2()=%u\n", fn1(), fn2());
 //!

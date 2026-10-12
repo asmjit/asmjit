@@ -7,7 +7,7 @@
 #define ASMJIT_AXL_ARENA_BIT_SET_P_H_INCLUDED
 
 #include <asmjit/axl/arena.h>
-#include <asmjit/axl/bit_set_utils.h>
+#include <asmjit/axl/bit_set_ops.h>
 #include <asmjit/axl/build_integration.h>
 #include <asmjit/axl/commons.h>
 #include <asmjit/axl/span.h>
@@ -277,7 +277,7 @@ public:
       _data[idx] |= BitWord(value) << bit;
 
     _size++;
-    return kResultSuccess;
+    return kSuccess;
   }
 
   Error copy_from(Arena& arena, const ArenaBitSet& other) noexcept;
@@ -408,17 +408,6 @@ public:
 
   Error _resize(Arena& arena, size_t new_size, size_t ideal_capacity, bool new_bits_value) noexcept;
   Error _append(Arena& arena, bool value) noexcept;
-
-  //! \}
-
-  //! \name Iterators
-  //! \{
-
-  class ForEachBitSet : public BitVectorIterator<BitWord> {
-  public:
-    inline explicit ForEachBitSet(const ArenaBitSet& bit_vector) noexcept
-      : BitVectorIterator<BitWord>(bit_vector.span()) {}
-  };
 
   //! \}
 };

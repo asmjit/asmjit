@@ -349,7 +349,7 @@ public:
            sizeof(T));
 
     _size++;
-    return axl::kResultSuccess;
+    return axl::kSuccess;
   }
 
   //! Inserts an `item` at the specified `index`.
@@ -367,7 +367,7 @@ public:
            sizeof(T));
 
     _size++;
-    return axl::kResultSuccess;
+    return axl::kSuccess;
   }
 
   //! Appends `item` to the vector.
@@ -379,7 +379,7 @@ public:
            sizeof(T));
 
     _size++;
-    return axl::kResultSuccess;
+    return axl::kSuccess;
   }
 
   //! Appends `other` vector at the end of this vector.
@@ -397,7 +397,7 @@ public:
       _size += size;
     }
 
-    return axl::kResultSuccess;
+    return axl::kSuccess;
   }
 
   ASMJIT_INLINE void assign_unchecked(const ArenaVector<T>& other) noexcept {
@@ -545,7 +545,7 @@ public:
       return _reserve_fit(arena, n);
     }
 
-    return kResultSuccess;
+    return kSuccess;
   }
 
   //! Reallocates the underlying array to fit at least `n` items with grow semantics.
@@ -558,7 +558,7 @@ public:
       return _reserve_grow(arena, n);
     }
 
-    return kResultSuccess;
+    return kSuccess;
   }
 
   //! Called to grow the buffer to fit at least 1 element more.
@@ -568,7 +568,7 @@ public:
       return _reserve_additional(arena, 1u);
     }
 
-    return kResultSuccess;
+    return kSuccess;
   }
 
   //! Called to grow the buffer to fit at least `n` elements more.
@@ -578,7 +578,7 @@ public:
       return _reserve_additional(arena, n);
     }
 
-    return kResultSuccess;
+    return kSuccess;
   }
 
   //! Resizes the vector to hold `n` elements with fit semantics.

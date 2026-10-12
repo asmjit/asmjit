@@ -24,7 +24,7 @@ TEST_CASE(axl_arena_bit_set) {
   TEST_LOG("ArenaBitSet::resize()");
   for (count = 1; count < kMaxCount; count++) {
     vec.clear();
-    EXPECT_EQ(vec.resize(arena, count, false), axl::kResultSuccess);
+    EXPECT_EQ(vec.resize(arena, count, false), axl::kSuccess);
     EXPECT_EQ(vec.size(), count);
 
     for (i = 0; i < count; i++) {
@@ -32,7 +32,7 @@ TEST_CASE(axl_arena_bit_set) {
     }
 
     vec.clear();
-    EXPECT_EQ(vec.resize(arena, count, true), axl::kResultSuccess);
+    EXPECT_EQ(vec.resize(arena, count, true), axl::kSuccess);
     EXPECT_EQ(vec.size(), count);
 
     for (i = 0; i < count; i++) {
@@ -43,7 +43,7 @@ TEST_CASE(axl_arena_bit_set) {
   TEST_LOG("ArenaBitSet::fill_bits() / clear_bits()");
   for (count = 1; count < kMaxCount; count += 2) {
     vec.clear();
-    EXPECT_EQ(vec.resize(arena, count), axl::kResultSuccess);
+    EXPECT_EQ(vec.resize(arena, count), axl::kSuccess);
     EXPECT_EQ(vec.size(), count);
 
     for (i = 0; i < (count + 1) / 2; i++) {

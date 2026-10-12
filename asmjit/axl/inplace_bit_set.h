@@ -6,7 +6,7 @@
 #ifndef ASMJIT_AXL_INPLACE_BIT_SET_H_INCLUDED
 #define ASMJIT_AXL_INPLACE_BIT_SET_H_INCLUDED
 
-#include <asmjit/axl/bit_set_utils.h>
+#include <asmjit/axl/bit_set_ops.h>
 #include <asmjit/axl/commons.h>
 #include <asmjit/axl/inplace_array.h>
 

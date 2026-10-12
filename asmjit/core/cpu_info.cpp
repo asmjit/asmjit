@@ -4,9 +4,11 @@
 // SPDX-License-Identifier: Zlib
 
 #include <asmjit/core/build_export_p.h>
+
+#include <asmjit/axl/bit_set_ops.h>
+#include <asmjit/axl/mem_ops.h>
 #include <asmjit/core/cpu_info.h>
 #include <asmjit/core/globals.h>
-#include <asmjit/axl/bit_set_utils.h>
 
 #include <atomic>
 

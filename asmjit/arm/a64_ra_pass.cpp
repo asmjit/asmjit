@@ -6,7 +6,7 @@
 #include <asmjit/core/build_export_p.h>
 #if !defined(ASMJIT_NO_AARCH64) && !defined(ASMJIT_NO_COMPILER)
 
-#include <asmjit/axl/bit_set_utils.h>
+#include <asmjit/axl/bit_set_ops.h>
 #include <asmjit/core/cpu_info.h>
 #include <asmjit/core/formatter_p.h>
 #include <asmjit/core/globals.h>

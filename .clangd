@@ -1,0 +1,13 @@
+CompileFlags:
+  CompilationDatabase: build/debug
+  Add: [-std=c++20, -Wall, -Wextra, -DASMJIT_TEST -D__INTELLISENSE__]
+  Remove: [-Werror]
+
+Index:
+  Background: Build
+
+Completion:
+  AllScopes: true
+
+Documentation:
+  CommentFormat: Doxygen

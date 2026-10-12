@@ -113,71 +113,71 @@ public:
 
     switch (_arg_count) {
       case 0:
-        result_ret = axl::ptr_as_func<Func0>(_func)();
+        result_ret = ptr_as_func<Func0>(_func)();
         expect_ret = 0;
         break;
       case 1:
-        result_ret = axl::ptr_as_func<Func1>(_func)(1);
+        result_ret = ptr_as_func<Func1>(_func)(1);
         expect_ret = 1;
         break;
       case 2:
-        result_ret = axl::ptr_as_func<Func2>(_func)(1, 2);
+        result_ret = ptr_as_func<Func2>(_func)(1, 2);
         expect_ret = 1 + 2;
         break;
       case 3:
-        result_ret = axl::ptr_as_func<Func3>(_func)(1, 2, 3);
+        result_ret = ptr_as_func<Func3>(_func)(1, 2, 3);
         expect_ret = 1 + 2 + 3;
         break;
       case 4:
-        result_ret = axl::ptr_as_func<Func4>(_func)(1, 2, 3, 4);
+        result_ret = ptr_as_func<Func4>(_func)(1, 2, 3, 4);
         expect_ret = 1 + 2 + 3 + 4;
         break;
       case 5:
-        result_ret = axl::ptr_as_func<Func5>(_func)(1, 2, 3, 4, 5);
+        result_ret = ptr_as_func<Func5>(_func)(1, 2, 3, 4, 5);
         expect_ret = 1 + 2 + 3 + 4 + 5;
         break;
       case 6:
-        result_ret = axl::ptr_as_func<Func6>(_func)(1, 2, 3, 4, 5, 6);
+        result_ret = ptr_as_func<Func6>(_func)(1, 2, 3, 4, 5, 6);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6;
         break;
       case 7:
-        result_ret = axl::ptr_as_func<Func7>(_func)(1, 2, 3, 4, 5, 6, 7);
+        result_ret = ptr_as_func<Func7>(_func)(1, 2, 3, 4, 5, 6, 7);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7;
         break;
       case 8:
-        result_ret = axl::ptr_as_func<Func8>(_func)(1, 2, 3, 4, 5, 6, 7, 8);
+        result_ret = ptr_as_func<Func8>(_func)(1, 2, 3, 4, 5, 6, 7, 8);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8;
         break;
       case 9:
-        result_ret = axl::ptr_as_func<Func9>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9);
+        result_ret = ptr_as_func<Func9>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9;
         break;
       case 10:
-        result_ret = axl::ptr_as_func<Func10>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+        result_ret = ptr_as_func<Func10>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10;
         break;
       case 11:
-        result_ret = axl::ptr_as_func<Func11>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+        result_ret = ptr_as_func<Func11>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11;
         break;
       case 12:
-        result_ret = axl::ptr_as_func<Func12>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+        result_ret = ptr_as_func<Func12>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 12;
         break;
       case 13:
-        result_ret = axl::ptr_as_func<Func13>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
+        result_ret = ptr_as_func<Func13>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 12 + 13;
         break;
       case 14:
-        result_ret = axl::ptr_as_func<Func14>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14);
+        result_ret = ptr_as_func<Func14>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 12 + 13 + 14;
         break;
       case 15:
-        result_ret = axl::ptr_as_func<Func15>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
+        result_ret = ptr_as_func<Func15>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 12 + 13 + 14 + 15;
         break;
       case 16:
-        result_ret = axl::ptr_as_func<Func16>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+        result_ret = ptr_as_func<Func16>(_func)(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
         expect_ret = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 12 + 13 + 14 + 15 + 16;
         break;
     }
@@ -234,7 +234,7 @@ public:
     // NOTE: It's a byte-add, so uint8_t(255+1) == 0.
     uint32_t ref[4] = { 99, 18, 35, 0 };
 
-    axl::ptr_as_func<Func>(_func)(dst, a_src, b_src);
+    ptr_as_func<Func>(_func)(dst, a_src, b_src);
 
     result.assign_format("ret={%u, %u, %u, %u}", dst[0], dst[1], dst[2], dst[3]);
     expect.assign_format("ret={%u, %u, %u, %u}", ref[0], ref[1], ref[2], ref[3]);
@@ -286,7 +286,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(void);
-    Func func = axl::ptr_as_func<Func>(_func);
+    Func func = ptr_as_func<Func>(_func);
 
     result.assign_format("ret={%d}", func());
     expect.assign_format("ret={%d}", calc_sum());
@@ -334,7 +334,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(void);
-    Func func = axl::ptr_as_func<Func>(_func);
+    Func func = ptr_as_func<Func>(_func);
 
     result.assign_format("ret={%d}", func());
     expect.assign_format("ret={%d}", 3);
@@ -379,7 +379,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = void (*)(void* p, size_t n);
-    Func func = axl::ptr_as_func<Func>(_func);
+    Func func = ptr_as_func<Func>(_func);
 
     uint8_t array[16];
     func(array, 16);
@@ -435,7 +435,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = uint32_t (*)(uint32_t, uint32_t);
-    Func func = axl::ptr_as_func<Func>(_func);
+    Func func = ptr_as_func<Func>(_func);
 
     uint32_t x = 49;
     uint32_t y = 7;
@@ -487,7 +487,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = double (*)(double, double);
-    Func func = axl::ptr_as_func<Func>(_func);
+    Func func = ptr_as_func<Func>(_func);
 
     double x = 49;
     double y = 7;
@@ -539,7 +539,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = double (*)(double, double);
-    Func func = axl::ptr_as_func<Func>(_func);
+    Func func = ptr_as_func<Func>(_func);
 
     double x = 49;
     double y = 7;
@@ -606,7 +606,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = uint32_t (*)(uint32_t, uint32_t);
-    Func func = axl::ptr_as_func<Func>(_func);
+    Func func = ptr_as_func<Func>(_func);
 
     result.assign_format("ret={%u}", func(10, 32));
     expect.assign_format("ret={%u}", 42);
@@ -669,7 +669,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = uint32_t (*)(void);
-    Func func = axl::ptr_as_func<Func>(_func);
+    Func func = ptr_as_func<Func>(_func);
 
     result.assign_format("ret={%u}", func());
     expect.assign_format("ret={%u}", called_fn());
@@ -690,7 +690,7 @@ public:
   bool _annotated;
 
   A64Test_JumpTable(bool annotated)
-    : A64TestCase("A64Test_JumpTable"),
+    : A64TestCase("JumpTable"),
       _annotated(annotated) {
     _name.assign_format("JumpTable {%s}", annotated ? "Annotated" : "Not Annotated");
   }
@@ -775,7 +775,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = float (*)(float, float, uint32_t);
-    Func func = axl::ptr_as_func<Func>(_func);
+    Func func = ptr_as_func<Func>(_func);
 
     float dst[4];
     float ref[4];
@@ -932,6 +932,72 @@ public:
   bool _preserve_fp;
 };
 
+// a64::Compiler - A64Test_ConsecutiveAllocation
+// =============================================
+
+class A64Test_ConsecutiveOutAllocation : public A64TestCase {
+public:
+  A64Test_ConsecutiveOutAllocation()
+    : A64TestCase("ConsecutiveOutAllocation") {}
+
+  static void add(TestApp& app) {
+    app.add(new A64Test_ConsecutiveOutAllocation());
+  }
+
+  void compile(a64::Compiler& cc) override {
+    FuncNode* func_node = cc.add_func(FuncSignature::build<void, void*, const void*>());
+
+    a64::Gp src = cc.new_gp_ptr();
+    a64::Gp dst = cc.new_gp_ptr();
+
+    func_node->set_arg(0, dst);
+    func_node->set_arg(1, src);
+
+    a64::Vec v[] = {
+      cc.new_vec_q(),
+      cc.new_vec_q(),
+      cc.new_vec_q(),
+      cc.new_vec_q()
+    };
+
+    cc.ld2(v[0].b16(), v[1].b16(), a64::ptr(src));
+    cc.add(src, src, 32);
+    cc.ld2(v[2].b16(), v[3].b16(), a64::ptr(src));
+
+    for (int i = 0; i < 4; ++i) {
+      cc.str(v[i], a64::ptr(dst, i * 16));
+    }
+
+    using Func = void (*)(void*, const void*);
+    Func func = ptr_as_func<Func>(_func);
+
+    uint8_t src_buffer[64];
+    uint8_t dst_buffer[64];
+
+    for (uint32_t i = 0; i < 64u; i++) {
+      src_buffer[i] = static_cast<uint8_t>(i);
+    }
+
+    func(dst_buffer, src_buffer);
+
+    result.assign("ret={");
+    expect.assign("ret={");
+
+    for (uint32_t i = 0; i < 64u; i++) {
+      if (i != 0) {
+        result.append(", ");
+        expect.append(", ");
+      }
+      result.append_format("%u", dst_buffer[i]);
+      // Each LD2 deinterleaves 32 bytes into an even-byte vector followed by an odd-byte vector.
+      uint32_t src_index = (i / 32u) * 32u + (i % 16u) * 2u + (i / 16u) % 2u;
+      expect.append_format("%u", src_buffer[src_index]);
+    }
+
+    return result == expect;
+  }
+};
+
 // a64::Compiler - Export
 // ======================
 
@@ -949,6 +1015,7 @@ void compiler_add_a64_tests(TestApp& app) {
   app.add_t<A64Test_JumpTable>();
   app.add_t<A64Test_FuncTailCall>();
   app.add_t<A64Test_FuncTailCallPermute>();
+  app.add_t<A64Test_ConsecutiveOutAllocation>();
 }
 
 #endif // !ASMJIT_NO_COMPILER && !ASMJIT_NO_AARCH64
