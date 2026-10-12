@@ -89,7 +89,7 @@ static ASMJIT_NOINLINE Error ArenaVector_reserve_with_byte_size(ArenaVectorBase&
   self._data = new_data;
   self._capacity = uint32_t(allocated_capacity);
 
-  return axl::kResultSuccess;
+  return axl::kSuccess;
 }
 
 static ASMJIT_INLINE bool ArenaVector_is_valid_size(size_t size) noexcept {
@@ -122,7 +122,7 @@ static ASMJIT_INLINE Error ArenaVector_reserve_fit(ArenaVectorBase& self, Arena&
   uint64_t byte_size = byte_size_from_item_count<uint64_t>(item_count, item_size);
 
   if (ASMJIT_UNLIKELY(bool_or(capacity_masked >= item_count, !ArenaVector_check_byte_size(byte_size)))) {
-    return capacity >= item_count ? kResultSuccess : make_out_of_memory();
+    return capacity >= item_count ? kSuccess : make_out_of_memory();
   }
 
   return ArenaVector_reserve_with_byte_size(self, arena, size_t(byte_size), item_size);
@@ -135,7 +135,7 @@ static ASMJIT_INLINE Error ArenaVector_reserve_grow(ArenaVectorBase& self, Arena
   uint64_t byte_size = byte_size_from_item_count<uint64_t>(item_count, item_size);
 
   if (ASMJIT_UNLIKELY(bool_or(capacity_masked >= item_count, !ArenaVector_check_byte_size(byte_size)))) {
-    return capacity >= item_count ? kResultSuccess : make_out_of_memory();
+    return capacity >= item_count ? kSuccess : make_out_of_memory();
   }
 
   size_t expanded_byte_size = ArenaVector_expand_byte_size(size_t(byte_size));
@@ -168,7 +168,7 @@ static ASMJIT_INLINE Error ArenaVector_resize_fit(ArenaVectorBase& self, Arena& 
   }
 
   self._size = uint32_t(n);
-  return axl::kResultSuccess;
+  return axl::kSuccess;
 }
 
 template<bool IsPowerOf2>
@@ -185,7 +185,7 @@ static ASMJIT_INLINE Error ArenaVector_resize_grow(ArenaVectorBase& self, Arena&
   }
 
   self._size = uint32_t(n);
-  return axl::kResultSuccess;
+  return axl::kSuccess;
 }
 
 // Public API wrappers:

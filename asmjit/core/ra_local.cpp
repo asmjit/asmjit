@@ -6,7 +6,7 @@
 #include <asmjit/core/build_export_p.h>
 #ifndef ASMJIT_NO_COMPILER
 
-#include <asmjit/axl/bit_set_utils.h>
+#include <asmjit/axl/bit_set_ops.h>
 #include <asmjit/axl/commons.h>
 #include <asmjit/core/globals.h>
 #include <asmjit/core/ra_local_p.h>

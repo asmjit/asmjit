@@ -22,7 +22,7 @@ static void test_arena_vector(axl::Arena& arena, const char* type_name) {
   axl::ArenaVector<T> vec;
 
   TEST_LOG("ArenaVector<%s> basic tests", type_name);
-  EXPECT_EQ(vec.append(arena, 0), axl::kResultSuccess);
+  EXPECT_EQ(vec.append(arena, 0), axl::kSuccess);
   EXPECT_FALSE(vec.is_empty());
   EXPECT_EQ(vec.size(), 1u);
   EXPECT_GE(vec.capacity(), 1u);
@@ -35,7 +35,7 @@ static void test_arena_vector(axl::Arena& arena, const char* type_name) {
   EXPECT_EQ(vec.index_of(0), SIZE_MAX);
 
   for (i = 0; i < kMax; i++) {
-    EXPECT_EQ(vec.append(arena, T(i)), axl::kResultSuccess);
+    EXPECT_EQ(vec.append(arena, T(i)), axl::kSuccess);
   }
   EXPECT_FALSE(vec.is_empty());
   EXPECT_EQ(vec.size(), size_t(kMax));
@@ -55,7 +55,7 @@ static void test_arena_vector(axl::Arena& arena, const char* type_name) {
 
   TEST_LOG("ArenaVector<%s>::reserve_grow()", type_name);
   for (uint32_t j = 8; j < 40 / sizeof(T); j += 8) {
-    EXPECT_EQ(vec.reserve_grow(arena, j * kMiB), axl::kResultSuccess);
+    EXPECT_EQ(vec.reserve_grow(arena, j * kMiB), axl::kSuccess);
     EXPECT_GE(vec.capacity(), j * kMiB);
   }
 }
@@ -68,7 +68,7 @@ static void test_arena_vector_capacity(axl::Arena& arena, const char* type_name)
 
   for (size_t i = 0; i < 10000000; i++) {
     size_t old_capacity = vec.capacity();
-    EXPECT_EQ(vec.append(arena, T(i)), axl::kResultSuccess);
+    EXPECT_EQ(vec.append(arena, T(i)), axl::kSuccess);
 
     if (vec.capacity() != old_capacity) {
       TEST_LOG("  Increasing capacity from %zu to %zu (vector size=%zu)", old_capacity, vec.capacity(), vec.size());

@@ -778,7 +778,7 @@ public:
       if (use_tmp) {
         ASMJIT_PROPAGATE(_tmp_name.assign(get_tmp_dir()));
         ASMJIT_PROPAGATE(_tmp_name.append_format(shm_format_string, (unsigned long long)bits));
-        _fd = ASMJIT_FILE64_API(::open)(_tmp_name.data(), default_open_flags(), 0);
+        _fd = ::open(_tmp_name.data(), default_open_flags(), 0);
         if (ASMJIT_LIKELY(_fd >= 0)) {
           _file_type = kFileTypeTmp;
           return Error::kOk;
@@ -831,7 +831,7 @@ public:
 
   Error allocate(size_t size) noexcept {
     // TODO: Improve this by using `posix_fallocate()` when available.
-    if (ASMJIT_FILE64_API(ftruncate)(_fd, off_t(size)) != 0) {
+    if (ftruncate(_fd, off_t(size)) != 0) {
       return make_error(asmjit_error_from_errno(errno));
     }
 

@@ -10,7 +10,7 @@
 #include <asmjit/core/formatter_p.h>
 #include <asmjit/core/globals.h>
 #include <asmjit/core/type.h>
-#include <asmjit/axl/bit_set_utils.h>
+#include <asmjit/axl/bit_set_ops.h>
 #include <asmjit/axl/commons.h>
 #include <asmjit/x86/x86_assembler.h>
 #include <asmjit/x86/x86_compiler.h>

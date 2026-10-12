@@ -72,6 +72,32 @@ enum class ResetPolicy : uint32_t {
   kHard = 1
 };
 
+// Pointer <-> Function Casting
+// ============================
+
+//! \cond INTERNAL
+//! Cast designed to cast between function and void* pointers.
+template<typename Dst, typename Src>
+static inline Dst func_ptr_cast_impl(Src p) noexcept { return (Dst)p; }
+//! \endcond
+
+//! Casts a `void*` pointer `func` to a function pointer `Func`.
+template<typename Func>
+static ASMJIT_INLINE_NODEBUG Func ptr_as_func(void* p) noexcept {
+  return func_ptr_cast_impl<Func, void*>(p);
+}
+
+//! Casts a `void*` pointer `func` to a function pointer `Func`.
+template<typename Func>
+static ASMJIT_INLINE_NODEBUG Func ptr_as_func(void* p, size_t offset) noexcept {
+  return func_ptr_cast_impl<Func, void*>(static_cast<void*>(static_cast<char*>(p) + offset));
+}
+
+//! Casts a function pointer `func` to a void pointer `void*`.
+template<typename Func>
+static ASMJIT_INLINE_NODEBUG void* func_as_ptr(Func func) noexcept {
+  return func_ptr_cast_impl<void*, Func>(func);
+}
 //! \}
 
 ASMJIT_END_NAMESPACE

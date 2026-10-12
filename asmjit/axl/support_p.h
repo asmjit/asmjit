@@ -7,7 +7,7 @@
 #define ASMJIT_AXL_SUPPORT_P_H_INCLUDED
 
 #include <asmjit/axl/arena_bit_set_p.h>
-#include <asmjit/axl/bit_set_utils.h>
+#include <asmjit/axl/bit_set_ops.h>
 #include <asmjit/axl/commons.h>
 
 ASMJIT_BEGIN_SUB_NAMESPACE(axl)

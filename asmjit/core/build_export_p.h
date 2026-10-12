@@ -28,24 +28,16 @@
     #define NOMINMAX
   #endif
 #else
-  // Most production code is compiled with large file support, so do the same.
-  #if !defined(_WIN32) && !defined(_LARGEFILE64_SOURCE)
-    #define _LARGEFILE64_SOURCE 1
-  #endif
-
-  // These OSes use 64-bit API by default.
-  #if defined(__APPLE__    ) || \
-      defined(__HAIKU__    ) || \
-      defined(__bsdi__     ) || \
-      defined(__DragonFly__) || \
-      defined(__FreeBSD__  ) || \
-      defined(__NetBSD__   ) || \
-      defined(__OpenBSD__  )
-    #define ASMJIT_FILE64_API(NAME) NAME
+  // Always use 64-bit version of file-system APIs on POSIX platforms.
+  #if defined(_FILE_OFFSET_BITS)
+    #if _FILE_OFFSET_BITS != 64
+      #warning "[asmjit] _FILE_OFFSET_BITS defined to unsupported value - correcting for building AsmJit source-code"
+      #undef _FILE_OFFSET_BITS
+      #define _FILE_OFFSET_BITS 64
+    #endif
   #else
-    #define ASMJIT_FILE64_API(NAME) NAME##64
+    #define _FILE_OFFSET_BITS 64
   #endif
-
 #endif
 
 #include <asmjit/core/build_defs.h>

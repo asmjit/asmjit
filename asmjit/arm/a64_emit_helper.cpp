@@ -6,7 +6,7 @@
 #include <asmjit/core/build_export_p.h>
 #if !defined(ASMJIT_NO_AARCH64)
 
-#include <asmjit/axl/bit_set_utils.h>
+#include <asmjit/axl/bit_set_ops.h>
 #include <asmjit/axl/commons.h>
 #include <asmjit/axl/inplace_array.h>
 #include <asmjit/core/formatter.h>

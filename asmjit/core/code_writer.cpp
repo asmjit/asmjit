@@ -5,6 +5,7 @@
 
 #include <asmjit/core/build_export_p.h>
 
+#include <asmjit/axl/mem_ops.h>
 #include <asmjit/core/code_holder.h>
 #include <asmjit/core/code_writer_p.h>
 #include <asmjit/core/emitter_utils_p.h>

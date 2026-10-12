@@ -7,6 +7,7 @@
 
 #include <asmjit/axl/arena.h>
 #include <asmjit/axl/commons.h>
+#include <asmjit/axl/mem_ops.h>
 
 ASMJIT_BEGIN_SUB_NAMESPACE(axl)
 

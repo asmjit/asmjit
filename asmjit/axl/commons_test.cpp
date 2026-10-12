@@ -28,29 +28,29 @@ namespace dispatch {
 struct generic {
   template<typename T>
   [[nodiscard]]
-  static ASMJIT_INLINE T add_overflow(const T& x, const T& y, axl::OverflowFlag& of) noexcept { return axl::add_overflow_generic<T>(x, y, of); }
+  static T add_overflow(const T& x, const T& y, axl::OverflowFlag& of) noexcept { return axl::add_overflow_generic<T>(x, y, of); }
 
   template<typename T>
   [[nodiscard]]
-  static ASMJIT_INLINE T sub_overflow(const T& x, const T& y, axl::OverflowFlag& of) noexcept { return axl::sub_overflow_generic<T>(x, y, of); }
+  static T sub_overflow(const T& x, const T& y, axl::OverflowFlag& of) noexcept { return axl::sub_overflow_generic<T>(x, y, of); }
 
   template<typename T>
   [[nodiscard]]
-  static ASMJIT_INLINE T mul_overflow(const T& x, const T& y, axl::OverflowFlag& of) noexcept { return axl::mul_overflow_generic<T>(x, y, of); }
+  static T mul_overflow(const T& x, const T& y, axl::OverflowFlag& of) noexcept { return axl::mul_overflow_generic<T>(x, y, of); }
 };
 
 struct regular {
   template<typename T>
   [[nodiscard]]
-  static ASMJIT_INLINE T add_overflow(const T& x, const T& y, axl::OverflowFlag& of) noexcept { return axl::add_overflow<T>(x, y, of); }
+  static T add_overflow(const T& x, const T& y, axl::OverflowFlag& of) noexcept { return axl::add_overflow<T>(x, y, of); }
 
   template<typename T>
   [[nodiscard]]
-  static ASMJIT_INLINE T sub_overflow(const T& x, const T& y, axl::OverflowFlag& of) noexcept { return axl::sub_overflow<T>(x, y, of); }
+  static T sub_overflow(const T& x, const T& y, axl::OverflowFlag& of) noexcept { return axl::sub_overflow<T>(x, y, of); }
 
   template<typename T>
   [[nodiscard]]
-  static ASMJIT_INLINE T mul_overflow(const T& x, const T& y, axl::OverflowFlag& of) noexcept { return axl::mul_overflow<T>(x, y, of); }
+  static T mul_overflow(const T& x, const T& y, axl::OverflowFlag& of) noexcept { return axl::mul_overflow<T>(x, y, of); }
 };
 
 TEST_DEFINE_TYPES(tests, generic, regular);
@@ -1145,54 +1145,6 @@ TEST_CASE(axl_commons_ptrs_share_alignment) {
   EXPECT_TRUE(axl::ptrs_share_alignment<4>((void*)(uintptr_t)0x1, (void*)(uintptr_t)0x5));
   EXPECT_TRUE(axl::ptrs_share_alignment<16>((void*)(uintptr_t)0x1, (void*)(uintptr_t)0x11));
   EXPECT_FALSE(axl::ptrs_share_alignment<16>((void*)(uintptr_t)0x1, (void*)(uintptr_t)0x12));
-}
-
-TEST_CASE(axl_commons_load_store) {
-  uint8_t arr[32] = { 0 };
-
-  axl::storeu_u16_be(arr + 1, 0x0102u);
-  axl::storeu_u16_be(arr + 3, 0x0304u);
-  EXPECT_EQ(axl::loadu_u32_be(arr + 1), 0x01020304u);
-  EXPECT_EQ(axl::loadu_u32_le(arr + 1), 0x04030201u);
-  EXPECT_EQ(axl::loadu_u32_be(arr + 2), 0x02030400u);
-  EXPECT_EQ(axl::loadu_u32_le(arr + 2), 0x00040302u);
-
-  axl::storeu_u32_le(arr + 5, 0x05060708u);
-  EXPECT_EQ(axl::loadu_u64_be(arr + 1), 0x0102030408070605u);
-  EXPECT_EQ(axl::loadu_u64_le(arr + 1), 0x0506070804030201u);
-
-  axl::storeu_u64_le(arr + 7, 0x1122334455667788u);
-  EXPECT_EQ(axl::loadu_u32_be(arr + 8), 0x77665544u);
-
-  double d = 134.44;
-  axl::storeu(arr + 3, d);
-  EXPECT_EQ(axl::loadu<double>(arr + 3), d);
-}
-
-TEST_CASE(axl_commons_fill) {
-  uint64_t arr[4] {};
-
-  axl::fill_bytes(arr, 31, uint8_t(0xFFu));
-  EXPECT_EQ(axl::load_u8(reinterpret_cast<uint8_t*>(arr) + 0), 0xFFu);
-  EXPECT_EQ(axl::load_u8(reinterpret_cast<uint8_t*>(arr) + 30), 0xFFu);
-  EXPECT_EQ(axl::load_u8(reinterpret_cast<uint8_t*>(arr) + 31), 0x00u);
-
-  axl::fill_items(reinterpret_cast<uint16_t*>(arr), 4, uint16_t(0x0102u));
-  EXPECT_EQ(axl::loadu_u16(reinterpret_cast<uint8_t*>(arr) + 0), uint16_t(0x0102u));
-  EXPECT_EQ(axl::loadu_u16(reinterpret_cast<uint8_t*>(arr) + 2), uint16_t(0x0102u));
-  EXPECT_EQ(axl::loadu_u16(reinterpret_cast<uint8_t*>(arr) + 4), uint16_t(0x0102u));
-  EXPECT_EQ(axl::loadu_u16(reinterpret_cast<uint8_t*>(arr) + 6), uint16_t(0x0102u));
-  EXPECT_EQ(axl::loadu_u16(reinterpret_cast<uint8_t*>(arr) + 8), uint16_t(0xFFFFu));
-
-  axl::fill_items(reinterpret_cast<uint32_t*>(arr), 2, uint32_t(0x01020304u));
-  EXPECT_EQ(axl::loadu_u32(reinterpret_cast<uint8_t*>(arr) + 0), uint32_t(0x01020304u));
-  EXPECT_EQ(axl::loadu_u32(reinterpret_cast<uint8_t*>(arr) + 4), uint32_t(0x01020304u));
-  EXPECT_EQ(axl::loadu_u32(reinterpret_cast<uint8_t*>(arr) + 8), uint32_t(0xFFFFFFFFu));
-
-  axl::fill_items(reinterpret_cast<uint64_t*>(arr), 2, uint64_t(0x0102030405060708u));
-  EXPECT_EQ(axl::loadu_u64(reinterpret_cast<uint8_t*>(arr) + 0), uint64_t(0x0102030405060708u));
-  EXPECT_EQ(axl::loadu_u64(reinterpret_cast<uint8_t*>(arr) + 8), uint64_t(0x0102030405060708u));
-  EXPECT_EQ(axl::loadu_u64(reinterpret_cast<uint8_t*>(arr) + 16), uint64_t(0xFFFFFFFFFFFFFFFFu));
 }
 
 ASMJIT_END_NAMESPACE

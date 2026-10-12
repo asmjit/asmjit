@@ -10,7 +10,7 @@
 #include <asmjit/axl/arena_list.h>
 #include <asmjit/axl/arena_pool.h>
 #include <asmjit/axl/arena_tree.h>
-#include <asmjit/axl/bit_set_utils.h>
+#include <asmjit/axl/bit_set_ops.h>
 #include <asmjit/axl/commons.h>
 #include <asmjit/axl/support_p.h>
 #include <asmjit/core/arch_traits.h>

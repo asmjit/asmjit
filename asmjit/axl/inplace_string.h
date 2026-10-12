@@ -21,7 +21,7 @@ struct InplaceString {
   //! \name Constants
   //! \{
 
-  static_assert(N > 0 && N < 256, "axl::InplaceString must be 1-256 characters long");
+  static_assert(N > 0 && N < 256, "axl::InplaceString must be 1-255 characters long");
 
   static inline constexpr uint32_t kBufferCapacity = (N + 1u + 3u) / 4u * 4u;
   static inline constexpr uint32_t kStringCapacity = kBufferCapacity - 1u;
@@ -111,14 +111,14 @@ struct InplaceString {
     memset(_data, 0, sizeof(_data) - 1);
     _data[kSizeIndex] = char(uint8_t(kStringCapacity));
 
-    return kResultSuccess;
+    return kSuccess;
   }
 
   ASMJIT_INLINE_NODEBUG Error assign(char c) noexcept {
     _data[0] = c;
     _assign_size(1);
 
-    return kResultSuccess;
+    return kSuccess;
   }
 
   ASMJIT_INLINE_NODEBUG Error assign(Span<const char> str) noexcept {
@@ -130,7 +130,7 @@ struct InplaceString {
     memcpy(_data, str.data(), str_size);
     _assign_size(str_size);
 
-    return kResultSuccess;
+    return kSuccess;
   }
 
   ASMJIT_INLINE_NODEBUG Error assign(const char* str) noexcept {
@@ -149,7 +149,7 @@ struct InplaceString {
     memcpy(_data + this_size, str.data(), str_size);
     _assign_size(final_size);
 
-    return kResultSuccess;
+    return kSuccess;
   }
 
   ASMJIT_INLINE_NODEBUG Error append(const char* str) noexcept {

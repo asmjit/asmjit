@@ -48,7 +48,7 @@ struct ArenaStringBase {
     }
 
     _size = uint32_t(size);
-    return kResultSuccess;
+    return kSuccess;
   }
 };
 

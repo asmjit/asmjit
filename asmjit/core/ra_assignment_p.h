@@ -9,7 +9,7 @@
 #include <asmjit/core/build_defs.h>
 #ifndef ASMJIT_NO_COMPILER
 
-#include <asmjit/axl/bit_set_utils.h>
+#include <asmjit/axl/bit_set_ops.h>
 #include <asmjit/axl/commons.h>
 #include <asmjit/axl/inplace_array.h>
 #include <asmjit/core/ra_defs_p.h>

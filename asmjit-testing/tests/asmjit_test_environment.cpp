@@ -142,7 +142,7 @@ static void print_virt_mem_info_and_test_execution() noexcept {
 
   // Offset to the first function to execute (must be greater than 8 for UBSAN to work).
   [[maybe_unused]]
-  constexpr size_t kVirtFuncOffset = 4096;
+  constexpr size_t kVirtFuncOffset = 128;
 
   size_t large_page_size = VirtMem::large_page_size();
   Limits limits = VirtMem::limits();

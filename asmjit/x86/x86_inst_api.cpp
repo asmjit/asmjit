@@ -9,7 +9,7 @@
 #include <asmjit/core/cpu_info.h>
 #include <asmjit/core/inst_db_p.h>
 #include <asmjit/core/misc_p.h>
-#include <asmjit/axl/bit_set_utils.h>
+#include <asmjit/axl/bit_set_ops.h>
 #include <asmjit/axl/inplace_array.h>
 #include <asmjit/x86/x86_inst_api_p.h>
 #include <asmjit/x86/x86_inst_db_p.h>

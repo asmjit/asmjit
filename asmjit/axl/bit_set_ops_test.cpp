@@ -6,11 +6,11 @@
 #include <asmjit/core/build_export_p.h>
 #if defined(ASMJIT_TEST)
 
-#include <asmjit/axl/bit_set_utils.h>
+#include <asmjit/axl/bit_set_ops.h>
 
 ASMJIT_BEGIN_NAMESPACE
 
-TEST_CASE(axl_bit_set_utils) {
+TEST_CASE(axl_bit_set_ops) {
   TEST_LOG("axl::bit_vector_op");
   {
     uint32_t vec[3] = { 0 };

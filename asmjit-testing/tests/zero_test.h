@@ -508,7 +508,7 @@ struct CheckResult {
   bool _handled = false;
   StringBufferTmp<64> _buf;
 
-  explicit ZERO_TEST_INLINE_NODEBUG CheckResult(const char* file, int line, const char* expression, bool ok) noexcept
+  explicit inline CheckResult(const char* file, int line, const char* expression, bool ok) noexcept
     : _file(file),
       _expression(expression),
       _line(line),

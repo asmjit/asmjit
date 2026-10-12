@@ -7,6 +7,7 @@
 
 #include <asmjit/axl/algorithm.h>
 #include <asmjit/axl/commons.h>
+#include <asmjit/axl/mem_ops.h>
 #include <asmjit/axl/string_utils.h>
 #include <asmjit/core/assembler.h>
 #include <asmjit/core/code_writer_p.h>
