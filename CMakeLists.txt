@@ -236,6 +236,7 @@ asmjit_define_sources(ASMJIT_SRC
   asmjit/core/jit_allocator_test.cpp
   asmjit/core/jit_runtime.cpp
   asmjit/core/jit_runtime.h
+  asmjit/core/jit_runtime_test.cpp
   asmjit/core/logger.cpp
   asmjit/core/logger.h
   asmjit/core/misc_p.h

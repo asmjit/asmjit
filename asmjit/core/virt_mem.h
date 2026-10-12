@@ -218,6 +218,16 @@ ASMJIT_DEFINE_ENUM_FLAGS(MemoryFlags)
 [[nodiscard]]
 ASMJIT_API Error alloc(void** p, size_t size, MemoryFlags flags) noexcept;
 
+//! Allocates virtual memory like \ref VirtMem::alloc(), but places it fully within `[range_start, range_end)`.
+//!
+//! Operating systems don't offer an API to map memory within a range, so the implementation probes random page
+//! aligned addresses within the range and fails with \ref Error::kOutOfMemory if none of them is free. The range
+//! can contain other mappings, but the more of it is taken, the less likely probing succeeds.
+//!
+//! \note Only implemented on Linux at the moment, other platforms return \ref Error::kFeatureNotEnabled.
+[[nodiscard]]
+ASMJIT_API Error alloc(void** p, size_t size, MemoryFlags flags, uintptr_t range_start, uintptr_t range_end) noexcept;
+
 //! Releases virtual memory previously allocated by \ref VirtMem::alloc().
 //!
 //! \note The size must be the same as used by \ref VirtMem::alloc(). If the size is not the same value the call
@@ -260,6 +270,13 @@ struct DualMapping {
 //! is not too large.
 [[nodiscard]]
 ASMJIT_API Error alloc_dual_mapping(Out<DualMapping> dm, size_t size, MemoryFlags flags) noexcept;
+
+//! Allocates dual mapping like \ref VirtMem::alloc_dual_mapping(), but places the read+execute view (`dm.rx`) fully
+//! within `[range_start, range_end)`. The read+write view (`dm.rw`) can be placed anywhere.
+//!
+//! See \ref VirtMem::alloc(void**, size_t, MemoryFlags, uintptr_t, uintptr_t) for how the range is used.
+[[nodiscard]]
+ASMJIT_API Error alloc_dual_mapping(Out<DualMapping> dm, size_t size, MemoryFlags flags, uintptr_t range_start, uintptr_t range_end) noexcept;
 
 //! Releases virtual memory mapping previously allocated by \ref VirtMem::alloc_dual_mapping().
 //!

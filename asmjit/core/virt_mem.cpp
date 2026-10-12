@@ -41,6 +41,12 @@
       #define MAP_HUGE_SHIFT 26
     #endif // MAP_HUGE_SHIFT
 
+    #ifndef MAP_FIXED_NOREPLACE
+      #define MAP_FIXED_NOREPLACE 0x100000
+    #endif // MAP_FIXED_NOREPLACE
+
+    #define ASMJIT_VM_HAS_ADDRESS_RANGE
+
     #if !defined(MFD_CLOEXEC)
       #define MFD_CLOEXEC 0x0001u
     #endif // MFD_CLOEXEC
@@ -296,6 +302,13 @@ Error alloc(void** p, size_t size, MemoryFlags memory_flags) noexcept {
   return Error::kOk;
 }
 
+// TODO: Use VirtualAlloc2() with MEM_ADDRESS_REQUIREMENTS (Windows 10 1803+).
+Error alloc(void** p, size_t size, MemoryFlags memory_flags, uintptr_t range_start, uintptr_t range_end) noexcept {
+  axl::maybe_unused(size, memory_flags, range_start, range_end);
+  *p = nullptr;
+  return make_error(Error::kFeatureNotEnabled);
+}
+
 Error release(void* p, size_t size) noexcept {
   axl::maybe_unused(size);
 
@@ -358,6 +371,13 @@ Error alloc_dual_mapping(Out<DualMapping> dm, size_t size, MemoryFlags memory_fl
   dm->rx = ptr[0];
   dm->rw = ptr[1];
   return Error::kOk;
+}
+
+// TODO: Use MapViewOfFile3() with MEM_ADDRESS_REQUIREMENTS (Windows 10 1803+).
+Error alloc_dual_mapping(Out<DualMapping> dm, size_t size, MemoryFlags memory_flags, uintptr_t range_start, uintptr_t range_end) noexcept {
+  axl::maybe_unused(size, memory_flags, range_start, range_end);
+  dm = DualMapping{};
+  return make_error(Error::kFeatureNotEnabled);
 }
 
 Error release_dual_mapping(DualMapping& dm, size_t size) noexcept {
@@ -1007,7 +1027,49 @@ static HardenedRuntimeFlags get_hardened_runtime_flags() noexcept {
   return flags;
 }
 
-static Error map_memory(void** p, size_t size, MemoryFlags memory_flags, int fd = -1, off_t offset = 0) noexcept {
+#if defined(ASMJIT_VM_HAS_ADDRESS_RANGE)
+// Linux cannot map memory within a range, so probe random addresses in it. MAP_FIXED_NOREPLACE fails with EEXIST
+// when the address is taken. Kernels older than 4.17 treat the address as a hint, so the result must be checked.
+static void* mmap_in_range(size_t size, int protection, int mm_flags, int fd, off_t offset, uintptr_t range_start, uintptr_t range_end) noexcept {
+  static constexpr uint32_t kMaxAttempts = 64;
+
+  size_t alignment = (mm_flags & MAP_HUGETLB) ? large_page_size() : size_t(info().page_size);
+  uintptr_t first = axl::align_up(range_start, alignment);
+
+  if (first < range_start || first >= range_end || range_end - first < size) {
+    errno = ENOMEM;
+    return MAP_FAILED;
+  }
+
+  uintptr_t last = first + axl::align_down(range_end - first - size, alignment);
+  size_t slot_count = (last - first) / alignment + 1u;
+
+  for (uint32_t attempt = 0; attempt < kMaxAttempts; attempt++) {
+    uintptr_t addr = first + uintptr_t(generate_random_bits(uintptr_t(&slot_count), attempt) % slot_count) * alignment;
+    void* ptr = mmap(reinterpret_cast<void*>(addr), size, protection, mm_flags | MAP_FIXED_NOREPLACE, fd, offset);
+
+    if (ptr == MAP_FAILED) {
+      // EPERM is returned for addresses below `vm.mmap_min_addr`.
+      if (errno != EEXIST && errno != EPERM) {
+        return MAP_FAILED;
+      }
+      continue;
+    }
+
+    if (uintptr_t(ptr) >= first && uintptr_t(ptr) <= last) {
+      return ptr;
+    }
+
+    munmap(ptr, size);
+  }
+
+  errno = ENOMEM;
+  return MAP_FAILED;
+}
+#endif // ASMJIT_VM_HAS_ADDRESS_RANGE
+
+// Maps anywhere when `range_end` is zero, otherwise within `[range_start, range_end)`.
+static Error map_memory(void** p, size_t size, MemoryFlags memory_flags, int fd = -1, off_t offset = 0, uintptr_t range_start = 0, uintptr_t range_end = 0) noexcept {
   *p = nullptr;
 
   if (size == 0) {
@@ -1042,7 +1104,14 @@ static Error map_memory(void** p, size_t size, MemoryFlags memory_flags, int fd 
 #endif // __linux__
   }
 
+#if defined(ASMJIT_VM_HAS_ADDRESS_RANGE)
+  void* ptr = range_end ? mmap_in_range(size, protection, mm_flags, fd, offset, range_start, range_end)
+                        : mmap(nullptr, size, protection, mm_flags, fd, offset);
+#else
+  axl::maybe_unused(range_start, range_end);
   void* ptr = mmap(nullptr, size, protection, mm_flags, fd, offset);
+#endif
+
   if (ptr == MAP_FAILED) {
     return make_error(asmjit_error_from_errno(errno));
   }
@@ -1067,6 +1136,20 @@ static Error unmap_memory(void* p, size_t size) noexcept {
 
 Error alloc(void** p, size_t size, MemoryFlags memory_flags) noexcept {
   return map_memory(p, size, memory_flags);
+}
+
+Error alloc(void** p, size_t size, MemoryFlags memory_flags, uintptr_t range_start, uintptr_t range_end) noexcept {
+#if defined(ASMJIT_VM_HAS_ADDRESS_RANGE)
+  if (range_start >= range_end) {
+    *p = nullptr;
+    return make_error(Error::kInvalidArgument);
+  }
+  return map_memory(p, size, memory_flags, -1, 0, range_start, range_end);
+#else
+  axl::maybe_unused(size, memory_flags, range_start, range_end);
+  *p = nullptr;
+  return make_error(Error::kFeatureNotEnabled);
+#endif
 }
 
 Error release(void* p, size_t size) noexcept {
@@ -1237,7 +1320,7 @@ static Error alloc_dual_mapping_using_mach_vm_remap(Out<DualMapping> dm_out, siz
 #endif // ASMJIT_ANONYMOUS_MEMORY_USE_MACH_VM_REMAP
 
 #if defined(ASMJIT_ANONYMOUS_MEMORY_USE_FD)
-static Error alloc_dual_mapping_using_file(Out<DualMapping> dm, size_t size, MemoryFlags memory_flags) noexcept {
+static Error alloc_dual_mapping_using_file(Out<DualMapping> dm, size_t size, MemoryFlags memory_flags, uintptr_t range_start, uintptr_t range_end) noexcept {
   Info vm_info = info();
   size_t file_size_limit = read_resource_limit(kRLimitFileSize, vm_info.page_size);
 
@@ -1272,8 +1355,10 @@ static Error alloc_dual_mapping_using_file(Out<DualMapping> dm, size_t size, Mem
 
   void* ptr[2];
   for (uint32_t i = 0; i < 2; i++) {
+    // Only the RX view (index 0) is placed within the range.
     MemoryFlags restricted_memory_flags = memory_flags & ~dual_mapping_filter[i];
-    Error err = map_memory(&ptr[i], size, restricted_memory_flags | MemoryFlags::kMapShared, anon_mem.fd(), 0);
+    Error err = map_memory(&ptr[i], size, restricted_memory_flags | MemoryFlags::kMapShared, anon_mem.fd(), 0,
+                           i == 0 ? range_start : 0u, i == 0 ? range_end : 0u);
     if (err != Error::kOk) {
       if (i == 1) {
         unmap_memory(ptr[0], size);
@@ -1304,11 +1389,26 @@ Error alloc_dual_mapping(Out<DualMapping> dm, size_t size, MemoryFlags memory_fl
 #elif defined(ASMJIT_ANONYMOUS_MEMORY_USE_MACH_VM_REMAP)
   return alloc_dual_mapping_using_mach_vm_remap(dm, size, memory_flags);
 #elif defined(ASMJIT_ANONYMOUS_MEMORY_USE_FD)
-  return alloc_dual_mapping_using_file(dm, size, memory_flags);
+  return alloc_dual_mapping_using_file(dm, size, memory_flags, 0u, 0u);
 #else
   #error "[asmjit] VirtMem::alloc_dual_mapping() doesn't have implementation for the target OS or architecture"
 #endif
 #endif // ASMJIT_NO_DUAL_MAPPING
+}
+
+Error alloc_dual_mapping(Out<DualMapping> dm, size_t size, MemoryFlags memory_flags, uintptr_t range_start, uintptr_t range_end) noexcept {
+  dm = DualMapping{};
+
+#if defined(ASMJIT_VM_HAS_ADDRESS_RANGE) && defined(ASMJIT_ANONYMOUS_MEMORY_USE_FD)
+  if (off_t(size) <= 0 || range_start >= range_end) {
+    return make_error(off_t(size) < 0 ? Error::kTooLarge : Error::kInvalidArgument);
+  }
+
+  return alloc_dual_mapping_using_file(dm, size, memory_flags, range_start, range_end);
+#else
+  axl::maybe_unused(size, memory_flags, range_start, range_end);
+  return make_error(Error::kFeatureNotEnabled);
+#endif
 }
 
 Error release_dual_mapping(DualMapping& dm, size_t size) noexcept {
