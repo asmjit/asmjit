@@ -4288,7 +4288,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int, int);
-    Func func = axl::ptr_as_func<Func>(_func);
+    Func func = ptr_as_func<Func>(_func);
 
     int result_ret = func(5, 10);
     int expect_ret = called_fn(20, 10);
@@ -4344,7 +4344,7 @@ public:
 
   bool run(void* _func, String& result, String& expect) override {
     using Func = int (*)(int, int, int, int, int, int, int, int);
-    Func func = axl::ptr_as_func<Func>(_func);
+    Func func = ptr_as_func<Func>(_func);
 
     int result_ret = func(1, 2, 3, 4, 5, 6, 7, 8);
     int expect_ret = called_fn(8, 7, 6, 5, 4, 3, 2, 1);
