@@ -77,7 +77,7 @@ struct BenchFunction {
   size_t direct_calls {};
 
   explicit BenchFunction(const JitAllocator::CreateParams& params) noexcept
-    : rt(params) {}
+    : rt(&params) {}
 
   Error generate(size_t call_count) noexcept {
     CodeHolder code;
