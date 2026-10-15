@@ -41,10 +41,6 @@ public:
   //! Creates a `JitRuntime` instance.
   ASMJIT_API explicit JitRuntime(const JitAllocator::CreateParams* params = nullptr) noexcept;
 
-  //! Creates a `JitRuntime` instance.
-  ASMJIT_INLINE explicit JitRuntime(const JitAllocator::CreateParams& params) noexcept
-    : JitRuntime(&params) {}
-
   //! Destroys the `JitRuntime` instance.
   ASMJIT_API ~JitRuntime() noexcept override;
 

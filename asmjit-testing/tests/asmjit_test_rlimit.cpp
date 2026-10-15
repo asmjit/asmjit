@@ -87,7 +87,7 @@ static Error test_jit_runtime_function(size_t block_size, size_t extra_size) noe
     .block_size = static_cast<uint32_t>(block_size)
   };
 
-  JitRuntime rt(allocator_params);
+  JitRuntime rt(&allocator_params);
   CodeHolder code;
 
   Error result = code.init(rt.environment());
