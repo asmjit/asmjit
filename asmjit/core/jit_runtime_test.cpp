@@ -35,7 +35,7 @@ TEST_CASE(core_jit_runtime_near_calls) {
   JitAllocator::CreateParams params {};
   params.options = JitAllocatorOptions::kNearModuleAddressRange | JitAllocatorOptions::kStrictAddressRange;
 
-  JitRuntime rt(params);
+  JitRuntime rt(&params);
   void* fn;
   size_t call_offset;
   Error err = JitRuntimeTest_add_caller(rt, &fn, &call_offset);
