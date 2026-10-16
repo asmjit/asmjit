@@ -64,6 +64,8 @@ ASMJIT_FAVOR_SIZE Error validate(const BaseInst& inst, const Operand_* operands,
 #ifndef ASMJIT_NO_INTROSPECTION
 struct InstRWInfoData {
   uint8_t rwx[Globals::kMaxOpCount];
+  uint8_t alt_op_count;
+  uint8_t alt_index;
 };
 
 static const InstRWInfoData inst_rw_info_table[] = {
@@ -71,24 +73,45 @@ static const InstRWInfoData inst_rw_info_table[] = {
   #define W uint8_t(OpRWFlags::kWrite)
   #define X uint8_t(OpRWFlags::kRW)
 
-  {{ R, R, R, R, R, R }}, // kRWI_R
-  {{ R, W, R, R, R, R }}, // kRWI_RW
-  {{ R, X, R, R, R, R }}, // kRWI_RX
-  {{ R, R, W, R, R, R }}, // kRWI_RRW
-  {{ R, W, X, R, R, R }}, // kRWI_RWX
-  {{ W, R, R, R, R, R }}, // kRWI_W
-  {{ W, R, W, R, R, R }}, // kRWI_WRW
-  {{ W, R, X, R, R, R }}, // kRWI_WRX
-  {{ W, R, R, W, R, R }}, // kRWI_WRRW
-  {{ W, R, R, X, R, R }}, // kRWI_WRRX
-  {{ W, W, R, R, R, R }}, // kRWI_WW
-  {{ X, R, R, R, R, R }}, // kRWI_X
-  {{ X, R, X, R, R, R }}, // kRWI_XRX
-  {{ X, X, R, R, X, R }}, // kRWI_XXRRX
+  {{ R, R, R, R, R, R }, 0xFFu, 0                         }, // kRWI_R
+  {{ R, W, R, R, R, R }, 0xFFu, 0                         }, // kRWI_RW
+  {{ R, X, R, R, R, R }, 0xFFu, 0                         }, // kRWI_RX
+  {{ R, R, W, R, R, R }, 0xFFu, 0                         }, // kRWI_RRW
+  {{ R, W, X, R, R, R }, 0xFFu, 0                         }, // kRWI_RWX
+  {{ W, R, R, R, R, R }, 0xFFu, 0                         }, // kRWI_W
+  {{ W, R, W, R, R, R }, 0xFFu, 0                         }, // kRWI_WRW
+  {{ W, R, X, R, R, R }, 0xFFu, 0                         }, // kRWI_WRX
+  {{ W, R, R, W, R, R }, 0xFFu, 0                         }, // kRWI_WRRW
+  {{ W, R, R, X, R, R }, 0xFFu, 0                         }, // kRWI_WRRX
+  {{ W, W, R, R, R, R }, 0xFFu, 0                         }, // kRWI_WW
+  {{ X, R, R, R, R, R }, 0xFFu, 0                         }, // kRWI_X
+  {{ X, R, X, R, R, R }, 0xFFu, 0                         }, // kRWI_XRX
+  {{ X, X, R, R, X, R }, 0xFFu, 0                         }, // kRWI_XXRRX
+  {{ W, R, R, R, R, R }, 0x02u, InstDB::RWInfoType::kRWI_X}, // kRWI_XI_WRR (XR for imm operands, WRR for non-imm operands)
 
-  {{ W, R, R, R, R, R }}, // kRWI_LDn
-  {{ R, W, R, R, R, R }}, // kRWI_STn
-  {{ R, R, R, R, R, R }}  // kRWI_TODO
+  {{ 0, 0, 0, 0, 0, 0 }, 0xFFu, 0                         }, // kRWI_STn
+  {{ 0, 0, 0, 0, 0, 0 }, 0xFFu, 0                         }, // kRWI_ST1Op
+  {{ R, R, R, R, R, R }, 0xFFu, 0                         }, // kRWI_ST2Op
+  {{ R, R, R, R, R, R }, 0xFFu, 0                         }, // kRWI_ST3Op
+  {{ R, R, R, R, R, R }, 0xFFu, 0                         }, // kRWI_ST4Op
+  {{ R, R, R, R, R, R }, 0xFFu, 0                         }, // kRWI_ST5Op
+  {{ R, R, R, R, R, R }, 0xFFu, 0                         }, // kRWI_ST6Op
+
+  {{ 0, 0, 0, 0, 0, 0 }, 0xFFu, 0                         }, // kRWI_LDn
+  {{ 0, 0, 0, 0, 0, 0 }, 0xFFu, 0                         }, // kRWI_LD1Op
+  {{ W, R, R, R, R, R }, 0xFFu, 0                         }, // kRWI_LD2Op
+  {{ W, W, R, R, R, R }, 0xFFu, 0                         }, // kRWI_LD3Op
+  {{ W, W, W, R, R, R }, 0xFFu, 0                         }, // kRWI_LD4Op
+  {{ W, W, W, W, R, R }, 0xFFu, 0                         }, // kRWI_LD5Op
+  {{ W, W, W, W, W, R }, 0xFFu, 0                         }, // kRWI_LD6Op
+
+  {{ 0, 0, 0, 0, 0, 0 }, 0xFFu, 0                         }, // kRWI_LDx
+  {{ 0, 0, 0, 0, 0, 0 }, 0xFFu, 0                         }, // kRWI_LDx1Op
+  {{ X, R, R, R, R, R }, 0xFFu, 0                         }, // kRWI_LDx2Op
+  {{ X, X, R, R, R, R }, 0xFFu, 0                         }, // kRWI_LDx3Op
+  {{ X, X, X, R, R, R }, 0xFFu, 0                         }, // kRWI_LDx4Op
+  {{ X, X, X, X, R, R }, 0xFFu, 0                         }, // kRWI_LDx5Op
+  {{ X, X, X, X, X, R }, 0xFFu, 0                         }, // kRWI_LDx6Op
 
   #undef R
   #undef W
@@ -105,6 +128,9 @@ Error query_rw_info(const BaseInst& inst, const Operand_* operands, size_t op_co
     return make_error(Error::kInvalidInstruction);
   }
 
+  const InstDB::InstInfo& inst_info = InstDB::_inst_info_table[real_id];
+  size_t rw_info_type = inst_info.rw_info_index();
+
   out->_inst_flags = InstRWFlags::kNone;
   out->_op_count = uint8_t(op_count);
   out->_rm_feature = 0;
@@ -112,8 +138,49 @@ Error query_rw_info(const BaseInst& inst, const Operand_* operands, size_t op_co
   out->_read_flags = CpuRWFlags::kNone; // TODO: [ARM] Read PSTATUS.
   out->_write_flags = CpuRWFlags::kNone; // TODO: [ARM] Write PSTATUS
 
-  const InstDB::InstInfo& inst_info = InstDB::_inst_info_table[real_id];
-  const InstRWInfoData& rw_info = inst_rw_info_table[inst_info.rw_info_index()];
+  const InstRWInfoData* rw_info = &inst_rw_info_table[rw_info_type];
+
+  if (rw_info_type >= static_cast<size_t>(InstDB::RWInfoType::kRWI_SpecialStart)) {
+    switch (rw_info_type) {
+      case static_cast<size_t>(InstDB::RWInfoType::kRWI_LDn): {
+        // Special case - when LDx is used with element[#idx] it doesn't overwrite the
+        // whole register - instead, it only writes to the indexed element. This applies
+        // to all LDx instructions that support element indexing.
+        if (op_count > 0) {
+          // Check the first operand - any other consecutive operand should use the same
+          // indexing, so we don't have to check them all here.
+          const Operand_& src_op = operands[0];
+          if (src_op.is_vec() && src_op.as<Vec>().has_element_index()) {
+            rw_info_type = InstDB::RWInfoType::kRWI_LDx;
+          }
+
+          rw_info_type += op_count;
+        }
+        break;
+      }
+
+      case static_cast<size_t>(InstDB::RWInfoType::kRWI_STn): {
+        rw_info_type += op_count;
+        break;
+      }
+
+      case static_cast<size_t>(InstDB::RWInfoType::kRWI_XI_WRR): {
+        if (op_count >= 2 && operands[1].is_imm()) {
+          rw_info_type = static_cast<size_t>(InstDB::RWInfoType::kRWI_X);
+        }
+        break;
+      }
+
+      default: {
+        if (rw_info->alt_op_count == op_count) {
+          rw_info_type = rw_info->alt_index;
+        }
+        break;
+      }
+    }
+
+    rw_info = &inst_rw_info_table[static_cast<size_t>(rw_info_type)];
+  }
 
   if (inst_info.has_flag(InstDB::kInstFlagConsecutive) && op_count > 2) {
     for (uint32_t i = 0; i < op_count; i++) {
@@ -125,7 +192,7 @@ Error query_rw_info(const BaseInst& inst, const Operand_* operands, size_t op_co
         continue;
       }
 
-      OpRWFlags rw_flags = i < op_count - 1 ? (OpRWFlags)rw_info.rwx[0] : (OpRWFlags)rw_info.rwx[1];
+      OpRWFlags rw_flags = static_cast<OpRWFlags>(i < op_count - 1 ? rw_info->rwx[0] : rw_info->rwx[1]);
 
       op._op_flags = rw_flags & ~(OpRWFlags::kZExt);
       op._phys_id = Reg::kIdBad;
@@ -174,7 +241,7 @@ Error query_rw_info(const BaseInst& inst, const Operand_* operands, size_t op_co
         continue;
       }
 
-      OpRWFlags rw_flags = (OpRWFlags)rw_info.rwx[i];
+      OpRWFlags rw_flags = static_cast<OpRWFlags>(rw_info->rwx[i]);
 
       op._op_flags = rw_flags & ~(OpRWFlags::kZExt);
       op._phys_id = Reg::kIdBad;

@@ -50,10 +50,33 @@ enum RWInfoType : uint32_t {
   kRWI_XRX,
   kRWI_XXRRX,
 
-  kRWI_LDn,
-  kRWI_STn,
+  kRWI_XI_WRR,
 
-  kRWI_SpecialStart = kRWI_LDn
+  kRWI_STn,
+  kRWI_ST1Op,
+  kRWI_ST2Op,
+  kRWI_ST3Op,
+  kRWI_ST4Op,
+  kRWI_ST5Op,
+  kRWI_ST6Op,
+
+  kRWI_LDn,
+  kRWI_LD1Op,
+  kRWI_LD2Op,
+  kRWI_LD3Op,
+  kRWI_LD4Op,
+  kRWI_LD5Op,
+  kRWI_LD6Op,
+
+  kRWI_LDx,
+  kRWI_LDx1Op,
+  kRWI_LDx2Op,
+  kRWI_LDx3Op,
+  kRWI_LDx4Op,
+  kRWI_LDx5Op,
+  kRWI_LDx6Op,
+
+  kRWI_SpecialStart = kRWI_XI_WRR
 };
 
 // a64::InstDB - ElementType
