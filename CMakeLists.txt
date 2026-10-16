@@ -102,9 +102,11 @@ endif()
 set(ASMJIT_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}") # AsmJit include directory is the same as <root> directory.
 set(ASMJIT_LIBS "")                                  # AsmJit library dependencies for the linker.
 set(ASMJIT_CFLAGS "")                                # Public compiler flags.
+set(ASMJIT_PRIVATE_LFLAGS "")                        # Private linker flags independent of build type.
 set(ASMJIT_PRIVATE_CFLAGS "")                        # Private compiler flags independent of build type.
 set(ASMJIT_PRIVATE_CFLAGS_DBG "")                    # Private compiler flags used by debug builds.
 set(ASMJIT_PRIVATE_CFLAGS_REL "")                    # Private compiler flags used by release builds.
+set(ASMJIT_NOEXCEPT_CFLAGS "")                       # Compiler flags to prevent emitting code with exceptions.
 set(ASMJIT_SANITIZE_CFLAGS "")                       # Compiler flags required by currently enabled sanitizers.
 set(ASMJIT_SANITIZE_LFLAGS "")                       # Linker flags required by currently enabled sanitizers.
 
@@ -181,13 +183,14 @@ asmjit_define_sources(ASMJIT_AXL_SRC
 
 asmjit_define_sources(ASMJIT_SRC
   asmjit/core.h
+  asmjit/core/api_build_p.h
+  asmjit/core/api_build_test_p.h
   asmjit/core/arch_traits.cpp
   asmjit/core/arch_traits.h
   asmjit/core/arch_commons.h
   asmjit/core/assembler.cpp
   asmjit/core/assembler.h
   asmjit/core/build_defs.h
-  asmjit/core/build_export_p.h
   asmjit/core/builder.cpp
   asmjit/core/builder.h
   asmjit/core/code_buffer.h
@@ -241,7 +244,6 @@ asmjit_define_sources(ASMJIT_SRC
   asmjit/core/misc_p.h
   asmjit/core/operand.h
   asmjit/core/operand_test.cpp
-  asmjit/core/os_utils.cpp
   asmjit/core/os_utils.h
   asmjit/core/os_utils_p.h
   asmjit/core/pauth.cpp
@@ -413,7 +415,7 @@ endfunction()
 
 function(asmjit_add_target target target_type)
   set(single_val "")
-  set(multi_val SOURCES LIBRARIES CFLAGS CFLAGS_DBG CFLAGS_REL)
+  set(multi_val SOURCES LIBRARIES CFLAGS CFLAGS_DBG CFLAGS_REL LFLAGS)
   cmake_parse_arguments("X" "" "${single_val}" "${multi_val}" ${ARGN})
 
   if ("${target_type}" MATCHES "^(EXECUTABLE|TEST)$")
@@ -428,7 +430,7 @@ function(asmjit_add_target target target_type)
       CXX_VISIBILITY_PRESET hidden)
   target_compile_options(${target} PRIVATE ${X_CFLAGS} ${ASMJIT_SANITIZE_CFLAGS} $<$<CONFIG:Debug>:${X_CFLAGS_DBG}> $<$<NOT:$<CONFIG:Debug>>:${X_CFLAGS_REL}>)
   target_compile_features(${target} PUBLIC cxx_std_20)
-  target_link_options(${target} PRIVATE ${ASMJIT_PRIVATE_LFLAGS})
+  target_link_options(${target} PRIVATE ${X_LFLAGS} ${ASMJIT_SANITIZE_LFLAGS})
   target_link_libraries(${target} PRIVATE ${X_LIBRARIES})
 
   if ("${target_type}" STREQUAL "TEST")
@@ -457,12 +459,19 @@ if (NOT ASMJIT_EMBED)
       list(APPEND ASMJIT_PRIVATE_CFLAGS_REL -Oi)                                  # [+] Generate intrinsic functions.
     elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU|Clang")
       list(APPEND ASMJIT_PRIVATE_CFLAGS -Wall -Wextra -Wconversion)               # [+] Add baseline warnings that can be used safely even with system headers.
+      list(APPEND ASMJIT_NOEXCEPT_CFLAGS "-fno-exceptions")
+
       asmjit_detect_cflags(ASMJIT_PRIVATE_CFLAGS -Wdouble-promotion)              # [+] Warn about double promotions.
       asmjit_detect_cflags(ASMJIT_PRIVATE_CFLAGS -Wduplicated-cond)               # [+] Warn about duplicate conditions.
       asmjit_detect_cflags(ASMJIT_PRIVATE_CFLAGS -Wduplicated-branches)           # [+] Warn about duplicate branches.
       asmjit_detect_cflags(ASMJIT_PRIVATE_CFLAGS -Wlogical-op)                    # [+] Warn about suspicious uses of logical operators in expressions.
       asmjit_detect_cflags(ASMJIT_PRIVATE_CFLAGS -Wlogical-not-parentheses)       # [+] Warn about logical not used on the left hand side operand of a comparison.
       asmjit_detect_cflags(ASMJIT_PRIVATE_CFLAGS -Wrestrict)
+
+      # TODO: Future plans to avoid linking to the standard C++ library we don't need.
+      # if ("${ASMJIT_TARGET_TYPE}" STREQUAL "SHARED")
+      #   list(APPEND ASMJIT_PRIVATE_LFLAGS -nostdlib++)
+      # endif()
 
       list(APPEND ASMJIT_PRIVATE_CFLAGS -fno-math-errno)                          # [-] Disable math functions setting errno (performance reasons).
       list(APPEND ASMJIT_PRIVATE_CFLAGS -fno-threadsafe-statics)                  # [-] Don't add guards when initializing statics (we don't need it).
@@ -495,9 +504,6 @@ if (NOT ASMJIT_EMBED)
       else()
         list(APPEND ASMJIT_SANITIZE_CFLAGS -fno-omit-frame-pointer -g)
       endif()
-
-      list(APPEND ASMJIT_PRIVATE_CFLAGS ${ASMJIT_SANITIZE_CFLAGS})
-      list(APPEND ASMJIT_PRIVATE_LFLAGS ${ASMJIT_SANITIZE_LFLAGS})
     endif()
   endif()
 endif()
@@ -611,9 +617,17 @@ if (TRUE)
       endif()
     endforeach()
 
+    # This file should really be compiled without exceptions, otherwise compilers generate calls to
+    # std::terminate, which results in two problems - C++ standard library is required and the resulting
+    # binary is larger (because of implicit throw/catch blocks to handle exceptions, which are never used).
+    #
+    # This can be disabled by `ASMJIT_NO_CUSTOM_FLAGS` option, which disables the use of any compiler flags.
+    set_property(SOURCE asmjit/core/virt_mem.cpp APPEND PROPERTY COMPILE_OPTIONS ${ASMJIT_NOEXCEPT_CFLAGS})
+
     asmjit_add_target(asmjit "${ASMJIT_TARGET_TYPE}"
       SOURCES    ${ASMJIT_SRC}
       LIBRARIES  ${ASMJIT_LIBS}
+      LFLAGS     ${ASMJIT_PRIVATE_LFLAGS}
       CFLAGS     ${ASMJIT_PRIVATE_CFLAGS}
       CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
       CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})

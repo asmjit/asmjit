@@ -471,7 +471,6 @@ static void TestRunner_message_indented(TestRunner& test_runner, MessageType msg
 // ------------------
 
 void test_failure(CheckResult* result, const char* fmt, ...) noexcept {
-  result->_handled = true;
   TestRunner* test_runner = globals.test_runner;
 
   if (test_runner) {
@@ -487,13 +486,13 @@ void test_failure(CheckResult* result, const char* fmt, ...) noexcept {
     StringBufferTmp<1024> buf;
     buf.append('\n');
     buf.append_colorized(esc, "FAILED CHECK: ");
-    buf.append_colorized(imp, "%s", result->_expression);
+    buf.append_colorized_f(imp, "%s", result->_expression);
     buf.eat_nl();
     buf.append('\n');
 
     if (result->_buf.size()) {
       buf.append_colorized(esc, "        WITH: ");
-      buf.append_colorized(imp, result->_buf.data(), result->_buf.size());
+      buf.append_colorized_s(imp, result->_buf.data(), result->_buf.size());
       buf.eat_nl();
       buf.append('\n');
     }

@@ -219,10 +219,10 @@ public:
   Error run(axl::Arena& arena, Logger* logger) override;
 
   //! Runs the register allocator for the given `func`.
-  Error run_on_function(axl::Arena& arena, FuncNode* func, bool last) noexcept;
+  Error run_on_function(axl::Arena& arena, FuncNode* func, bool last);
 
   //! Performs all allocation steps sequentially, called by `run_on_function()`.
-  Error on_perform_all_steps() noexcept;
+  Error on_perform_all_steps();
 
   //! \}
 
@@ -387,7 +387,7 @@ public:
   //!
   //! Use `RACFGBuilderT` template that provides the necessary boilerplate.
   [[nodiscard]]
-  virtual Error build_cfg_nodes() noexcept;
+  virtual Error build_cfg_nodes();
 
   //! Called after the CFG is built.
   [[nodiscard]]
@@ -593,7 +593,7 @@ public:
 
   //! Runs a local register allocator.
   [[nodiscard]]
-  Error run_local_allocator() noexcept;
+  Error run_local_allocator();
 
   [[nodiscard]]
   Error set_block_entry_assignment(RABlock* block, const RABlock* from_block, const RAAssignment& from_assignment) noexcept;
@@ -613,7 +613,7 @@ public:
   //! \{
 
   [[nodiscard]]
-  Error use_temporary_mem(BaseMem& out, uint32_t size, uint32_t alignment) noexcept;
+  Error use_temporary_mem(BaseMem& out, uint32_t size, uint32_t alignment);
 
   //! \}
 
@@ -630,7 +630,7 @@ public:
   Error _update_stack_args() noexcept;
 
   [[nodiscard]]
-  Error insert_prolog_epilog() noexcept;
+  Error insert_prolog_epilog();
 
   //! \}
 
@@ -638,7 +638,7 @@ public:
   //! \{
 
   template<typename Lambda>
-  ASMJIT_INLINE Error rewrite_iterate(Lambda&& fn) noexcept {
+  ASMJIT_INLINE Error rewrite_iterate(Lambda&& fn) {
     // First iteration is not a block - it's possible register/stack changes at the end of the function.
     RABlock* block = nullptr;
 
@@ -674,7 +674,7 @@ public:
   }
 
   [[nodiscard]]
-  virtual Error rewrite() noexcept;
+  virtual Error rewrite();
 
   //! \}
 
@@ -693,23 +693,12 @@ public:
   //! \name Emit
   //! \{
 
-  [[nodiscard]]
-  virtual Error emit_move(RAWorkReg* work_reg, uint32_t dst_phys_id, uint32_t src_phys_id) noexcept;
-
-  [[nodiscard]]
-  virtual Error emit_swap(RAWorkReg* a_reg, uint32_t a_phys_id, RAWorkReg* b_reg, uint32_t b_phys_id) noexcept;
-
-  [[nodiscard]]
-  virtual Error emit_load(RAWorkReg* work_reg, uint32_t dst_phys_id) noexcept;
-
-  [[nodiscard]]
-  virtual Error emit_save(RAWorkReg* work_reg, uint32_t src_phys_id) noexcept;
-
-  [[nodiscard]]
-  virtual Error emit_jump(const Label& label) noexcept;
-
-  [[nodiscard]]
-  virtual Error emit_pre_call(InvokeNode* invoke_node) noexcept;
+  [[nodiscard]] virtual Error emit_move(RAWorkReg* work_reg, uint32_t dst_phys_id, uint32_t src_phys_id);
+  [[nodiscard]] virtual Error emit_swap(RAWorkReg* a_reg, uint32_t a_phys_id, RAWorkReg* b_reg, uint32_t b_phys_id);
+  [[nodiscard]] virtual Error emit_load(RAWorkReg* work_reg, uint32_t dst_phys_id);
+  [[nodiscard]] virtual Error emit_save(RAWorkReg* work_reg, uint32_t src_phys_id);
+  [[nodiscard]] virtual Error emit_jump(const Label& label);
+  [[nodiscard]] virtual Error emit_pre_call(InvokeNode* invoke_node);
 
   //! \}
 };

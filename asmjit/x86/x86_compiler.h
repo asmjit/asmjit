@@ -143,7 +143,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //!   memcpy32(output, input, 6);
 //!
 //!   for (uint32_t i = 0; i < 6; i++) {
-//!     printf("%d\n", output[i]);
+//!     printf("%u\n", output[i]);
 //!   }
 //!
 //!   rt.release(memcpy32);
@@ -235,7 +235,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //!   x86::Compiler cc(&code);                  // Create and attach x86::Compiler to code.
 //!
 //!   FuncNode* func_node = cc.add_func(        // Begin of the Fibonacci function, add_func()
-//!     FuncSignature::build<int, int>());      // Returns a pointer to the FuncNode node.
+//!     FuncSignature::build<uint32_t, uint32_t>()); // Returns a pointer to the FuncNode node.
 //!
 //!   Label L_Exit = cc.new_label();            // Exit label.
 //!   x86::Gp x = cc.new_gp32();                // Function x argument.
@@ -243,7 +243,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //!
 //!   func_node->set_arg(0, x);
 //!
-//!   cc.cmp(x, 3);                             // Return x if less than 3.
+//!   cc.cmp(x, 2);                             // Return x if less than 2.
 //!   cc.jb(L_Exit);
 //!
 //!   cc.mov(y, x);                             // Make copy of the original x.
@@ -252,12 +252,20 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //!   InvokeNode* invoke_node;                  // Function invocation:
 //!   cc.invoke(Out(invoke_node),               //   - InvokeNode (output).
 //!     func_node->label(),                     //   - Function address or Label.
-//!     FuncSignature::build<int, int>());      //   - Function signature.
+//!     FuncSignature::build<uint32_t, uint32_t>()); //   - Function signature.
 //!
 //!   invoke_node->set_arg(0, x);               // Assign x as the first argument.
 //!   invoke_node->set_ret(0, x);               // Assign x as a return value as well.
 //!
-//!   cc.add(x, y);                             // Combine the return value with y.
+//!   cc.sub(y, 2);                             // Calculate the second argument (original x - 2).
+//!   cc.invoke(Out(invoke_node),
+//!     func_node->label(),
+//!     FuncSignature::build<uint32_t, uint32_t>());
+//!
+//!   invoke_node->set_arg(0, y);
+//!   invoke_node->set_ret(0, y);
+//!
+//!   cc.add(x, y);                             // Combine fib(x - 1) and fib(x - 2).
 //!
 //!   cc.bind(L_Exit);
 //!   cc.ret(x);                                // Return x.
@@ -426,7 +434,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //! static void example_use_of_indirect_jump(x86::Compiler& cc) {
 //!   FuncNode* func_node = cc.add_func(FuncSignature::build<float, float, float, uint32_t>());
 //!
-//!   // Function arguments
+//!   // Function arguments (op must be in the range [0, 3]).
 //!   x86::Vec a = cc.new_xmm_ss("a");
 //!   x86::Vec b = cc.new_xmm_ss("b");
 //!   x86::Gp op = cc.new_gp32("op");
@@ -713,31 +721,31 @@ public:
   }
 
   //! Put a BYTE `val` to a constant-pool.
-  ASMJIT_INLINE_NODEBUG Mem new_byte_const(ConstPoolScope scope, uint8_t val) noexcept { return new_const(scope, &val, 1); }
+  ASMJIT_INLINE_NODEBUG Mem new_byte_const(ConstPoolScope scope, uint8_t val) { return new_const(scope, &val, 1); }
   //! Put a WORD `val` to a constant-pool.
-  ASMJIT_INLINE_NODEBUG Mem new_word_const(ConstPoolScope scope, uint16_t val) noexcept { return new_const(scope, &val, 2); }
+  ASMJIT_INLINE_NODEBUG Mem new_word_const(ConstPoolScope scope, uint16_t val) { return new_const(scope, &val, 2); }
   //! Put a DWORD `val` to a constant-pool.
-  ASMJIT_INLINE_NODEBUG Mem new_dword_const(ConstPoolScope scope, uint32_t val) noexcept { return new_const(scope, &val, 4); }
+  ASMJIT_INLINE_NODEBUG Mem new_dword_const(ConstPoolScope scope, uint32_t val) { return new_const(scope, &val, 4); }
   //! Put a QWORD `val` to a constant-pool.
-  ASMJIT_INLINE_NODEBUG Mem new_qword_const(ConstPoolScope scope, uint64_t val) noexcept { return new_const(scope, &val, 8); }
+  ASMJIT_INLINE_NODEBUG Mem new_qword_const(ConstPoolScope scope, uint64_t val) { return new_const(scope, &val, 8); }
 
   //! Put a WORD `val` to a constant-pool.
-  ASMJIT_INLINE_NODEBUG Mem new_int16_const(ConstPoolScope scope, int16_t val) noexcept { return new_const(scope, &val, 2); }
+  ASMJIT_INLINE_NODEBUG Mem new_int16_const(ConstPoolScope scope, int16_t val) { return new_const(scope, &val, 2); }
   //! Put a WORD `val` to a constant-pool.
-  ASMJIT_INLINE_NODEBUG Mem new_uint16_const(ConstPoolScope scope, uint16_t val) noexcept { return new_const(scope, &val, 2); }
+  ASMJIT_INLINE_NODEBUG Mem new_uint16_const(ConstPoolScope scope, uint16_t val) { return new_const(scope, &val, 2); }
   //! Put a DWORD `val` to a constant-pool.
-  ASMJIT_INLINE_NODEBUG Mem new_int32_const(ConstPoolScope scope, int32_t val) noexcept { return new_const(scope, &val, 4); }
+  ASMJIT_INLINE_NODEBUG Mem new_int32_const(ConstPoolScope scope, int32_t val) { return new_const(scope, &val, 4); }
   //! Put a DWORD `val` to a constant-pool.
-  ASMJIT_INLINE_NODEBUG Mem new_uint32_const(ConstPoolScope scope, uint32_t val) noexcept { return new_const(scope, &val, 4); }
+  ASMJIT_INLINE_NODEBUG Mem new_uint32_const(ConstPoolScope scope, uint32_t val) { return new_const(scope, &val, 4); }
   //! Put a QWORD `val` to a constant-pool.
-  ASMJIT_INLINE_NODEBUG Mem new_int64_const(ConstPoolScope scope, int64_t val) noexcept { return new_const(scope, &val, 8); }
+  ASMJIT_INLINE_NODEBUG Mem new_int64_const(ConstPoolScope scope, int64_t val) { return new_const(scope, &val, 8); }
   //! Put a QWORD `val` to a constant-pool.
-  ASMJIT_INLINE_NODEBUG Mem new_uint64_const(ConstPoolScope scope, uint64_t val) noexcept { return new_const(scope, &val, 8); }
+  ASMJIT_INLINE_NODEBUG Mem new_uint64_const(ConstPoolScope scope, uint64_t val) { return new_const(scope, &val, 8); }
 
   //! Put a SP-FP `val` to a constant-pool.
-  ASMJIT_INLINE_NODEBUG Mem new_float_const(ConstPoolScope scope, float val) noexcept { return new_const(scope, &val, 4); }
+  ASMJIT_INLINE_NODEBUG Mem new_float_const(ConstPoolScope scope, float val) { return new_const(scope, &val, 4); }
   //! Put a DP-FP `val` to a constant-pool.
-  ASMJIT_INLINE_NODEBUG Mem new_double_const(ConstPoolScope scope, double val) noexcept { return new_const(scope, &val, 8); }
+  ASMJIT_INLINE_NODEBUG Mem new_double_const(ConstPoolScope scope, double val) { return new_const(scope, &val, 8); }
 
   //! \}
 

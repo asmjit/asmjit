@@ -39,11 +39,12 @@ public:
   //! \{
 
   //! Creates a `JitRuntime` instance.
+  //!
+  //! Pass non-null `params` (\ref JitAllocator::CreateParams) to configure the properties of the runtime. By default
+  //! AsmJit tries to configure a basic working runtime for generating JIT code. To enable advanced features such as
+  //! huge pages, dual-mapped X^W pages, or other features, `params` must be setup and passed to the constructor. For
+  //! more details, see \ref JitAllocator, which is an underlying allocator of \ref JitRuntime.
   ASMJIT_API explicit JitRuntime(const JitAllocator::CreateParams* params = nullptr) noexcept;
-
-  //! Creates a `JitRuntime` instance.
-  ASMJIT_INLINE explicit JitRuntime(const JitAllocator::CreateParams& params) noexcept
-    : JitRuntime(&params) {}
 
   //! Destroys the `JitRuntime` instance.
   ASMJIT_API ~JitRuntime() noexcept override;

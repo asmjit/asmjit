@@ -3,7 +3,7 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#include <asmjit/core/build_export_p.h>
+#include <asmjit/core/api_build_p.h>
 #if !defined(ASMJIT_NO_JIT)
 
 #include <asmjit/axl/inplace_array.h>
@@ -469,13 +469,13 @@ static Error asmjit_error_from_errno(int e) noexcept {
 
 [[maybe_unused]]
 static MemoryFlags max_access_flags_to_regular_access_flags(MemoryFlags memory_flags) noexcept {
-  static constexpr uint32_t kMaxProtShift = axl::ctz(MemoryFlags::kMMapMaxAccessRead);
+  static constexpr uint32_t kMaxProtShift = axl::ctz_const(MemoryFlags::kMMapMaxAccessRead);
   return MemoryFlags(uint32_t(memory_flags & MemoryFlags::kMMapMaxAccessRWX) >> kMaxProtShift);
 }
 
 [[maybe_unused]]
 static MemoryFlags regular_access_flags_to_max_access_flags(MemoryFlags memory_flags) noexcept {
-  static constexpr uint32_t kMaxProtShift = axl::ctz(MemoryFlags::kMMapMaxAccessRead);
+  static constexpr uint32_t kMaxProtShift = axl::ctz_const(MemoryFlags::kMMapMaxAccessRead);
   return MemoryFlags(uint32_t(memory_flags & MemoryFlags::kAccessRWX) << kMaxProtShift);
 }
 

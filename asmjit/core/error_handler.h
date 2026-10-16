@@ -68,7 +68,7 @@ class BaseEmitter;
 //!   x86::Assembler a(&code);
 //!   a.emit(x86::Inst::kIdMov, x86::xmm0, x86::xmm1);
 //!
-//!   if (eh.err) {
+//!   if (eh.err != Error::kOk) {
 //!     // Assembler failed!
 //!     return 1;
 //!   }
@@ -177,7 +177,7 @@ class BaseEmitter;
 //!   }
 //!   else {
 //!     Error err = eh.err;
-//!     printf("ASMJIT ERROR: 0x%08X [%s]\n", err, stringify_error(err));
+//!     printf("ERROR: %s\n", stringify_error(err));
 //!   }
 //!
 //!   return 0;

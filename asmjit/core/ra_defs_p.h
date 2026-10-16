@@ -812,12 +812,12 @@ struct RATiedReg {
 
   static inline RATiedFlags consecutive_data_to_flags(uint32_t offset) noexcept {
     ASMJIT_ASSERT(offset < 4);
-    constexpr uint32_t kOffsetShift = axl::ctz(RATiedFlags::kConsecutiveData);
+    constexpr uint32_t kOffsetShift = axl::ctz_const(RATiedFlags::kConsecutiveData);
     return (RATiedFlags)(offset << kOffsetShift);
   }
 
   static inline uint32_t consecutive_data_from_flags(RATiedFlags flags) noexcept {
-    constexpr uint32_t kOffsetShift = axl::ctz(RATiedFlags::kConsecutiveData);
+    constexpr uint32_t kOffsetShift = axl::ctz_const(RATiedFlags::kConsecutiveData);
     return uint32_t(flags & RATiedFlags::kConsecutiveData) >> kOffsetShift;
   }
 

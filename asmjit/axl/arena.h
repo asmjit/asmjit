@@ -295,34 +295,36 @@ public:
 
   //! Allocates the requested memory specified by `size` and optionally casts the returned value to `T*`.
   //!
-  //! Pointer returned is valid until the `Arena` instance is destroyed or reset by calling `reset()`. If you plan to
-  //! make an instance of C++ from the given pointer use placement `new` and `delete` operators:
+  //! Pointer returned is valid until the `Arena` instance is destroyed or reset by calling `clear()` or `release()`.
+  //! To construct a C++ object at the returned address, use placement `new` (include `<new>`):
   //!
   //! ```
   //! using namespace asmjit;
   //!
   //! class Object { ... };
   //!
-  //! // Create Arena with default block size of 65536 bytes (the maximum size per alloc() would be slightly less).
-  //! Arena arena(65536);
+  //! // Create an Arena with a minimum block size of 65536 bytes.
+  //! axl::Arena arena(65536);
   //!
-  //! // Create your objects using arena object allocating, for example:
-  //! Object* obj = static_cast<Object*>( arena.alloc(Arena::aligned_size_of<Object>() );
+  //! // Allocate memory for your objects, for example:
+  //! void* obj_storage = arena.alloc_oneshot<Object>();
   //!
-  //! if (!obj) {
+  //! if (obj == nullptr) {
   //!   // Handle out of memory error.
+  //!   return;
   //! }
   //!
-  //! // Placement `new` and `delete` operators can be used to instantiate it.
-  //! new(obj) Object();
+  //! // Construct the object with placement `new`.
+  //! Object* obj = new(obj_storage) Object();
   //!
   //! // ... lifetime of your objects ...
   //!
-  //! // To destroy the instance (if required).
+  //! // Destroy the instance. if it holds non-arena allocated resources.
+  //! // (warning: it shouldn't - the purpose of Arenas is to not need this).
   //! obj->~Object();
   //!
-  //! // Reset or destroy `Arena`.
-  //! arena.reset();
+  //! // Reset the Arena for reuse - clear() would not release the allocated memory.
+  //! arena.clear();
   //! ```
   template<typename T = void>
   [[nodiscard]]

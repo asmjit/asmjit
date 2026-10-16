@@ -3,7 +3,7 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#include <asmjit/core/build_export_p.h>
+#include <asmjit/core/api_build_p.h>
 #ifndef ASMJIT_NO_LOGGING
 
 #include <asmjit/axl/string_index.h>
@@ -421,7 +421,7 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::format_register(
 
     ASMJIT_PROPAGATE(sb.append('.'));
     if (element_count) {
-      ASMJIT_PROPAGATE(sb.append_uint(element_count));
+      ASMJIT_PROPAGATE(sb.append_int(element_count));
     }
     ASMJIT_PROPAGATE(sb.append(element_data.letter));
   }
@@ -545,7 +545,7 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::format_operand(
       }
       else {
         ASMJIT_PROPAGATE(sb.append("0x"));
-        ASMJIT_PROPAGATE(sb.append_uint(uint64_t(off), base));
+        ASMJIT_PROPAGATE(sb.append_int(uint64_t(off), base));
       }
     }
 
@@ -580,7 +580,7 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::format_operand(
 
     if (axl::test(flags, FormatFlags::kHexImms) && uint64_t(val) > 9) {
       ASMJIT_PROPAGATE(sb.append("0x"));
-      return sb.append_uint(uint64_t(val), 16);
+      return sb.append_int(uint64_t(val), 16);
     }
     else {
       return sb.append_int(val, 10);

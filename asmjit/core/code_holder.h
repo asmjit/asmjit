@@ -737,7 +737,7 @@ public:
 //! for (size_t i = 0; i < ...; i++) {
 //!   // Initialize the CodeHolder first.
 //!   code.init(env);
-//!   code.attach(&emitter);
+//!   code.attach(&cc);
 //!
 //!   [[code generation as usual]]
 //!
@@ -758,7 +758,7 @@ public:
 //!
 //! // Initialize the CodeHolder and attach emitters to it (attaching ErrorHandler is advised!)
 //! code.init(env);
-//! code.attach(&emitter);
+//! code.attach(&cc);
 //!
 //! for (size_t i = 0; i < ...; i++) {
 //!   [[code generation as usual]]
@@ -1266,7 +1266,9 @@ public:
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG size_t unresolved_fixup_count() const noexcept { return _unresolved_fixup_count; }
 
-  //! Creates a new label-link used to store information about yet unbound labels.
+  //! Creates a new fixup.
+  //!
+  //! A fixup is used to store information either about unbound labels or relative cross-section links.
   //!
   //! Returns `null` if the allocation failed.
   [[nodiscard]]

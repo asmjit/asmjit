@@ -253,7 +253,7 @@ ASMJIT_API const char* stringify_error(Error err) noexcept;
 //!   // Trying to bind invalid label would return Error; and
 //!   // ASMJIT_PROPAGATE would return that error automatically.
 //!   Label invalid_label;
-//!   ASMJIT_PROPAGATE(cc->bind(invalid_label);
+//!   ASMJIT_PROPAGATE(cc->bind(invalid_label));
 //!
 //!   // ... some more code here ...
 //!

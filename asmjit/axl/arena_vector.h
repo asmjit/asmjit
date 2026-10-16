@@ -173,7 +173,7 @@ public:
   //! \{
 
   static inline constexpr bool ItemSizeIsPowerOf2 = is_power_of_2(sizeof(T));
-  static inline constexpr ItemSize<ItemSizeIsPowerOf2> item_size_ { ItemSizeIsPowerOf2 ? ctz(sizeof(T)) : uint32_t(sizeof(T)) };
+  static inline constexpr ItemSize<ItemSizeIsPowerOf2> item_size_ { ItemSizeIsPowerOf2 ? ctz_const(sizeof(T)) : uint32_t(sizeof(T)) };
 
   //! \}
 

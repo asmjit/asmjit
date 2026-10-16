@@ -81,7 +81,7 @@ public:
 
   //! Called per function by an architecture-specific CFG builder.
   [[nodiscard]]
-  Error run() noexcept {
+  Error run() {
     log("[build_cfg_nodes]\n");
     ASMJIT_PROPAGATE(prepare());
 

@@ -3,7 +3,7 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#include <asmjit/core/build_export_p.h>
+#include <asmjit/core/api_build_test_p.h>
 #if defined(ASMJIT_TEST) && !defined(ASMJIT_NO_JIT)
 
 #include <asmjit/axl/arena.h>
@@ -142,8 +142,7 @@ public:
 
   void* alloc(size_t size) noexcept {
     JitAllocator::Span span;
-    Error err = _allocator.alloc(Out(span), size);
-    EXPECT_EQ(err, Error::kOk)
+    EXPECT_OK(_allocator.alloc(Out(span), size))
       .message("JitAllocator failed to allocate %zu bytes\n", size);
 
     _insert(span.rx(), span.rw(), size);
@@ -152,7 +151,7 @@ public:
 
   void release(void* p) noexcept {
     _remove(p);
-    EXPECT_EQ(_allocator.release(p), Error::kOk)
+    EXPECT_OK(_allocator.release(p))
       .message("JitAllocator failed to release '%p'\n", p);
   }
 
@@ -165,9 +164,8 @@ public:
     }
 
     JitAllocator::Span span;
-    EXPECT_EQ(_allocator.query(Out(span), p), Error::kOk);
-    Error err = _allocator.shrink(span, new_size);
-    EXPECT_EQ(err, Error::kOk)
+    EXPECT_OK(_allocator.query(Out(span), p));
+    EXPECT_OK(_allocator.shrink(span, new_size))
       .message("JitAllocator failed to shrink %p to %zu bytes\n", p, new_size);
 
     record->size = new_size;
@@ -392,12 +390,12 @@ static void test_jit_allocator_query() noexcept {
   size_t allocated_size = 100;
 
   JitAllocator::Span allocated_span;
-  EXPECT_EQ(allocator.alloc(Out(allocated_span), allocated_size), Error::kOk);
+  EXPECT_OK(allocator.alloc(Out(allocated_span), allocated_size));
   EXPECT_NOT_NULL(allocated_span.rx());
   EXPECT_GE(allocated_span.size(), allocated_size);
 
   JitAllocator::Span queried_span;
-  EXPECT_EQ(allocator.query(Out(queried_span), allocated_span.rx()), Error::kOk);
+  EXPECT_OK(allocator.query(Out(queried_span), allocated_span.rx()));
   EXPECT_EQ(allocated_span.rx(), queried_span.rx());
   EXPECT_EQ(allocated_span.rw(), queried_span.rw());
   EXPECT_EQ(allocated_span.size(), queried_span.size());

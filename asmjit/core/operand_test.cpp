@@ -3,7 +3,8 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#include <asmjit/core/build_export_p.h>
+#include <asmjit/core/api_build_test_p.h>
+#if defined(ASMJIT_TEST)
 
 #include <asmjit/core/operand.h>
 
@@ -131,3 +132,5 @@ TEST_CASE(core_operand) {
 #endif
 
 ASMJIT_END_NAMESPACE
+
+#endif // ASMJIT_TEST

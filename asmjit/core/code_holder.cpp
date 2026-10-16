@@ -3,7 +3,7 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#include <asmjit/core/build_export_p.h>
+#include <asmjit/core/api_build_p.h>
 
 #include <asmjit/axl/algorithm.h>
 #include <asmjit/axl/commons.h>
@@ -602,7 +602,7 @@ public:
   [[nodiscard]]
   inline bool matches(const CodeHolder::NamedLabelExtraData* node) const noexcept {
     return axl::bool_and(node->extra_data._name_size == _key_size,
-                             node->extra_data._parent_id == _parent_id) &&
+                         node->extra_data._parent_id == _parent_id) &&
            ::memcmp(node->extra_data.name(), _key, _key_size) == 0;
   }
 };
@@ -636,23 +636,29 @@ static uint32_t CodeHolder_hash_name_and_get_size(const char* name, size_t& name
 }
 
 Fixup* CodeHolder::new_fixup(LabelEntry& le, uint32_t section_id, size_t offset, intptr_t rel, const OffsetFormat& format) noexcept {
-  // Cannot be bound if we are creating a link.
-  ASMJIT_ASSERT(!le.is_bound());
-
   Fixup* link = _fixup_data_pool.alloc(_arena);
   if (ASMJIT_UNLIKELY(!link)) {
     return nullptr;
   }
 
-  link->next = le._get_fixups();
+  _unresolved_fixup_count++;
   link->section_id = section_id;
   link->label_or_reloc_id = Globals::kInvalidId;
   link->offset = offset;
   link->rel = rel;
   link->format = format;
 
-  le._set_fixups(link);
-  _unresolved_fixup_count++;
+  if (!le.is_bound()) {
+    // A regular unbound label - goes directly to LabelEntry so bind() can iterate over entries and resolve relevant fixups.
+    link->next = le._get_fixups();
+    le._set_fixups(link);
+  }
+  else {
+    // Cross section fixup - this has to go to CodeHolder so it can be resolved later.
+    link->next = _fixups;
+    link->label_or_reloc_id = static_cast<uint32_t>(&le - _label_entries.data());
+    _fixups = link;
+  }
 
   return link;
 }

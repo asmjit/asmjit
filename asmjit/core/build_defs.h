@@ -16,7 +16,7 @@
 #define ASMJIT_LIBRARY_MAKE_VERSION(major, minor, patch) ((major << 16) | (minor << 8) | (patch))
 
 //! AsmJit library version, see \ref ASMJIT_LIBRARY_MAKE_VERSION for a version format reference.
-#define ASMJIT_LIBRARY_VERSION ASMJIT_LIBRARY_MAKE_VERSION(1, 23, 0)
+#define ASMJIT_LIBRARY_VERSION ASMJIT_LIBRARY_MAKE_VERSION(1, 24, 0)
 
 //! \def ASMJIT_ABI_NAMESPACE
 //!
@@ -27,7 +27,7 @@
 //! AsmJit default, which makes it possible to use multiple AsmJit libraries within a single project, totally
 //! controlled by users. This is useful especially in cases in which some of such library comes from third party.
 #if !defined(ASMJIT_ABI_NAMESPACE)
-  #define ASMJIT_ABI_NAMESPACE v1_23
+  #define ASMJIT_ABI_NAMESPACE v1_24
 #endif // !ASMJIT_ABI_NAMESPACE
 
 //! \}
@@ -692,7 +692,6 @@
 // No Standard C++ Library Support
 // ===============================
 
-#if defined(ASMJIT_NO_STDCXX)
 ASMJIT_BEGIN_SUB_NAMESPACE(axl)
 ASMJIT_INLINE_NODEBUG void* operator_new(size_t n) noexcept { return malloc(n); }
 ASMJIT_INLINE_NODEBUG void operator_delete(void* p) noexcept { if (p) free(p); }
@@ -707,8 +706,5 @@ ASMJIT_END_SUB_NAMESPACE
                                                                                                        \
   ASMJIT_INLINE void* operator new(size_t, asmjit::axl::PlacementNew ptr) noexcept { return ptr.ptr; } \
   ASMJIT_INLINE void operator delete(void*, asmjit::axl::PlacementNew) noexcept {}
-#else
-#define ASMJIT_BASE_CLASS(TYPE)
-#endif
 
 #endif // ASMJIT_CORE_BUILD_DEFS_H_INCLUDED

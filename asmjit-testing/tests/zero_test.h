@@ -504,9 +504,8 @@ struct CheckResult {
   const char* _expression {};
   int _line = 0;
   bool _ok = true;
-  bool _done = false;
-  bool _handled = false;
-  StringBufferTmp<64> _buf;
+  bool _handle_it = false;
+  StringBuffer _buf;
 
   explicit inline CheckResult(const char* file, int line, const char* expression, bool ok) noexcept
     : _file(file),
@@ -514,16 +513,25 @@ struct CheckResult {
       _line(line),
       _ok(ok) {};
 
-  ZERO_TEST_INLINE_NODEBUG ~CheckResult() noexcept {
-    if (!_ok && !_handled) {
+  ZERO_TEST_INLINE_NODEBUG ~CheckResult() noexcept {}
+
+  ZERO_TEST_INLINE_NODEBUG bool proceed() noexcept {
+    if (_ok) {
+      return false;
+    }
+
+    if (_handle_it) {
       test_failure(this, nullptr);
+    }
+    else {
+      return true;
     }
   }
 
-  ZERO_TEST_INLINE_NODEBUG CheckResult& self() noexcept { return *this; }
-
-  ZERO_TEST_INLINE_NODEBUG bool proceed() const noexcept { return !_ok && !_done; }
-  ZERO_TEST_INLINE_NODEBUG void make_done() noexcept { _done = true; }
+  ZERO_TEST_INLINE_NODEBUG CheckResult& handle_it() noexcept {
+    _handle_it = true;
+    return *this;
+  }
 
   template<typename... Args>
   inline void message(const char* fmt, Args&&... args) noexcept {
@@ -734,8 +742,8 @@ static CheckResult expect_near_eps(const char* file, int line, const char* exp, 
 #define TEST_LOG(...) ::ZeroTest::log_info(__VA_ARGS__)
 
 #define EXPECT_CUSTOM(...) \
-  for (::ZeroTest::CheckResult _zero_test_result(__VA_ARGS__); _zero_test_result.proceed(); _zero_test_result.make_done()) \
-    _zero_test_result.self()
+  for (::ZeroTest::CheckResult _zero_test_result(__VA_ARGS__); _zero_test_result.proceed();) \
+    _zero_test_result.handle_it()
 
 #define EXPECT(...)          EXPECT_CUSTOM(::ZeroTest::expect_true(__FILE__, __LINE__, "EXPECT(" #__VA_ARGS__ ")", !!(__VA_ARGS__)))
 #define EXPECT_EQ(...)       EXPECT_CUSTOM(::ZeroTest::expect_eq(__FILE__, __LINE__, "EXPECT_EQ(" #__VA_ARGS__ ")", __VA_ARGS__))

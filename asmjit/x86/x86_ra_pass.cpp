@@ -3,7 +3,7 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#include <asmjit/core/build_export_p.h>
+#include <asmjit/core/api_build_p.h>
 #if !defined(ASMJIT_NO_X86) && !defined(ASMJIT_NO_COMPILER)
 
 #include <asmjit/core/cpu_info.h>
@@ -72,13 +72,13 @@ static ASMJIT_INLINE RATiedFlags ra_reg_rw_flags(OpRWFlags flags) noexcept {
 
 [[nodiscard]]
 static ASMJIT_INLINE RATiedFlags ra_mem_base_rw_flags(OpRWFlags flags) noexcept {
-  constexpr uint32_t kShift = axl::ctz(OpRWFlags::kMemBaseRW);
+  constexpr uint32_t kShift = axl::ctz_const(OpRWFlags::kMemBaseRW);
   return (RATiedFlags)ra_use_out_flags_from_rw_flags(OpRWFlags(uint32_t(flags) >> kShift) & OpRWFlags::kRW);
 }
 
 [[nodiscard]]
 static ASMJIT_INLINE RATiedFlags ra_mem_index_rw_flags(OpRWFlags flags) noexcept {
-  constexpr uint32_t kShift = axl::ctz(OpRWFlags::kMemIndexRW);
+  constexpr uint32_t kShift = axl::ctz_const(OpRWFlags::kMemIndexRW);
   return (RATiedFlags)ra_use_out_flags_from_rw_flags(OpRWFlags(uint32_t(flags) >> kShift) & OpRWFlags::kRW);
 }
 
@@ -108,37 +108,37 @@ public:
   ASMJIT_INLINE_NODEBUG const EmitHelperInstructionIds& ids() const noexcept { return _ids; }
 
   [[nodiscard]]
-  Error on_instruction(InstNode* inst, InstControlFlow& cf, RAInstBuilder& ib) noexcept;
+  Error on_instruction(InstNode* inst, InstControlFlow& cf, RAInstBuilder& ib);
 
   [[nodiscard]]
-  Error on_before_invoke(InvokeNode* invoke_node) noexcept;
+  Error on_before_invoke(InvokeNode* invoke_node);
 
   [[nodiscard]]
-  Error on_invoke(InvokeNode* invoke_node, RAInstBuilder& ib) noexcept;
+  Error on_invoke(InvokeNode* invoke_node, RAInstBuilder& ib);
 
   [[nodiscard]]
-  Error move_vec_to_ptr(InvokeNode* invoke_node, const FuncValue& arg, const Vec& src, Out<Reg> out) noexcept;
+  Error move_vec_to_ptr(InvokeNode* invoke_node, const FuncValue& arg, const Vec& src, Out<Reg> out);
 
   [[nodiscard]]
-  Error move_imm_to_reg_arg(InvokeNode* invoke_node, const FuncValue& arg, const Imm& imm_, Out<Reg> out) noexcept;
+  Error move_imm_to_reg_arg(InvokeNode* invoke_node, const FuncValue& arg, const Imm& imm_, Out<Reg> out);
 
   [[nodiscard]]
-  Error move_imm_to_stack_arg(InvokeNode* invoke_node, const FuncValue& arg, const Imm& imm_) noexcept;
+  Error move_imm_to_stack_arg(InvokeNode* invoke_node, const FuncValue& arg, const Imm& imm_);
 
   [[nodiscard]]
-  Error move_reg_to_stack_arg(InvokeNode* invoke_node, const FuncValue& arg, const Reg& reg) noexcept;
+  Error move_reg_to_stack_arg(InvokeNode* invoke_node, const FuncValue& arg, const Reg& reg);
 
   [[nodiscard]]
-  Error on_before_ret(FuncRetNode* func_ret) noexcept;
+  Error on_before_ret(FuncRetNode* func_ret);
 
   [[nodiscard]]
-  Error on_ret(FuncRetNode* func_ret, RAInstBuilder& ib) noexcept;
+  Error on_ret(FuncRetNode* func_ret, RAInstBuilder& ib);
 };
 
 // x86::RACFGBuilder - OnInst
 // ==========================
 
-Error RACFGBuilder::on_instruction(InstNode* inst, InstControlFlow& cf, RAInstBuilder& ib) noexcept {
+Error RACFGBuilder::on_instruction(InstNode* inst, InstControlFlow& cf, RAInstBuilder& ib) {
   InstId inst_id = inst->inst_id();
   InstRWInfo rw_info;
 
@@ -556,7 +556,7 @@ Error RACFGBuilder::on_instruction(InstNode* inst, InstControlFlow& cf, RAInstBu
 // x86::RACFGBuilder - OnInvoke
 // ============================
 
-Error RACFGBuilder::on_before_invoke(InvokeNode* invoke_node) noexcept {
+Error RACFGBuilder::on_before_invoke(InvokeNode* invoke_node) {
   const FuncDetail& fd = invoke_node->detail();
   uint32_t arg_count = invoke_node->arg_count();
 
@@ -712,7 +712,7 @@ Error RACFGBuilder::on_before_invoke(InvokeNode* invoke_node) noexcept {
   return Error::kOk;
 }
 
-Error RACFGBuilder::on_invoke(InvokeNode* invoke_node, RAInstBuilder& ib) noexcept {
+Error RACFGBuilder::on_invoke(InvokeNode* invoke_node, RAInstBuilder& ib) {
   uint32_t arg_count = invoke_node->arg_count();
   const FuncDetail& fd = invoke_node->detail();
 
@@ -804,7 +804,7 @@ static inline OperandSignature vec_reg_signature_by_size(uint32_t size) noexcept
   };
 }
 
-Error RACFGBuilder::move_vec_to_ptr(InvokeNode* invoke_node, const FuncValue& arg, const Vec& src, Out<Reg> out) noexcept {
+Error RACFGBuilder::move_vec_to_ptr(InvokeNode* invoke_node, const FuncValue& arg, const Vec& src, Out<Reg> out) {
   axl::maybe_unused(invoke_node);
   ASMJIT_ASSERT(arg.is_reg());
 
@@ -848,7 +848,7 @@ Error RACFGBuilder::move_vec_to_ptr(InvokeNode* invoke_node, const FuncValue& ar
 // x86::RACFGBuilder - Move Imm to Reg Arg
 // =======================================
 
-Error RACFGBuilder::move_imm_to_reg_arg(InvokeNode* invoke_node, const FuncValue& arg, const Imm& imm_, Out<Reg> out) noexcept {
+Error RACFGBuilder::move_imm_to_reg_arg(InvokeNode* invoke_node, const FuncValue& arg, const Imm& imm_, Out<Reg> out) {
   axl::maybe_unused(invoke_node);
   ASMJIT_ASSERT(arg.is_reg());
 
@@ -891,7 +891,7 @@ MovU32:
 // x86::RACFGBuilder - Move Imm to Stack Arg
 // =========================================
 
-Error RACFGBuilder::move_imm_to_stack_arg(InvokeNode* invoke_node, const FuncValue& arg, const Imm& imm_) noexcept {
+Error RACFGBuilder::move_imm_to_stack_arg(InvokeNode* invoke_node, const FuncValue& arg, const Imm& imm_) {
   axl::maybe_unused(invoke_node);
   ASMJIT_ASSERT(arg.is_stack());
 
@@ -950,7 +950,7 @@ MovU32:
 // x86::RACFGBuilder - MoveRegToStackArg
 // =====================================
 
-Error RACFGBuilder::move_reg_to_stack_arg(InvokeNode* invoke_node, const FuncValue& arg, const Reg& reg) noexcept {
+Error RACFGBuilder::move_reg_to_stack_arg(InvokeNode* invoke_node, const FuncValue& arg, const Reg& reg) {
   axl::maybe_unused(invoke_node);
   ASMJIT_ASSERT(arg.is_stack());
 
@@ -1161,7 +1161,7 @@ MovXmmQ:
 // x86::RACFGBuilder - OnReg
 // =========================
 
-Error RACFGBuilder::on_before_ret(FuncRetNode* func_ret) noexcept {
+Error RACFGBuilder::on_before_ret(FuncRetNode* func_ret) {
   const FuncDetail& func_detail = _pass.func()->detail();
   Span<const Operand> operands = func_ret->operands();
 
@@ -1220,7 +1220,7 @@ Error RACFGBuilder::on_before_ret(FuncRetNode* func_ret) noexcept {
   return Error::kOk;
 }
 
-Error RACFGBuilder::on_ret(FuncRetNode* func_ret, RAInstBuilder& ib) noexcept {
+Error RACFGBuilder::on_ret(FuncRetNode* func_ret, RAInstBuilder& ib) {
   const FuncDetail& func_detail = _pass.func()->detail();
   Span<const Operand> operands = func_ret->operands();
 
@@ -1318,7 +1318,7 @@ void X86RAPass::on_done() noexcept {}
 // x86::X86RAPass - BuildCFG
 // =========================
 
-Error X86RAPass::build_cfg_nodes() noexcept {
+Error X86RAPass::build_cfg_nodes() {
   return RACFGBuilder(*this).run();
 }
 
@@ -1351,9 +1351,9 @@ static InstId transform_vex_to_evex(InstId inst_id) {
   }
 }
 
-ASMJIT_FAVOR_SPEED Error X86RAPass::rewrite() noexcept {
+ASMJIT_FAVOR_SPEED Error X86RAPass::rewrite() {
   const size_t virt_count = cc()._virt_regs.size();
-  return rewrite_iterate([&](BaseNode* node, BaseNode* stop, RABlock* block) noexcept -> Error {
+  return rewrite_iterate([&](BaseNode* node, BaseNode* stop, RABlock* block) -> Error {
     while (node != stop) {
       BaseNode* next = node->next();
       if (node->is_inst()) {
@@ -1518,7 +1518,7 @@ ASMJIT_FAVOR_SPEED Error X86RAPass::rewrite() noexcept {
 // x86::X86RAPass - OnEmit
 // =======================
 
-Error X86RAPass::emit_move(RAWorkReg* work_reg, uint32_t dst_phys_id, uint32_t src_phys_id) noexcept {
+Error X86RAPass::emit_move(RAWorkReg* work_reg, uint32_t dst_phys_id, uint32_t src_phys_id) {
   Reg dst(work_reg->signature(), dst_phys_id);
   Reg src(work_reg->signature(), src_phys_id);
 
@@ -1535,7 +1535,7 @@ Error X86RAPass::emit_move(RAWorkReg* work_reg, uint32_t dst_phys_id, uint32_t s
   return _emit_helper.emit_reg_move(dst, src, work_reg->type_id(), comment);
 }
 
-Error X86RAPass::emit_swap(RAWorkReg* a_reg, uint32_t a_phys_id, RAWorkReg* b_reg, uint32_t b_phys_id) noexcept {
+Error X86RAPass::emit_swap(RAWorkReg* a_reg, uint32_t a_phys_id, RAWorkReg* b_reg, uint32_t b_phys_id) {
   bool is_64bit = axl::max(a_reg->type_id(), b_reg->type_id()) >= TypeId::kInt64;
   OperandSignature sign = is_64bit ? OperandSignature{RegTraits<RegType::kGp64>::kSignature}
                                   : OperandSignature{RegTraits<RegType::kGp32>::kSignature};
@@ -1552,7 +1552,7 @@ Error X86RAPass::emit_swap(RAWorkReg* a_reg, uint32_t a_phys_id, RAWorkReg* b_re
   return cc().emit(Inst::kIdXchg, Reg(sign, a_phys_id), Reg(sign, b_phys_id));
 }
 
-Error X86RAPass::emit_load(RAWorkReg* work_reg, uint32_t dst_phys_id) noexcept {
+Error X86RAPass::emit_load(RAWorkReg* work_reg, uint32_t dst_phys_id) {
   Reg dst_reg(work_reg->signature(), dst_phys_id);
   BaseMem src_mem(work_reg_as_mem(work_reg));
 
@@ -1569,7 +1569,7 @@ Error X86RAPass::emit_load(RAWorkReg* work_reg, uint32_t dst_phys_id) noexcept {
   return _emit_helper.emit_reg_move(dst_reg, src_mem, work_reg->type_id(), comment);
 }
 
-Error X86RAPass::emit_save(RAWorkReg* work_reg, uint32_t src_phys_id) noexcept {
+Error X86RAPass::emit_save(RAWorkReg* work_reg, uint32_t src_phys_id) {
   BaseMem dst_mem(work_reg_as_mem(work_reg));
   Reg src_reg(work_reg->signature(), src_phys_id);
 
@@ -1586,11 +1586,11 @@ Error X86RAPass::emit_save(RAWorkReg* work_reg, uint32_t src_phys_id) noexcept {
   return _emit_helper.emit_reg_move(dst_mem, src_reg, work_reg->type_id(), comment);
 }
 
-Error X86RAPass::emit_jump(const Label& label) noexcept {
+Error X86RAPass::emit_jump(const Label& label) {
   return cc().jmp(label);
 }
 
-Error X86RAPass::emit_pre_call(InvokeNode* invoke_node) noexcept {
+Error X86RAPass::emit_pre_call(InvokeNode* invoke_node) {
   if (invoke_node->detail().has_var_args() && cc().is_64bit()) {
     const FuncDetail& fd = invoke_node->detail();
     uint32_t arg_count = invoke_node->arg_count();

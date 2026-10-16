@@ -51,40 +51,21 @@ public:
   //! \{
 
   //! Returns the compiler casted to `arm::Compiler`.
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG Compiler& cc() const noexcept { return static_cast<Compiler&>(_cb); }
+  [[nodiscard]] ASMJIT_INLINE_NODEBUG Compiler& cc() const noexcept { return static_cast<Compiler&>(_cb); }
 
   //! Returns emit helper.
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG EmitHelper* emit_helper() noexcept { return &_emit_helper; }
+  [[nodiscard]] ASMJIT_INLINE_NODEBUG EmitHelper* emit_helper() noexcept { return &_emit_helper; }
 
   //! \}
 
-  //! \name Events
+  //! \name Interface
   //! \{
 
   void on_init() noexcept override;
   void on_done() noexcept override;
 
-  //! \}
-
-  //! \name CFG
-  //! \{
-
-  Error build_cfg_nodes() noexcept override;
-
-  //! \}
-
-  //! \name Rewrite
-  //! \{
-
-  Error rewrite() noexcept override;
-
-  //! \}
-
-  //! \name Prolog & Epilog
-  //! \{
-
+  Error build_cfg_nodes() override;
+  Error rewrite() override;
   Error update_stack_frame() noexcept override;
 
   //! \}
@@ -92,14 +73,14 @@ public:
   //! \name Emit Helpers
   //! \{
 
-  Error emit_move(RAWorkReg* work_reg, uint32_t dst_phys_id, uint32_t src_phys_id) noexcept override;
-  Error emit_swap(RAWorkReg* a_reg, uint32_t a_phys_id, RAWorkReg* b_reg, uint32_t b_phys_id) noexcept override;
+  Error emit_move(RAWorkReg* work_reg, uint32_t dst_phys_id, uint32_t src_phys_id) override;
+  Error emit_swap(RAWorkReg* a_reg, uint32_t a_phys_id, RAWorkReg* b_reg, uint32_t b_phys_id) override;
 
-  Error emit_load(RAWorkReg* work_reg, uint32_t dst_phys_id) noexcept override;
-  Error emit_save(RAWorkReg* work_reg, uint32_t src_phys_id) noexcept override;
+  Error emit_load(RAWorkReg* work_reg, uint32_t dst_phys_id) override;
+  Error emit_save(RAWorkReg* work_reg, uint32_t src_phys_id) override;
 
-  Error emit_jump(const Label& label) noexcept override;
-  Error emit_pre_call(InvokeNode* invoke_node) noexcept override;
+  Error emit_jump(const Label& label) override;
+  Error emit_pre_call(InvokeNode* invoke_node) override;
 
   //! \}
 };

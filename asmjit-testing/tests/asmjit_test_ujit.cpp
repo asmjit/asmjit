@@ -13,6 +13,9 @@
 #include <cmath>
 #include <limits>
 
+#define EXPECT_OK(...) \
+  EXPECT_CUSTOM(::ZeroTest::expect_eq(__FILE__, __LINE__, "EXPECT_OK(" #__VA_ARGS__ ")", (__VA_ARGS__), ::asmjit::Error::kOk))
+
 static void print_app_info() noexcept {
   printf("AsmJit UJIT Test Suite v%u.%u.%u [Arch=%s] [Mode=%s]\n\n",
     unsigned((ASMJIT_LIBRARY_VERSION >> 16)       ),
@@ -225,8 +228,8 @@ public:
   template<typename Fn>
   Fn finish() {
     Fn fn;
-    EXPECT_EQ(cc.finalize(), Error::kOk);
-    EXPECT_EQ(rt.add(&fn, &code), Error::kOk);
+    EXPECT_OK(cc.finalize());
+    EXPECT_OK(rt.add(&fn, &code));
     code.reset();
     return fn;
   }

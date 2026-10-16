@@ -3,7 +3,7 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#include <asmjit/core/build_export_p.h>
+#include <asmjit/core/api_build_test_p.h>
 #if defined(ASMJIT_TEST)
 
 #include <asmjit/core/const_pool.h>
@@ -24,12 +24,12 @@ TEST_CASE(core_const_pool) {
     size_t cur_offset;
     uint64_t c = 0x0101010101010101u;
 
-    EXPECT_EQ(pool.add(&c, 8, Out(prev_offset)), Error::kOk);
+    EXPECT_OK(pool.add(&c, 8, Out(prev_offset)));
     EXPECT_EQ(prev_offset, 0u);
 
     for (i = 1; i < kCount; i++) {
       c++;
-      EXPECT_EQ(pool.add(&c, 8, Out(cur_offset)), Error::kOk);
+      EXPECT_OK(pool.add(&c, 8, Out(cur_offset)));
       EXPECT_EQ(prev_offset + 8, cur_offset);
       EXPECT_EQ(pool.size(), (i + 1) * 8);
       prev_offset = cur_offset;
@@ -44,7 +44,7 @@ TEST_CASE(core_const_pool) {
 
     for (i = 0; i < kCount; i++) {
       size_t offset;
-      EXPECT_EQ(pool.add(&c, 8, Out(offset)), Error::kOk);
+      EXPECT_OK(pool.add(&c, 8, Out(offset)));
       EXPECT_EQ(offset, i * 8);
       c++;
     }
@@ -55,7 +55,7 @@ TEST_CASE(core_const_pool) {
     uint32_t c = 0x01010101u;
     size_t offset;
 
-    EXPECT_EQ(pool.add(&c, 4, Out(offset)), Error::kOk);
+    EXPECT_OK(pool.add(&c, 4, Out(offset)));
     EXPECT_EQ(offset, 0u);
 
     // NOTE: We have to adjust the offset to successfully test this on big endian architectures.
@@ -63,7 +63,7 @@ TEST_CASE(core_const_pool) {
 
     for (i = 1; i < kCount; i++) {
       c++;
-      EXPECT_EQ(pool.add(&c, 4, Out(offset)), Error::kOk);
+      EXPECT_OK(pool.add(&c, 4, Out(offset)));
       EXPECT_EQ(offset, base_offset + i * 8);
     }
   }
@@ -73,7 +73,7 @@ TEST_CASE(core_const_pool) {
     uint16_t c = 0xFFFF;
     size_t offset;
 
-    EXPECT_EQ(pool.add(&c, 2, Out(offset)), Error::kOk);
+    EXPECT_OK(pool.add(&c, 2, Out(offset)));
     EXPECT_EQ(offset, kCount * 8);
     EXPECT_EQ(pool.alignment(), 8u);
   }
@@ -83,7 +83,7 @@ TEST_CASE(core_const_pool) {
     uint64_t c = 0xFFFFFFFFFFFFFFFFu;
     size_t offset;
 
-    EXPECT_EQ(pool.add(&c, 8, Out(offset)), Error::kOk);
+    EXPECT_OK(pool.add(&c, 8, Out(offset)));
     EXPECT_EQ(offset, kCount * 8 + 8u);
   }
 
@@ -92,7 +92,7 @@ TEST_CASE(core_const_pool) {
     uint16_t c = 0xFFFE;
     size_t offset;
 
-    EXPECT_EQ(pool.add(&c, 2, Out(offset)), Error::kOk);
+    EXPECT_OK(pool.add(&c, 2, Out(offset)));
     EXPECT_EQ(offset, kCount * 8 + 2);
     EXPECT_EQ(pool.alignment(), 8u);
   }

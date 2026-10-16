@@ -64,15 +64,6 @@ public:
   ASMJIT_INLINE_NODEBUG ~LockGuard() noexcept { _target.unlock(); }
 };
 
-#if !defined(_WIN32)
-namespace OSUtils {
-
-//! Reads a file, only used on non-Windows platforms to access /sys or other files when necessary.
-Error read_file(const char* name, String& dst, size_t max_size) noexcept;
-
-} // {OSUtils}
-#endif
-
 //! \}
 //! \endcond
 

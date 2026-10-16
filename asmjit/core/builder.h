@@ -278,6 +278,18 @@ public:
     return Error::kOk;
   }
 
+  template<typename T, typename... Args>
+  ASMJIT_INLINE Error new_node_no_report(Out<T*> out, Args&&... args) {
+    void* ptr = _builder_arena.alloc_oneshot(axl::Arena::aligned_size_of<T>());
+
+    if (ASMJIT_UNLIKELY(!ptr)) {
+      return make_error(Error::kOutOfMemory);
+    }
+
+    out = new(axl::PlacementNew{ptr}) T(axl::forward<Args>(args)...);
+    return Error::kOk;
+  }
+
   //! Creates a new \ref InstNode.
   ASMJIT_API Error new_inst_node(Out<InstNode*> out, InstId inst_id, InstOptions inst_options, uint32_t op_count);
   //! Creates a new \ref LabelNode.
