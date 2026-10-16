@@ -247,7 +247,7 @@ struct OperandSignature {
   template<uint32_t FieldMask, typename T>
   [[nodiscard]]
   static ASMJIT_INLINE_CONSTEXPR OperandSignature from_value(const T& value) noexcept {
-    return OperandSignature{uint32_t(value) << axl::ctz(FieldMask)};
+    return OperandSignature{uint32_t(value) << axl::ctz_const(FieldMask)};
   }
 
   //! Constructs operand signature describing the given operand type `op_type`.
@@ -365,25 +365,25 @@ struct OperandSignature {
   template<uint32_t FieldMask>
   [[nodiscard]]
   ASMJIT_INLINE_CONSTEXPR bool has_field(uint32_t value) const noexcept {
-    return (_bits & FieldMask) != value << axl::ctz(FieldMask);
+    return (_bits & FieldMask) != value << axl::ctz_const(FieldMask);
   }
 
   template<uint32_t FieldMask>
   [[nodiscard]]
   ASMJIT_INLINE_CONSTEXPR uint32_t get_field() const noexcept {
-    return (_bits >> axl::ctz(FieldMask)) & (FieldMask >> axl::ctz(FieldMask));
+    return (_bits >> axl::ctz_const(FieldMask)) & (FieldMask >> axl::ctz_const(FieldMask));
   }
 
   template<uint32_t FieldMask>
   ASMJIT_INLINE_CONSTEXPR void set_field(uint32_t value) noexcept {
-    ASMJIT_ASSERT(((value << axl::ctz(FieldMask)) & ~FieldMask) == 0);
-    _bits = (_bits & ~FieldMask) | (value << axl::ctz(FieldMask));
+    ASMJIT_ASSERT(((value << axl::ctz_const(FieldMask)) & ~FieldMask) == 0);
+    _bits = (_bits & ~FieldMask) | (value << axl::ctz_const(FieldMask));
   }
 
   [[nodiscard]]
   ASMJIT_INLINE_CONSTEXPR OperandSignature subset(uint32_t mask) const noexcept { return OperandSignature{_bits & mask}; }
 
-  template<uint32_t FieldMask, uint32_t kFieldShift = axl::ctz(FieldMask)>
+  template<uint32_t FieldMask, uint32_t kFieldShift = axl::ctz_const(FieldMask)>
   [[nodiscard]]
   ASMJIT_INLINE_CONSTEXPR OperandSignature replaced_value(uint32_t value) const noexcept { return OperandSignature{(_bits & ~FieldMask) | (value << kFieldShift)}; }
 
@@ -477,7 +477,7 @@ struct OperandSignature {
 //! ```
 //! Operand_ x_array[10];    // Not initialized, contains garbage.
 //! Operand_ y_array[10] {}; // All operands initialized to none explicitly (zero initialized).
-//! Operand  y_array[10];    // All operands initialized to none implicitly (zero initialized).
+//! Operand  z_array[10];    // All operands initialized to none implicitly (zero initialized).
 //! ```
 struct Operand_ {
   //! \name Types
@@ -1054,8 +1054,10 @@ static_assert(sizeof(Operand) == 16, "asmjit::Operand must be exactly 16 bytes l
 //! Example of using labels:
 //!
 //! ```
-//! // Create some emitter (for example x86::Assembler).
-//! x86::Assembler a;
+//! // Initialize a CodeHolder and attach an emitter (for example x86::Assembler).
+//! CodeHolder code;
+//! code.init(Environment::host());
+//! x86::Assembler a(&code);
 //!
 //! // Create Label instance.
 //! Label L1 = a.new_label();
@@ -1063,7 +1065,7 @@ static_assert(sizeof(Operand) == 16, "asmjit::Operand must be exactly 16 bytes l
 //! // ... your code ...
 //!
 //! // Using label.
-//! a.jump(L1);
+//! a.jmp(L1);
 //!
 //! // ... your code ...
 //!

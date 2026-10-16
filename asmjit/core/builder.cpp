@@ -3,7 +3,7 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#include <asmjit/core/build_export_p.h>
+#include <asmjit/core/api_build_p.h>
 #ifndef ASMJIT_NO_BUILDER
 
 #include <asmjit/axl/commons.h>
@@ -878,16 +878,17 @@ static ASMJIT_INLINE void BaseBuilder_clear_all(BaseBuilder* self) noexcept {
 }
 
 static ASMJIT_INLINE Error BaseBuilder_init_section(BaseBuilder* self) noexcept {
+  ASMJIT_PROPAGATE(self->_section_nodes.reserve_fit(self->_builder_arena, 4u));
+  ASMJIT_PROPAGATE(self->_passes.reserve_additional(self->_builder_arena, 4u));
+
   SectionNode* initial_section;
+  ASMJIT_PROPAGATE(self->new_node_no_report<SectionNode>(Out(initial_section), 0u));
 
-  ASMJIT_PROPAGATE(self->section_node_of(Out(initial_section), 0));
-  ASMJIT_PROPAGATE(self->_passes.reserve_additional(self->_builder_arena, 4));
-
-  ASMJIT_ASSUME(initial_section != nullptr);
   self->_cursor = initial_section;
   self->_node_list.reset(initial_section, initial_section);
-  initial_section->_assign_flags(NodeFlags::kIsActive);
+  self->_section_nodes.append_unchecked(initial_section);
 
+  initial_section->_assign_flags(NodeFlags::kIsActive);
   return Error::kOk;
 }
 

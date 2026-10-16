@@ -3,7 +3,7 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#include <asmjit/core/build_export_p.h>
+#include <asmjit/core/api_build_p.h>
 #ifndef ASMJIT_NO_LOGGING
 
 #include <asmjit/axl/mem_ops.h>
@@ -256,7 +256,7 @@ static Error format_data_helper(String& sb, const char* type_name, uint32_t type
       case 8: v = axl::loadu_u64(data); break;
     }
 
-    ASMJIT_PROPAGATE(sb.append_uint(v, 16, type_size * 2, StringFormatFlags::kAlternate));
+    ASMJIT_PROPAGATE(sb.append_int(v, 16, type_size * 2, StringFormatFlags::kAlternate));
     data += type_size;
   }
 

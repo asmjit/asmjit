@@ -278,12 +278,12 @@ public:
   template<InstIdParts kPart>
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t inst_id_part() const noexcept {
-    return (uint32_t(_inst_id) & uint32_t(kPart)) >> axl::ctz(kPart);
+    return (uint32_t(_inst_id) & uint32_t(kPart)) >> axl::ctz_const(kPart);
   }
 
   template<InstIdParts kPart>
   ASMJIT_INLINE_NODEBUG void set_inst_id_part(uint32_t value) noexcept {
-    _inst_id = (_inst_id & ~uint32_t(kPart)) | (value << axl::ctz(kPart));
+    _inst_id = (_inst_id & ~uint32_t(kPart)) | (value << axl::ctz_const(kPart));
   }
 
   //! \}
@@ -358,20 +358,20 @@ public:
 
   [[nodiscard]]
   static ASMJIT_INLINE_CONSTEXPR InstId compose_arm_inst_id(uint32_t id, arm::CondCode cc) noexcept {
-    return id | (uint32_t(cc) << axl::ctz(InstIdParts::kARM_Cond));
+    return id | (uint32_t(cc) << axl::ctz_const(InstIdParts::kARM_Cond));
   }
 
   [[nodiscard]]
   static ASMJIT_INLINE_CONSTEXPR InstId compose_arm_inst_id(uint32_t id, a32::DataType dt, arm::CondCode cc = arm::CondCode::kAL) noexcept {
-    return id | (uint32_t(dt) << axl::ctz(InstIdParts::kA32_DT))
-              | (uint32_t(cc) << axl::ctz(InstIdParts::kARM_Cond));
+    return id | (uint32_t(dt) << axl::ctz_const(InstIdParts::kA32_DT))
+              | (uint32_t(cc) << axl::ctz_const(InstIdParts::kARM_Cond));
   }
 
   [[nodiscard]]
   static ASMJIT_INLINE_CONSTEXPR InstId compose_arm_inst_id(uint32_t id, a32::DataType dt, a32::DataType dt2, arm::CondCode cc = arm::CondCode::kAL) noexcept {
-    return id | (uint32_t(dt) << axl::ctz(InstIdParts::kA32_DT))
-              | (uint32_t(dt2) << axl::ctz(InstIdParts::kA32_DT2))
-              | (uint32_t(cc) << axl::ctz(InstIdParts::kARM_Cond));
+    return id | (uint32_t(dt) << axl::ctz_const(InstIdParts::kA32_DT))
+              | (uint32_t(dt2) << axl::ctz_const(InstIdParts::kA32_DT2))
+              | (uint32_t(cc) << axl::ctz_const(InstIdParts::kARM_Cond));
   }
 
   [[nodiscard]]
@@ -381,7 +381,7 @@ public:
 
   [[nodiscard]]
   static ASMJIT_INLINE_CONSTEXPR arm::CondCode extract_arm_cond_code(uint32_t id) noexcept {
-    return (arm::CondCode)((uint32_t(id) & uint32_t(InstIdParts::kARM_Cond)) >> axl::ctz(InstIdParts::kARM_Cond));
+    return (arm::CondCode)((uint32_t(id) & uint32_t(InstIdParts::kARM_Cond)) >> axl::ctz_const(InstIdParts::kARM_Cond));
   }
 
   //! \}

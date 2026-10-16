@@ -96,7 +96,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(a64)
 //!   a64::Compiler cc(&code);                 // Create and attach a64::Compiler to code.
 //!
 //!   cc.add_func(FuncSignature::build<int>());// Begin a function of `int fn(void)` signature.
-//!   a64::Gp v = cc.new_gp32();.
+//!   a64::Gp v = cc.new_gp32();
 //!
 //!   // InvokeNode represents function invocation.
 //!   InvokeNode* invoke_node;
@@ -253,31 +253,31 @@ public:
   }
 
   //! Put a BYTE `val` to a constant-pool (8 bits).
-  ASMJIT_INLINE_NODEBUG Mem new_byte_const(ConstPoolScope scope, uint8_t val) noexcept { return new_const(scope, &val, 1); }
+  ASMJIT_INLINE_NODEBUG Mem new_byte_const(ConstPoolScope scope, uint8_t val) { return new_const(scope, &val, 1); }
   //! Put a HWORD `val` to a constant-pool (16 bits).
-  ASMJIT_INLINE_NODEBUG Mem new_half_const(ConstPoolScope scope, uint16_t val) noexcept { return new_const(scope, &val, 2); }
+  ASMJIT_INLINE_NODEBUG Mem new_half_const(ConstPoolScope scope, uint16_t val) { return new_const(scope, &val, 2); }
   //! Put a WORD `val` to a constant-pool (32 bits).
-  ASMJIT_INLINE_NODEBUG Mem new_word_const(ConstPoolScope scope, uint32_t val) noexcept { return new_const(scope, &val, 4); }
+  ASMJIT_INLINE_NODEBUG Mem new_word_const(ConstPoolScope scope, uint32_t val) { return new_const(scope, &val, 4); }
   //! Put a DWORD `val` to a constant-pool (64 bits).
-  ASMJIT_INLINE_NODEBUG Mem new_dword_const(ConstPoolScope scope, uint64_t val) noexcept { return new_const(scope, &val, 8); }
+  ASMJIT_INLINE_NODEBUG Mem new_dword_const(ConstPoolScope scope, uint64_t val) { return new_const(scope, &val, 8); }
 
   //! Put a WORD `val` to a constant-pool.
-  ASMJIT_INLINE_NODEBUG Mem new_int16_const(ConstPoolScope scope, int16_t val) noexcept { return new_const(scope, &val, 2); }
+  ASMJIT_INLINE_NODEBUG Mem new_int16_const(ConstPoolScope scope, int16_t val) { return new_const(scope, &val, 2); }
   //! Put a WORD `val` to a constant-pool.
-  ASMJIT_INLINE_NODEBUG Mem new_uint16_const(ConstPoolScope scope, uint16_t val) noexcept { return new_const(scope, &val, 2); }
+  ASMJIT_INLINE_NODEBUG Mem new_uint16_const(ConstPoolScope scope, uint16_t val) { return new_const(scope, &val, 2); }
   //! Put a DWORD `val` to a constant-pool.
-  ASMJIT_INLINE_NODEBUG Mem new_int32_const(ConstPoolScope scope, int32_t val) noexcept { return new_const(scope, &val, 4); }
+  ASMJIT_INLINE_NODEBUG Mem new_int32_const(ConstPoolScope scope, int32_t val) { return new_const(scope, &val, 4); }
   //! Put a DWORD `val` to a constant-pool.
-  ASMJIT_INLINE_NODEBUG Mem new_uint32_const(ConstPoolScope scope, uint32_t val) noexcept { return new_const(scope, &val, 4); }
+  ASMJIT_INLINE_NODEBUG Mem new_uint32_const(ConstPoolScope scope, uint32_t val) { return new_const(scope, &val, 4); }
   //! Put a QWORD `val` to a constant-pool.
-  ASMJIT_INLINE_NODEBUG Mem new_int64_const(ConstPoolScope scope, int64_t val) noexcept { return new_const(scope, &val, 8); }
+  ASMJIT_INLINE_NODEBUG Mem new_int64_const(ConstPoolScope scope, int64_t val) { return new_const(scope, &val, 8); }
   //! Put a QWORD `val` to a constant-pool.
-  ASMJIT_INLINE_NODEBUG Mem new_uint64_const(ConstPoolScope scope, uint64_t val) noexcept { return new_const(scope, &val, 8); }
+  ASMJIT_INLINE_NODEBUG Mem new_uint64_const(ConstPoolScope scope, uint64_t val) { return new_const(scope, &val, 8); }
 
   //! Put a SP-FP `val` to a constant-pool.
-  ASMJIT_INLINE_NODEBUG Mem new_float_const(ConstPoolScope scope, float val) noexcept { return new_const(scope, &val, 4); }
+  ASMJIT_INLINE_NODEBUG Mem new_float_const(ConstPoolScope scope, float val) { return new_const(scope, &val, 4); }
   //! Put a DP-FP `val` to a constant-pool.
-  ASMJIT_INLINE_NODEBUG Mem new_double_const(ConstPoolScope scope, double val) noexcept { return new_const(scope, &val, 8); }
+  ASMJIT_INLINE_NODEBUG Mem new_double_const(ConstPoolScope scope, double val) { return new_const(scope, &val, 8); }
 
   //! \}
 

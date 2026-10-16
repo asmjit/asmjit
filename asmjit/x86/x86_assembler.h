@@ -446,7 +446,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //! To illustrate what short form and long form means in binary let's assume we want to emit "add esp, 16" instruction,
 //! which has two possible binary encodings:
 //!
-//!   - `83C410` - This is a short form aka `short add esp, 16` - You can see opcode byte (0x8C), MOD/RM byte (0xC4)
+//!   - `83C410` - This is a short form aka `short add esp, 16` - You can see opcode byte (0x83), MOD/RM byte (0xC4)
 //!     and an 8-bit immediate value representing `16`.
 //!
 //!   - `81C410000000` - This is a long form aka `long add esp, 16` - You can see a different opcode byte (0x81), the
@@ -524,7 +524,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //! ### Code Patching and REX Prefix
 //!
 //! In 64-bit mode there is one more thing to worry about when patching code: REX prefix. It's a single byte prefix
-//! designed to address registers with ids from 9 to 15 and to override the default width of operation from 32 to 64
+//! designed to address registers with ids from 8 to 15 and to override the default width of operation from 32 to 64
 //! bits. AsmJit, like other assemblers, only emits REX prefix when it's necessary. If the patched code only changes
 //! the immediate value as shown in the previous example then there is nothing to worry about as it doesn't change
 //! the logic behind emitting REX prefix, however, if the patched code changes register id or overrides the operation

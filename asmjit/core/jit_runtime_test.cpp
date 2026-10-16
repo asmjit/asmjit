@@ -3,7 +3,7 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#include <asmjit/core/build_export_p.h>
+#include <asmjit/core/api_build_test_p.h>
 #if defined(ASMJIT_TEST) && !defined(ASMJIT_NO_JIT) && !defined(ASMJIT_NO_X86) && ASMJIT_TARGET_ARCH_X86 == 64
 
 #include <asmjit/axl/mem_ops.h>

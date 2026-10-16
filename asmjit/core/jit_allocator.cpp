@@ -3,7 +3,7 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#include <asmjit/core/build_export_p.h>
+#include <asmjit/core/api_build_p.h>
 #ifndef ASMJIT_NO_JIT
 
 #include <asmjit/axl/arena.h>
@@ -19,6 +19,7 @@
 #include <asmjit/core/os_utils_p.h>
 #include <asmjit/core/pauth_utils_p.h>
 #include <asmjit/core/virt_mem.h>
+#include <asmjit/core/virt_mem_p.h>
 
 #if defined(ASMJIT_TEST)
 #include <asmjit-testing/commons/random.h>
@@ -419,7 +420,7 @@ static void JitAllocator_near_module_address_range(uintptr_t* range_start, uintp
   uintptr_t module_start;
   uintptr_t module_end;
 
-  if (OSUtils::module_address_range(&JitAllocatorImpl_none, &module_start, &module_end) == Error::kOk) {
+  if (VirtMem::module_address_range(&JitAllocatorImpl_none, &module_start, &module_end) == Error::kOk) {
     *range_start = module_end > kMinAddress + kReach ? module_end - kReach : kMinAddress;
     *range_end = module_start;
   }

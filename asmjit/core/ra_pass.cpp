@@ -3,7 +3,7 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#include <asmjit/core/build_export_p.h>
+#include <asmjit/core/api_build_p.h>
 #ifndef ASMJIT_NO_COMPILER
 
 #include <asmjit/axl/algorithm.h>
@@ -202,7 +202,7 @@ Error BaseRAPass::run(axl::Arena& arena, Logger* logger) {
   return err;
 }
 
-Error BaseRAPass::run_on_function(axl::Arena& arena, FuncNode* func, [[maybe_unused]] bool last) noexcept {
+Error BaseRAPass::run_on_function(axl::Arena& arena, FuncNode* func, [[maybe_unused]] bool last) {
   // Initialize all core structures to use `arena` and `func`.
   BaseNode* end = func->end_node();
 
@@ -248,7 +248,7 @@ Error BaseRAPass::run_on_function(axl::Arena& arena, FuncNode* func, [[maybe_unu
 // BaseRAPass - Perform All Steps
 // ==============================
 
-Error BaseRAPass::on_perform_all_steps() noexcept {
+Error BaseRAPass::on_perform_all_steps() {
   ASMJIT_PROPAGATE(build_cfg_nodes());
   ASMJIT_PROPAGATE(build_cfg_views());
   ASMJIT_PROPAGATE(remove_unreachable_code());
@@ -265,10 +265,9 @@ Error BaseRAPass::on_perform_all_steps() noexcept {
 
   ASMJIT_PROPAGATE(run_global_allocator());
   ASMJIT_PROPAGATE(run_local_allocator());
-
   ASMJIT_PROPAGATE(update_stack_frame());
-  ASMJIT_PROPAGATE(insert_prolog_epilog());
 
+  ASMJIT_PROPAGATE(insert_prolog_epilog());
   ASMJIT_PROPAGATE(rewrite());
 
   return Error::kOk;
@@ -404,7 +403,7 @@ Error BaseRAPass::add_block(RABlock* block) noexcept {
 // ========================
 
 // [[pure virtual]]
-Error BaseRAPass::build_cfg_nodes() noexcept {
+Error BaseRAPass::build_cfg_nodes() {
   return make_error(Error::kInvalidState);
 }
 
@@ -1709,7 +1708,7 @@ ASMJIT_FAVOR_SPEED Error BaseRAPass::bin_pack(RegGroup group) noexcept {
 // BaseRAPass - Allocation - Local
 // ===============================
 
-Error BaseRAPass::run_local_allocator() noexcept {
+Error BaseRAPass::run_local_allocator() {
   RALocalAllocator lra(*this);
   ASMJIT_PROPAGATE(lra.init());
 
@@ -1980,7 +1979,7 @@ Error BaseRAPass::block_entry_assigned(const PhysToWorkMap* phys_to_work_map) no
 // BaseRAPass - Allocation - Utilities
 // ===================================
 
-Error BaseRAPass::use_temporary_mem(BaseMem& out, uint32_t size, uint32_t alignment) noexcept {
+Error BaseRAPass::use_temporary_mem(BaseMem& out, uint32_t size, uint32_t alignment) {
   ASMJIT_ASSERT(alignment <= 64);
 
   if (_temporary_mem.is_none()) {
@@ -2028,7 +2027,7 @@ Error BaseRAPass::update_stack_frame() noexcept {
   ASMJIT_PROPAGATE(_args_assignment.update_func_frame(frame));
   ASMJIT_PROPAGATE(frame.finalize());
 
-  // StackAllocator allocates all stots starting from [0], adjust them when necessary.
+  // StackAllocator allocates all slots starting from [0], adjust them when necessary.
   if (frame.local_stack_offset() != 0) {
     ASMJIT_PROPAGATE(_stack_allocator.adjust_slot_offsets(int32_t(frame.local_stack_offset())));
   }
@@ -2116,7 +2115,7 @@ Error BaseRAPass::_update_stack_args() noexcept {
   return Error::kOk;
 }
 
-Error BaseRAPass::insert_prolog_epilog() noexcept {
+Error BaseRAPass::insert_prolog_epilog() {
   FuncFrame& frame = _func->frame();
 
   cc().set_cursor(func());
@@ -2133,7 +2132,7 @@ Error BaseRAPass::insert_prolog_epilog() noexcept {
 // =====================
 
 // [[pure virtual]]
-Error BaseRAPass::rewrite() noexcept {
+Error BaseRAPass::rewrite() {
   return make_error(Error::kInvalidState);
 }
 
@@ -2141,36 +2140,36 @@ Error BaseRAPass::rewrite() noexcept {
 // =================
 
 // [[pure virtual]]
-Error BaseRAPass::emit_move(RAWorkReg* work_reg, uint32_t dst_phys_id, uint32_t src_phys_id) noexcept {
+Error BaseRAPass::emit_move(RAWorkReg* work_reg, uint32_t dst_phys_id, uint32_t src_phys_id) {
   axl::maybe_unused(work_reg, dst_phys_id, src_phys_id);
   return make_error(Error::kInvalidState);
 }
 
 // [[pure virtual]]
-Error BaseRAPass::emit_swap(RAWorkReg* a_reg, uint32_t a_phys_id, RAWorkReg* b_reg, uint32_t b_phys_id) noexcept {
+Error BaseRAPass::emit_swap(RAWorkReg* a_reg, uint32_t a_phys_id, RAWorkReg* b_reg, uint32_t b_phys_id) {
   axl::maybe_unused(a_reg, a_phys_id, b_reg, b_phys_id);
   return make_error(Error::kInvalidState);
 }
 
 // [[pure virtual]]
-Error BaseRAPass::emit_load(RAWorkReg* work_reg, uint32_t dst_phys_id) noexcept {
+Error BaseRAPass::emit_load(RAWorkReg* work_reg, uint32_t dst_phys_id) {
   axl::maybe_unused(work_reg, dst_phys_id);
   return make_error(Error::kInvalidState);
 }
 
 // [[pure virtual]]
-Error BaseRAPass::emit_save(RAWorkReg* work_reg, uint32_t src_phys_id) noexcept {
+Error BaseRAPass::emit_save(RAWorkReg* work_reg, uint32_t src_phys_id) {
   axl::maybe_unused(work_reg, src_phys_id);
   return make_error(Error::kInvalidState);
 }
 
 // [[pure virtual]]
-Error BaseRAPass::emit_jump(const Label& label) noexcept {
+Error BaseRAPass::emit_jump(const Label& label) {
   axl::maybe_unused(label);
   return make_error(Error::kInvalidState);
 }
 
-Error BaseRAPass::emit_pre_call(InvokeNode* invoke_node) noexcept {
+Error BaseRAPass::emit_pre_call(InvokeNode* invoke_node) {
   axl::maybe_unused(invoke_node);
   return make_error(Error::kOk);
 }
@@ -2179,7 +2178,7 @@ Error BaseRAPass::emit_pre_call(InvokeNode* invoke_node) noexcept {
 // ====================
 
 #ifndef ASMJIT_NO_LOGGING
-static void RAPass_formatLiveness(BaseRAPass* pass, String& sb, const RAInst* ra_inst) noexcept {
+static void RAPass_format_liveness(BaseRAPass* pass, String& sb, const RAInst* ra_inst) noexcept {
   axl::maybe_unused(pass);
 
   const RATiedReg* tied_regs = ra_inst->tied_regs();
@@ -2259,7 +2258,7 @@ ASMJIT_FAVOR_SIZE Error BaseRAPass::annotate_code() noexcept {
         if (ra_inst->tied_count() > 0) {
           sb.pad_end(40);
           sb.append(" | ");
-          RAPass_formatLiveness(this, sb, ra_inst);
+          RAPass_format_liveness(this, sb, ra_inst);
         }
       }
 

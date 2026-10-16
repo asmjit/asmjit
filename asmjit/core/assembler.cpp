@@ -3,7 +3,7 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#include <asmjit/core/build_export_p.h>
+#include <asmjit/core/api_build_p.h>
 
 #include <asmjit/core/assembler.h>
 #include <asmjit/core/code_writer_p.h>
@@ -139,7 +139,7 @@ Error BaseAssembler::embed(const void* data, size_t data_size) {
   }
 
   CodeWriter writer(this);
-  ASMJIT_PROPAGATE(writer.ensure_space(this, data_size));
+  ASMJIT_PROPAGATE(writer.ensure_space_with_reporting(this, data_size));
 
   writer.emit_data(data, data_size);
   writer.done(this);
@@ -179,7 +179,7 @@ Error BaseAssembler::embed_data_array(TypeId type_id, const void* data, size_t i
   }
 
   CodeWriter writer(this);
-  ASMJIT_PROPAGATE(writer.ensure_space(this, total_size));
+  ASMJIT_PROPAGATE(writer.ensure_space_with_reporting(this, total_size));
 
   for (size_t i = 0; i < repeat_count; i++) {
     writer.emit_data(data, data_size);
@@ -230,7 +230,7 @@ Error BaseAssembler::embed_const_pool(const Label& label, const ConstPool& pool)
   }
 
   CodeWriter writer(this);
-  ASMJIT_PROPAGATE(writer.ensure_space(this, size));
+  ASMJIT_PROPAGATE(writer.ensure_space_with_reporting(this, size));
 
 #ifndef ASMJIT_NO_LOGGING
   uint8_t* data = writer.cursor();
@@ -276,7 +276,7 @@ Error BaseAssembler::embed_label(const Label& label, size_t data_size) {
   }
 
   CodeWriter writer(this);
-  ASMJIT_PROPAGATE(writer.ensure_space(this, data_size));
+  ASMJIT_PROPAGATE(writer.ensure_space_with_reporting(this, data_size));
 
 #ifndef ASMJIT_NO_LOGGING
   if (_logger) {
@@ -343,7 +343,7 @@ Error BaseAssembler::embed_label_delta(const Label& label, const Label& base, si
   }
 
   CodeWriter writer(this);
-  ASMJIT_PROPAGATE(writer.ensure_space(this, data_size));
+  ASMJIT_PROPAGATE(writer.ensure_space_with_reporting(this, data_size));
 
 #ifndef ASMJIT_NO_LOGGING
   if (_logger) {

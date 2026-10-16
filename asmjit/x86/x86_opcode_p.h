@@ -387,7 +387,7 @@ struct Opcode {
 
   ASMJIT_INLINE_NODEBUG Opcode& force_evex() noexcept { return operator|=(kMM_ForceEvex); }
   template<typename T>
-  ASMJIT_INLINE_NODEBUG Opcode& force_evex_if(T exp) noexcept { return operator|=(uint32_t(exp) << axl::ctz(uint32_t(kMM_ForceEvex))); }
+  ASMJIT_INLINE_NODEBUG Opcode& force_evex_if(T exp) noexcept { return operator|=(uint32_t(exp) << axl::ctz_const(kMM_ForceEvex)); }
 
   //! Extract `O` field (R) from the opcode (specified as /0..7 in instruction manuals).
   ASMJIT_INLINE_NODEBUG uint32_t extract_mod_o() const noexcept {

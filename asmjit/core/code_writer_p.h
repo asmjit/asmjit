@@ -32,6 +32,17 @@ public:
     size_t remaining_space = (size_t)(a->_buffer_end - _cursor);
     if (ASMJIT_UNLIKELY(remaining_space < n)) {
       CodeBuffer& buffer = a->_section->_buffer;
+      ASMJIT_PROPAGATE(a->_code->grow_buffer(&buffer, n));
+      _cursor = a->_buffer_ptr;
+    }
+    return Error::kOk;
+  }
+
+  [[nodiscard]]
+  ASMJIT_INLINE Error ensure_space_with_reporting(BaseAssembler* a, size_t n) {
+    size_t remaining_space = (size_t)(a->_buffer_end - _cursor);
+    if (ASMJIT_UNLIKELY(remaining_space < n)) {
+      CodeBuffer& buffer = a->_section->_buffer;
       Error err = a->_code->grow_buffer(&buffer, n);
       if (ASMJIT_UNLIKELY(err != Error::kOk)) {
         return a->report_error(err);
@@ -55,45 +66,39 @@ public:
 
   template<typename T>
   ASMJIT_INLINE void emit8(T val) noexcept {
-    using U = std::make_unsigned_t<T>;
-    _cursor[0] = uint8_t(U(val) & U(0xFF));
+    _cursor[0] = uint8_t(axl::as_std_uint(val) & 0xFFU);
     _cursor++;
   }
 
   template<typename T, typename Y>
   ASMJIT_INLINE void emit8_if(T val, Y cond) noexcept {
-    using U = std::make_unsigned_t<T>;
     ASMJIT_ASSERT(size_t(cond) <= 1u);
 
-    _cursor[0] = uint8_t(U(val) & U(0xFF));
+    _cursor[0] = uint8_t(axl::as_std_uint(val) & 0xFFu);
     _cursor += size_t(cond);
   }
 
   template<typename T>
   ASMJIT_INLINE void emit16u_le(T val) noexcept {
-    using U = std::make_unsigned_t<T>;
-    axl::storeu_u16_le(_cursor, uint16_t(U(val) & 0xFFFFu));
+    axl::storeu_u16_le(_cursor, uint16_t(axl::as_std_uint(val) & 0xFFFFu));
     _cursor += 2;
   }
 
   template<typename T>
   ASMJIT_INLINE void emit16u_be(T val) noexcept {
-    using U = std::make_unsigned_t<T>;
-    axl::storeu_u16_be(_cursor, uint16_t(U(val) & 0xFFFFu));
+    axl::storeu_u16_be(_cursor, uint16_t(axl::as_std_uint(val) & 0xFFFFu));
     _cursor += 2;
   }
 
   template<typename T>
   ASMJIT_INLINE void emit32u_le(T val) noexcept {
-    using U = std::make_unsigned_t<T>;
-    axl::storeu_u32_le(_cursor, uint32_t(U(val) & 0xFFFFFFFFu));
+    axl::storeu_u32_le(_cursor, uint32_t(axl::as_std_uint(val) & 0xFFFFFFFFu));
     _cursor += 4;
   }
 
   template<typename T>
   ASMJIT_INLINE void emit32u_be(T val) noexcept {
-    using U = std::make_unsigned_t<T>;
-    axl::storeu_u32_be(_cursor, uint32_t(U(val) & 0xFFFFFFFFu));
+    axl::storeu_u32_be(_cursor, uint32_t(axl::as_std_uint(val) & 0xFFFFFFFFu));
     _cursor += 4;
   }
 
@@ -105,10 +110,9 @@ public:
 
   template<typename T>
   ASMJIT_INLINE void emit_value_le(const T& value, size_t size) noexcept {
-    using U = std::make_unsigned_t<T>;
     ASMJIT_ASSERT(size <= sizeof(T));
 
-    U v = U(value);
+    auto v = axl::as_std_uint(value);
     for (uint32_t i = 0; i < size; i++) {
       _cursor[i] = uint8_t(v & 0xFFu);
       v >>= 8;

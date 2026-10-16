@@ -35,6 +35,7 @@ int main(int argc, const char* argv[]) {
 
   ZeroTest::TestPrecedence precedence_table[] = {
     {"axl*"},
+    {"core_string*"},
     {"core*"},
     {"a64*"},
     {"x86*"},

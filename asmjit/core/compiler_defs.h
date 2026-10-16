@@ -64,7 +64,7 @@ public:
   //! \{
 
   static constexpr inline uint32_t kAlignmentLog2Mask  = uint32_t(VirtRegFlags::kAlignmentLog2Mask);
-  static constexpr inline uint32_t kAlignmentLog2Shift = axl::ctz(kAlignmentLog2Mask);
+  static constexpr inline uint32_t kAlignmentLog2Shift = axl::ctz_const(kAlignmentLog2Mask);
 
   static ASMJIT_INLINE_CONSTEXPR VirtRegFlags _flags_from_alignment_log2(uint32_t alignment_log2) noexcept {
     return VirtRegFlags(alignment_log2 << kAlignmentLog2Shift);

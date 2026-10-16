@@ -3,7 +3,7 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#include <asmjit/core/build_export_p.h>
+#include <asmjit/core/api_build_p.h>
 #if !defined(ASMJIT_NO_AARCH64)
 
 #include <asmjit/axl/inplace_array.h>
@@ -5298,7 +5298,7 @@ Error Assembler::align(AlignMode align_mode, uint32_t alignment) {
   }
 
   CodeWriter writer(this);
-  ASMJIT_PROPAGATE(writer.ensure_space(this, i));
+  ASMJIT_PROPAGATE(writer.ensure_space_with_reporting(this, i));
 
   switch (align_mode) {
     case AlignMode::kCode: {

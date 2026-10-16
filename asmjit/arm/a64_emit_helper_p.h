@@ -44,7 +44,7 @@ public:
   Error emit_epilog(const FuncFrame& frame);
 };
 
-void init_emitter_funcs(BaseEmitter* emitter);
+void init_emitter_funcs(BaseEmitter* emitter) noexcept;
 
 [[maybe_unused]]
 static inline void update_emitter_funcs(BaseEmitter* emitter) noexcept { axl::maybe_unused(emitter); }

@@ -3,7 +3,7 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#include <asmjit/core/build_export_p.h>
+#include <asmjit/core/api_build_p.h>
 #if !defined(ASMJIT_NO_X86) && !defined(ASMJIT_NO_LOGGING)
 
 #include <asmjit/core/cpu_info.h>
@@ -498,7 +498,7 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::format_operand(
         base = 16;
       }
 
-      ASMJIT_PROPAGATE(sb.append_uint(off, base));
+      ASMJIT_PROPAGATE(sb.append_int(off, base));
     }
 
     return sb.append(']');
@@ -510,7 +510,7 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::format_operand(
 
     if (axl::test(format_flags, FormatFlags::kHexImms) && uint64_t(val) > 9) {
       ASMJIT_PROPAGATE(sb.append("0x", 2));
-      return sb.append_uint(uint64_t(val), 16);
+      return sb.append_int(static_cast<uint64_t>(val), 16);
     }
     else {
       return sb.append_int(val, 10);
@@ -550,7 +550,7 @@ ASMJIT_FAVOR_SIZE static Error FormatterInternal_format_imm_shuf(String& sb, uin
   for (uint32_t i = 0; i < count; i++, imm8 <<= bits) {
     uint32_t index = (imm8 >> last_predicate_shift) & mask;
     ASMJIT_PROPAGATE(sb.append(i == 0 ? kImmCharStart : kImmCharOr));
-    ASMJIT_PROPAGATE(sb.append_uint(index));
+    ASMJIT_PROPAGATE(sb.append_int(index));
   }
 
   ASMJIT_PROPAGATE(sb.append(kImmCharEnd));
@@ -971,7 +971,7 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::format_instruction(
   // Support AVX-512 embedded rounding and suppress-all-exceptions {sae}.
   if (inst.has_option(InstOptions::kX86_ER | InstOptions::kX86_SAE)) {
     if (inst.has_option(InstOptions::kX86_ER)) {
-      uint32_t bits = uint32_t(inst.options() & InstOptions::kX86_ERMask) >> axl::ctz(InstOptions::kX86_ERMask);
+      uint32_t bits = uint32_t(inst.options() & InstOptions::kX86_ERMask) >> axl::ctz_const(InstOptions::kX86_ERMask);
 
       const char rounding_modes[] = "rn\0rd\0ru\0rz";
       ASMJIT_PROPAGATE(sb.append_format(", {%s-sae}", rounding_modes + bits * 3));

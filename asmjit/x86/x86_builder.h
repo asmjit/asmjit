@@ -34,7 +34,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //! // Small helper function to print the current content of `cb`.
 //! static void dump_code(BaseBuilder& builder, const char* phase) {
 //!   String sb;
-//!   format_options format_options {};
+//!   FormatOptions format_options {};
 //!
 //!   Formatter::format_node_list(sb, format_options, &builder);
 //!   printf("%s:\n%s\n", phase, sb.data());
@@ -56,12 +56,13 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //!   x86::Gp src_a = cb.zcx();
 //!   x86::Gp src_b = cb.zdx();
 //!
-//!   X86::Vec vec0 = x86::xmm0;
-//!   X86::Vec vec1 = x86::xmm1;
+//!   x86::Vec vec0 = x86::xmm0;
+//!   x86::Vec vec1 = x86::xmm1;
 //!
 //!   // Create and initialize `FuncDetail`.
 //!   FuncDetail func;
-//!   func.init(FuncSignature::build<void, int*, const int*, const int*>());
+//!   func.init(FuncSignature::build<void, int*, const int*, const int*>(),
+//!             rt.environment());
 //!
 //!   // Remember prolog insertion point.
 //!   BaseNode* prolog_insertion_point = cb.cursor();
@@ -84,7 +85,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //!   frame.init(func);
 //!
 //!   // Make XMM0 and XMM1 dirty; RegGroup::kVec describes XMM|YMM|ZMM registers.
-//!   frame.set_dirty_regs(RegGroup::kVec, IntUtils::mask(0, 1));
+//!   frame.set_dirty_regs(RegGroup::kVec, axl::bit_mask<RegMask>(0, 1));
 //!
 //!   FuncArgsAssignment args(&func);     // Create arguments assignment context.
 //!   args.assign_all(dst, src_a, src_b); // Assign our registers to arguments.
@@ -132,12 +133,14 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //!
 //! ```
 //! Raw Function:
+//! .section .text
 //! movdqu xmm0, [rcx]
 //! movdqu xmm1, [rdx]
 //! paddd xmm0, xmm1
 //! movdqu [rax], xmm0
 //!
 //! Prolog & Epilog:
+//! .section .text
 //! mov rax, rdi
 //! mov rcx, rsi
 //! movdqu xmm0, [rcx]
@@ -159,7 +162,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //! using namespace asmjit;
 //!
 //! // NOTE: This function doesn't cover all possible constructs. It ignores instructions that write
-//! // to implicit registers that are not part of the operand list. It also counts read-only registers.
+//! // to implicit registers or registers used in memory operands. It also counts read-only registers.
 //! // Real implementation would be a bit more complicated, but still relatively easy to implement.
 //! static void collect_dirty_regs(const BaseNode* first,
 //!                                const BaseNode* last,
@@ -167,11 +170,11 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //!   const BaseNode* node = first;
 //!   while (node) {
 //!     if (node->is_inst()) {
-//!       for (Operand& op : node->as<InstNode>()->operands()) {
+//!       for (const Operand& op : node->as<InstNode>()->operands()) {
 //!         if (op.is_reg()) {
 //!           const Reg& reg = op.as<Reg>();
-//!           if (reg.group() <= RegGroup::kMaxVirt) {
-//!             reg_mask[reg.group()] |= 1u << reg.id();
+//!           if (reg.reg_group() <= RegGroup::kMaxVirt) {
+//!             reg_mask[reg.reg_group()] |= axl::bit_mask<RegMask>(reg.id());
 //!           }
 //!         }
 //!       }
@@ -300,7 +303,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //!   // somewhere else...
 //!   BaseNode* old_cursor = builder.set_cursor(node);
 //!
-//!   builder.mul(x86::rax, 8);        // [4]
+//!   builder.imul(x86::rax, 8);       // [4]
 //!
 //!   // Restore the cursor
 //!   builder.set_cursor(old_cursor);
@@ -310,10 +313,10 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //! The function above would actually emit the following:
 //!
 //! ```
-//! mov rax, rcx ; [1] Patched at the beginning.
-//! mul rax, 8   ; [4] Injected.
-//! add rax, rdx ; [2] Followed [1] initially.
-//! shr rax, 3   ; [3] Follows [2].
+//! mov rax, rcx     ; [1] Patched at the beginning.
+//! imul rax, rax, 8 ; [4] Injected.
+//! add rax, rdx     ; [2] Followed [1] initially.
+//! shr rax, 3       ; [3] Follows [2].
 //! ```
 class ASMJIT_VIRTAPI Builder final
   : public BaseBuilder,

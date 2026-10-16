@@ -3,7 +3,7 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#include <asmjit/core/build_export_p.h>
+#include <asmjit/core/api_build_p.h>
 #if !defined(ASMJIT_NO_X86)
 
 #include <asmjit/core/assembler.h>
@@ -331,7 +331,7 @@ static ASMJIT_INLINE bool is_rex_invalid(uint32_t rex) noexcept {
 }
 
 static ASMJIT_INLINE uint32_t x86_get_force_evex3_mask_in_last_bit(InstOptions options) noexcept {
-  constexpr uint32_t kVex3Bit = axl::ctz(InstOptions::kX86_Vex3);
+  constexpr uint32_t kVex3Bit = axl::ctz_const(InstOptions::kX86_Vex3);
   return uint32_t(options & InstOptions::kX86_Vex3) << (31 - kVex3Bit);
 }
 
@@ -4619,7 +4619,7 @@ EmitVexEvexM:
     op_reg &= 0x07u;
 
     // Mark invalid VEX (force EVEX) case:                  // [@.......|.LLbXaaa|Vvvvv..R|RXBmmmmm].
-    x |= uint32_t(~common_info->flags() & InstDB::InstFlags::kVex) << (31 - axl::ctz(InstDB::InstFlags::kVex));
+    x |= uint32_t(~common_info->flags() & InstDB::InstFlags::kVex) << (31 - axl::ctz_const(InstDB::InstFlags::kVex));
 
     // Handle AVX512 options by a single branch.
     const InstOptions kAvx512Options = InstOptions::kX86_ZMask   |
@@ -4990,7 +4990,7 @@ Error Assembler::align(AlignMode align_mode, uint32_t alignment) {
   uint32_t i = uint32_t(axl::align_up_diff<size_t>(offset(), alignment));
   if (i > 0) {
     CodeWriter writer(this);
-    ASMJIT_PROPAGATE(writer.ensure_space(this, i));
+    ASMJIT_PROPAGATE(writer.ensure_space_with_reporting(this, i));
 
     uint8_t pattern = 0x00;
     switch (align_mode) {

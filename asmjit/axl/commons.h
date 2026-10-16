@@ -443,13 +443,71 @@ template<typename T>
 [[nodiscard]]
 ASMJIT_INLINE_CONSTEXPR T ror_wrap(const T& value, auto n) noexcept { return ror(value, as_std_uint(n) & (bit_size_of<T> - 1u)); }
 
+//! \cond INTERNAL
+#if defined(__GNUC__)
+[[nodiscard]] ASMJIT_INLINE_NODEBUG uint32_t clz_32(uint32_t value) noexcept { return static_cast<uint32_t>(__builtin_clz(value)); }
+[[nodiscard]] ASMJIT_INLINE_NODEBUG uint32_t clz_64(uint64_t value) noexcept { return static_cast<uint32_t>(__builtin_clzll(value)); }
+
+[[nodiscard]] ASMJIT_INLINE_NODEBUG uint32_t ctz_32(uint32_t value) noexcept { return static_cast<uint32_t>(__builtin_ctz(value)); }
+[[nodiscard]] ASMJIT_INLINE_NODEBUG uint32_t ctz_64(uint64_t value) noexcept { return static_cast<uint32_t>(__builtin_ctzll(value)); }
+#endif // __GNUC__
+//! \endcond
+
+//! Consteval version of \ref clz() - can be only used at compile-time.
+template<typename T>
+[[nodiscard]] consteval uint32_t clz_const(const T& value) noexcept {
+  auto x = as_std_uint(value);
+  uint32_t n = 0u;
+  while (n < bit_size_of<T> && !extract_msb(x)) { x <<= 1; n++; }
+  return n;
+}
+
+//! Consteval version of \ref ctz() - can be only used at compile-time.
+template<typename T>
+[[nodiscard]] consteval uint32_t ctz_const(const T& value) noexcept {
+  auto x = as_std_uint(value);
+  uint32_t n = 0u;
+  while (n < bit_size_of<T> && !(x & 1)) { x >>= 1; n++; }
+  return n;
+}
+
 //! Counts the number of leading zeros (from left/msb bit) in `value`.
-[[nodiscard]]
-ASMJIT_INLINE_CONSTEXPR uint32_t clz(auto value) noexcept { return uint32_t(std::countl_zero(as_std_uint(value))); }
+template<typename T>
+[[nodiscard]] ASMJIT_INLINE_NODEBUG uint32_t clz(const T& value) noexcept {
+#if defined(__GNUC__)
+  if constexpr (sizeof(T) <= 4) {
+    constexpr uint32_t size_diff = static_cast<uint32_t>(32u - bit_size_of<T>);
+    return clz_32(static_cast<uint32_t>(value) << size_diff);
+  }
+  else if constexpr (sizeof(T) == sizeof(uint64_t)) {
+    return clz_64(static_cast<uint64_t>(value));
+  }
+  else {
+    return static_cast<uint32_t>(std::countl_zero(as_std_uint(value)));
+  }
+#else
+  return static_cast<uint32_t>(std::countl_zero(as_std_uint(value)));
+#endif
+}
 
 //! Counts the number of trailing zeros (from right/lsb bit) in `value`.
+template<typename T>
 [[nodiscard]]
-ASMJIT_INLINE_CONSTEXPR uint32_t ctz(auto value) noexcept { return uint32_t(std::countr_zero(as_std_uint(value))); }
+ASMJIT_INLINE_CONSTEXPR uint32_t ctz(const T& value) noexcept {
+#if defined(__GNUC__)
+  if constexpr (sizeof(T) <= 4) {
+    return ctz_32(static_cast<uint32_t>(value));
+  }
+  else if constexpr (sizeof(T) == sizeof(uint64_t)) {
+    return ctz_64(static_cast<uint64_t>(value));
+  }
+  else {
+    return static_cast<uint32_t>(std::countr_zero(as_std_uint(value)));
+  }
+#else
+  return static_cast<uint32_t>(std::countr_zero(as_std_uint(value)));
+#endif
+}
 
 //! Calculates count of bits set to 1 in the given `value`.
 [[nodiscard]]
@@ -830,7 +888,7 @@ ASMJIT_INLINE_NODEBUG void csa(T& hi, T& lo, T a, T b, T c) noexcept {
 template<auto Flag, typename T>
 ASMJIT_INLINE_CONSTEXPR decltype(Flag) bool_as_flag(const T& v) noexcept {
   using FlagType = decltype(Flag);
-  return FlagType(as_std_uint(v) << ctz(Flag));
+  return FlagType(as_std_uint(v) << ctz_const(Flag));
 }
 
 // Enumerate
@@ -1187,7 +1245,7 @@ ASMJIT_INLINE_NODEBUG auto ptr_recast(Src* ptr) noexcept {
 //! not some other type.
 template<typename T>
 [[nodiscard]]
-ASMJIT_INLINE_NODEBUG uintptr_t ptr_as_uintptr(const T* ptr) noexcept { return (uintptr_t)ptr; }
+ASMJIT_INLINE_NODEBUG uintptr_t ptr_as_uintptr(const T* ptr) noexcept { return reinterpret_cast<uintptr_t>(ptr); }
 
 //! Applies a byte-offset `n` to the given `ptr` and casts the result to `Dst*` type.
 template<typename Dst, typename Src>
@@ -1240,6 +1298,17 @@ template<size_t Alignment, typename T1, typename T2>
 [[nodiscard]]
 ASMJIT_INLINE_NODEBUG bool ptrs_share_alignment(const T1* ptr1, const T2* ptr2) noexcept {
   return ((ptr_as_uintptr(ptr1) ^ ptr_as_uintptr(ptr2))) % uintptr_t(Alignment) == 0;
+}
+
+//! Tests whether `[base, base + size)` has `ptr` within it.
+//!
+//! This can be used as a test for aliased arguments when it comes to containers that own their data (not
+//! generic spans).
+template<typename T>
+[[nodiscard]]
+ASMJIT_INLINE_NODEBUG bool is_ptr_within(const T* base, size_t size, const T* ptr) noexcept {
+  const T* end = base + size;
+  return bool_and(ptr >= base, ptr < end);
 }
 
 } // {anonymous}

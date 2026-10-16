@@ -3,7 +3,7 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#include <asmjit/core/build_export_p.h>
+#include <asmjit/core/api_build_p.h>
 #if !defined(ASMJIT_NO_JIT)
 
 #include <asmjit/axl/inplace_array.h>
@@ -12,6 +12,7 @@
 #include <asmjit/core/pauth_utils_p.h>
 #include <asmjit/core/string.h>
 #include <asmjit/core/virt_mem.h>
+#include <asmjit/core/virt_mem_p.h>
 
 #if defined(_WIN32)
   #include <windows.h>
@@ -30,6 +31,7 @@
 
   // Linux has a `memfd_create` syscall that we would like to use, if available.
   #if defined(__linux__)
+    #include <link.h> // required by dl_iterate_phdr()
     #include <sys/syscall.h>
     #include <sys/utsname.h>
 
@@ -489,13 +491,13 @@ static Error asmjit_error_from_errno(int e) noexcept {
 
 [[maybe_unused]]
 static MemoryFlags max_access_flags_to_regular_access_flags(MemoryFlags memory_flags) noexcept {
-  static constexpr uint32_t kMaxProtShift = axl::ctz(MemoryFlags::kMMapMaxAccessRead);
+  static constexpr uint32_t kMaxProtShift = axl::ctz_const(MemoryFlags::kMMapMaxAccessRead);
   return MemoryFlags(uint32_t(memory_flags & MemoryFlags::kMMapMaxAccessRWX) >> kMaxProtShift);
 }
 
 [[maybe_unused]]
 static MemoryFlags regular_access_flags_to_max_access_flags(MemoryFlags memory_flags) noexcept {
-  static constexpr uint32_t kMaxProtShift = axl::ctz(MemoryFlags::kMMapMaxAccessRead);
+  static constexpr uint32_t kMaxProtShift = axl::ctz_const(MemoryFlags::kMMapMaxAccessRead);
   return MemoryFlags(uint32_t(memory_flags & MemoryFlags::kAccessRWX) << kMaxProtShift);
 }
 
@@ -1483,6 +1485,63 @@ size_t large_page_size() noexcept {
   large_page_size.store(size != 0 ? size : not_available);
   return size;
 }
+
+// Virtual Memory - Module Address Range
+// =====================================
+
+#if defined(__linux__)
+struct ModuleRangeQuery {
+  uintptr_t addr;
+  uintptr_t start;
+  uintptr_t end;
+};
+
+static int module_address_range_callback(struct dl_phdr_info* info, size_t, void* data) noexcept {
+  ModuleRangeQuery* query = static_cast<ModuleRangeQuery*>(data);
+
+  uintptr_t start = UINTPTR_MAX;
+  uintptr_t end = 0;
+  bool found = false;
+
+  for (size_t i = 0; i < info->dlpi_phnum; i++) {
+    const auto& phdr = info->dlpi_phdr[i];
+    if (phdr.p_type != PT_LOAD) {
+      continue;
+    }
+
+    uintptr_t segment_start = uintptr_t(info->dlpi_addr + phdr.p_vaddr);
+    uintptr_t segment_end = segment_start + uintptr_t(phdr.p_memsz);
+
+    start = axl::min(start, segment_start);
+    end = axl::max(end, segment_end);
+    found |= query->addr >= segment_start && query->addr < segment_end;
+  }
+
+  if (!found) {
+    return 0;
+  }
+
+  query->start = start;
+  query->end = end;
+  return 1;
+}
+
+Error module_address_range(const void* addr, uintptr_t* start, uintptr_t* end) noexcept {
+  ModuleRangeQuery query { uintptr_t(addr), 0u, 0u };
+  if (!dl_iterate_phdr(module_address_range_callback, &query)) {
+    return make_error(Error::kInvalidArgument);
+  }
+
+  *start = query.start;
+  *end = query.end;
+  return Error::kOk;
+}
+#else
+Error module_address_range(const void* addr, uintptr_t* start, uintptr_t* end) noexcept {
+  axl::maybe_unused(addr, start, end);
+  return make_error(Error::kFeatureNotEnabled);
+}
+#endif
 
 // Virtual Memory - Hardened Runtime Info
 // ======================================

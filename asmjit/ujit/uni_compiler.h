@@ -760,102 +760,102 @@ public:
   //! Wraps `BackendCompiler::new_reg(type_id, args...)`.
   template<typename RegT, typename... Args>
   [[nodiscard]]
-  ASMJIT_INLINE RegT new_reg(TypeId type_id, Args&&... args) noexcept {
+  ASMJIT_INLINE RegT new_reg(TypeId type_id, Args&&... args) {
     return cc->new_reg<RegT>(type_id, axl::forward<Args>(args)...);
   }
 
   //! Wraps `BackendCompiler::new_similar_reg(ref, args...)`.
   template<typename RegT, typename... Args>
   [[nodiscard]]
-  ASMJIT_INLINE RegT new_similar_reg(const RegT& ref, Args&&... args) noexcept {
+  ASMJIT_INLINE RegT new_similar_reg(const RegT& ref, Args&&... args) {
     return cc->new_similar_reg(ref, axl::forward<Args>(args)...);
   }
 
   //! Wraps `BackendCompiler::new_gp32(args...)`.
   template<typename... Args>
   [[nodiscard]]
-  ASMJIT_INLINE Gp new_gp32(Args&&... args) noexcept {
+  ASMJIT_INLINE Gp new_gp32(Args&&... args) {
     return cc->new_gp32(axl::forward<Args>(args)...);
   }
 
   //! Wraps `BackendCompiler::new_gp64(args...)`.
   template<typename... Args>
   [[nodiscard]]
-  ASMJIT_INLINE Gp new_gp64(Args&&... args) noexcept {
+  ASMJIT_INLINE Gp new_gp64(Args&&... args) {
     return cc->new_gp64(axl::forward<Args>(args)...);
   }
 
   //! Wraps `BackendCompiler::new_gpz(args...)`.
   template<typename... Args>
   [[nodiscard]]
-  ASMJIT_INLINE Gp new_gpz(Args&&... args) noexcept {
+  ASMJIT_INLINE Gp new_gpz(Args&&... args) {
     return cc->new_gpz(axl::forward<Args>(args)...);
   }
 
   //! Wraps `BackendCompiler::new_gpz(args...)`.
   template<typename... Args>
   [[nodiscard]]
-  ASMJIT_INLINE Gp new_gp_ptr(Args&&... args) noexcept {
+  ASMJIT_INLINE Gp new_gp_ptr(Args&&... args) {
     return cc->new_gp_ptr(axl::forward<Args>(args)...);
   }
 
   template<typename... Args>
   [[nodiscard]]
-  ASMJIT_INLINE Vec new_vec(Args&&... args) noexcept {
+  ASMJIT_INLINE Vec new_vec(Args&&... args) {
     return cc->new_vec(_vec_type_id, axl::forward<Args>(args)...);
   }
 
   template<typename... Args>
   [[nodiscard]]
-  ASMJIT_INLINE Vec new_vec_with_width(VecWidth vw, Args&&... args) noexcept {
+  ASMJIT_INLINE Vec new_vec_with_width(VecWidth vw, Args&&... args) {
     return cc->new_reg<Vec>(VecWidthUtils::type_id_of(vw), axl::forward<Args>(args)...);
   }
 
   template<typename... Args>
   [[nodiscard]]
-  ASMJIT_INLINE Vec new_vec128(Args&&... args) noexcept {
+  ASMJIT_INLINE Vec new_vec128(Args&&... args) {
     return cc->new_vec128(axl::forward<Args>(args)...);
   }
 
   template<typename... Args>
   [[nodiscard]]
-  ASMJIT_INLINE Vec new_vec128_f32x1(Args&&... args) noexcept {
+  ASMJIT_INLINE Vec new_vec128_f32x1(Args&&... args) {
     return cc->new_vec128_f32x1(axl::forward<Args>(args)...);
   }
 
   template<typename... Args>
   [[nodiscard]]
-  ASMJIT_INLINE Vec new_vec128_f64x1(Args&&... args) noexcept {
+  ASMJIT_INLINE Vec new_vec128_f64x1(Args&&... args) {
     return cc->new_vec128_f64x1(axl::forward<Args>(args)...);
   }
 
   template<typename... Args>
   [[nodiscard]]
-  ASMJIT_INLINE Vec new_vec128_f32x4(Args&&... args) noexcept {
+  ASMJIT_INLINE Vec new_vec128_f32x4(Args&&... args) {
     return cc->new_vec128_f32x4(axl::forward<Args>(args)...);
   }
 
   template<typename... Args>
   [[nodiscard]]
-  ASMJIT_INLINE Vec new_vec128_f64x2(Args&&... args) noexcept {
+  ASMJIT_INLINE Vec new_vec128_f64x2(Args&&... args) {
     return cc->new_vec128_f64x2(axl::forward<Args>(args)...);
   }
 
 #if defined(ASMJIT_UJIT_X86)
   template<typename... Args>
   [[nodiscard]]
-  ASMJIT_INLINE Vec new_vec256(Args&&... args) noexcept {
+  ASMJIT_INLINE Vec new_vec256(Args&&... args) {
     return cc->new_vec256(axl::forward<Args>(args)...);
   }
 
   template<typename... Args>
   [[nodiscard]]
-  ASMJIT_INLINE Vec new_vec512(Args&&... args) noexcept {
+  ASMJIT_INLINE Vec new_vec512(Args&&... args) {
     return cc->new_vec512(axl::forward<Args>(args)...);
   }
 #endif // ASMJIT_UJIT_X86
 
-  ASMJIT_NOINLINE void new_reg_array(OpArray& dst, size_t n, TypeId type_id, const char* name) noexcept {
+  ASMJIT_NOINLINE void new_reg_array(OpArray& dst, size_t n, TypeId type_id, const char* name) {
     ASMJIT_ASSERT(n <= OpArray::kMaxSize);
     dst._size = n;
     for (size_t i = 0; i < n; i++) {
@@ -863,7 +863,7 @@ public:
     }
   }
 
-  ASMJIT_NOINLINE void new_reg_array(OpArray& dst, size_t n, TypeId type_id, const char* prefix, const char* name) noexcept {
+  ASMJIT_NOINLINE void new_reg_array(OpArray& dst, size_t n, TypeId type_id, const char* prefix, const char* name) {
     ASMJIT_ASSERT(n <= OpArray::kMaxSize);
     dst._size = n;
     for (size_t i = 0; i < n; i++) {
@@ -871,7 +871,7 @@ public:
     }
   }
 
-  ASMJIT_NOINLINE void new_reg_array(OpArray& dst, size_t n, const Reg& ref, const char* name) noexcept {
+  ASMJIT_NOINLINE void new_reg_array(OpArray& dst, size_t n, const Reg& ref, const char* name) {
     ASMJIT_ASSERT(n <= OpArray::kMaxSize);
     dst._size = n;
     for (size_t i = 0; i < n; i++) {
@@ -879,7 +879,7 @@ public:
     }
   }
 
-  ASMJIT_NOINLINE void new_reg_array(OpArray& dst, size_t n, const Reg& ref, const char* prefix, const char* name) noexcept {
+  ASMJIT_NOINLINE void new_reg_array(OpArray& dst, size_t n, const Reg& ref, const char* prefix, const char* name) {
     ASMJIT_ASSERT(n <= OpArray::kMaxSize);
     dst._size = n;
     for (size_t i = 0; i < n; i++) {
@@ -887,49 +887,49 @@ public:
     }
   }
 
-  ASMJIT_INLINE void new_vec_array(OpArray& dst, size_t n, VecWidth vw, const char* name) noexcept {
+  ASMJIT_INLINE void new_vec_array(OpArray& dst, size_t n, VecWidth vw, const char* name) {
     new_reg_array(dst, n, VecWidthUtils::type_id_of(vw), name);
   }
 
-  ASMJIT_INLINE void new_vec_array(OpArray& dst, size_t n, VecWidth vw, const char* prefix, const char* name) noexcept {
+  ASMJIT_INLINE void new_vec_array(OpArray& dst, size_t n, VecWidth vw, const char* prefix, const char* name) {
     new_reg_array(dst, n, VecWidthUtils::type_id_of(vw), prefix, name);
   }
 
-  ASMJIT_INLINE void new_vec_array(OpArray& dst, size_t n, const Vec& ref, const char* name) noexcept {
+  ASMJIT_INLINE void new_vec_array(OpArray& dst, size_t n, const Vec& ref, const char* name) {
     new_reg_array(dst, n, ref, name);
   }
 
-  ASMJIT_INLINE void new_vec_array(OpArray& dst, size_t n, const Vec& ref, const char* prefix, const char* name) noexcept {
+  ASMJIT_INLINE void new_vec_array(OpArray& dst, size_t n, const Vec& ref, const char* prefix, const char* name) {
     new_reg_array(dst, n, ref, prefix, name);
   }
 
-  ASMJIT_INLINE void new_vec128_array(OpArray& dst, size_t n, const char* name) noexcept {
+  ASMJIT_INLINE void new_vec128_array(OpArray& dst, size_t n, const char* name) {
     new_reg_array(dst, n, TypeId::kInt32x4, name);
   }
 
-  ASMJIT_INLINE void new_vec128_array(OpArray& dst, size_t n, const char* prefix, const char* name) noexcept {
+  ASMJIT_INLINE void new_vec128_array(OpArray& dst, size_t n, const char* prefix, const char* name) {
     new_reg_array(dst, n, TypeId::kInt32x4, prefix, name);
   }
 
 #if defined(ASMJIT_UJIT_X86)
-  ASMJIT_INLINE void new_vec256_array(OpArray& dst, size_t n, const char* name) noexcept {
+  ASMJIT_INLINE void new_vec256_array(OpArray& dst, size_t n, const char* name) {
     new_reg_array(dst, n, TypeId::kInt32x8, name);
   }
 
-  ASMJIT_INLINE void new_vec256_array(OpArray& dst, size_t n, const char* prefix, const char* name) noexcept {
+  ASMJIT_INLINE void new_vec256_array(OpArray& dst, size_t n, const char* prefix, const char* name) {
     new_reg_array(dst, n, TypeId::kInt32x8, prefix, name);
   }
 
-  ASMJIT_INLINE void new_vec512_array(OpArray& dst, size_t n, const char* name) noexcept {
+  ASMJIT_INLINE void new_vec512_array(OpArray& dst, size_t n, const char* name) {
     new_reg_array(dst, n, TypeId::kInt32x16, name);
   }
 
-  ASMJIT_INLINE void new_vec512_array(OpArray& dst, size_t n, const char* prefix, const char* name) noexcept {
+  ASMJIT_INLINE void new_vec512_array(OpArray& dst, size_t n, const char* prefix, const char* name) {
     new_reg_array(dst, n, TypeId::kInt32x16, prefix, name);
   }
 #endif // ASMJIT_UJIT_X86
 
-  ASMJIT_INLINE Mem new_stack(uint32_t size, uint32_t alignment, const char* name = nullptr) noexcept {
+  ASMJIT_INLINE Mem new_stack(uint32_t size, uint32_t alignment, const char* name = nullptr) {
     return cc->new_stack(size, alignment, name);
   }
 
@@ -942,13 +942,13 @@ public:
   //! \name Miscellaneous Helpers
   //! \{
 
-  ASMJIT_INLINE void rename(const OpArray& op_array, const char* name) noexcept {
+  ASMJIT_INLINE void rename(const OpArray& op_array, const char* name) {
     for (uint32_t i = 0; i < op_array.size(); i++) {
       cc->rename(op_array[i].as<Reg>(), "%s%u", name, unsigned(i));
     }
   }
 
-  ASMJIT_INLINE void rename(const OpArray& op_array, const char* prefix, const char* name) noexcept {
+  ASMJIT_INLINE void rename(const OpArray& op_array, const char* prefix, const char* name) {
     for (uint32_t i = 0; i < op_array.size(); i++) {
       cc->rename(op_array[i].as<Reg>(), "%s%s%u", prefix, name, unsigned(i));
     }

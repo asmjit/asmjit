@@ -64,20 +64,6 @@ public:
   ASMJIT_INLINE_NODEBUG ~LockGuard() noexcept { _target.unlock(); }
 };
 
-namespace OSUtils {
-
-#if !defined(_WIN32)
-//! Reads a file, only used on non-Windows platforms to access /sys or other files when necessary.
-Error read_file(const char* name, String& dst, size_t max_size) noexcept;
-#endif
-
-//! Returns `[start, end)` spanned by the loaded module (executable or shared library) that contains `addr`.
-//!
-//! \note Only implemented on Linux at the moment, other platforms return \ref Error::kFeatureNotEnabled.
-Error module_address_range(const void* addr, uintptr_t* start, uintptr_t* end) noexcept;
-
-} // {OSUtils}
-
 //! \}
 //! \endcond
 

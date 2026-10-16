@@ -124,8 +124,8 @@ namespace asmjit {
 //!
 //!   - Requirements:
 //!
-//!     - AsmJit won't build without C++17 enabled. If you use older GCC or Clang you would have to enable at least
-//!       C++17 standard through compiler flags.
+//!     - AsmJit won't build without C++20 enabled. If you use older GCC or Clang you would have to enable at least
+//!       C++20 standard through compiler flags.
 //!
 //!   - Tested:
 //!
@@ -164,7 +164,6 @@ namespace asmjit {
 //!     - **Other** operating systems would require some testing and support in the following files:
 //!       - [asmjit/core/build_defs.h](https://github.com/asmjit/asmjit/tree/master/asmjit/core/build_defs.h)
 //!       - [asmjit/core/virt_mem.cpp](https://github.com/asmjit/asmjit/tree/master/asmjit/core/virt_mem.cpp)
-//!       - [asmjit/axl/os_utils.cpp](https://github.com/asmjit/asmjit/tree/master/asmjit/axl/os_utils.cpp)
 //!
 //! ### Supported Backends / Architectures
 //!
@@ -201,7 +200,7 @@ namespace asmjit {
 //!
 //! add_executable(app asmjit_consumer.cpp)        # Adds executable that uses AsmJit.
 //! target_link_libraries(app asmjit::asmjit)      # Adds AsmJit as a dependency to app.
-//! target_compile_features(app PUBLIC cxx_std_20) # Makes C++17 as a requirement.
+//! target_compile_features(app PUBLIC cxx_std_20) # Makes C++20 a requirement.
 //! ```
 //!
 //! \section build_type Build Type Configuration
@@ -276,14 +275,25 @@ namespace asmjit {
 //!
 //! \section api_changes API Changes
 //!
+//! ### Changes committed at 2026-10-16
+//!
+//! Core changes:
+//!
+//!   - String reorganization - String::ModifyOp has been removed - use explicit assign/append operations instead.
+//!
+//!   - String::prepare(ModifyOp op, size_t size) was split into assign_uninitialized() and append_uninitialized().
+//!
+//!   - `JitRuntime(const JitAllocator& CreateParams)` was removed - use `JitRuntime(const JitAllocator* CreateParams)`
+//!     (the reason for removal is MSVC doing something else than expected when it comes to AsmJit DLL on Windows).
+//!
 //! ### Changes committed at 2026-09-04
 //!
 //! Core changes:
 //!
-//!   - Renamed 'support' library to 'axl' (aux library)
-//!   - Renamed ASMJIT_ARCH_XXX to ASMJIT_TARGET_ARCH_XXX
-//!   - Renamed ASMJIT_ARCH_BITS to ASMJIT_TARGET_ARCH_BITS
-//!   - Moved some classes to `axl` library - for example `asmjit::Arena` is now `asmjit::axl::Arena`
+//!   - Renamed 'support' library to 'axl' (aux library).
+//!   - Renamed ASMJIT_ARCH_XXX to ASMJIT_TARGET_ARCH_XXX.
+//!   - Renamed ASMJIT_ARCH_BITS to ASMJIT_TARGET_ARCH_BITS.
+//!   - Moved some classes to `axl` library - for example `asmjit::Arena` is now `asmjit::axl::Arena`.
 //!
 //! ### Changes committed at 2025-09-06
 //!
@@ -336,7 +346,7 @@ namespace asmjit {
 //!     - `RegType::kARM_VecV`  -> `RegType::kVec128`
 //!
 //!   - Renamed `asmjit::BaseReg` to asmjit::Reg, added `asmjit::UniGp` and `asmjit::UniVec` which are now base
-//!     classes for platform specific `[x86|a64]::Gp` and `[x86|a64]::Vec`
+//!     classes for platform specific `[x86|a64]::Gp` and `[x86|a64]::Vec`.s
 //!
 //!   - Gp and Vec register API is now more platform independent - use `isGp32()` instead of `isGpd()`, similarly,
 //!     use `isGp64` instead of `isGpq()` (X86_64) or `isGpX()` (AArch64), etc... The same applies to vectors -
@@ -617,13 +627,14 @@ namespace asmjit {
 //! // instead of codeInfo().
 //! void basic_setup() {
 //!   JitRuntime rt;
-//!   CodeHolder code(rt.environment());
+//!   CodeHolder code;
+//!   code.init(rt.environment(), rt.cpu_features());
 //! }
 //!
 //! // Calling a function (Compiler) changed - use invoke() instead of call().
 //! void function_invocation(x86::Compiler& cc) {
 //!   InvokeNode* invoke_node;
-//!   cc.invoke(&invoke_node, target_operand, FuncSignature::build<...>(...));
+//!   cc.invoke(Out(invoke_node), target_operand, FuncSignature::build<...>(...));
 //! }
 //! ```
 
@@ -781,9 +792,10 @@ namespace asmjit {
 //!   CodeBuffer& buffer = code.text_section()->buffer();
 //!
 //!   // Print the machine-code generated or do something else with it...
-//!   //   8B4424048B4C24048B5424040F28010F58010F2900C3
-//!   for (size_t i = 0; i < buffer.length; i++)
-//!     printf("%02X", buffer.data[i]);
+//!   //   8B4424048B4C24088B54240C0F10010F100A0F58C10F1100C3
+//!   for (size_t i = 0; i < buffer.size(); i++) {
+//!     printf("%02X", buffer.data()[i]);
+//!   }
 //!
 //!   return 0;
 //! }
@@ -898,7 +910,7 @@ namespace asmjit {
 //!
 //!   // Allocate an executable virtual memory and handle a possible failure.
 //!   JitAllocator::Span span;
-//!   Error err = allocator.alloc(span, estimated_size);
+//!   Error err = allocator.alloc(Out(span), estimated_size);
 //!
 //!   if (err != Error::kOk) { // <- NOTE: This must be checked, always!
 //!     return 0;
@@ -916,23 +928,19 @@ namespace asmjit {
 //!   // than the originally `estimated_size`.
 //!   size_t code_size = code.code_size();
 //!
-//!   // This will copy code from all sections to `p`. Iterating over all sections
+//!   // This will copy code from all sections to `span.rw()`. Iterating over all sections
 //!   // and calling `memcpy()` would work as well, however, this function supports
 //!   // additional options that can be used to also zero pad sections' virtual
 //!   // size, etc.
 //!   //
 //!   // With some additional features, copy_flattened_data() does roughly the following:
-//!   //
-//!   // allocator.write([&](JitAllocator::Span& span) noexcept -> Error {
 //!   //   for (Section* section : code.sections()) {
 //!   //     uint8_t* p = (uint8_t*)span.rw() + section->offset();
 //!   //     memcpy(p, section->data(), section->buffer_size());
 //!   //   }
 //!   //   return Error::kOk;
-//!   // }
-//!   allocator.write([&](JitAllocator::Span& span) noexcept -> Error {
-//!     code.copy_flattened_data(span.rw(), code_size, CopySectionFlags::kPadSectionBuffer);
-//!     return Error::kOk;
+//!   allocator.write(span, [&](JitAllocator::Span& span) noexcept -> Error {
+//!     return code.copy_flattened_data(span.rw(), code_size, CopySectionFlags::kPadSectionBuffer);
 //!   });
 //!
 //!   // Execute the generated function.
@@ -947,16 +955,16 @@ namespace asmjit {
 //!   // Prints {5 8 4 9}
 //!   printf("{%d %d %d %d}\n", out[0], out[1], out[2], out[3]);
 //!
-//!   // Release `fn` is it's no longer needed. It will be destroyed with 'vm'
+//!   // Release `fn` if it's no longer needed. It will be destroyed with 'allocator'
 //!   // instance anyway, but it's a good practice to release it explicitly
 //!   // when you know that the function will not be needed anymore.
-//!   allocator.release(fn);
+//!   allocator.release(span.rx());
 //!
 //!   return 0;
 //! }
 //! ```
 //!
-//! If you know the base-address in advance (before the code generation) it can be passed as a second argument to
+//! If you know the base-address in advance (before the code generation) it can be passed as a third argument to
 //! \ref CodeHolder::init(). In that case the Assembler will know the absolute position of each instruction and
 //! would be able to use it during instruction encoding to prevent relocations where possible. The following example
 //! shows how to configure the base address:
@@ -1015,17 +1023,16 @@ namespace asmjit {
 //! using namespace asmjit;
 //!
 //! void label_offset_example(CodeHolder& code, const Label& label) {
-//!   // Label offset is known after it's bound. The offset provided is relative
-//!   // to the start of the section, see below for alternative. If the given
-//!   // label is not bound the offset returned will be zero. It's recommended
-//!   // to always check whether the label is bound before using its offset.
+//!   // Label offset is known after it's bound. The offset provided is relative to the start of the section,
+//!   // see below for alternative. If the given label is not bound the offset returned will be zero. It's
+//!   // recommended to always check whether the label is bound before using its offset.
 //!   uint64_t section_offset = code.label_offset(label);
 //!   printf("Label offset relative to section: %llu\n", (unsigned long long)section_offset);
 //!
 //!   // If you use multiple sections and want the offset relative to the base.
-//!   // NOTE: This function expects that the section has already an offset and
-//!   // the label-link was resolved (if this is not true you will still get an
-//!   // offset relative to the start of the section).
+//!   //
+//!   // NOTE: This function expects that the section has already an offset and the fixup was resolved
+//!   // (if this is not true you will still get an offset relative to the start of the section).
 //!   uint64_t base_offset = code.label_offset_from_base(label);
 //!   printf("Label offset relative to base: %llu\n", (unsigned long long)base_offset);
 //! }
@@ -1086,11 +1093,14 @@ namespace asmjit {
 //! ```
 //! #include <asmjit/x86.h>
 //! #include <stdio.h>
+//! #include <stdlib.h>
 //!
 //! using namespace asmjit;
 //!
 //! // ... (continuing the previous example) ...
 //! void sections_example_continued(CodeHolder& code) {
+//!   Section* data_section = code.section_by_name(".data");
+//!
 //!   // Suppose we have some code that contains multiple sections and
 //!   // we would like to flatten it by using AsmJit's built-in API:
 //!   Error err = code.flatten();
@@ -1103,7 +1113,7 @@ namespace asmjit {
 //!   // After flattening all sections would contain assigned offsets relative to base.
 //!   // Offsets are 64-bit unsigned integers so we cast them to `size_t` for simplicity.
 //!   // On 32-bit targets it's guaranteed that the offset cannot be greater than `2^32 - 1`.
-//!   printf("Data section offset %zu", size_t(data->offset()));
+//!   printf("Data section offset %zu", size_t(data_section->offset()));
 //!
 //!   // The flattening doesn't resolve unresolved fixups, this
 //!   // has to be done manually as flattening can be done separately.
@@ -1370,15 +1380,15 @@ namespace asmjit {
 //! using namespace asmjit;
 //!
 //! void test_x86_mem(CodeHolder& code) {
-//!   x86::Assembler a(code);            // Your initialized x86::Assembler.
-//!   x86::Mem m_src = x86::ptr(eax);    // Construct [eax] memory operand.
+//!   x86::Assembler a(&code);             // Your initialized x86::Assembler.
+//!   x86::Mem m_src = x86::ptr(x86::eax); // Construct [eax] memory operand.
 //!
-//!   // One way of emitting bunch of loads is to use `mem.adjusted()`, which
+//!   // One way of emitting bunch of loads is to use `mem.clone_adjusted()`, which
 //!   // returns a new memory operand and keeps the source operand unchanged.
-//!   a.movaps(x86::xmm0, m_src);              // No adjustment needed to load [eax].
-//!   a.movaps(x86::xmm1, m_src.adjusted(16)); // Loads from [eax + 16].
-//!   a.movaps(x86::xmm2, m_src.adjusted(32)); // Loads from [eax + 32].
-//!   a.movaps(x86::xmm3, m_src.adjusted(48)); // Loads from [eax + 48].
+//!   a.movaps(x86::xmm0, m_src);                    // No adjustment needed to load [eax].
+//!   a.movaps(x86::xmm1, m_src.clone_adjusted(16)); // Loads from [eax + 16].
+//!   a.movaps(x86::xmm2, m_src.clone_adjusted(32)); // Loads from [eax + 32].
+//!   a.movaps(x86::xmm3, m_src.clone_adjusted(48)); // Loads from [eax + 48].
 //!
 //!   // ... do something with xmm0-3 ...
 //!
@@ -1684,8 +1694,8 @@ namespace asmjit {
 //!   Arch arch = Arch::kX64;
 //!
 //!   log_operand(arch, rax);                    // Prints 'rax'.
-//!   log_operand(arch, ptr(rax, rbx, 2));       // Prints '[rax + rbx * 4]`.
-//!   log_operand(arch, dword_ptr(rax, rbx, 2)); // Prints 'dword [rax + rbx * 4]`.
+//!   log_operand(arch, ptr(rax, rbx, 2));       // Prints '[rax+rbx*4]'.
+//!   log_operand(arch, dword_ptr(rax, rbx, 2)); // Prints 'dword ptr [rax+rbx*4]'.
 //!   log_operand(arch, imm(42));                // Prints '42'.
 //! }
 //! ```
@@ -1712,7 +1722,7 @@ namespace asmjit {
 //!
 //!   StringTmp<128> sb;
 //!   Formatter::format_instruction(
-//!     sb, format_flags, emitter, arch, inst, operands, sizeof...(args));
+//!     sb, format_flags, emitter, arch, inst, Span<const Operand_>(operands, sizeof...(args)));
 //!   printf("%s\n", sb.data());
 //! }
 //!
@@ -1729,20 +1739,20 @@ namespace asmjit {
 //!
 //!   // Prints 'vaddpd zmm0, zmm1, [rax] {1to8}'.
 //!   log_instruction(arch,
-//!                  BaseInst(Inst::kIdVaddpd),
-//!                  zmm0, zmm1, ptr(rax)._1to8());
+//!                   BaseInst(Inst::kIdVaddpd),
+//!                   zmm0, zmm1, ptr(rax)._1to8());
 //!
 //!   // BaseInst abstracts instruction id, instruction options, and extra_reg.
 //!   // Prints 'lock add [rax], rcx'.
 //!   log_instruction(arch,
-//!                  BaseInst(Inst::kIdAdd, InstOptions::kX86_Lock),
-//!                  ptr(rax), rcx);
+//!                   BaseInst(Inst::kIdAdd, InstOptions::kX86_Lock),
+//!                   ptr(rax), rcx);
 //!
 //!   // Similarly an extra register (like AVX-512 selector) can be used.
-//!   // Prints 'vaddpd zmm0 {k2} {z}, zmm1, [rax]'.
+//!   // Prints 'vaddpd zmm0 {k2}{z}, zmm1, [rax]'.
 //!   log_instruction(arch,
-//!                  BaseInst(Inst::kIdAdd, InstOptions::kX86_ZMask, k2),
-//!                  zmm0, zmm1, ptr(rax));
+//!                   BaseInst(Inst::kIdVaddpd, InstOptions::kX86_ZMask, k2),
+//!                   zmm0, zmm1, ptr(rax));
 //! }
 //! ```
 //!
@@ -2005,10 +2015,10 @@ namespace asmjit {
 //!   Span<Section*> sections = code.sections();
 //!
 //!   // Contains all label entries managed by CodeHolder.
-//!   Span<LabelEntry> label_entries = code.label_entries();
+//!   Span<const LabelEntry> label_entries = code.label_entries();
 //!
 //!   // Contains all relocation entries managed by CodeHolder.
-//!   Span<RelocEntry*> reloc_entries = code.reloc_entries();
+//!   Span<const RelocEntry*> reloc_entries = code.reloc_entries();
 //! }
 //! ```
 //!
@@ -2020,7 +2030,7 @@ namespace asmjit {
 //! using namespace asmjit;
 //!
 //! void example(CodeHolder& code) {
-//!   Span<LabelEntry> label_entries = code.label_entries();
+//!   Span<const LabelEntry> label_entries = code.label_entries();
 //!   for (size_t label_id = 0; label_id < label_entries.size(); label_id++) {
 //!     const LabelEntry& le = label_entries[label_id];
 //!     if (le.is_bound()) {
@@ -2046,7 +2056,7 @@ namespace asmjit {
 //! Error example(axl::Arena& arena) {
 //!   axl::ArenaVector<int> vector;
 //!
-//!   // Unfortunately, arena must be provided to all functions that mutate the
+//!   // Unfortunately, arena must be provided to all functions that can grow the
 //!   // vector. However, AsmJit users should never need to do this as all
 //!   // manipulation should be done through public API, which takes care of this.
 //!   for (int i = 0; i < 100; i++) {
@@ -2058,6 +2068,7 @@ namespace asmjit {
 //!   // can be used to explicitly release the vector data back to the allocator if
 //!   // necessary
 //!   vector.release(arena);
+//!   return Error::kOk;
 //! }
 //! ```
 //!
@@ -2074,10 +2085,11 @@ namespace asmjit {
 //!   ASMJIT_PROPAGATE(vector.reserve_additional(arena, 100));
 //!   for (int i = 0; i < 100; i++) {
 //!     // Cannot fail.
-//!     vector.append_unchecked(arena, i);
+//!     vector.append_unchecked(i);
 //!   }
 //!
 //!   vector.release(arena);
+//!   return Error::kOk;
 //! }
 //! ```
 
@@ -2246,7 +2258,7 @@ namespace asmjit {
 //!
 //! using namespace asmjit;
 //!
-//! void emit_backend_specific_code(UniCompiler& uc, const ujit::Gp& a, const ujit::Gp& b, const ujit::Gp& c) {
+//! void emit_backend_specific_code(ujit::UniCompiler& uc, const ujit::Gp& a, const ujit::Gp& b, const ujit::Gp& c) {
 //! #if defined(ASMJIT_UJIT_AARCH64)
 //!   // Emit aarch64 specific code via `uc.cc`:
 //!   uc.cc->orn(a, b, c);
@@ -2256,6 +2268,7 @@ namespace asmjit {
 //!   uc.not_(tmp, c);
 //!   uc.or_(a, b, tmp);
 //! #endif
+//! }
 //! ```
 //!
 

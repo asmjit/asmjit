@@ -3,7 +3,7 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#include <asmjit/core/build_export_p.h>
+#include <asmjit/core/api_build_p.h>
 #ifndef ASMJIT_NO_COMPILER
 
 #include <asmjit/axl/bit_set_ops.h>
@@ -143,7 +143,7 @@ Error RALocalAllocator::replace_assignment(const PhysToWorkMap* phys_to_work_map
   return Error::kOk;
 }
 
-Error RALocalAllocator::switch_to_assignment(PhysToWorkMap* dst_phys_to_work_map, Span<const BitWord> live_in, bool dst_is_read_only, bool try_mode) noexcept {
+Error RALocalAllocator::switch_to_assignment(PhysToWorkMap* dst_phys_to_work_map, Span<const BitWord> live_in, bool dst_is_read_only, bool try_mode) {
   RAAssignment dst;
   RAAssignment& cur = _cur_assignment;
 
@@ -380,7 +380,7 @@ Cleared:
   return Error::kOk;
 }
 
-Error RALocalAllocator::spill_scratch_gp_regs_before_entry(RegMask scratch_regs) noexcept {
+Error RALocalAllocator::spill_scratch_gp_regs_before_entry(RegMask scratch_regs) {
   RegGroup group = RegGroup::kGp;
   axl::BitWordIterator<RegMask> it(scratch_regs);
 
@@ -398,7 +398,7 @@ Error RALocalAllocator::spill_scratch_gp_regs_before_entry(RegMask scratch_regs)
 // RALocalAllocator - Allocation
 // =============================
 
-Error RALocalAllocator::alloc_instruction(InstNode* node) noexcept {
+Error RALocalAllocator::alloc_instruction(InstNode* node) {
   RAInst* ra_inst = node->pass_data<RAInst>();
 
   RATiedReg* out_tied_regs[Globals::kMaxPhysRegs];
@@ -1066,7 +1066,7 @@ Error RALocalAllocator::alloc_instruction(InstNode* node) noexcept {
   return Error::kOk;
 }
 
-Error RALocalAllocator::spill_after_allocation(InstNode* node) noexcept {
+Error RALocalAllocator::spill_after_allocation(InstNode* node) {
   // This is experimental feature that would spill registers that don't have home-id and are last in this basic block.
   // This prevents saving these regs in other basic blocks and then restoring them (mostly relevant for loops).
   RAInst* ra_inst = node->pass_data<RAInst>();
@@ -1094,7 +1094,7 @@ Error RALocalAllocator::spill_after_allocation(InstNode* node) noexcept {
   return Error::kOk;
 }
 
-Error RALocalAllocator::alloc_branch(InstNode* node, RABlock* target, RABlock* cont) noexcept {
+Error RALocalAllocator::alloc_branch(InstNode* node, RABlock* target, RABlock* cont) {
   // TODO: This should be used to make the branch allocation better.
   axl::maybe_unused(cont);
 
@@ -1155,7 +1155,7 @@ Error RALocalAllocator::alloc_branch(InstNode* node, RABlock* target, RABlock* c
   return Error::kOk;
 }
 
-Error RALocalAllocator::alloc_jump_table(InstNode* node, Span<RABlock*> targets, RABlock* cont) noexcept {
+Error RALocalAllocator::alloc_jump_table(InstNode* node, Span<RABlock*> targets, RABlock* cont) {
   // TODO: Do we really need to use `cont`?
   axl::maybe_unused(cont);
 

@@ -3,7 +3,7 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#include <asmjit/core/build_export_p.h>
+#include <asmjit/core/api_build_p.h>
 #if !defined(ASMJIT_NO_AARCH64)
 
 #include <asmjit/axl/bit_set_ops.h>
@@ -516,7 +516,7 @@ static Error ASMJIT_CDECL Emitter_emit_args_assignment(BaseEmitter* emitter, con
   return emit_helper.emit_args_assignment(frame, args);
 }
 
-void init_emitter_funcs(BaseEmitter* emitter) {
+void init_emitter_funcs(BaseEmitter* emitter) noexcept {
   emitter->_funcs.emit_prolog = Emitter_emit_prolog;
   emitter->_funcs.emit_epilog = Emitter_emit_epilog;
   emitter->_funcs.emit_args_assignment = Emitter_emit_args_assignment;

@@ -142,15 +142,15 @@ public:
   //! `dst_phys_to_work_map`. This mode is only used before conditional jumps that already have assignment
   //! to generate a code sequence that is always executed regardless of the flow.
   [[nodiscard]]
-  Error switch_to_assignment(PhysToWorkMap* dst_phys_to_work_map, Span<const BitWord> live_in, bool dst_is_read_only, bool try_mode) noexcept;
+  Error switch_to_assignment(PhysToWorkMap* dst_phys_to_work_map, Span<const BitWord> live_in, bool dst_is_read_only, bool try_mode);
 
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG Error spill_regs_before_entry(RABlock* block) noexcept {
+  ASMJIT_INLINE_NODEBUG Error spill_regs_before_entry(RABlock* block) {
     return spill_scratch_gp_regs_before_entry(block->entry_scratch_gp_regs());
   }
 
   [[nodiscard]]
-  Error spill_scratch_gp_regs_before_entry(uint32_t scratch_regs) noexcept;
+  Error spill_scratch_gp_regs_before_entry(uint32_t scratch_regs);
 
   //! \}
 
@@ -158,16 +158,16 @@ public:
   //! \{
 
   [[nodiscard]]
-  Error alloc_instruction(InstNode* node) noexcept;
+  Error alloc_instruction(InstNode* node);
 
   [[nodiscard]]
-  Error spill_after_allocation(InstNode* node) noexcept;
+  Error spill_after_allocation(InstNode* node);
 
   [[nodiscard]]
-  Error alloc_branch(InstNode* node, RABlock* target, RABlock* cont) noexcept;
+  Error alloc_branch(InstNode* node, RABlock* target, RABlock* cont);
 
   [[nodiscard]]
-  Error alloc_jump_table(InstNode* node, Span<RABlock*> targets, RABlock* cont) noexcept;
+  Error alloc_jump_table(InstNode* node, Span<RABlock*> targets, RABlock* cont);
 
   //! \}
 
@@ -243,7 +243,7 @@ public:
   //! Emits a load from [VirtReg/WorkReg]'s spill slot to a physical register
   //! and makes it assigned and clean.
   [[nodiscard]]
-  ASMJIT_INLINE Error on_load_reg(RegGroup rg, RAWorkReg* work_reg, RAWorkId work_id, uint32_t phys_id) noexcept {
+  ASMJIT_INLINE Error on_load_reg(RegGroup rg, RAWorkReg* work_reg, RAWorkId work_id, uint32_t phys_id) {
     _cur_assignment.assign(rg, work_id, phys_id, RAAssignment::kClean);
     return _pass.emit_load(work_reg, phys_id);
   }
@@ -251,7 +251,7 @@ public:
   //! Emits a save a physical register to a [VirtReg/WorkReg]'s spill slot,
   //! keeps it assigned, and makes it clean.
   [[nodiscard]]
-  ASMJIT_INLINE Error on_save_reg(RegGroup rg, RAWorkReg* work_reg, RAWorkId work_id, uint32_t phys_id) noexcept {
+  ASMJIT_INLINE Error on_save_reg(RegGroup rg, RAWorkReg* work_reg, RAWorkId work_id, uint32_t phys_id) {
     ASMJIT_ASSERT(_cur_assignment.work_to_phys_id(rg, work_id) == phys_id);
     ASMJIT_ASSERT(_cur_assignment.phys_to_work_id(rg, phys_id) == work_id);
 
@@ -262,7 +262,7 @@ public:
   //! Emits a move between a destination and source register, and fixes the
   //! register assignment.
   [[nodiscard]]
-  ASMJIT_INLINE Error on_move_reg(RegGroup rg, RAWorkReg* work_reg, RAWorkId work_id, uint32_t dst_phys_id, uint32_t src_phys_id) noexcept {
+  ASMJIT_INLINE Error on_move_reg(RegGroup rg, RAWorkReg* work_reg, RAWorkId work_id, uint32_t dst_phys_id, uint32_t src_phys_id) {
     if (dst_phys_id == src_phys_id) {
       return Error::kOk;
     }
@@ -273,7 +273,7 @@ public:
 
   //! Spills a variable/register, saves the content to the memory-home if modified.
   [[nodiscard]]
-  ASMJIT_INLINE Error on_spill_reg(RegGroup rg, RAWorkReg* work_reg, RAWorkId work_id, uint32_t phys_id) noexcept {
+  ASMJIT_INLINE Error on_spill_reg(RegGroup rg, RAWorkReg* work_reg, RAWorkId work_id, uint32_t phys_id) {
     if (_cur_assignment.is_phys_dirty(rg, phys_id)) {
       ASMJIT_PROPAGATE(on_save_reg(rg, work_reg, work_id, phys_id));
     }
@@ -285,7 +285,7 @@ public:
   //!
   //! \note Target must support this operation otherwise this would ASSERT.
   [[nodiscard]]
-  ASMJIT_INLINE Error on_swap_reg(RegGroup rg, RAWorkReg* a_reg, RAWorkId a_work_id, uint32_t a_phys_id, RAWorkReg* b_reg, RAWorkId b_work_id, uint32_t b_phys_id) noexcept {
+  ASMJIT_INLINE Error on_swap_reg(RegGroup rg, RAWorkReg* a_reg, RAWorkId a_work_id, uint32_t a_phys_id, RAWorkReg* b_reg, RAWorkId b_work_id, uint32_t b_phys_id) {
     _cur_assignment.swap(rg, a_work_id, a_phys_id, b_work_id, b_phys_id);
     return _pass.emit_swap(a_reg, a_phys_id, b_reg, b_phys_id);
   }

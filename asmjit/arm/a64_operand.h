@@ -535,7 +535,7 @@ public:
   //! Clones the memory operand.
   ASMJIT_INLINE_CONSTEXPR Mem clone() const noexcept { return Mem(*this); }
 
-  //! Gets new memory operand adjusted by `off`.
+  //! Returns a new memory operand adjusted by `off`.
   ASMJIT_INLINE_CONSTEXPR Mem clone_adjusted(int64_t off) const noexcept {
     Mem result(*this);
     result.add_offset(off);
