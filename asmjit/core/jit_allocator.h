@@ -88,15 +88,17 @@ enum class JitAllocatorOptions : uint32_t {
   //! allocation would be the same as a minimum large page when large pages are enabled and can be allocated.
   kAlignBlockSizeToLargePage = 0x00000040u,
 
-  //! Places executable memory below the module (executable or shared library) that contains AsmJit, close enough that
-  //! code can call any function of the module with a 32-bit relative displacement.
+  //! Places executable memory next to the module (executable or shared library) that contains AsmJit, close enough
+  //! that code can call any function of the module with a 32-bit relative displacement. The range is below the module,
+  //! except on macOS, where it's above.
   //!
   //! On X86_64 this makes `call(imm(fn))` and `jmp(imm(fn))` to such functions direct `call rel32` / `jmp rel32`
   //! instead of indirect calls through an address table (`call [rip + addrtab]`).
   //!
-  //! \remarks Ignored if \ref JitAllocator::CreateParams::address_range_end is non-zero. Only X86_64 Linux is supported
-  //! at the moment. When AsmJit is a shared library, the range is computed around the shared library and not around
-  //! the executable - use \ref JitAllocator::CreateParams::address_range_end in that case. See also the remarks there.
+  //! \remarks Ignored if \ref JitAllocator::CreateParams::address_range_end is non-zero. Only X86_64 is supported, a
+  //! strict allocator fails on other architectures. When AsmJit is a shared library, the range is computed around the
+  //! shared library and not around the executable - use \ref JitAllocator::CreateParams::address_range_end in that
+  //! case. See also the remarks there.
   kNearModuleAddressRange = 0x00000080u,
 
   //! Fails the allocation when a block cannot be placed in the address range, instead of placing it anywhere.
@@ -201,14 +203,12 @@ public:
     //! The range is used to keep code within reach of functions it calls, see
     //! \ref JitAllocatorOptions::kNearModuleAddressRange, which computes such range automatically.
     //!
-    //! \note Only Linux is supported at the moment, other platforms place blocks anywhere (or fail in strict mode).
-    //!
     //! \remarks Memory placed in the range is not available to others that need the same addresses, for example
     //! another JIT doing the same, `MAP_FIXED` users, or `MAP_32BIT` users in non-PIE processes. On Linux, `dlopen()`
     //! maps libraries top-down from `mmap_base` with `mmap(NULL, ...)`, which doesn't compete with a range below a PIE
     //! executable. On Windows, a DLL whose preferred base falls within the range would be relocated, and a DLL that
     //! cannot be relocated would fail to load. A range near the executable should be below it, as the `brk()` heap
-    //! grows right above it. The allocator only maps the blocks it needs, and once the range is full, a non-strict
+    //! grows right above it, except on macOS, where the executable's `__PAGEZERO` is below it. The allocator only maps the blocks it needs, and once the range is full, a non-strict
     //! allocator places new blocks anywhere, so a full range costs direct calls, but never fails an allocation.
     uintptr_t address_range_end = 0;
 

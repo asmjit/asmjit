@@ -220,11 +220,10 @@ ASMJIT_API Error alloc(void** p, size_t size, MemoryFlags flags) noexcept;
 
 //! Allocates virtual memory like \ref VirtMem::alloc(), but places it fully within `[range_start, range_end)`.
 //!
-//! Operating systems don't offer an API to map memory within a range, so the implementation probes random page
-//! aligned addresses within the range and fails with \ref Error::kOutOfMemory if none of them is free. The range
-//! can contain other mappings, but the more of it is taken, the less likely probing succeeds.
-//!
-//! \note Only implemented on Linux at the moment, other platforms return \ref Error::kFeatureNotEnabled.
+//! Operating systems don't offer an API to map memory anywhere within a range, so the implementation tries random
+//! addresses within the range, aligned to the page size (allocation granularity on Windows), and fails with
+//! \ref Error::kOutOfMemory if none of them is free. The range can contain other mappings, but the more of it is
+//! taken, the less likely this succeeds.
 [[nodiscard]]
 ASMJIT_API Error alloc(void** p, size_t size, MemoryFlags flags, uintptr_t range_start, uintptr_t range_end) noexcept;
 

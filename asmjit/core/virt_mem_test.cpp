@@ -44,15 +44,9 @@ TEST_CASE(core_virt_mem_address_range) {
   uintptr_t start = uintptr_t(hole);
   uintptr_t end = start + kRangeSize;
 
-  void* p;
-  Error err = VirtMem::alloc(&p, kSize, MemoryFlags::kAccessRW, start, end);
-  if (err == Error::kFeatureNotEnabled) {
-    TEST_LOG("VirtMem address range is not supported on this platform");
-    return;
-  }
-
   TEST_LOG("Verifying VirtMem::alloc() within a range");
-  EXPECT_EQ(err, Error::kOk);
+  void* p;
+  EXPECT_EQ(VirtMem::alloc(&p, kSize, MemoryFlags::kAccessRW, start, end), Error::kOk);
   EXPECT_GE(uintptr_t(p), start);
   EXPECT_LE(uintptr_t(p) + kSize, end);
   memset(p, 0xCC, kSize);

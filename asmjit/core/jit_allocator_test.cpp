@@ -421,12 +421,6 @@ static void test_jit_allocator_address_range() noexcept {
   uintptr_t start = uintptr_t(hole);
   uintptr_t end = start + kRangeSize;
 
-#if defined(__linux__)
-  constexpr bool kHasAddressRange = true;
-#else
-  constexpr bool kHasAddressRange = false;
-#endif
-
   VirtMem::HardenedRuntimeInfo hri = VirtMem::hardened_runtime_info();
   size_t page_size = VirtMem::info().page_size;
 
@@ -447,26 +441,18 @@ static void test_jit_allocator_address_range() noexcept {
     JitAllocator::Span spans[kSpanCount];
 
     for (size_t i = 0; i < kSpanCount; i++) {
-      Error err = allocator.alloc(Out(spans[i]), kSpanSize);
-      if (!kHasAddressRange) {
-        EXPECT_EQ(err, Error::kFeatureNotEnabled);
-        break;
-      }
-
-      EXPECT_EQ(err, Error::kOk);
+      EXPECT_EQ(allocator.alloc(Out(spans[i]), kSpanSize), Error::kOk);
       EXPECT_TRUE(JitAllocatorTest_in_range(spans[i], start, end))
         .message("Span %p [%zu] is outside of [%p, %p)", spans[i].rx(), i, (void*)start, (void*)end);
     }
 
-    if (kHasAddressRange) {
-      EXPECT_GT(allocator.statistics().block_count(), 1u);
+    EXPECT_GT(allocator.statistics().block_count(), 1u);
 
-      // The first span must not be at the start of its block (UBSAN reads 8 bytes before a function).
-      EXPECT_EQ(uintptr_t(spans[0].rx()) & (page_size - 1u), size_t(allocator.granularity()));
+    // The first span must not be at the start of its block (UBSAN reads 8 bytes before a function).
+    EXPECT_EQ(uintptr_t(spans[0].rx()) & (page_size - 1u), size_t(allocator.granularity()));
 
-      for (size_t i = 0; i < kSpanCount; i++) {
-        EXPECT_EQ(allocator.release(spans[i].rx()), Error::kOk);
-      }
+    for (size_t i = 0; i < kSpanCount; i++) {
+      EXPECT_EQ(allocator.release(spans[i].rx()), Error::kOk);
     }
   }
 
@@ -493,7 +479,7 @@ static void test_jit_allocator_address_range() noexcept {
     {
       JitAllocator allocator(&params);
       JitAllocator::Span span;
-      EXPECT_EQ(allocator.alloc(Out(span), 64), kHasAddressRange ? Error::kOutOfMemory : Error::kFeatureNotEnabled);
+      EXPECT_EQ(allocator.alloc(Out(span), 64), Error::kOutOfMemory);
       EXPECT_NULL(span.rx());
       EXPECT_EQ(allocator.statistics().block_count(), 0u);
     }
@@ -510,7 +496,7 @@ static void test_jit_allocator_address_range() noexcept {
     JitAllocator::Span span;
     Error err = allocator.alloc(Out(span), kSpanSize);
 
-#if ASMJIT_TARGET_ARCH_X86 == 64 && defined(__linux__)
+#if ASMJIT_TARGET_ARCH_X86 == 64
     // This function is in the same module as AsmJit, so it must be within reach of a 32-bit displacement.
     uintptr_t fn = uintptr_t(&test_jit_allocator_address_range);
     EXPECT_EQ(err, Error::kOk);

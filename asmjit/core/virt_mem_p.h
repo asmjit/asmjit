@@ -17,7 +17,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(VirtMem)
 
 //! Returns `[start, end)` spanned by the loaded module (executable or shared library) that contains `addr`.
 //!
-//! \note Only implemented on Linux at the moment, other platforms return \ref Error::kFeatureNotEnabled.
+//! \note Implemented on Windows, macOS, Linux and BSDs, other platforms return \ref Error::kFeatureNotEnabled.
 Error module_address_range(const void* addr, uintptr_t* start, uintptr_t* end) noexcept;
 
 //! \endcond

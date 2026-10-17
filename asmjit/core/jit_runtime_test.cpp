@@ -40,7 +40,6 @@ TEST_CASE(core_jit_runtime_near_calls) {
   size_t call_offset;
   Error err = JitRuntimeTest_add_caller(rt, &fn, &call_offset);
 
-#if defined(__linux__)
   EXPECT_EQ(err, Error::kOk);
 
   // The call must be relocated to `call rel32` (with the REX prefix that would allow patching it to `call [rip+x]`).
@@ -52,9 +51,6 @@ TEST_CASE(core_jit_runtime_near_calls) {
   EXPECT_EQ(uintptr_t(call + 6) + uintptr_t(intptr_t(rel32)), uintptr_t(jit_runtime_test_callee));
   EXPECT_EQ(reinterpret_cast<Func>(fn)(), 42);
   EXPECT_EQ(rt.release(fn), Error::kOk);
-#else
-  EXPECT_EQ(err, Error::kFeatureNotEnabled);
-#endif
 }
 
 ASMJIT_END_NAMESPACE

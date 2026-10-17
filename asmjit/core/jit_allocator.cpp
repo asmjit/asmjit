@@ -409,20 +409,28 @@ static const JitAllocator::CreateParams JitAllocatorParams_none {};
 // JitAllocator - Utilities
 // ========================
 
-// Computes a range below the module that contains AsmJit, from where a 32-bit displacement reaches the whole module.
-// It's below, because the `brk()` heap grows right above the executable.
+// Computes a range next to the module that contains AsmJit, from where a 32-bit displacement reaches the whole module.
+// It's below the module, because the `brk()` heap grows right above the executable, except on macOS, where the
+// executable's __PAGEZERO is below it.
 static void JitAllocator_near_module_address_range(uintptr_t* range_start, uintptr_t* range_end) noexcept {
 #if ASMJIT_TARGET_ARCH_X86 == 64
-  // 2GiB minus 64kB, and a lower bound that keeps the range above `vm.mmap_min_addr`.
+  // 2GiB minus 64kB.
   constexpr uintptr_t kReach = 0x7FFF0000u;
-  constexpr uintptr_t kMinAddress = 0x100000u;
 
   uintptr_t module_start;
   uintptr_t module_end;
 
   if (VirtMem::module_address_range(&JitAllocatorImpl_none, &module_start, &module_end) == Error::kOk) {
+#if defined(__APPLE__)
+    *range_start = module_end;
+    *range_end = module_start + kReach;
+#else
+    // A lower bound that keeps the range above `vm.mmap_min_addr`.
+    constexpr uintptr_t kMinAddress = 0x100000u;
+
     *range_start = module_end > kMinAddress + kReach ? module_end - kReach : kMinAddress;
     *range_end = module_start;
+#endif
   }
 #else
   axl::maybe_unused(range_start, range_end);
@@ -610,7 +618,7 @@ static Error JitAllocator_alloc_virt_mem(const JitAllocatorPrivateImpl* impl, Vi
     }
   }
   else if (strict && axl::test(impl->options, JitAllocatorOptions::kNearModuleAddressRange)) {
-    // The near module address range is not available on this platform.
+    // The near module address range is only computed on X86_64.
     return make_error(Error::kFeatureNotEnabled);
   }
 
