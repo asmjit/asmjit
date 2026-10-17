@@ -18,6 +18,8 @@ ASMJIT_BEGIN_NAMESPACE
 
 //! Helper class that provides utilities for each supported architecture.
 class BaseEmitHelper {
+  ASMJIT_OVERRIDE_NEW_DELETE(BaseEmitHelper)
+
 protected:
   BaseEmitter* _emitter;
 

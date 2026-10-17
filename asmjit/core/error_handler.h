@@ -185,7 +185,7 @@ class BaseEmitter;
 //! ```
 class ASMJIT_VIRTAPI ErrorHandler {
 public:
-  ASMJIT_BASE_CLASS(ErrorHandler)
+  ASMJIT_OVERRIDE_NEW_DELETE(ErrorHandler)
 
   //! \name Construction & Destruction
   //! \{

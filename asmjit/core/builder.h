@@ -1623,7 +1623,7 @@ public:
 //! Pass can be used to implement code transformations, analysis, and lowering.
 class ASMJIT_VIRTAPI Pass {
 public:
-  ASMJIT_BASE_CLASS(Pass)
+  ASMJIT_OVERRIDE_NEW_DELETE(Pass)
   ASMJIT_NONCOPYABLE(Pass)
 
   //! \name Members

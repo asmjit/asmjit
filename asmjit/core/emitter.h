@@ -193,7 +193,7 @@ ASMJIT_DEFINE_ENUM_FLAGS(DiagnosticOptions)
 //! Provides a base foundation to emitting code - specialized by \ref BaseAssembler and \ref BaseBuilder.
 class ASMJIT_VIRTAPI BaseEmitter {
 public:
-  ASMJIT_BASE_CLASS(BaseEmitter)
+  ASMJIT_OVERRIDE_NEW_DELETE(BaseEmitter)
   ASMJIT_NONCOPYABLE(BaseEmitter)
 
   //! \name Types

@@ -697,7 +697,8 @@ ASMJIT_INLINE_NODEBUG void* operator_new(size_t n) noexcept { return malloc(n); 
 ASMJIT_INLINE_NODEBUG void operator_delete(void* p) noexcept { if (p) free(p); }
 ASMJIT_END_SUB_NAMESPACE
 
-#define ASMJIT_BASE_CLASS(TYPE)                                                                        \
+#define ASMJIT_OVERRIDE_NEW_DELETE(TYPE)                                                               \
+public:                                                                                                \
   ASMJIT_INLINE void* operator new(size_t n) noexcept { return axl::operator_new(n); }                 \
   ASMJIT_INLINE void operator delete(void* ptr) noexcept { axl::operator_delete(ptr); }                \
                                                                                                        \
