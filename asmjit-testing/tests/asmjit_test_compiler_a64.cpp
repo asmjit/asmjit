@@ -243,6 +243,205 @@ public:
   }
 };
 
+// a64::Compiler - A64Test_SimdPreserveDst
+// =======================================
+
+// Regression coverage for https://github.com/asmjit/asmjit/issues/533.
+class A64Test_SimdPreserveDst : public A64TestCase {
+public:
+  enum Op : uint32_t {
+    kSri,
+    kSriScalar,
+    kAddhn2,
+    kBfcvtn2,
+    kTbx,
+    kBicImm,
+    kOrrImm,
+    kBicShift,
+    kOrrShift,
+    kBicReg,
+    kOrrReg,
+    kOpCount
+  };
+
+  Op _op {};
+
+  A64Test_SimdPreserveDst(Op op) : _op(op) {
+    static const char* const names[] = {
+      "SRI", "SRI scalar", "ADDHN2", "BFCVTN2", "TBX",
+      "BIC immediate", "ORR immediate", "BIC shifted immediate", "ORR shifted immediate",
+      "BIC register", "ORR register"
+    };
+    _name.assign_format("SimdPreserveDst {%s}", names[op]);
+  }
+
+  static void add(TestApp& app) {
+    for (uint32_t i = 0; i < kOpCount; i++) {
+      if (i == kBfcvtn2 && Arch::kHost == Arch::kAArch64 && !CpuInfo::host().features().arm().has_bf16()) {
+        continue;
+      }
+      app.add(new A64Test_SimdPreserveDst(Op(i)));
+    }
+  }
+
+  void compile(a64::Compiler& cc) override {
+    FuncSignature called_signature = FuncSignature::build<Type::Vec128, Type::Vec128, Type::Vec128, Type::Vec128>();
+
+    FuncNode* main_fn = cc.add_func(FuncSignature::build<void, void*, const void*>());
+    FuncNode* called_fn = cc.new_func(called_signature);
+
+    {
+      a64::Gp dst = cc.new_gp_ptr("dst");
+      a64::Gp src = cc.new_gp_ptr("src");
+      a64::Vec v[3] = {cc.new_vec_q("v0"), cc.new_vec_q("v1"), cc.new_vec_q("v2")};
+
+      main_fn->set_arg(0, dst);
+      main_fn->set_arg(1, src);
+
+      cc.ldr(v[0], a64::ptr(src, 0 * 16));
+      cc.ldr(v[1], a64::ptr(src, 1 * 16));
+      cc.ldr(v[2], a64::ptr(src, 2 * 16));
+
+      InvokeNode* invoke_node;
+      cc.invoke(Out(invoke_node), called_fn->label(), called_signature);
+
+      invoke_node->set_arg(0, v[0]);
+      invoke_node->set_arg(1, v[1]);
+      invoke_node->set_arg(2, v[2]);
+      invoke_node->set_ret(0, v[0]);
+
+      cc.str(v[0], a64::ptr(dst));
+      cc.end_func();
+    }
+
+    {
+      cc.add_func(called_fn);
+
+      a64::Vec a = cc.new_vec_q("a");
+      a64::Vec b = cc.new_vec_q("b");
+      a64::Vec dst = cc.new_vec_q("dst");
+
+      called_fn->set_arg(0, a);
+      called_fn->set_arg(1, b);
+      called_fn->set_arg(2, dst);
+
+      // The incoming destination is v2, whereas the result must be returned in v0.
+      // Write-only metadata would allow the allocator to discard the initial v2.
+      switch (_op) {
+        case kSri      : cc.sri(dst.d2(), a.d2(), 61); break;
+        case kSriScalar: cc.sri(dst.d(), a.d(), 61); break;
+        case kAddhn2   : cc.addhn2(dst.b16(), a.h8(), b.h8()); break;
+        case kBfcvtn2  : cc.bfcvtn2(dst.h8(), a.s4()); break;
+        case kTbx      : cc.tbx(dst.b16(), a.b16(), b.b16()); break;
+        case kBicImm   : cc.bic(dst.s4(), 0x12); break;
+        case kOrrImm   : cc.orr(dst.s4(), 0x12); break;
+        case kBicShift : cc.bic(dst.s4(), 0x12, a64::lsl(8)); break;
+        case kOrrShift : cc.orr(dst.s4(), 0x12, a64::lsl(8)); break;
+        case kBicReg   : cc.bic(dst.b16(), a.b16(), b.b16()); break;
+        case kOrrReg   : cc.orr(dst.b16(), a.b16(), b.b16()); break;
+        default: break;
+      }
+
+      cc.ret(dst);
+      cc.end_func();
+    }
+  }
+
+  bool run(void* _func, String& result, String& expect) override {
+    using Func = void (*)(void*, const void*);
+
+    // The first vector also contains exactly representable BF16 values (1, 2, 3, 4).
+    const uint32_t src[12] = {
+      0x3F800000u, 0x40000000u, 0x40400000u, 0x40800000u,
+      0xFF100F00u, 0x80110E01u, 0xFE1F0D02u, 0x7F200C03u,
+      0xA5B6C7D8u, 0x12345678u, 0x9ABCDEF0u, 0xFEDCBA98u
+    };
+
+    const uint8_t* bytes = reinterpret_cast<const uint8_t*>(src);
+    uint8_t dst[16] = {};
+    uint8_t ref[16];
+
+    memcpy(ref, src + 8, 16);
+
+    switch (_op) {
+      case kSri:
+      case kSriScalar: {
+        for (uint32_t i = 0; i < 2; i++) {
+          uint64_t a;
+          uint64_t d;
+          memcpy(&a, bytes + i * 8, 8);
+          memcpy(&d, ref + i * 8, 8);
+          d = (d & ~uint64_t(7)) | (a >> 61);
+          if (_op == kSriScalar && i == 1) {
+            d = 0;
+          }
+          memcpy(ref + i * 8, &d, 8);
+        }
+        break;
+      }
+
+      case kAddhn2: {
+        for (uint32_t i = 0; i < 8; i++) {
+          uint16_t a;
+          uint16_t b;
+          memcpy(&a, bytes + i * 2, 2);
+          memcpy(&b, bytes + 16 + i * 2, 2);
+          ref[8 + i] = uint8_t((uint32_t(a) + b) >> 8);
+        }
+        break;
+      }
+
+      case kBfcvtn2: {
+        for (uint32_t i = 0; i < 4; i++) {
+          uint16_t value = uint16_t(src[i] >> 16);
+          memcpy(ref + 8 + i * 2, &value, 2);
+        }
+        break;
+      }
+
+      case kTbx: {
+        for (uint32_t i = 0; i < 16; i++) {
+          uint32_t index = bytes[16 + i];
+          if (index < 16) {
+            ref[i] = bytes[index];
+          }
+        }
+        break;
+      }
+
+      case kBicImm:
+      case kOrrImm:
+      case kBicShift:
+      case kOrrShift: {
+        for (uint32_t i = 0; i < 4; i++) {
+          uint32_t mask = (_op == kBicShift || _op == kOrrShift) ? 0x1200u : 0x12u;
+          uint32_t value = src[8 + i];
+          value = (_op == kBicImm || _op == kBicShift) ? value & ~mask : value | mask;
+          memcpy(ref + i * 4, &value, 4);
+        }
+        break;
+      }
+
+      case kBicReg:
+      case kOrrReg: {
+        for (uint32_t i = 0; i < 16; i++) {
+          ref[i] = _op == kBicReg ? uint8_t(bytes[i] & ~bytes[16 + i]) : uint8_t(bytes[i] | bytes[16 + i]);
+        }
+        break;
+      }
+
+      default: {
+        break;
+      }
+    }
+
+    ptr_as_func<Func>(_func)(dst, src);
+    result.assign_hex(dst, 16);
+    expect.assign_hex(ref, 16);
+    return result == expect;
+  }
+};
+
 // a64::Compiler - A64Test_ManyRegs
 // ================================
 
@@ -867,6 +1066,139 @@ public:
   }
 };
 
+// a64::Compiler - A64Test_LoadLane
+// ================================
+
+// Regression coverage for https://github.com/asmjit/asmjit/issues/533.
+class A64Test_LoadLane : public A64TestCase {
+public:
+  uint32_t _reg_count {};
+  uint32_t _element_size {};
+  uint32_t _lane_index {};
+
+  A64Test_LoadLane(uint32_t reg_count, uint32_t element_size, uint32_t lane_index)
+    : _reg_count(reg_count),
+      _element_size(element_size),
+      _lane_index(lane_index) {
+    _name.assign_format("LoadLane {Count=%u ElementSize=%u Index=%u}", reg_count, element_size, lane_index);
+  }
+
+  static void add(TestApp& app) {
+    for (uint32_t reg_count = 1; reg_count <= 4; reg_count++) {
+      for (uint32_t element_size = 1; element_size <= 8; element_size *= 2) {
+        app.add(new A64Test_LoadLane(reg_count, element_size, 0));
+        app.add(new A64Test_LoadLane(reg_count, element_size, 16 / element_size - 1));
+      }
+    }
+  }
+
+  void compile(a64::Compiler& cc) override {
+    FuncSignature signature = FuncSignature::build<void, void*, const void*>();
+    for (uint32_t i = 0; i <= _reg_count; i++) {
+      signature.add_arg(TypeId::kUInt8x16);
+    }
+
+    FuncNode* called_fn = cc.new_func(signature);
+    FuncNode* main_fn = cc.add_func(FuncSignature::build<void, void*, const void*, const void*>());
+
+    {
+      a64::Gp dst = cc.new_gp_ptr("dst");
+      a64::Gp initial = cc.new_gp_ptr("initial");
+      a64::Gp src = cc.new_gp_ptr("src");
+
+      main_fn->set_arg(0, dst);
+      main_fn->set_arg(1, initial);
+      main_fn->set_arg(2, src);
+
+      a64::Vec v[5];
+      for (uint32_t i = 0; i <= _reg_count; i++) {
+        v[i] = cc.new_vec_q("initial%u", i);
+        cc.ldr(v[i], a64::ptr(initial, int32_t(i * 16)));
+      }
+
+      InvokeNode* invoke_node;
+      cc.invoke(Out(invoke_node), called_fn->label(), signature);
+
+      invoke_node->set_arg(0, dst);
+      invoke_node->set_arg(1, src);
+
+      for (uint32_t i = 0; i <= _reg_count; i++) {
+        invoke_node->set_arg(i + 2, v[i]);
+      }
+
+      cc.end_func();
+    }
+
+    {
+      cc.add_func(called_fn);
+
+      a64::Gp dst = cc.new_gp_ptr("dst");
+      a64::Gp src = cc.new_gp_ptr("src");
+
+      called_fn->set_arg(0, dst);
+      called_fn->set_arg(1, src);
+
+      // The unused first SIMD argument occupies v0. If lane destinations are treated
+      // as write-only, the allocator loses their incoming values in v1 and higher.
+      a64::Vec v[4];
+      a64::Vec lane[4];
+
+      for (uint32_t i = 0; i < _reg_count; i++) {
+        v[i] = cc.new_vec_q("v%u", i);
+        called_fn->set_arg(i + 3, v[i]);
+
+        switch (_element_size) {
+          case 1: lane[i] = v[i].b(_lane_index); break;
+          case 2: lane[i] = v[i].h(_lane_index); break;
+          case 4: lane[i] = v[i].s(_lane_index); break;
+          case 8: lane[i] = v[i].d(_lane_index); break;
+        }
+      }
+
+      switch (_reg_count) {
+        case 1: cc.ld1(lane[0], a64::ptr(src)); break;
+        case 2: cc.ld2(lane[0], lane[1], a64::ptr(src)); break;
+        case 3: cc.ld3(lane[0], lane[1], lane[2], a64::ptr(src)); break;
+        case 4: cc.ld4(lane[0], lane[1], lane[2], lane[3], a64::ptr(src)); break;
+      }
+
+      for (uint32_t i = 0; i < _reg_count; i++) {
+        cc.str(v[i], a64::ptr(dst, int32_t(i * 16)));
+      }
+
+      cc.end_func();
+    }
+  }
+
+  bool run(void* _func, String& result, String& expect) override {
+    using Func = void (*)(void*, const void*, const void*);
+
+    uint8_t initial[80];
+    uint8_t src[32];
+    uint8_t dst[64] = {};
+    uint8_t ref[64];
+
+    for (uint32_t i = 0; i < 80; i++) {
+      initial[i] = uint8_t(17 + i * 3);
+    }
+
+    for (uint32_t i = 0; i < 32; i++) {
+      src[i] = uint8_t(255 - i * 5);
+    }
+
+    memcpy(ref, initial + 16, _reg_count * 16);
+    for (uint32_t i = 0; i < _reg_count; i++) {
+      memcpy(ref + i * 16 + _lane_index * _element_size, src + i * _element_size, _element_size);
+    }
+
+    ptr_as_func<Func>(_func)(dst, initial, src);
+
+    result.assign_hex(dst, _reg_count * 16);
+    expect.assign_hex(ref, _reg_count * 16);
+    return result == expect;
+  }
+};
+
 // a64::Compiler - Export
 // ======================
 
@@ -874,6 +1206,7 @@ void compiler_add_a64_tests(TestApp& app) {
   app.add_t<A64Test_GpArgs>();
   app.add_t<A64Test_ManyRegs>();
   app.add_t<A64Test_Simd1>();
+  app.add_t<A64Test_SimdPreserveDst>();
   app.add_t<A64Test_Adr>();
   app.add_t<A64Test_Branch1>();
   app.add_t<A64Test_Invoke1>();
@@ -883,6 +1216,7 @@ void compiler_add_a64_tests(TestApp& app) {
   app.add_t<A64Test_Invoke5>();
   app.add_t<A64Test_JumpTable>();
   app.add_t<A64Test_ConsecutiveOutAllocation>();
+  app.add_t<A64Test_LoadLane>();
 }
 
 #endif // !ASMJIT_NO_COMPILER && !ASMJIT_NO_AARCH64
