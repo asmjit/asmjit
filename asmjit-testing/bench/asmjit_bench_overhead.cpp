@@ -1,10 +1,8 @@
 #include <asmjit/host.h>
 
 #include <asmjit-testing/commons/asmjit_utils.h>
-#include <asmjit-testing/commons/cmdline.h>
 #include <asmjit-testing/commons/performance_timer.h>
-
-#include <stdint.h>
+#include <asmjit-testing/commons/zero_lib.h>
 
 using namespace asmjit;
 
@@ -408,7 +406,7 @@ static inline void test_perf_all(InitStrategy strategy, size_t n) {
 }
 
 int main(int argc, char* argv[]) {
-  CmdLine cmd_line(argc, argv);
+  ZeroLib::CmdLine cmd_line(argc, argv);
   size_t n = cmd_line.value_as_uint("--count", 1000000);
 
   print_app_info(n);

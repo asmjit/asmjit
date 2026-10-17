@@ -16,8 +16,8 @@
 #if !defined(ASMJIT_NO_COMPILER)
 
 #include <asmjit-testing/commons/asmjit_utils.h>
-#include <asmjit-testing/commons/cmdline.h>
 #include <asmjit-testing/commons/performance_timer.h>
+#include <asmjit-testing/commons/zero_lib.h>
 #include <asmjit-testing/tests/asmjit_test_compiler.h>
 
 #if !defined(ASMJIT_NO_X86)
@@ -33,9 +33,9 @@
 using namespace asmjit;
 
 int TestApp::handle_args(int argc, const char* const* argv) {
-  CmdLine cmd(argc, argv);
-  _arch = cmd.value_of("--arch", "all");
-  _filter = cmd.value_of("--filter", nullptr);
+  ZeroLib::CmdLine cmd(argc, argv);
+  _arch = cmd.get_arg("--arch", "all");
+  _filter = cmd.get_arg("--filter", nullptr);
 
   if (cmd.has_arg("--help")) _help_only = true;
   if (cmd.has_arg("--verbose")) _verbose = true;

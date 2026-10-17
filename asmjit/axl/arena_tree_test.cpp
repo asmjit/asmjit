@@ -59,7 +59,7 @@ static inline bool operator<(const MyRBNode& a, uint32_t b) noexcept { return a.
 static inline bool operator<(uint32_t a, const MyRBNode& b) noexcept { return a < b._key; }
 
 TEST_CASE(axl_arena_tree) {
-  uint32_t kCount = ZeroTest::test_runner()->has_arg("--quick") ? 1000 : 10000;
+  uint32_t kCount = ZeroTest::test_runner()->cmd_line().has_arg("--quick") ? 1000 : 10000;
 
   axl::Arena arena(4096);
   axl::ArenaTree<MyRBNode> rb_tree;

@@ -16,7 +16,7 @@ TEST_CASE(core_const_pool) {
   ConstPool pool(arena);
 
   uint32_t i;
-  uint32_t kCount = ZeroTest::test_runner()->has_arg("--quick") ? 1000 : 1000000;
+  uint32_t kCount = ZeroTest::test_runner()->cmd_line().has_arg("--quick") ? 1000 : 1000000;
 
   TEST_LOG("Adding %u constants to the pool", kCount);
   {

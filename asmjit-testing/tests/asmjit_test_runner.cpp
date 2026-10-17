@@ -14,7 +14,7 @@
 #endif
 
 #include <asmjit-testing/commons/asmjit_utils.h>
-#include <asmjit-testing/tests/zero_test.h>
+#include <asmjit-testing/commons/zero_test.h>
 
 #if !defined(ASMJIT_NO_COMPILER)
 #include <asmjit/core/ra_cfg_block_p.h>
@@ -59,7 +59,7 @@ int main(int argc, const char* argv[]) {
   test_runner.on_message(message);
   test_runner.on_options_list(options_list);
 
-  if (test_runner.has_arg("--build-info")) {
+  if (test_runner.cmd_line().has_arg("--build-info")) {
     print_build_info();
     return 0;
   }

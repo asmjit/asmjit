@@ -6,7 +6,7 @@
 #include <asmjit/core.h>
 
 #include <asmjit-testing/commons/asmjit_utils.h>
-#include <asmjit-testing/commons/cmdline.h>
+#include <asmjit-testing/commons/zero_lib.h>
 #include <asmjit-testing/tests/asmjit_test_assembler.h>
 
 #include <stdio.h>
@@ -54,7 +54,7 @@ static void print_app_usage(const TestSettings& settings) noexcept {
 }
 
 int main(int argc, char* argv[]) {
-  CmdLine cmd_line(argc, argv);
+  ZeroLib::CmdLine cmd_line(argc, argv);
 
   TestSettings settings {};
   settings.verbose = cmd_line.has_arg("--verbose");
@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
     return 0;
   }
 
-  const char* arch = cmd_line.value_of("--arch", "all");
+  const char* arch = cmd_line.get_arg("--arch", "all");
   bool x86_failed = false;
   bool x64_failed = false;
   bool aarch64_failed = false;

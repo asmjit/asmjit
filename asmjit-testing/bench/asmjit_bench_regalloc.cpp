@@ -16,9 +16,9 @@
 #include <asmjit-testing/commons/asmjit_utils.h>
 
 #if !defined(ASMJIT_NO_COMPILER)
-  #include <asmjit-testing/commons/cmdline.h>
   #include <asmjit-testing/commons/performance_timer.h>
   #include <asmjit-testing/commons/random.h>
+  #include <asmjit-testing/commons/zero_lib.h>
 #endif
 
 #include <stdio.h>
@@ -75,8 +75,8 @@ public:
 };
 
 int BenchRegAllocApp::handle_args(int argc, const char* const* argv) {
-  CmdLine cmd(argc, argv);
-  _arch = cmd.value_of("--arch", "all");
+  ZeroLib::CmdLine cmd(argc, argv);
+  _arch = cmd.get_arg("--arch", "all");
   _maximum_complexity = cmd.value_as_uint("--complexity", _maximum_complexity);
 
   if (cmd.has_arg("--help")) _help_only = true;

@@ -28,7 +28,7 @@ static void print_app_info() noexcept {
 
 #if !defined(ASMJIT_NO_UJIT) && !defined(ASMJIT_NO_JIT)
 
-#include <asmjit-testing/tests/zero_test.h>
+#include <asmjit-testing/commons/zero_test.h>
 
 namespace UniCompilerTests {
 

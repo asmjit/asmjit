@@ -671,9 +671,11 @@ if (TRUE)
 
       # asmjit_test_runner - optimize static builds (no need to build AsmJit twice).
       set(ASMJIT_TEST_RUNNER_SRC
+        asmjit-testing/commons/zero_lib.cpp
+        asmjit-testing/commons/zero_lib.h
+        asmjit-testing/commons/zero_test.cpp
+        asmjit-testing/commons/zero_test.h
         asmjit-testing/tests/asmjit_test_runner.cpp
-        asmjit-testing/tests/zero_test.cpp
-        asmjit-testing/tests/zero_test.h
       )
       if (ASMJIT_STATIC)
         asmjit_add_target(asmjit_test_runner TEST
@@ -763,11 +765,13 @@ if (TRUE)
 
       if (NOT ASMJIT_NO_UJIT)
         asmjit_add_target(asmjit_test_ujit TEST
-          SOURCES    asmjit-testing/tests/asmjit_test_ujit.cpp
+          SOURCES    asmjit-testing/commons/zero_lib.cpp
+                     asmjit-testing/commons/zero_lib.h
+                     asmjit-testing/commons/zero_test.cpp
+                     asmjit-testing/commons/zero_test.h
+                     asmjit-testing/tests/asmjit_test_ujit.cpp
                      asmjit-testing/tests/asmjit_test_ujit_sse2.cpp
                      asmjit-testing/tests/asmjit_test_ujit_avx2fma.cpp
-                     asmjit-testing/tests/zero_test.cpp
-                     asmjit-testing/tests/zero_test.h
           LIBRARIES  asmjit::asmjit
           CFLAGS     ${ASMJIT_PRIVATE_CFLAGS} ${ASMJIT_SSE2_CFLAGS}
           CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}

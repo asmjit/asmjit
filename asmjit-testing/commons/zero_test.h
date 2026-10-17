@@ -35,29 +35,16 @@
 #ifndef ZERO_TEST_H_INCLUDED
 #define ZERO_TEST_H_INCLUDED
 
-#include <stdarg.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
-#include <type_traits>
+#include "zero_lib.h"
 
 // Hide everything when using Doxygen. Ideally this can be protected by a macro,
 // but there is not globally and widely used one across multiple projects.
 
-//! \cond ZERO_TEST_DOC
-
-
-#if defined(__clang__) && !defined(_DOXYGEN)
-  #define ZERO_TEST_INLINE_NODEBUG inline __attribute__((__always_inline__, __nodebug__))
-#elif defined(__GNUC__) && !defined(_DOXYGEN)
-  #define ZERO_TEST_INLINE_NODEBUG inline __attribute__((__always_inline__, __artificial__))
-#else
-  #define ZERO_TEST_INLINE_NODEBUG inline
-#endif
+//! \cond ZERO_DOC
 
 namespace ZeroTest {
+
+using namespace ZeroLib;
 
 struct CheckResult;
 struct TestCase;
@@ -75,12 +62,6 @@ void log_info(const char* fmt, ...) noexcept;
 //! Called when `EXPECT()` fails.
 [[noreturn]] void test_failure(CheckResult* result, const char* fmt, ...) noexcept;
 
-template<typename T> [[nodiscard]] [[maybe_unused]]
-static constexpr ZERO_TEST_INLINE_NODEBUG T&& forward(std::remove_reference_t<T>& v) noexcept { return static_cast<T&&>(v); }
-
-template<typename T> [[nodiscard]] [[maybe_unused]]
-static constexpr ZERO_TEST_INLINE_NODEBUG T&& forward(std::remove_reference_t<T>&& v) noexcept { return static_cast<T&&>(v); }
-
 enum class MessageType : unsigned {
   kRegularText = 0,
   kStatus = 1,
@@ -96,133 +77,13 @@ enum class MessageType : unsigned {
   kMaxValue = 9
 };
 
-struct ColorEscape {
-  char start[9];
-  unsigned char start_len;
-  char end[5];
-  unsigned char end_len;
-};
-
-// String buffer is a non-null terminated string designed for concatenation.
-class StringBuffer {
-public:
-  char* _data {};
-  size_t _size {};
-  size_t _capacity {};
-  bool _failed = false;
-  bool _temporary = false;
-
-  ZERO_TEST_INLINE_NODEBUG StringBuffer() noexcept {}
-  ZERO_TEST_INLINE_NODEBUG ~StringBuffer() noexcept { reset(); }
-
-  ZERO_TEST_INLINE_NODEBUG char* data() noexcept { return _data; }
-  ZERO_TEST_INLINE_NODEBUG const char* data() const noexcept { return _data; }
-
-  ZERO_TEST_INLINE_NODEBUG size_t size() const noexcept { return _size; }
-  ZERO_TEST_INLINE_NODEBUG size_t capacity() const noexcept { return _capacity; }
-
-  ZERO_TEST_INLINE_NODEBUG bool failed() const noexcept { return _failed; }
-
-  void clear() noexcept;
-  void reset() noexcept;
-  bool reserve_for_append(size_t append_size) noexcept;
-
-  void append(const char c) noexcept;
-  void append_chars(const char c, size_t count) noexcept;
-  void append(const char* s) noexcept;
-
-  void append_data(const char* s, size_t size) noexcept;
-  void append_data_indented(const char* s, size_t size, size_t indentation_size, bool indent_first) noexcept;
-
-  void append_format(const char* fmt, ...) noexcept;
-  void append_format_v(const char* fmt, va_list ap) noexcept;
-
-  void append_start_escape(const ColorEscape& esc) noexcept;
-  void append_end_escape(const ColorEscape& esc) noexcept;
-
-  void append_colorized_s(const ColorEscape& esc, const char* s, size_t len) noexcept;
-  void append_colorized_v(const ColorEscape& esc, const char* fmt, va_list ap) noexcept;
-  void append_colorized_f(const ColorEscape& esc, const char* fmt, ...) noexcept;
-
-  template<typename... Args>
-  inline void append_colorized(const ColorEscape& esc, const char* msg, Args&&... args) noexcept {
-    if constexpr (sizeof...(args) == 0) {
-      append_colorized_s(esc, msg, strlen(msg));
-    }
-    else {
-      append_colorized_f(esc, msg, forward<Args>(args)...);
-    }
-  }
-
-  ZERO_TEST_INLINE_NODEBUG void append_value(const bool& value) noexcept { append(value ? "true" : "false"); }
-  ZERO_TEST_INLINE_NODEBUG void append_value(const char& value) noexcept { append_format("%u", uint8_t(value)) ; }
-  ZERO_TEST_INLINE_NODEBUG void append_value(const signed char& value) noexcept { append_format("%d", int(value)) ; }
-  ZERO_TEST_INLINE_NODEBUG void append_value(const unsigned char& value) noexcept { append_format("%u", unsigned(value)); }
-  ZERO_TEST_INLINE_NODEBUG void append_value(const short& value) noexcept { append_format("%d", int(value)); }
-  ZERO_TEST_INLINE_NODEBUG void append_value(const unsigned short& value) noexcept { append_format("%u", unsigned(value)); }
-  ZERO_TEST_INLINE_NODEBUG void append_value(const int& value) noexcept { append_format("%d", value); }
-  ZERO_TEST_INLINE_NODEBUG void append_value(const unsigned int& value) noexcept { append_format("%u", value); }
-  ZERO_TEST_INLINE_NODEBUG void append_value(const long& value) noexcept { append_format("%ld", value); }
-  ZERO_TEST_INLINE_NODEBUG void append_value(const unsigned long& value) noexcept { append_format("%lu", value); }
-  ZERO_TEST_INLINE_NODEBUG void append_value(const long long& value) noexcept { append_format("%lld", value); }
-  ZERO_TEST_INLINE_NODEBUG void append_value(const unsigned long long& value) noexcept { append_format("%llu", value); }
-  ZERO_TEST_INLINE_NODEBUG void append_value(const float& value) noexcept { append_format("%g", double(value)); }
-  ZERO_TEST_INLINE_NODEBUG void append_value(const double& value) noexcept { append_format("%g", double(value)); }
-
-  bool eat_nl() noexcept;
-};
-
-template<size_t N>
-class StringBufferTmp : public StringBuffer {
-public:
-  char _embedded_data[N];
-
-  ZERO_TEST_INLINE_NODEBUG StringBufferTmp() noexcept {
-    _data = _embedded_data;
-    _capacity = N;
-    _temporary = true;
-  }
-
-  ZERO_TEST_INLINE_NODEBUG void reset() noexcept {
-    _size = 0u;
-    _failed = false;
-
-    if (_data && !_temporary) {
-      free(_data);
-      _data = _embedded_data;
-      _capacity = N;
-      _temporary = true;
-    }
-  }
-};
-
-template<typename T>
-struct Formatter {
-  static constexpr bool kExists = std::is_integral_v<T> ||
-                                  std::is_floating_point_v<T> ||
-                                  std::is_enum_v<T> ||
-                                  std::is_pointer_v<T>;
-
-  static inline void stringify(StringBuffer& buf, const T& value) requires (std::is_integral_v<T> || std::is_floating_point_v<T> || std::is_enum_v<T> || std::is_pointer_v<T>) {
-    if constexpr (std::is_integral_v<T> || std::is_floating_point_v<T>) {
-      buf.append_value(value);
-    }
-    else if constexpr (std::is_enum_v<T>) {
-      buf.append_value(std::underlying_type_t<T>(value));
-    }
-    else if (std::is_pointer_v<T>) {
-      buf.append_format(sizeof(void*) == 4 ? "0x%08X" : "0x%016X", reinterpret_cast<const void*>(value));
-    }
-  }
-};
-
 template<typename LHS, typename RHS>
 [[maybe_unused]]
-static bool format_binary_expression(StringBuffer& buf, const char* op, const LHS& lhs, const RHS& rhs) {
-  if constexpr (Formatter<LHS>::kExists && Formatter<RHS>::kExists) {
-    Formatter<LHS>::stringify(buf, lhs);
+static bool format_binary_expression(String& buf, const char* op, const LHS& lhs, const RHS& rhs) {
+  if constexpr (ZeroFormatter<LHS>::kExists && ZeroFormatter<RHS>::kExists) {
+    ZeroFormatter<LHS>::stringify(buf, lhs);
     buf.append(op);
-    Formatter<RHS>::stringify(buf, rhs);
+    ZeroFormatter<RHS>::stringify(buf, rhs);
     return true;
   }
   else {
@@ -295,12 +156,8 @@ public:
   template<typename F>
   struct UserFunc { F func; void* data; };
 
-  // Command line arguments.
-  int _argc {};
-  const char* const* _argv {};
-
+  CmdLine _cmd_line;
   bool _verbose = false;
-  bool _color_output = false;
   unsigned _status = 0;
   unsigned _test_precedence_max = 0;
   const char* _run_filter {};
@@ -309,28 +166,22 @@ public:
   UserFunc<HandlerFn> _run_before {};
   UserFunc<HandlerFn> _run_after {};
   UserFunc<HandlerFn> _options_list {};
-  StringBufferTmp<512> _log_pending;
+  StringTmp<512> _log_pending;
 
   TestCase* _test_running {};
 
   char _symbol_success[8] {};
   char _symbol_failure[8] {};
-  ColorEscape _color_escapes[size_t(MessageType::kMaxValue) + 1u] {};
 
-  TestRunner(int argc, const char* const* argv);
+  TestRunner(int argc, const char* const* argv) noexcept;
   ~TestRunner() noexcept;
 
-  void apply_precedence(const TestPrecedence* entries, size_t count);
+  void apply_precedence(const TestPrecedence* entries, size_t count) noexcept;
 
   template<size_t N>
-  inline void apply_precedence(const TestPrecedence(&entries)[N]) { apply_precedence(entries, N); }
+  inline void apply_precedence(const TestPrecedence(&entries)[N]) noexcept { apply_precedence(entries, N); }
 
-  bool has_arg(const char* key) const noexcept;
-  const char* get_arg(const char* key, const char* default_value = nullptr) const noexcept;
-
-  inline const ColorEscape& color_escape_of(MessageType message_type) const noexcept {
-    return _color_escapes[size_t(message_type)];
-  }
+  const CmdLine& cmd_line() const noexcept { return _cmd_line; }
 
   template<typename LambdaFn>
   inline void on_message(const LambdaFn& lambda_fn) {
@@ -372,7 +223,7 @@ public:
   void message_s(MessageType msg_type, const char* msg);
   void message_s(MessageType msg_type, const char* msg, size_t msg_size);
 
-  inline void message(MessageType msg_type, const StringBuffer& sb) { message_s(msg_type, sb.data(), sb.size()); }
+  inline void message(MessageType msg_type, const String& sb) { message_s(msg_type, sb.data(), sb.size()); }
 
   template<typename... Args>
   inline void message(MessageType msg_type, const char* fmt, Args&&... args) noexcept {
@@ -380,7 +231,7 @@ public:
       message_s(msg_type, fmt);
     }
     else {
-      message_f(msg_type, fmt, forward<Args>(args)...);
+      message_f(msg_type, fmt, ZeroLib::forward<Args>(args)...);
     }
   }
 
@@ -470,11 +321,8 @@ static inline void for_each_type(const TestTypes<Types...>& list, Fn&& fn) {
   (fn(TypeTag<Types>{}, type_name_at(list.names, index++)), ...);
 }
 
-[[maybe_unused]]
-static inline uint32_t float_as_int(float x) noexcept { uint32_t out; memcpy(&out, &x, 4); return out; }
-
-[[maybe_unused]]
-static inline uint64_t float_as_int(double x) noexcept { uint64_t out; memcpy(&out, &x, 8); return out; }
+[[maybe_unused]] static inline uint32_t float_as_int(float x) noexcept { uint32_t out; memcpy(&out, &x, 4); return out; }
+[[maybe_unused]] static inline uint64_t float_as_int(double x) noexcept { uint64_t out; memcpy(&out, &x, 8); return out; }
 
 template<typename T>
 [[maybe_unused]]
@@ -505,7 +353,7 @@ struct CheckResult {
   int _line = 0;
   bool _ok = true;
   bool _handle_it = false;
-  StringBuffer _buf;
+  String _buf;
 
   explicit inline CheckResult(const char* file, int line, const char* expression, bool ok) noexcept
     : _file(file),
@@ -513,9 +361,9 @@ struct CheckResult {
       _line(line),
       _ok(ok) {};
 
-  ZERO_TEST_INLINE_NODEBUG ~CheckResult() noexcept {}
+  ZERO_INLINE_NODEBUG ~CheckResult() noexcept {}
 
-  ZERO_TEST_INLINE_NODEBUG bool proceed() noexcept {
+  ZERO_INLINE_NODEBUG bool proceed() noexcept {
     if (_ok) {
       return false;
     }
@@ -528,14 +376,14 @@ struct CheckResult {
     }
   }
 
-  ZERO_TEST_INLINE_NODEBUG CheckResult& handle_it() noexcept {
+  ZERO_INLINE_NODEBUG CheckResult& handle_it() noexcept {
     _handle_it = true;
     return *this;
   }
 
   template<typename... Args>
   inline void message(const char* fmt, Args&&... args) noexcept {
-    test_failure(this, fmt, forward<Args>(args)...);
+    test_failure(this, fmt, ZeroLib::forward<Args>(args)...);
   }
 };
 
@@ -571,7 +419,7 @@ template<typename T>
 static CheckResult expect_null(const char* file, int line, const char* exp, T* result) noexcept requires (std::is_pointer_v<T*>) {
   bool ok = result == nullptr;
   CheckResult out(file, line, exp, ok);
-  if (!ok) { Formatter<T*>::stringify(out._buf, result); }
+  if (!ok) { ZeroFormatter<T*>::stringify(out._buf, result); }
   return out;
 }
 
@@ -580,7 +428,7 @@ template<typename T>
 static CheckResult expect_not_null(const char* file, int line, const char* exp, T* result) noexcept requires (std::is_pointer_v<T*>) {
   bool ok = result != nullptr;
   CheckResult out(file, line, exp, ok);
-  if (!ok) { Formatter<T*>::stringify(out._buf, result); }
+  if (!ok) { ZeroFormatter<T*>::stringify(out._buf, result); }
   return out;
 }
 
@@ -758,8 +606,6 @@ static CheckResult expect_near_eps(const char* file, int line, const char* exp, 
 #define EXPECT_NOT_NULL(...) EXPECT_CUSTOM(::ZeroTest::expect_not_null(__FILE__, __LINE__, "EXPECT_NOT_NULL(" #__VA_ARGS__ ")", __VA_ARGS__))
 #define EXPECT_NEAR_EPS(...) EXPECT_CUSTOM(::ZeroTest::expect_near_eps(__FILE__, __LINE__, "EXPECT_NEAR_EPS(" #__VA_ARGS__ ")", __VA_ARGS__))
 #define EXPECT_NEAR_ULP(...) EXPECT_CUSTOM(::ZeroTest::expect_near_ulp(__FILE__, __LINE__, "EXPECT_NEAR_ULP(" #__VA_ARGS__ ")", __VA_ARGS__))
-
-#undef ZERO_TEST_INLINE_NODEBUG
 
 //! \endcond
 

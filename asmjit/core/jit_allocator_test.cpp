@@ -223,7 +223,7 @@ static void test_jit_allocator_reset_empty() noexcept {
 }
 
 static void test_jit_allocator_alloc_release() noexcept {
-  size_t kCount = ZeroTest::test_runner()->has_arg("--quick") ? 20000 : 100000;
+  size_t kCount = ZeroTest::test_runner()->cmd_line().has_arg("--quick") ? 20000 : 100000;
 
   struct TestInfo {
     const char* name;

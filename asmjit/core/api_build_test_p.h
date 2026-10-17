@@ -24,21 +24,17 @@
 #if defined(ASMJIT_TEST)
 
 #include <asmjit/core/error.h>
-#include <asmjit-testing/tests/zero_test.h>
+#include <asmjit-testing/commons/zero_test.h>
 
 // ZeroTest integration.
-namespace ZeroTest {
-
 template<>
-struct Formatter<asmjit::Error> {
+struct ZeroFormatter<asmjit::Error> {
   static constexpr bool kExists = true;
 
-  static inline void stringify(StringBuffer& buf, asmjit::Error value) noexcept {
+  static inline void stringify(ZeroLib::String& buf, asmjit::Error value) noexcept {
     buf.append(asmjit::stringify_error(value));
   }
 };
-
-} // {ZeroTest}
 
 //! \cond INTERNAL
 #define EXPECT_OK(...) \
