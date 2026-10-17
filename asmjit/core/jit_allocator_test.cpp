@@ -401,10 +401,119 @@ static void test_jit_allocator_query() noexcept {
   EXPECT_EQ(allocated_span.size(), queried_span.size());
 }
 
+static bool JitAllocatorTest_in_range(const JitAllocator::Span& span, uintptr_t start, uintptr_t end) noexcept {
+  uintptr_t rx = uintptr_t(span.rx());
+  return rx >= start && rx < end && end - rx >= span.size();
+}
+
+static void test_jit_allocator_address_range() noexcept {
+  using Opt = JitAllocatorOptions;
+
+  constexpr size_t kRangeSize = 256u * 1024u * 1024u;
+  constexpr size_t kSpanSize = 64u * 1024u;
+  constexpr size_t kSpanCount = 64u;
+
+  // Find free address space by mapping and unmapping it (the test runner is single-threaded).
+  void* hole;
+  EXPECT_EQ(VirtMem::alloc(&hole, kRangeSize, VirtMem::MemoryFlags::kAccessRW), Error::kOk);
+  EXPECT_EQ(VirtMem::release(hole, kRangeSize), Error::kOk);
+
+  uintptr_t start = uintptr_t(hole);
+  uintptr_t end = start + kRangeSize;
+
+  VirtMem::HardenedRuntimeInfo hri = VirtMem::hardened_runtime_info();
+  size_t page_size = VirtMem::info().page_size;
+
+  static constexpr Opt range_options[] = { Opt::kNone, Opt::kUseDualMapping };
+  for (Opt options : range_options) {
+    if (axl::test(options, Opt::kUseDualMapping) && !hri.has_flag(VirtMem::HardenedRuntimeFlags::kDualMapping)) {
+      continue;
+    }
+
+    TEST_LOG("JitAllocator(address range, %s)", options == Opt::kNone ? "kNone" : "kUseDualMapping");
+
+    JitAllocator::CreateParams params {};
+    params.options = options | Opt::kStrictAddressRange;
+    params.address_range_start = start;
+    params.address_range_end = end;
+
+    JitAllocator allocator(&params);
+    JitAllocator::Span spans[kSpanCount];
+
+    for (size_t i = 0; i < kSpanCount; i++) {
+      EXPECT_EQ(allocator.alloc(Out(spans[i]), kSpanSize), Error::kOk);
+      EXPECT_TRUE(JitAllocatorTest_in_range(spans[i], start, end))
+        .message("Span %p [%zu] is outside of [%p, %p)", spans[i].rx(), i, (void*)start, (void*)end);
+    }
+
+    EXPECT_GT(allocator.statistics().block_count(), 1u);
+
+    // The first span must not be at the start of its block (UBSAN reads 8 bytes before a function).
+    EXPECT_EQ(uintptr_t(spans[0].rx()) & (page_size - 1u), size_t(allocator.granularity()));
+
+    for (size_t i = 0; i < kSpanCount; i++) {
+      EXPECT_EQ(allocator.release(spans[i].rx()), Error::kOk);
+    }
+  }
+
+  TEST_LOG("JitAllocator(address range that is taken)");
+  {
+    void* taken;
+    EXPECT_EQ(VirtMem::alloc(&taken, kSpanSize * 16u, VirtMem::MemoryFlags::kAccessRW), Error::kOk);
+
+    JitAllocator::CreateParams params {};
+    params.address_range_start = uintptr_t(taken);
+    params.address_range_end = uintptr_t(taken) + kSpanSize * 16u;
+
+    // Non-strict allocator places the block anywhere.
+    {
+      JitAllocator allocator(&params);
+      JitAllocator::Span span;
+      EXPECT_EQ(allocator.alloc(Out(span), 64), Error::kOk);
+      EXPECT_FALSE(JitAllocatorTest_in_range(span, params.address_range_start, params.address_range_end));
+      EXPECT_EQ(allocator.release(span.rx()), Error::kOk);
+    }
+
+    // Strict allocator fails.
+    params.options = Opt::kStrictAddressRange;
+    {
+      JitAllocator allocator(&params);
+      JitAllocator::Span span;
+      EXPECT_EQ(allocator.alloc(Out(span), 64), Error::kOutOfMemory);
+      EXPECT_NULL(span.rx());
+      EXPECT_EQ(allocator.statistics().block_count(), 0u);
+    }
+
+    EXPECT_EQ(VirtMem::release(taken, kSpanSize * 16u), Error::kOk);
+  }
+
+  TEST_LOG("JitAllocator(kNearModuleAddressRange | kStrictAddressRange)");
+  {
+    JitAllocator::CreateParams params {};
+    params.options = Opt::kNearModuleAddressRange | Opt::kStrictAddressRange;
+
+    JitAllocator allocator(&params);
+    JitAllocator::Span span;
+    Error err = allocator.alloc(Out(span), kSpanSize);
+
+#if ASMJIT_TARGET_ARCH_X86 == 64
+    // This function is in the same module as AsmJit, so it must be within reach of a 32-bit displacement.
+    uintptr_t fn = uintptr_t(&test_jit_allocator_address_range);
+    EXPECT_EQ(err, Error::kOk);
+    EXPECT_TRUE(axl::is_int_n<32>(int64_t(fn - uintptr_t(span.rx()))));
+    EXPECT_TRUE(axl::is_int_n<32>(int64_t(fn - (uintptr_t(span.rx()) + span.size()))));
+    EXPECT_EQ(allocator.release(span.rx()), Error::kOk);
+#else
+    EXPECT_EQ(err, Error::kFeatureNotEnabled);
+#endif
+  }
+}
+
 TEST_CASE(core_jit_allocator) {
   test_jit_allocator_reset_empty();
   test_jit_allocator_alloc_release();
   test_jit_allocator_query();
+  test_jit_allocator_address_range();
 }
 
 ASMJIT_END_NAMESPACE

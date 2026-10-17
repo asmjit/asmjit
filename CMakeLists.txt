@@ -239,6 +239,7 @@ asmjit_define_sources(ASMJIT_SRC
   asmjit/core/jit_allocator_test.cpp
   asmjit/core/jit_runtime.cpp
   asmjit/core/jit_runtime.h
+  asmjit/core/jit_runtime_test.cpp
   asmjit/core/logger.cpp
   asmjit/core/logger.h
   asmjit/core/misc_p.h
@@ -271,6 +272,7 @@ asmjit_define_sources(ASMJIT_SRC
   asmjit/core/type.h
   asmjit/core/virt_mem.cpp
   asmjit/core/virt_mem.h
+  asmjit/core/virt_mem_p.h
   asmjit/core/virt_mem_test.cpp
 
   asmjit/a64.h
@@ -785,7 +787,7 @@ if (TRUE)
         CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
         CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
 
-      foreach(app asmjit_bench_overhead asmjit_bench_regalloc)
+      foreach(app asmjit_bench_calls asmjit_bench_overhead asmjit_bench_regalloc)
         asmjit_add_target(${app} TEST
           SOURCES    asmjit-testing/bench/${app}.cpp
           LIBRARIES  asmjit::asmjit

@@ -12,6 +12,7 @@
 #include <asmjit/core/pauth_utils_p.h>
 #include <asmjit/core/string.h>
 #include <asmjit/core/virt_mem.h>
+#include <asmjit/core/virt_mem_p.h>
 
 #if defined(_WIN32)
   #include <windows.h>
@@ -41,6 +42,10 @@
       #define MAP_HUGE_SHIFT 26
     #endif // MAP_HUGE_SHIFT
 
+    #ifndef MAP_FIXED_NOREPLACE
+      #define MAP_FIXED_NOREPLACE 0x100000
+    #endif // MAP_FIXED_NOREPLACE
+
     #if !defined(MFD_CLOEXEC)
       #define MFD_CLOEXEC 0x0001u
     #endif // MFD_CLOEXEC
@@ -62,8 +67,16 @@
     #endif // MFD_HUGE_SHIFT
   #endif
 
+  // dl_iterate_phdr() is used to find the address range of a module.
+  #if defined(__linux__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
+    #include <link.h>
+    #define ASMJIT_VM_HAS_DL_ITERATE_PHDR
+  #endif
+
   // Apple recently introduced MAP_JIT flag, which we want to use.
   #if defined(__APPLE__)
+    #include <dlfcn.h>
+    #include <mach-o/loader.h>
     #include <pthread.h>
     #include <TargetConditionals.h>
     #include <libkern/OSCacheControl.h> // sys_icache_invalidate().
@@ -157,10 +170,73 @@ static const constexpr MemoryFlags dual_mapping_filter[2] = {
   MemoryFlags::kAccessExecute | MemoryFlags::kMMapMaxAccessExecute
 };
 
+// It's not fully random, just to avoid collisions when opening TMP or SHM file, and to spread mappings within an
+// address range.
+[[maybe_unused]]
+static uint64_t generate_random_bits(uintptr_t stack_ptr, uint32_t attempt) noexcept {
+  static std::atomic<uint32_t> internal_counter;
+
+#if defined(__GNUC__) && ASMJIT_TARGET_ARCH_X86
+  // Use RDTSC instruction to avoid gettimeofday() as we just need some "random" bits.
+  uint64_t mix = __builtin_ia32_rdtsc();
+#elif defined(_WIN32)
+  LARGE_INTEGER counter {};
+  ::QueryPerformanceCounter(&counter);
+  uint64_t mix = uint64_t(counter.QuadPart);
+#else
+  struct timeval tm {};
+  uint64_t mix = 1; // only used when gettimeofday() fails, which is unlikely.
+  if (gettimeofday(&tm, nullptr) == 0) {
+    mix = uint64_t(tm.tv_usec) ^ uint64_t(tm.tv_sec);
+  }
+#endif
+
+  uint64_t bits = (uint64_t(stack_ptr) & 0x1010505000055590u) - mix * 773703683;
+  bits = (bits >> 33) ^ (bits << 7) ^ (attempt * 87178291199);
+  return bits + uint64_t(++internal_counter) * 10619863;
+}
+
+// Operating systems cannot map memory anywhere within an address range, but all of them can try a given address,
+// so mapping within a range tries random `alignment` aligned addresses at which `size` bytes fit within the range.
+struct AddressRangeProbe {
+  static constexpr uint32_t kMaxAttempts = 64;
+
+  uintptr_t first;
+  uintptr_t last;
+  size_t alignment;
+  size_t slot_count;
+
+  bool init(size_t size, size_t alignment_, uintptr_t range_start, uintptr_t range_end) noexcept {
+    alignment = alignment_;
+    first = axl::align_up(range_start, alignment);
+
+    if (first < range_start || first >= range_end || range_end - first < size) {
+      return false;
+    }
+
+    last = first + axl::align_down(range_end - first - size, alignment);
+    slot_count = (last - first) / alignment + 1u;
+    return true;
+  }
+
+  void* address(uint32_t attempt) const noexcept {
+    return reinterpret_cast<void*>(first + uintptr_t(generate_random_bits(uintptr_t(this), attempt) % slot_count) * alignment);
+  }
+
+  bool contains(const void* p) const noexcept { return uintptr_t(p) >= first && uintptr_t(p) <= last; }
+};
+
 // Virtual Memory [Windows]
 // ========================
 
 #if defined(_WIN32)
+
+// UWP apps cannot map a view of a file mapping at a given address, MapViewOfFileEx() is only available to desktop apps.
+#if defined(WINAPI_FAMILY_PARTITION)
+  #if !WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
+    #define ASMJIT_VM_NO_MAP_VIEW_AT_ADDRESS
+  #endif
+#endif
 
 struct ScopedHandle {
   inline ScopedHandle() noexcept
@@ -262,7 +338,43 @@ static HardenedRuntimeFlags get_hardened_runtime_flags() noexcept {
   return flags;
 }
 
-Error alloc(void** p, size_t size, MemoryFlags memory_flags) noexcept {
+// VirtualAlloc() and MapViewOfFileEx() fail with ERROR_INVALID_ADDRESS if the address is taken.
+static void* virtual_alloc_in_range(size_t size, DWORD allocation_type, DWORD protect_flags, size_t alignment, uintptr_t range_start, uintptr_t range_end) noexcept {
+  AddressRangeProbe probe;
+  if (!probe.init(size, alignment, range_start, range_end)) {
+    return nullptr;
+  }
+
+  for (uint32_t attempt = 0; attempt < AddressRangeProbe::kMaxAttempts; attempt++) {
+    void* ptr = ::VirtualAlloc(probe.address(attempt), size, allocation_type, protect_flags);
+    if (ptr || ::GetLastError() != ERROR_INVALID_ADDRESS) {
+      return ptr;
+    }
+  }
+
+  return nullptr;
+}
+
+#if !defined(ASMJIT_VM_NO_MAP_VIEW_AT_ADDRESS)
+static void* map_view_in_range(HANDLE handle, DWORD desired_access, size_t size, uintptr_t range_start, uintptr_t range_end) noexcept {
+  AddressRangeProbe probe;
+  if (!probe.init(size, info().page_granularity, range_start, range_end)) {
+    return nullptr;
+  }
+
+  for (uint32_t attempt = 0; attempt < AddressRangeProbe::kMaxAttempts; attempt++) {
+    void* ptr = ::MapViewOfFileEx(handle, desired_access, 0, 0, size, probe.address(attempt));
+    if (ptr || ::GetLastError() != ERROR_INVALID_ADDRESS) {
+      return ptr;
+    }
+  }
+
+  return nullptr;
+}
+#endif // !ASMJIT_VM_NO_MAP_VIEW_AT_ADDRESS
+
+// Allocates anywhere when `range_end` is zero, otherwise within `[range_start, range_end)`.
+static Error alloc_impl(void** p, size_t size, MemoryFlags memory_flags, uintptr_t range_start, uintptr_t range_end) noexcept {
   *p = nullptr;
 
   if (size == 0) {
@@ -271,6 +383,7 @@ Error alloc(void** p, size_t size, MemoryFlags memory_flags) noexcept {
 
   DWORD allocation_type = MEM_COMMIT | MEM_RESERVE;
   DWORD protect_flags = protect_flags_from_memory_flags(memory_flags);
+  size_t alignment = info().page_granularity;
 
   if (axl::test(memory_flags, MemoryFlags::kMMapLargePages)) {
     size_t lp_size = large_page_size();
@@ -285,15 +398,29 @@ Error alloc(void** p, size_t size, MemoryFlags memory_flags) noexcept {
     }
 
     allocation_type |= MEM_LARGE_PAGES;
+    alignment = lp_size;
   }
 
-  void* result = ::VirtualAlloc(nullptr, size, allocation_type, protect_flags);
+  void* result = range_end ? virtual_alloc_in_range(size, allocation_type, protect_flags, alignment, range_start, range_end)
+                           : ::VirtualAlloc(nullptr, size, allocation_type, protect_flags);
   if (!result) {
     return make_error(Error::kOutOfMemory);
   }
 
   *p = result;
   return Error::kOk;
+}
+
+Error alloc(void** p, size_t size, MemoryFlags memory_flags) noexcept {
+  return alloc_impl(p, size, memory_flags, 0u, 0u);
+}
+
+Error alloc(void** p, size_t size, MemoryFlags memory_flags, uintptr_t range_start, uintptr_t range_end) noexcept {
+  if (range_start >= range_end) {
+    *p = nullptr;
+    return make_error(Error::kInvalidArgument);
+  }
+  return alloc_impl(p, size, memory_flags, range_start, range_end);
 }
 
 Error release(void* p, size_t size) noexcept {
@@ -320,7 +447,8 @@ Error protect(void* p, size_t size, MemoryFlags memory_flags) noexcept {
   return make_error(Error::kInvalidArgument);
 }
 
-Error alloc_dual_mapping(Out<DualMapping> dm, size_t size, MemoryFlags memory_flags) noexcept {
+// Maps anywhere when `range_end` is zero, otherwise places the RX view within `[range_start, range_end)`.
+static Error alloc_dual_mapping_impl(Out<DualMapping> dm, size_t size, MemoryFlags memory_flags, uintptr_t range_start, uintptr_t range_end) noexcept {
   dm->rx = nullptr;
   dm->rw = nullptr;
 
@@ -345,7 +473,13 @@ Error alloc_dual_mapping(Out<DualMapping> dm, size_t size, MemoryFlags memory_fl
   for (uint32_t i = 0; i < 2; i++) {
     MemoryFlags access_flags = memory_flags & ~dual_mapping_filter[i];
     DWORD desired_access = desired_access_from_memory_flags(access_flags);
+#if defined(ASMJIT_VM_NO_MAP_VIEW_AT_ADDRESS)
+    axl::maybe_unused(range_start, range_end);
     ptr[i] = ::MapViewOfFile(handle.value, desired_access, 0, 0, size);
+#else
+    ptr[i] = (i == 0 && range_end) ? map_view_in_range(handle.value, desired_access, size, range_start, range_end)
+                                   : ::MapViewOfFile(handle.value, desired_access, 0, 0, size);
+#endif
 
     if (ptr[i] == nullptr) {
       if (i == 1u) {
@@ -358,6 +492,24 @@ Error alloc_dual_mapping(Out<DualMapping> dm, size_t size, MemoryFlags memory_fl
   dm->rx = ptr[0];
   dm->rw = ptr[1];
   return Error::kOk;
+}
+
+Error alloc_dual_mapping(Out<DualMapping> dm, size_t size, MemoryFlags memory_flags) noexcept {
+  return alloc_dual_mapping_impl(dm, size, memory_flags, 0u, 0u);
+}
+
+Error alloc_dual_mapping(Out<DualMapping> dm, size_t size, MemoryFlags memory_flags, uintptr_t range_start, uintptr_t range_end) noexcept {
+#if defined(ASMJIT_VM_NO_MAP_VIEW_AT_ADDRESS)
+  axl::maybe_unused(size, memory_flags, range_start, range_end);
+  dm = DualMapping{};
+  return make_error(Error::kFeatureNotEnabled);
+#else
+  if (range_start >= range_end) {
+    dm = DualMapping{};
+    return make_error(Error::kInvalidArgument);
+  }
+  return alloc_dual_mapping_impl(dm, size, memory_flags, range_start, range_end);
+#endif
 }
 
 Error release_dual_mapping(DualMapping& dm, size_t size) noexcept {
@@ -662,27 +814,6 @@ static uint32_t get_mfd_exec_flag() noexcept {
 }
 #endif // __linux__ && __NR_memfd_create
 
-
-// It's not fully random, just to avoid collisions when opening TMP or SHM file.
-[[maybe_unused]]
-static uint64_t generate_random_bits(uintptr_t stack_ptr, uint32_t attempt) noexcept {
-  static std::atomic<uint32_t> internal_counter;
-
-#if defined(__GNUC__) && ASMJIT_TARGET_ARCH_X86
-  // Use RDTSC instruction to avoid gettimeofday() as we just need some "random" bits.
-  uint64_t mix = __builtin_ia32_rdtsc();
-#else
-  struct timeval tm {};
-  uint64_t mix = 1; // only used when gettimeofday() fails, which is unlikely.
-  if (gettimeofday(&tm, nullptr) == 0) {
-    mix = uint64_t(tm.tv_usec) ^ uint64_t(tm.tv_sec);
-  }
-#endif
-
-  uint64_t bits = (uint64_t(stack_ptr) & 0x1010505000055590u) - mix * 773703683;
-  bits = (bits >> 33) ^ (bits << 7) ^ (attempt * 87178291199);
-  return bits + uint64_t(++internal_counter) * 10619863;
-}
 
 [[maybe_unused]]
 static inline int default_open_flags() noexcept { return O_RDWR | O_CREAT | O_EXCL | O_CLOEXEC; }
@@ -1007,7 +1138,72 @@ static HardenedRuntimeFlags get_hardened_runtime_flags() noexcept {
   return flags;
 }
 
-static Error map_memory(void** p, size_t size, MemoryFlags memory_flags, int fd = -1, off_t offset = 0) noexcept {
+// Flags that make mmap() fail if the address is taken. Without such flags the address is only a hint and the mapping
+// may be placed elsewhere, so `map_in_range()` checks the result either way.
+#if defined(__linux__)
+// Linux 4.17+, older kernels treat the address as a hint.
+static constexpr int kMMapNoReplace = MAP_FIXED_NOREPLACE;
+#elif defined(MAP_EXCL)
+// FreeBSD.
+static constexpr int kMMapNoReplace = MAP_FIXED | MAP_EXCL;
+#elif defined(__MAP_NOREPLACE)
+// OpenBSD.
+static constexpr int kMMapNoReplace = MAP_FIXED | __MAP_NOREPLACE;
+#else
+// macOS and NetBSD.
+static constexpr int kMMapNoReplace = 0;
+#endif
+
+// Tests whether mapping at a given address failed because the address is taken, so another address can be tried.
+static inline bool is_address_taken_error(int e) noexcept {
+#if defined(MAP_EXCL)
+  // FreeBSD documents EINVAL, but returns ENOMEM.
+  if (e == EINVAL || e == ENOMEM) {
+    return true;
+  }
+#elif defined(__MAP_NOREPLACE) || defined(__NetBSD__)
+  // OpenBSD's mmap() and NetBSD's mremap(MAP_FIXED).
+  if (e == ENOMEM) {
+    return true;
+  }
+#endif
+
+  // Linux returns EEXIST, and EPERM for addresses below `vm.mmap_min_addr`.
+  return e == EEXIST || e == EPERM;
+}
+
+// Calls `map_at(addr)` with addresses picked by `AddressRangeProbe` until it returns a mapping within the range.
+template<typename MapAt>
+static void* map_in_range(size_t size, size_t alignment, uintptr_t range_start, uintptr_t range_end, const MapAt& map_at) noexcept {
+  AddressRangeProbe probe;
+  if (!probe.init(size, alignment, range_start, range_end)) {
+    errno = ENOMEM;
+    return MAP_FAILED;
+  }
+
+  for (uint32_t attempt = 0; attempt < AddressRangeProbe::kMaxAttempts; attempt++) {
+    void* ptr = map_at(probe.address(attempt));
+
+    if (ptr == MAP_FAILED) {
+      if (!is_address_taken_error(errno)) {
+        return MAP_FAILED;
+      }
+      continue;
+    }
+
+    if (probe.contains(ptr)) {
+      return ptr;
+    }
+
+    munmap(ptr, size);
+  }
+
+  errno = ENOMEM;
+  return MAP_FAILED;
+}
+
+// Maps anywhere when `range_end` is zero, otherwise within `[range_start, range_end)`.
+static Error map_memory(void** p, size_t size, MemoryFlags memory_flags, int fd = -1, off_t offset = 0, uintptr_t range_start = 0, uintptr_t range_end = 0) noexcept {
   *p = nullptr;
 
   if (size == 0) {
@@ -1023,6 +1219,7 @@ static Error map_memory(void** p, size_t size, MemoryFlags memory_flags, int fd 
   }
 
   bool use_large_pages = axl::test(memory_flags, MemoryFlags::kMMapLargePages);
+  size_t alignment = info().page_size;
 
   if (use_large_pages) {
 #if defined(__linux__)
@@ -1037,12 +1234,22 @@ static Error map_memory(void** p, size_t size, MemoryFlags memory_flags, int fd 
 
     unsigned lp_size_log2 = axl::ctz(lp_size);
     mm_flags |= int(unsigned(MAP_HUGETLB) | (lp_size_log2 << MAP_HUGE_SHIFT));
+    alignment = lp_size;
 #else
     return make_error(Error::kFeatureNotEnabled);
 #endif // __linux__
   }
 
-  void* ptr = mmap(nullptr, size, protection, mm_flags, fd, offset);
+  void* ptr;
+  if (range_end) {
+    ptr = map_in_range(size, alignment, range_start, range_end, [&](void* addr) noexcept {
+      return mmap(addr, size, protection, mm_flags | kMMapNoReplace, fd, offset);
+    });
+  }
+  else {
+    ptr = mmap(nullptr, size, protection, mm_flags, fd, offset);
+  }
+
   if (ptr == MAP_FAILED) {
     return make_error(asmjit_error_from_errno(errno));
   }
@@ -1067,6 +1274,14 @@ static Error unmap_memory(void* p, size_t size) noexcept {
 
 Error alloc(void** p, size_t size, MemoryFlags memory_flags) noexcept {
   return map_memory(p, size, memory_flags);
+}
+
+Error alloc(void** p, size_t size, MemoryFlags memory_flags, uintptr_t range_start, uintptr_t range_end) noexcept {
+  if (range_start >= range_end) {
+    *p = nullptr;
+    return make_error(Error::kInvalidArgument);
+  }
+  return map_memory(p, size, memory_flags, -1, 0, range_start, range_end);
 }
 
 Error release(void* p, size_t size) noexcept {
@@ -1105,7 +1320,7 @@ static Error unmap_dual_mapping(DualMapping& dm, size_t size) noexcept {
 #endif // !ASMJIT_NO_DUAL_MAPPING
 
 #if defined(ASMJIT_ANONYMOUS_MEMORY_USE_REMAPDUP)
-static Error alloc_dual_mapping_via_remapdup(Out<DualMapping> dm_out, size_t size, MemoryFlags memory_flags) noexcept {
+static Error alloc_dual_mapping_via_remapdup(Out<DualMapping> dm_out, size_t size, MemoryFlags memory_flags, uintptr_t range_start, uintptr_t range_end) noexcept {
   MemoryFlags max_access_flags = regular_access_flags_to_max_access_flags(memory_flags);
   MemoryFlags final_flags = memory_flags | max_access_flags | MemoryFlags::kMapShared;
 
@@ -1116,8 +1331,16 @@ static Error alloc_dual_mapping_via_remapdup(Out<DualMapping> dm_out, size_t siz
   DualMapping dm {};
   ASMJIT_PROPAGATE(map_memory(&dm.rw, size, rw_flags));
 
-  // Allocate RX mapping.
-  dm.rx = mremap(dm.rw, size, nullptr, size, MAP_REMAPDUP);
+  // Allocate RX mapping, mremap() ignores the address without MAP_FIXED, which fails if the address is taken.
+  if (range_end) {
+    dm.rx = map_in_range(size, info().page_size, range_start, range_end, [&](void* addr) noexcept {
+      return mremap(dm.rw, size, addr, size, MAP_FIXED | MAP_REMAPDUP);
+    });
+  }
+  else {
+    dm.rx = mremap(dm.rw, size, nullptr, size, MAP_REMAPDUP);
+  }
+
   if (dm.rx == MAP_FAILED) {
     int e = errno;
     munmap(dm.rw, size);
@@ -1149,11 +1372,12 @@ static Error asmjit_error_from_kern_result(kern_return_t result) noexcept {
   }
 }
 
-static Error alloc_dual_mapping_using_mach_vm_remap(Out<DualMapping> dm_out, size_t size, MemoryFlags memory_flags) noexcept {
+static Error alloc_dual_mapping_using_mach_vm_remap(Out<DualMapping> dm_out, size_t size, MemoryFlags memory_flags, uintptr_t range_start, uintptr_t range_end) noexcept {
   DualMapping dm {};
   MemoryFlags mmap_flags = MemoryFlags::kAccessReadWrite | (memory_flags & MemoryFlags::kMapShared);
 
-  ASMJIT_PROPAGATE(map_memory(&dm.rx, size, mmap_flags));
+  // The original mapping becomes the RX view.
+  ASMJIT_PROPAGATE(map_memory(&dm.rx, size, mmap_flags, -1, 0, range_start, range_end));
 
   vm_prot_t cur_prot;
   vm_prot_t max_prot;
@@ -1237,7 +1461,7 @@ static Error alloc_dual_mapping_using_mach_vm_remap(Out<DualMapping> dm_out, siz
 #endif // ASMJIT_ANONYMOUS_MEMORY_USE_MACH_VM_REMAP
 
 #if defined(ASMJIT_ANONYMOUS_MEMORY_USE_FD)
-static Error alloc_dual_mapping_using_file(Out<DualMapping> dm, size_t size, MemoryFlags memory_flags) noexcept {
+static Error alloc_dual_mapping_using_file(Out<DualMapping> dm, size_t size, MemoryFlags memory_flags, uintptr_t range_start, uintptr_t range_end) noexcept {
   Info vm_info = info();
   size_t file_size_limit = read_resource_limit(kRLimitFileSize, vm_info.page_size);
 
@@ -1272,8 +1496,10 @@ static Error alloc_dual_mapping_using_file(Out<DualMapping> dm, size_t size, Mem
 
   void* ptr[2];
   for (uint32_t i = 0; i < 2; i++) {
+    // Only the RX view (index 0) is placed within the range.
     MemoryFlags restricted_memory_flags = memory_flags & ~dual_mapping_filter[i];
-    Error err = map_memory(&ptr[i], size, restricted_memory_flags | MemoryFlags::kMapShared, anon_mem.fd(), 0);
+    Error err = map_memory(&ptr[i], size, restricted_memory_flags | MemoryFlags::kMapShared, anon_mem.fd(), 0,
+                           i == 0 ? range_start : 0u, i == 0 ? range_end : 0u);
     if (err != Error::kOk) {
       if (i == 1) {
         unmap_memory(ptr[0], size);
@@ -1288,11 +1514,12 @@ static Error alloc_dual_mapping_using_file(Out<DualMapping> dm, size_t size, Mem
 }
 #endif // ASMJIT_ANONYMOUS_MEMORY_USE_FD
 
-Error alloc_dual_mapping(Out<DualMapping> dm, size_t size, MemoryFlags memory_flags) noexcept {
+// Maps anywhere when `range_end` is zero, otherwise places the RX view within `[range_start, range_end)`.
+static Error alloc_dual_mapping_impl(Out<DualMapping> dm, size_t size, MemoryFlags memory_flags, uintptr_t range_start, uintptr_t range_end) noexcept {
   dm = DualMapping{};
 
 #if defined(ASMJIT_NO_DUAL_MAPPING)
-  axl::maybe_unused(size, memory_flags);
+  axl::maybe_unused(size, memory_flags, range_start, range_end);
   return make_error(Error::kFeatureNotEnabled);
 #else
   if (off_t(size) <= 0) {
@@ -1300,15 +1527,27 @@ Error alloc_dual_mapping(Out<DualMapping> dm, size_t size, MemoryFlags memory_fl
   }
 
 #if defined(ASMJIT_ANONYMOUS_MEMORY_USE_REMAPDUP)
-  return alloc_dual_mapping_via_remapdup(dm, size, memory_flags);
+  return alloc_dual_mapping_via_remapdup(dm, size, memory_flags, range_start, range_end);
 #elif defined(ASMJIT_ANONYMOUS_MEMORY_USE_MACH_VM_REMAP)
-  return alloc_dual_mapping_using_mach_vm_remap(dm, size, memory_flags);
+  return alloc_dual_mapping_using_mach_vm_remap(dm, size, memory_flags, range_start, range_end);
 #elif defined(ASMJIT_ANONYMOUS_MEMORY_USE_FD)
-  return alloc_dual_mapping_using_file(dm, size, memory_flags);
+  return alloc_dual_mapping_using_file(dm, size, memory_flags, range_start, range_end);
 #else
   #error "[asmjit] VirtMem::alloc_dual_mapping() doesn't have implementation for the target OS or architecture"
 #endif
 #endif // ASMJIT_NO_DUAL_MAPPING
+}
+
+Error alloc_dual_mapping(Out<DualMapping> dm, size_t size, MemoryFlags memory_flags) noexcept {
+  return alloc_dual_mapping_impl(dm, size, memory_flags, 0u, 0u);
+}
+
+Error alloc_dual_mapping(Out<DualMapping> dm, size_t size, MemoryFlags memory_flags, uintptr_t range_start, uintptr_t range_end) noexcept {
+  if (range_start >= range_end) {
+    dm = DualMapping{};
+    return make_error(Error::kInvalidArgument);
+  }
+  return alloc_dual_mapping_impl(dm, size, memory_flags, range_start, range_end);
 }
 
 Error release_dual_mapping(DualMapping& dm, size_t size) noexcept {
@@ -1383,6 +1622,141 @@ size_t large_page_size() noexcept {
   large_page_size.store(size != 0 ? size : not_available);
   return size;
 }
+
+// Virtual Memory - Module Address Range
+// =====================================
+
+#if defined(_WIN32)
+Error module_address_range(const void* addr, uintptr_t* start, uintptr_t* end) noexcept {
+  MEMORY_BASIC_INFORMATION mbi {};
+  if (!::VirtualQuery(addr, &mbi, sizeof(mbi)) || mbi.Type != MEM_IMAGE) {
+    return make_error(Error::kInvalidArgument);
+  }
+
+  // An image is mapped as a single allocation that starts with its headers.
+  const uint8_t* base = static_cast<const uint8_t*>(mbi.AllocationBase);
+  const IMAGE_DOS_HEADER* dos_header = reinterpret_cast<const IMAGE_DOS_HEADER*>(base);
+  if (dos_header->e_magic != IMAGE_DOS_SIGNATURE) {
+    return make_error(Error::kInvalidState);
+  }
+
+  const IMAGE_NT_HEADERS* nt_headers = reinterpret_cast<const IMAGE_NT_HEADERS*>(base + dos_header->e_lfanew);
+  if (nt_headers->Signature != IMAGE_NT_SIGNATURE) {
+    return make_error(Error::kInvalidState);
+  }
+
+  *start = uintptr_t(base);
+  *end = uintptr_t(base) + nt_headers->OptionalHeader.SizeOfImage;
+  return Error::kOk;
+}
+#elif defined(__APPLE__)
+Error module_address_range(const void* addr, uintptr_t* start, uintptr_t* end) noexcept {
+#if ASMJIT_TARGET_ARCH_BITS == 64
+  using MachHeader = mach_header_64;
+  using SegmentCommand = segment_command_64;
+  constexpr uint32_t kSegmentCmd = LC_SEGMENT_64;
+#else
+  using MachHeader = mach_header;
+  using SegmentCommand = segment_command;
+  constexpr uint32_t kSegmentCmd = LC_SEGMENT;
+#endif
+
+  Dl_info dl_info {};
+  if (!dladdr(addr, &dl_info) || !dl_info.dli_fbase) {
+    return make_error(Error::kInvalidArgument);
+  }
+
+  const MachHeader* header = static_cast<const MachHeader*>(dl_info.dli_fbase);
+  const uint8_t* cmd = reinterpret_cast<const uint8_t*>(header + 1);
+
+  uintptr_t lo = UINTPTR_MAX;
+  uintptr_t hi = 0;
+  uintptr_t slide = 0;
+
+  for (uint32_t i = 0; i < header->ncmds; i++) {
+    const load_command* lc = reinterpret_cast<const load_command*>(cmd);
+    cmd += lc->cmdsize;
+
+    if (lc->cmd != kSegmentCmd) {
+      continue;
+    }
+
+    // Skip __PAGEZERO, which only reserves the low address space of executables.
+    const SegmentCommand* seg = reinterpret_cast<const SegmentCommand*>(lc);
+    if (seg->initprot == 0 && seg->maxprot == 0) {
+      continue;
+    }
+
+    // __TEXT starts with the header, which gives the slide of the image.
+    if (seg->fileoff == 0 && seg->filesize != 0) {
+      slide = uintptr_t(header) - uintptr_t(seg->vmaddr);
+    }
+
+    lo = axl::min(lo, uintptr_t(seg->vmaddr));
+    hi = axl::max(hi, uintptr_t(seg->vmaddr + seg->vmsize));
+  }
+
+  if (lo >= hi) {
+    return make_error(Error::kInvalidState);
+  }
+
+  *start = lo + slide;
+  *end = hi + slide;
+  return Error::kOk;
+}
+#elif defined(ASMJIT_VM_HAS_DL_ITERATE_PHDR)
+struct ModuleRangeQuery {
+  uintptr_t addr;
+  uintptr_t start;
+  uintptr_t end;
+};
+
+static int module_address_range_callback(struct dl_phdr_info* phdr_info, size_t, void* data) noexcept {
+  ModuleRangeQuery* query = static_cast<ModuleRangeQuery*>(data);
+
+  uintptr_t start = UINTPTR_MAX;
+  uintptr_t end = 0;
+  bool found = false;
+
+  for (size_t i = 0; i < phdr_info->dlpi_phnum; i++) {
+    const auto& phdr = phdr_info->dlpi_phdr[i];
+    if (phdr.p_type != PT_LOAD) {
+      continue;
+    }
+
+    uintptr_t segment_start = uintptr_t(phdr_info->dlpi_addr + phdr.p_vaddr);
+    uintptr_t segment_end = segment_start + uintptr_t(phdr.p_memsz);
+
+    start = axl::min(start, segment_start);
+    end = axl::max(end, segment_end);
+    found |= query->addr >= segment_start && query->addr < segment_end;
+  }
+
+  if (!found) {
+    return 0;
+  }
+
+  query->start = start;
+  query->end = end;
+  return 1;
+}
+
+Error module_address_range(const void* addr, uintptr_t* start, uintptr_t* end) noexcept {
+  ModuleRangeQuery query { uintptr_t(addr), 0u, 0u };
+  if (!dl_iterate_phdr(module_address_range_callback, &query)) {
+    return make_error(Error::kInvalidArgument);
+  }
+
+  *start = query.start;
+  *end = query.end;
+  return Error::kOk;
+}
+#else
+Error module_address_range(const void* addr, uintptr_t* start, uintptr_t* end) noexcept {
+  axl::maybe_unused(addr, start, end);
+  return make_error(Error::kFeatureNotEnabled);
+}
+#endif
 
 // Virtual Memory - Hardened Runtime Info
 // ======================================
