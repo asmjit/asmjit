@@ -274,6 +274,8 @@ ASMJIT_API Error alloc_dual_mapping(Out<DualMapping> dm, size_t size, MemoryFlag
 //! within `[range_start, range_end)`. The read+write view (`dm.rw`) can be placed anywhere.
 //!
 //! See \ref VirtMem::alloc(void**, size_t, MemoryFlags, uintptr_t, uintptr_t) for how the range is used.
+//!
+//! \note Returns \ref Error::kFeatureNotEnabled in UWP apps, which cannot map a view at a given address.
 [[nodiscard]]
 ASMJIT_API Error alloc_dual_mapping(Out<DualMapping> dm, size_t size, MemoryFlags flags, uintptr_t range_start, uintptr_t range_end) noexcept;
 

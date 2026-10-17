@@ -231,6 +231,13 @@ struct AddressRangeProbe {
 
 #if defined(_WIN32)
 
+// UWP apps cannot map a view of a file mapping at a given address, MapViewOfFileEx() is only available to desktop apps.
+#if defined(WINAPI_FAMILY_PARTITION)
+  #if !WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
+    #define ASMJIT_VM_NO_MAP_VIEW_AT_ADDRESS
+  #endif
+#endif
+
 struct ScopedHandle {
   inline ScopedHandle() noexcept
     : value(nullptr) {}
@@ -348,6 +355,7 @@ static void* virtual_alloc_in_range(size_t size, DWORD allocation_type, DWORD pr
   return nullptr;
 }
 
+#if !defined(ASMJIT_VM_NO_MAP_VIEW_AT_ADDRESS)
 static void* map_view_in_range(HANDLE handle, DWORD desired_access, size_t size, uintptr_t range_start, uintptr_t range_end) noexcept {
   AddressRangeProbe probe;
   if (!probe.init(size, info().page_granularity, range_start, range_end)) {
@@ -363,6 +371,7 @@ static void* map_view_in_range(HANDLE handle, DWORD desired_access, size_t size,
 
   return nullptr;
 }
+#endif // !ASMJIT_VM_NO_MAP_VIEW_AT_ADDRESS
 
 // Allocates anywhere when `range_end` is zero, otherwise within `[range_start, range_end)`.
 static Error alloc_impl(void** p, size_t size, MemoryFlags memory_flags, uintptr_t range_start, uintptr_t range_end) noexcept {
@@ -464,8 +473,13 @@ static Error alloc_dual_mapping_impl(Out<DualMapping> dm, size_t size, MemoryFla
   for (uint32_t i = 0; i < 2; i++) {
     MemoryFlags access_flags = memory_flags & ~dual_mapping_filter[i];
     DWORD desired_access = desired_access_from_memory_flags(access_flags);
+#if defined(ASMJIT_VM_NO_MAP_VIEW_AT_ADDRESS)
+    axl::maybe_unused(range_start, range_end);
+    ptr[i] = ::MapViewOfFile(handle.value, desired_access, 0, 0, size);
+#else
     ptr[i] = (i == 0 && range_end) ? map_view_in_range(handle.value, desired_access, size, range_start, range_end)
                                    : ::MapViewOfFile(handle.value, desired_access, 0, 0, size);
+#endif
 
     if (ptr[i] == nullptr) {
       if (i == 1u) {
@@ -485,11 +499,17 @@ Error alloc_dual_mapping(Out<DualMapping> dm, size_t size, MemoryFlags memory_fl
 }
 
 Error alloc_dual_mapping(Out<DualMapping> dm, size_t size, MemoryFlags memory_flags, uintptr_t range_start, uintptr_t range_end) noexcept {
+#if defined(ASMJIT_VM_NO_MAP_VIEW_AT_ADDRESS)
+  axl::maybe_unused(size, memory_flags, range_start, range_end);
+  dm = DualMapping{};
+  return make_error(Error::kFeatureNotEnabled);
+#else
   if (range_start >= range_end) {
     dm = DualMapping{};
     return make_error(Error::kInvalidArgument);
   }
   return alloc_dual_mapping_impl(dm, size, memory_flags, range_start, range_end);
+#endif
 }
 
 Error release_dual_mapping(DualMapping& dm, size_t size) noexcept {
@@ -1118,25 +1138,39 @@ static HardenedRuntimeFlags get_hardened_runtime_flags() noexcept {
   return flags;
 }
 
-// Flags that make mmap() fail if the address is taken, and the errno it fails with. Without such flags the address is
-// only a hint and the mapping may be placed elsewhere, so `map_in_range()` checks the result either way.
+// Flags that make mmap() fail if the address is taken. Without such flags the address is only a hint and the mapping
+// may be placed elsewhere, so `map_in_range()` checks the result either way.
 #if defined(__linux__)
 // Linux 4.17+, older kernels treat the address as a hint.
 static constexpr int kMMapNoReplace = MAP_FIXED_NOREPLACE;
-static constexpr int kMMapTakenErrno = EEXIST;
 #elif defined(MAP_EXCL)
 // FreeBSD.
 static constexpr int kMMapNoReplace = MAP_FIXED | MAP_EXCL;
-static constexpr int kMMapTakenErrno = EINVAL;
 #elif defined(__MAP_NOREPLACE)
 // OpenBSD.
 static constexpr int kMMapNoReplace = MAP_FIXED | __MAP_NOREPLACE;
-static constexpr int kMMapTakenErrno = ENOMEM;
 #else
 // macOS and NetBSD.
 static constexpr int kMMapNoReplace = 0;
-static constexpr int kMMapTakenErrno = 0;
 #endif
+
+// Tests whether mapping at a given address failed because the address is taken, so another address can be tried.
+static inline bool is_address_taken_error(int e) noexcept {
+#if defined(MAP_EXCL)
+  // FreeBSD documents EINVAL, but returns ENOMEM.
+  if (e == EINVAL || e == ENOMEM) {
+    return true;
+  }
+#elif defined(__MAP_NOREPLACE) || defined(__NetBSD__)
+  // OpenBSD's mmap() and NetBSD's mremap(MAP_FIXED).
+  if (e == ENOMEM) {
+    return true;
+  }
+#endif
+
+  // Linux returns EEXIST, and EPERM for addresses below `vm.mmap_min_addr`.
+  return e == EEXIST || e == EPERM;
+}
 
 // Calls `map_at(addr)` with addresses picked by `AddressRangeProbe` until it returns a mapping within the range.
 template<typename MapAt>
@@ -1151,8 +1185,7 @@ static void* map_in_range(size_t size, size_t alignment, uintptr_t range_start, 
     void* ptr = map_at(probe.address(attempt));
 
     if (ptr == MAP_FAILED) {
-      // EPERM is returned for addresses below `vm.mmap_min_addr` on Linux.
-      if (errno != kMMapTakenErrno && errno != EPERM) {
+      if (!is_address_taken_error(errno)) {
         return MAP_FAILED;
       }
       continue;
@@ -1298,10 +1331,10 @@ static Error alloc_dual_mapping_via_remapdup(Out<DualMapping> dm_out, size_t siz
   DualMapping dm {};
   ASMJIT_PROPAGATE(map_memory(&dm.rw, size, rw_flags));
 
-  // Allocate RX mapping, mremap() uses the address as a hint without MAP_FIXED.
+  // Allocate RX mapping, mremap() ignores the address without MAP_FIXED, which fails if the address is taken.
   if (range_end) {
     dm.rx = map_in_range(size, info().page_size, range_start, range_end, [&](void* addr) noexcept {
-      return mremap(dm.rw, size, addr, size, MAP_REMAPDUP);
+      return mremap(dm.rw, size, addr, size, MAP_FIXED | MAP_REMAPDUP);
     });
   }
   else {
