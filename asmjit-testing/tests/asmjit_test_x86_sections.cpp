@@ -37,6 +37,46 @@ static void fail(const char* message, Error err) {
   exit(1);
 }
 
+// A cross-section fixup whose displacement doesn't fit must fail instead of leaving a zero
+// displacement in the code. Here a short jump targets a label that ends up 256+ bytes away.
+static void test_cross_section_fixup_out_of_range() {
+  printf("\nVerifying an out of range cross-section fixup:\n");
+
+  CodeHolder code;
+  code.init(Environment::host());
+
+  Section* data_section;
+  Error err = code.new_section(Out(data_section), ".data", SIZE_MAX, SectionFlags::kNone, 8);
+  if (err != Error::kOk) {
+    fail("Failed to create a .data section", err);
+  }
+
+  x86::Assembler a(&code);
+  Label target = a.new_label();
+
+  a.short_().jmp(target);
+  for (uint32_t i = 0; i < 256; i++) {
+    a.nop();
+  }
+
+  a.section(data_section);
+  a.bind(target);
+  a.embed(data_array, sizeof(data_array));
+
+  err = code.flatten();
+  if (err != Error::kOk) {
+    fail("Failed to flatten the code", err);
+  }
+
+  err = code.resolve_cross_section_fixups();
+  printf("  'resolve_cross_section_fixups()' returned '%s'\n", stringify_error(err));
+
+  if (err != Error::kInvalidDisplacement) {
+    printf("** FAILURE: Expected '%s' **\n", stringify_error(Error::kInvalidDisplacement));
+    exit(1);
+  }
+}
+
 int main() {
   printf("AsmJit X86 Sections Test\n\n");
 
@@ -156,6 +196,8 @@ int main() {
     printf("** FAILURE: The generated function returned incorrect result(s) **\n");
     return 1;
   }
+
+  test_cross_section_fixup_out_of_range();
 
   printf("** SUCCESS **\n");
   return 0;

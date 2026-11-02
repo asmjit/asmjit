@@ -843,6 +843,8 @@ ASMJIT_API Error CodeHolder::resolve_cross_section_fixups() noexcept {
         it.resolve_and_next(this);
         continue;
       }
+
+      err = make_error(Error::kInvalidDisplacement);
     }
 
     it.next();
