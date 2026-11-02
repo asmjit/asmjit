@@ -307,10 +307,17 @@ public:
       // Incremental mode: If the area released is at the end of the fully used area, we would like to
       // keep the incremental mode of the block. In order to do that, we are going to use a different
       // approach - decrement `_search_start` and increment `_largest_unused_area`, which are essential
-      // for incremental mode blocks.
+      // for incremental mode blocks. Everything after `_search_start` is unused, so the search region
+      // must end at `_area_size` (a full block sets `_search_end` to zero).
       ASMJIT_ASSERT(_search_start >= released_area_size);
       _search_start -= released_area_size;
+      _search_end = _area_size;
       _largest_unused_area += released_area_size;
+
+      if (area_used() == initial_area_start()) {
+        clear_flags(kFlagDirty);
+        add_flags(kFlagEmpty);
+      }
     }
     else {
       _search_start = axl::min(_search_start, released_area_start);
@@ -343,6 +350,7 @@ public:
 
     if (axl::bool_and(is_incremental(), _search_start == shrunk_area_end)) {
       _search_start -= shrunk_area_size;
+      _search_end = _area_size;
       _largest_unused_area += shrunk_area_size;
     }
     else {

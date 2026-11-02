@@ -401,10 +401,59 @@ static void test_jit_allocator_query() noexcept {
   EXPECT_EQ(allocated_span.size(), queried_span.size());
 }
 
+static void test_jit_allocator_incremental_release() noexcept {
+  // A block emptied by releasing its spans in reverse order must be reported as empty,
+  // otherwise `kImmediateRelease` never releases it.
+  {
+    JitAllocator::CreateParams params {};
+    params.options = JitAllocatorOptions::kImmediateRelease;
+
+    JitAllocator allocator(&params);
+    JitAllocator::Span a;
+    JitAllocator::Span b;
+
+    EXPECT_OK(allocator.alloc(Out(a), 1024));
+    EXPECT_OK(allocator.alloc(Out(b), 1024));
+    EXPECT_OK(allocator.release(b.rx()));
+    EXPECT_OK(allocator.release(a.rx()));
+    EXPECT_EQ(allocator.statistics().block_count(), 0u);
+  }
+
+  // Releasing the last span of a full block must keep the free tail searchable after a release
+  // in the middle ends the incremental mode, otherwise the tail is lost until the block is empty.
+  {
+    JitAllocator::CreateParams params {};
+    params.options = JitAllocatorOptions::kDisableInitialPadding;
+
+    JitAllocator allocator(&params);
+    JitAllocator::Span head;
+    JitAllocator::Span body;
+    JitAllocator::Span tail;
+
+    EXPECT_OK(allocator.alloc(Out(head), 1024));
+    size_t block_size = allocator.statistics().reserved_size();
+
+    EXPECT_OK(allocator.alloc(Out(body), block_size - 2048));
+    EXPECT_OK(allocator.alloc(Out(tail), 1024));
+    EXPECT_EQ(allocator.statistics().used_size(), block_size);
+
+    EXPECT_OK(allocator.release(tail.rx()));
+    EXPECT_OK(allocator.release(head.rx()));
+
+    JitAllocator::Span x;
+    JitAllocator::Span y;
+
+    EXPECT_OK(allocator.alloc(Out(x), 1024));
+    EXPECT_OK(allocator.alloc(Out(y), 1024));
+    EXPECT_EQ(allocator.statistics().block_count(), 1u);
+  }
+}
+
 TEST_CASE(core_jit_allocator) {
   test_jit_allocator_reset_empty();
   test_jit_allocator_alloc_release();
   test_jit_allocator_query();
+  test_jit_allocator_incremental_release();
 }
 
 ASMJIT_END_NAMESPACE
