@@ -121,16 +121,15 @@ struct MetricOptions {
 // ===============
 
 struct Timer {
-  std::chrono::high_resolution_clock::time_point _start {};
+  std::chrono::steady_clock::time_point _start {};
 
   inline void start() noexcept {
-    _start = std::chrono::high_resolution_clock::now();
+    _start = std::chrono::steady_clock::now();
   }
 
   inline uint64_t elapsed() noexcept {
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> t = end - _start;
-    return static_cast<uint64_t>(t.count() * double(1000000000));
+    auto end = std::chrono::steady_clock::now();
+    return static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(end - _start).count());
   }
 };
 
@@ -143,8 +142,8 @@ struct ResultValues {
 
 //! Context is passed to benchmarks.
 struct Context {
-  std::chrono::high_resolution_clock::time_point _start {};
-  std::chrono::high_resolution_clock::time_point _end {};
+  std::chrono::steady_clock::time_point _start {};
+  std::chrono::steady_clock::time_point _end {};
 
   ResultValues& _values;
   String& _failure_message;
@@ -155,17 +154,16 @@ struct Context {
       _failure_message(failure_message) {}
 
   inline void start_now() {
-    _start = std::chrono::high_resolution_clock::now();
+    _start = std::chrono::steady_clock::now();
     _end = _start;
   }
 
   inline void end_now() {
-    _end = std::chrono::high_resolution_clock::now();
+    _end = std::chrono::steady_clock::now();
   }
 
   inline uint64_t elapsed_nano() const {
-    std::chrono::duration<double> t = _end - _start;
-    return static_cast<uint64_t>(t.count() * double(1000000000));
+    return static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(_end - _start).count());
   }
 
   inline uint64_t value(uint32_t id) const noexcept {

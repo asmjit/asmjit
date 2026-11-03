@@ -182,7 +182,10 @@ bool String::reserve_for_append(size_t append_size) noexcept {
     return false;
   }
 
-  memcpy(new_data, _data, _size);
+  if (_size) {
+    memcpy(new_data, _data, _size);
+  }
+
   if (_data && !_temporary) {
     free(_data);
   }
@@ -201,7 +204,7 @@ void String::append(const char c) noexcept {
 }
 
 void String::append_chars(const char c, size_t count) noexcept {
-  if (reserve_for_append(count)) {
+  if (count > 0u && reserve_for_append(count)) {
     memset(_data + _size, int(uint8_t(c)), count);
     _size += count;
   }
@@ -212,7 +215,7 @@ void String::append(const char* s) noexcept {
 }
 
 void String::append(const char* s, size_t size) noexcept {
-  if (reserve_for_append(size)) {
+  if (size > 0u && reserve_for_append(size)) {
     memcpy(_data + _size, s, size);
     _size += size;
   }
