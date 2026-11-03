@@ -62,7 +62,7 @@ struct InplaceString {
 
   //! \}
 
-  //! \name Equality
+  //! \name Equality & Comparison
   //! \{
 
   [[nodiscard]] ASMJIT_INLINE_NODEBUG bool equals(const char* str) const noexcept { return strcmp(_data, str) == 0; }

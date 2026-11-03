@@ -118,7 +118,10 @@ ASMJIT_INLINE_CONSTEXPR T&& forward(std::remove_reference_t<T>& v) noexcept { re
 
 template<typename T>
 [[nodiscard]]
-ASMJIT_INLINE_CONSTEXPR T&& forward(std::remove_reference_t<T>&& v) noexcept { return static_cast<T&&>(v); }
+ASMJIT_INLINE_CONSTEXPR T&& forward(std::remove_reference_t<T>&& v) noexcept {
+  static_assert(!std::is_lvalue_reference_v<T>, "Cannot forward an rvalue as an lvalue");
+  return static_cast<T&&>(v);
+}
 
 template<typename T>
 ASMJIT_INLINE_NODEBUG void swap(T& t1, T& t2) noexcept {

@@ -4107,16 +4107,16 @@ EmitModSib:
         // properties of the memory operand and try to base the decision on the segment prefix and the address type.
         if (addr_type == Mem::AddrType::kDefault) {
           if (EmitterUtils::is_absolute_location(base_address, section_offset)) {
-            // Prefer absolute addressing mode if the offset is 32-bit.
-            addr_type = is_offset_int32 || is_offset_uint32 ? Mem::AddrType::kAbs : Mem::AddrType::kRel;
-          }
-          else {
             // Prefer absolute addressing mode if FS|GS segment override is present.
             bool has_fs_gs = rm_rel->as<Mem>().segment_id() >= SReg::kIdFs;
             // Prefer absolute addressing mode if this is LEA with 32-bit immediate.
             bool is_lea_32 = (inst_id == Inst::kIdLea) && (is_offset_int32 || is_offset_uint32);
 
             addr_type = has_fs_gs || is_lea_32 ? Mem::AddrType::kAbs : Mem::AddrType::kRel;
+          }
+          else {
+            // Prefer absolute addressing mode if the offset is 32-bit.
+            addr_type = is_offset_int32 || is_offset_uint32 ? Mem::AddrType::kAbs : Mem::AddrType::kRel;
           }
         }
 

@@ -29,7 +29,7 @@ struct MyKeyMatcher {
 };
 
 TEST_CASE(axl_arena_hash) {
-  uint32_t kCount = ZeroTest::test_runner()->has_arg("--quick") ? 1000 : 10000;
+  uint32_t kCount = ZeroTest::test_runner()->cmd_line().has_arg("--quick") ? 1000 : 10000;
 
   axl::Arena arena(4096);
   axl::ArenaHash<MyHashNode> hash_table;

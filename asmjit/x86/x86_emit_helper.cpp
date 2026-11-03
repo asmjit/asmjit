@@ -47,7 +47,7 @@ static inline uint32_t get_xmm_mov_inst(const FuncFrame& frame) {
 
 //! Converts `size` to a 'kmov?' instruction.
 [[nodiscard]]
-static inline uint32_t kmovInstFromSize(uint32_t size) noexcept {
+static inline uint32_t kmov_inst_from_size(uint32_t size) noexcept {
   switch (size) {
     case  1: return Inst::kIdKmovb;
     case  2: return Inst::kIdKmovw;
@@ -304,7 +304,7 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emit_arg_move(
       }
 
       if (TypeUtils::is_mask(src_type_id)) {
-        inst_id = kmovInstFromSize(src_size);
+        inst_id = kmov_inst_from_size(src_size);
         dst.set_signature(src_size <= 4 ? Reg::signature_of_t<RegType::kGp32>()
                                       : Reg::signature_of_t<RegType::kGp64>());
         break;
@@ -357,7 +357,7 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emit_arg_move(
       src_size = axl::min(src_size, dst_size);
 
       if (TypeUtils::is_int(src_type_id) || TypeUtils::is_mask(src_type_id) || src.is_mem()) {
-        inst_id = kmovInstFromSize(src_size);
+        inst_id = kmov_inst_from_size(src_size);
         if (src.is_gp() && src_size <= 4) {
           src.set_signature(Reg::signature_of_t<RegType::kGp32>());
         }

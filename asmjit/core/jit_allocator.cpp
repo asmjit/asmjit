@@ -12,6 +12,7 @@
 #include <asmjit/axl/arena_tree.h>
 #include <asmjit/axl/bit_set_ops.h>
 #include <asmjit/axl/commons.h>
+#include <asmjit/axl/mem_alloc.h>
 #include <asmjit/axl/support_p.h>
 #include <asmjit/core/arch_traits.h>
 #include <asmjit/core/globals.h>
@@ -445,7 +446,7 @@ static inline JitAllocatorPrivateImpl* JitAllocator_new_impl(const JitAllocator:
   }
 
   size_t size = sizeof(JitAllocatorPrivateImpl) + sizeof(JitAllocatorPool) * pool_count;
-  void* p = ::malloc(size);
+  void* p = axl::mem_alloc(size);
 
   if (ASMJIT_UNLIKELY(!p)) {
     return nullptr;
@@ -479,7 +480,7 @@ static inline JitAllocatorPrivateImpl* JitAllocator_new_impl(const JitAllocator:
 
 static ASMJIT_INLINE void JitAllocator_destroy_impl(JitAllocatorPrivateImpl* impl) noexcept {
   impl->~JitAllocatorPrivateImpl();
-  ::free(impl);
+  axl::mem_free(impl);
 }
 
 static ASMJIT_INLINE size_t JitAllocator_size_to_pool_id(const JitAllocatorPrivateImpl* impl, size_t size) noexcept {
@@ -622,7 +623,7 @@ static Error JitAllocator_new_block(JitAllocatorPrivateImpl* impl, JitAllocatorB
 
   uint32_t area_size = uint32_t(block_size >> pool->granularity_log2);
   uint32_t bit_word_count = (area_size + kBitWordSizeInBits - 1u) / kBitWordSizeInBits;
-  uint8_t* block_ptr = static_cast<uint8_t*>(::malloc(sizeof(JitAllocatorBlock) + size_t(bit_word_count) * 2u * sizeof(BitWord)));
+  uint8_t* block_ptr = axl::mem_alloc<uint8_t>(sizeof(JitAllocatorBlock) + size_t(bit_word_count) * 2u * sizeof(BitWord));
 
   // Out of memory...
   if (ASMJIT_UNLIKELY(block_ptr == nullptr)) {
@@ -656,7 +657,7 @@ static void JitAllocatorImpl_delete_block(JitAllocatorPrivateImpl* impl, JitAllo
     (void)VirtMem::release(block->rx_ptr(), block->block_size());
   }
 
-  ::free(block);
+  axl::mem_free(block);
 }
 
 static void JitAllocatorImpl_insert_block(JitAllocatorPrivateImpl* impl, JitAllocatorBlock* block) noexcept {

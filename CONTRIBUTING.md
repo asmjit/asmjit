@@ -63,7 +63,7 @@
 
   * Other tests have their own executables based on what is tested.
 
-  * Always add assembler tests when adding new instructions, see [asmjit_test_assembler_x64.cpp](./asmjit-testing/tests/asmjit_test_assembler_x64.cpp) and [asmjit_test_assembler_a64.cpp](./asmjit-testing/tests/asmjit_test_assembler_a64.cpp) for more details.
+  * Always add assembler tests when adding new instructions, see [x86_assembler_64b_test.cpp](./asmjit/x86/x86_assembler_64b_test.cpp) and [a64_assembler_test.cpp](./asmjit/core/a64_assembler_test.cpp) for more details.
 
 ## Pull Request Messages
 

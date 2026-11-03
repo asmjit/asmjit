@@ -3,6 +3,9 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
+#include <asmjit/core/api_build_test_p.h>
+#if !defined(ASMJIT_NO_UJIT) && !defined(ASMJIT_NO_JIT)
+
 #include <asmjit/ujit.h>
 #include <asmjit/axl/algorithm.h>
 
@@ -13,27 +16,7 @@
 #include <cmath>
 #include <limits>
 
-#define EXPECT_OK(...) \
-  EXPECT_CUSTOM(::ZeroTest::expect_eq(__FILE__, __LINE__, "EXPECT_OK(" #__VA_ARGS__ ")", (__VA_ARGS__), ::asmjit::Error::kOk))
-
-static void print_app_info() noexcept {
-  printf("AsmJit UJIT Test Suite v%u.%u.%u [Arch=%s] [Mode=%s]\n\n",
-    unsigned((ASMJIT_LIBRARY_VERSION >> 16)       ),
-    unsigned((ASMJIT_LIBRARY_VERSION >>  8) & 0xFF),
-    unsigned((ASMJIT_LIBRARY_VERSION      ) & 0xFF),
-    asmjit_arch_as_string(asmjit::Arch::kHost),
-    asmjit_build_type()
-  );
-}
-
-#if !defined(ASMJIT_NO_UJIT) && !defined(ASMJIT_NO_JIT)
-
-#include <asmjit-testing/tests/zero_test.h>
-
-namespace UniCompilerTests {
-
-using namespace asmjit;
-using namespace asmjit::ujit;
+ASMJIT_BEGIN_SUB_NAMESPACE(ujit::UniCompilerTests)
 
 // ujit::UniCompiler - Tests - Constants
 // =====================================
@@ -48,45 +31,176 @@ static ASMJIT_INLINE_CONSTEXPR uint32_t byte_width_from_vec_width(VecWidth vw) n
 // ujit::UniCompiler - Tests - MulAdd
 // ==================================
 
+class FPUOps {
+public:
+  // In case we want to generate these functions (x86).
+  JitRuntime rt;
+
+  using UnaryOpF32 = float (ASMJIT_CDECL*)(float) noexcept;
+  using BinaryOpF32 = float (ASMJIT_CDECL*)(float, float) noexcept;
+  using FMAOpF32 = float (ASMJIT_CDECL*)(float, float, float) noexcept;
+
+  using UnaryOpF64 = double (ASMJIT_CDECL*)(double) noexcept;
+  using BinaryOpF64 = double (ASMJIT_CDECL*)(double, double) noexcept;
+  using FMAOpF64 = double (ASMJIT_CDECL*)(double, double, double) noexcept;
+
+  BinaryOpF32 add_f32 {};
+  BinaryOpF32 sub_f32 {};
+  BinaryOpF32 mul_f32 {};
+  BinaryOpF32 div_f32 {};
+  UnaryOpF32 sqrt_f32 {};
+  FMAOpF32 madd_fma_f32 {};
+  FMAOpF32 madd_nofma_f32 {};
+
+  BinaryOpF64 add_f64 {};
+  BinaryOpF64 sub_f64 {};
+  BinaryOpF64 mul_f64 {};
+  BinaryOpF64 div_f64 {};
+  UnaryOpF64 sqrt_f64 {};
+  FMAOpF64 madd_fma_f64 {};
+  FMAOpF64 madd_nofma_f64 {};
+
+  bool initialized {};
+};
+
+static FPUOps fpu_ops;
+
+static void init_fpu_ops_from_libc() {
+  fpu_ops.add_f32 = [](float a, float b) noexcept { return a + b; };
+  fpu_ops.sub_f32 = [](float a, float b) noexcept { return a - b; };
+  fpu_ops.mul_f32 = [](float a, float b) noexcept { return a * b; };
+  fpu_ops.div_f32 = [](float a, float b) noexcept { return a / b; };
+  fpu_ops.sqrt_f32 = [](float a) noexcept { return std::sqrt(a); };
+  fpu_ops.madd_fma_f32 = [](float a, float b, float c) noexcept { return std::fma(a, b, c); };
+  fpu_ops.madd_nofma_f32 = [](float a, float b, float c) noexcept { return fpu_ops.add_f32(fpu_ops.mul_f32(a, b), c); };
+
+  fpu_ops.add_f64 = [](double a, double b) noexcept { return a + b; };
+  fpu_ops.sub_f64 = [](double a, double b) noexcept { return a - b; };
+  fpu_ops.mul_f64 = [](double a, double b) noexcept { return a * b; };
+  fpu_ops.div_f64 = [](double a, double b) noexcept { return a / b; };
+  fpu_ops.sqrt_f64 = [](double a) noexcept { return std::sqrt(a); };
+  fpu_ops.madd_fma_f64 = [](double a, double b, double c) noexcept { return std::fma(a, b, c); };
+  fpu_ops.madd_nofma_f64 = [](double a, double b, double c) noexcept { return fpu_ops.add_f64(fpu_ops.mul_f64(a, b), c); };
+}
+
 #if defined(ASMJIT_UJIT_X86)
+template<typename Fn, typename T>
+static Fn compile_fpu_unary_op(JitRuntime& rt, InstId inst_id) noexcept {
+  CodeHolder code;
+  EXPECT_OK(code.init(rt.environment()));
 
-float fadd(float a, float b) noexcept;
-float fsub(float a, float b) noexcept;
-float fmul(float a, float b) noexcept;
-float fdiv(float a, float b) noexcept;
-float fsqrt(float a) noexcept;
-float fmadd_nofma_ref(float a, float b, float c) noexcept;
-float fmadd_fma_ref(float a, float b, float c) noexcept;
+  x86::Compiler cc(&code);
+  FuncNode* func_node = cc.add_func(FuncSignature::build<T, T>());
+  x86::Vec a = cc.new_vec128("a");
 
-double fadd(double a, double b) noexcept;
-double fsub(double a, double b) noexcept;
-double fmul(double a, double b) noexcept;
-double fdiv(double a, double b) noexcept;
-double fsqrt(double a) noexcept;
-double fmadd_nofma_ref(double a, double b, double c) noexcept;
-double fmadd_fma_ref(double a, double b, double c) noexcept;
+  func_node->set_arg(0, a);
 
-void madd_fma_check_valgrind_bug(const float a[4], const float b[4], const float c[4], float dst[4]) noexcept;
+  EXPECT_OK(cc.emit(inst_id, a, a));
+  EXPECT_OK(cc.ret(a));
+  EXPECT_OK(cc.end_func());
+  EXPECT_OK(cc.finalize());
 
+  Fn fn;
+  EXPECT_OK(rt.add(&fn, cc.code()));
+  return fn;
+};
+
+template<typename Fn, typename T>
+static Fn compile_fpu_binary_op(JitRuntime& rt, InstId inst_id) noexcept {
+  CodeHolder code;
+  EXPECT_OK(code.init(rt.environment()));
+
+  x86::Compiler cc(&code);
+  FuncNode* func_node = cc.add_func(FuncSignature::build<T, T, T>());
+
+  x86::Vec a = cc.new_vec128("a");
+  x86::Vec b = cc.new_vec128("b");
+
+  func_node->set_arg(0, a);
+  func_node->set_arg(1, b);
+  EXPECT_OK(cc.emit(inst_id, a, b));
+  EXPECT_OK(cc.ret(a));
+
+  EXPECT_OK(cc.end_func());
+  EXPECT_OK(cc.finalize());
+
+  Fn fn;
+  EXPECT_OK(rt.add(&fn, cc.code()));
+  return fn;
+};
+
+template<typename Fn, typename T>
+static Fn compile_fpu_fma_op(JitRuntime& rt, InstId inst_id) noexcept {
+  CodeHolder code;
+  EXPECT_OK(code.init(rt.environment()));
+
+  x86::Compiler cc(&code);
+  FuncNode* func_node = cc.add_func(FuncSignature::build<T, T, T, T>());
+
+  x86::Vec a = cc.new_vec128("a");
+  x86::Vec b = cc.new_vec128("b");
+  x86::Vec c = cc.new_vec128("c");
+
+  func_node->frame().set_avx_enabled();
+  func_node->set_arg(0, a);
+  func_node->set_arg(1, b);
+  func_node->set_arg(2, c);
+  EXPECT_OK(cc.emit(inst_id, a, b, c));
+  EXPECT_OK(cc.ret(a));
+
+  EXPECT_OK(cc.end_func());
+  EXPECT_OK(cc.finalize());
+
+  Fn fn;
+  EXPECT_OK(rt.add(&fn, cc.code()));
+  return fn;
+};
+
+static void init_fpu_ops() noexcept {
+  if (!fpu_ops.initialized) {
+    init_fpu_ops_from_libc();
+    fpu_ops.initialized = true;
+
+    fpu_ops.add_f32 = compile_fpu_binary_op<FPUOps::BinaryOpF32, float>(fpu_ops.rt, x86::Inst::kIdAddss);
+    fpu_ops.sub_f32 = compile_fpu_binary_op<FPUOps::BinaryOpF32, float>(fpu_ops.rt, x86::Inst::kIdSubss);
+    fpu_ops.mul_f32 = compile_fpu_binary_op<FPUOps::BinaryOpF32, float>(fpu_ops.rt, x86::Inst::kIdMulss);
+    fpu_ops.div_f32 = compile_fpu_binary_op<FPUOps::BinaryOpF32, float>(fpu_ops.rt, x86::Inst::kIdDivss);
+    fpu_ops.sqrt_f32 = compile_fpu_unary_op<FPUOps::UnaryOpF32, float>(fpu_ops.rt, x86::Inst::kIdSqrtss);
+    fpu_ops.madd_fma_f32 = compile_fpu_fma_op<FPUOps::FMAOpF32, float>(fpu_ops.rt, x86::Inst::kIdVfmadd213ss);
+
+    fpu_ops.add_f64 = compile_fpu_binary_op<FPUOps::BinaryOpF64, double>(fpu_ops.rt, x86::Inst::kIdAddsd);
+    fpu_ops.sub_f64 = compile_fpu_binary_op<FPUOps::BinaryOpF64, double>(fpu_ops.rt, x86::Inst::kIdSubsd);
+    fpu_ops.mul_f64 = compile_fpu_binary_op<FPUOps::BinaryOpF64, double>(fpu_ops.rt, x86::Inst::kIdMulsd);
+    fpu_ops.div_f64 = compile_fpu_binary_op<FPUOps::BinaryOpF64, double>(fpu_ops.rt, x86::Inst::kIdDivsd);
+    fpu_ops.sqrt_f64 = compile_fpu_unary_op<FPUOps::UnaryOpF64, double>(fpu_ops.rt, x86::Inst::kIdSqrtsd);
+    fpu_ops.madd_fma_f64 = compile_fpu_fma_op<FPUOps::FMAOpF64, double>(fpu_ops.rt, x86::Inst::kIdVfmadd213sd);
+  }
+}
 #else
-
-static ASMJIT_NOINLINE float fadd(float a, float b) noexcept { return a + b; }
-static ASMJIT_NOINLINE float fsub(float a, float b) noexcept { return a - b; }
-static ASMJIT_NOINLINE float fmul(float a, float b) noexcept { return a * b; }
-static ASMJIT_NOINLINE float fdiv(float a, float b) noexcept { return a / b; }
-static ASMJIT_NOINLINE float fsqrt(float a) noexcept { return std::sqrt(a); }
-static ASMJIT_NOINLINE float fmadd_nofma_ref(float a, float b, float c) noexcept { return a * b + c; }
-static ASMJIT_NOINLINE float fmadd_fma_ref(float a, float b, float c) noexcept { return std::fma(a, b, c); }
-
-static ASMJIT_NOINLINE double fadd(double a, double b) noexcept { return a + b; }
-static ASMJIT_NOINLINE double fsub(double a, double b) noexcept { return a - b; }
-static ASMJIT_NOINLINE double fmul(double a, double b) noexcept { return a * b; }
-static ASMJIT_NOINLINE double fdiv(double a, double b) noexcept { return a / b; }
-static ASMJIT_NOINLINE double fsqrt(double a) noexcept { return std::sqrt(a); }
-static ASMJIT_NOINLINE double fmadd_nofma_ref(double a, double b, double c) noexcept { return fadd(fmul(a, b), c); }
-static ASMJIT_NOINLINE double fmadd_fma_ref(double a, double b, double c) noexcept { return std::fma(a, b, c); }
+static void init_fpu_ops() {
+  if (!fpu_ops.initialized) {
+    init_fpu_ops_from_libc();
+    fpu_ops.initialized = true;
+  }
+}
 
 #endif
+
+static float fadd(float a, float b) noexcept { return fpu_ops.add_f32(a, b); }
+static float fsub(float a, float b) noexcept { return fpu_ops.sub_f32(a, b); }
+static float fmul(float a, float b) noexcept { return fpu_ops.mul_f32(a, b); }
+static float fdiv(float a, float b) noexcept { return fpu_ops.div_f32(a, b); }
+static float fsqrt(float a) noexcept { return fpu_ops.sqrt_f32(a); }
+static float fmadd_fma_ref(float a, float b, float c) noexcept { return fpu_ops.madd_fma_f32(a, b, c); }
+static float fmadd_nofma_ref(float a, float b, float c) noexcept { return fpu_ops.madd_nofma_f32(a, b, c); }
+
+static double fadd(double a, double b) noexcept { return fpu_ops.add_f64(a, b); }
+static double fsub(double a, double b) noexcept { return fpu_ops.sub_f64(a, b); }
+static double fmul(double a, double b) noexcept { return fpu_ops.mul_f64(a, b); }
+static double fdiv(double a, double b) noexcept { return fpu_ops.div_f64(a, b); }
+static double fsqrt(double a) noexcept { return fpu_ops.sqrt_f64(a); }
+static double fmadd_fma_ref(double a, double b, double c) noexcept { return fpu_ops.madd_fma_f64(a, b, c); }
+static double fmadd_nofma_ref(double a, double b, double c) noexcept { return fpu_ops.madd_nofma_f64(a, b, c); }
 
 static ASMJIT_INLINE float fsign(float a) noexcept { return std::bit_cast<float>(std::bit_cast<uint32_t>(a) & (uint32_t(1) << 31)); }
 static ASMJIT_INLINE double fsign(double a) noexcept { return std::bit_cast<double>(std::bit_cast<uint64_t>(a) & (uint64_t(1) << 63)); }
@@ -4826,6 +4940,155 @@ static ASMJIT_NOINLINE void test_vecop_vvvv_failed(UniOpVVVV op, Variation varia
              assembly);
 }
 
+// ujit::UniCompiler - Tests - Basics - Condition Building
+// =======================================================
+
+TEST_CASE(uni_compiler_condition_building) {
+  UniGp lhs_reg(OperandSignature::from_reg_type_and_group(RegType::kGp32, RegGroup::kGp), 3);
+  UniGp rhs_reg(OperandSignature::from_reg_type_and_group(RegType::kGp32, RegGroup::kGp), 7);
+  Mem rhs_mem = mem_ptr(rhs_reg);
+  Imm rhs_imm = imm(100);
+
+  auto expect_uni_cond = [&](UniCondition uc, UniOpCond op, CondCode cond) {
+    EXPECT_EQ(uc.a, lhs_reg);
+    if (uc.b.is_reg()) {
+      EXPECT_EQ(uc.b, rhs_reg);
+    }
+    if (uc.b.is_mem()) {
+      EXPECT_EQ(uc.b, rhs_mem);
+    }
+    if (uc.b.is_imm()) {
+      EXPECT_EQ(uc.b, rhs_imm);
+    }
+
+    EXPECT_EQ(uc.op, op);
+    EXPECT_EQ(uc.cond, cond);
+  };
+
+  expect_uni_cond(and_z(lhs_reg, rhs_reg), UniOpCond::kAssignAnd, CondCode::kZero);
+  expect_uni_cond(and_z(lhs_reg, rhs_mem), UniOpCond::kAssignAnd, CondCode::kZero);
+  expect_uni_cond(and_z(lhs_reg, rhs_imm), UniOpCond::kAssignAnd, CondCode::kZero);
+  expect_uni_cond(and_nz(lhs_reg, rhs_reg), UniOpCond::kAssignAnd, CondCode::kNotZero);
+  expect_uni_cond(and_nz(lhs_reg, rhs_mem), UniOpCond::kAssignAnd, CondCode::kNotZero);
+  expect_uni_cond(and_nz(lhs_reg, rhs_imm), UniOpCond::kAssignAnd, CondCode::kNotZero);
+
+  expect_uni_cond(or_z(lhs_reg, rhs_reg), UniOpCond::kAssignOr, CondCode::kZero);
+  expect_uni_cond(or_z(lhs_reg, rhs_mem), UniOpCond::kAssignOr, CondCode::kZero);
+  expect_uni_cond(or_z(lhs_reg, rhs_imm), UniOpCond::kAssignOr, CondCode::kZero);
+  expect_uni_cond(or_nz(lhs_reg, rhs_reg), UniOpCond::kAssignOr, CondCode::kNotZero);
+  expect_uni_cond(or_nz(lhs_reg, rhs_mem), UniOpCond::kAssignOr, CondCode::kNotZero);
+  expect_uni_cond(or_nz(lhs_reg, rhs_imm), UniOpCond::kAssignOr, CondCode::kNotZero);
+
+  expect_uni_cond(xor_z(lhs_reg, rhs_reg), UniOpCond::kAssignXor, CondCode::kZero);
+  expect_uni_cond(xor_z(lhs_reg, rhs_mem), UniOpCond::kAssignXor, CondCode::kZero);
+  expect_uni_cond(xor_z(lhs_reg, rhs_imm), UniOpCond::kAssignXor, CondCode::kZero);
+  expect_uni_cond(xor_nz(lhs_reg, rhs_reg), UniOpCond::kAssignXor, CondCode::kNotZero);
+  expect_uni_cond(xor_nz(lhs_reg, rhs_mem), UniOpCond::kAssignXor, CondCode::kNotZero);
+  expect_uni_cond(xor_nz(lhs_reg, rhs_imm), UniOpCond::kAssignXor, CondCode::kNotZero);
+
+  expect_uni_cond(add_z(lhs_reg, rhs_reg), UniOpCond::kAssignAdd, CondCode::kZero);
+  expect_uni_cond(add_z(lhs_reg, rhs_mem), UniOpCond::kAssignAdd, CondCode::kZero);
+  expect_uni_cond(add_z(lhs_reg, rhs_imm), UniOpCond::kAssignAdd, CondCode::kZero);
+  expect_uni_cond(add_nz(lhs_reg, rhs_reg), UniOpCond::kAssignAdd, CondCode::kNotZero);
+  expect_uni_cond(add_nz(lhs_reg, rhs_mem), UniOpCond::kAssignAdd, CondCode::kNotZero);
+  expect_uni_cond(add_nz(lhs_reg, rhs_imm), UniOpCond::kAssignAdd, CondCode::kNotZero);
+
+  expect_uni_cond(add_c(lhs_reg, rhs_reg), UniOpCond::kAssignAdd, CondCode::kCarry);
+  expect_uni_cond(add_c(lhs_reg, rhs_mem), UniOpCond::kAssignAdd, CondCode::kCarry);
+  expect_uni_cond(add_c(lhs_reg, rhs_imm), UniOpCond::kAssignAdd, CondCode::kCarry);
+  expect_uni_cond(add_nc(lhs_reg, rhs_reg), UniOpCond::kAssignAdd, CondCode::kNotCarry);
+  expect_uni_cond(add_nc(lhs_reg, rhs_mem), UniOpCond::kAssignAdd, CondCode::kNotCarry);
+  expect_uni_cond(add_nc(lhs_reg, rhs_imm), UniOpCond::kAssignAdd, CondCode::kNotCarry);
+
+  expect_uni_cond(add_s(lhs_reg, rhs_reg), UniOpCond::kAssignAdd, CondCode::kSign);
+  expect_uni_cond(add_s(lhs_reg, rhs_mem), UniOpCond::kAssignAdd, CondCode::kSign);
+  expect_uni_cond(add_s(lhs_reg, rhs_imm), UniOpCond::kAssignAdd, CondCode::kSign);
+  expect_uni_cond(add_ns(lhs_reg, rhs_reg), UniOpCond::kAssignAdd, CondCode::kNotSign);
+  expect_uni_cond(add_ns(lhs_reg, rhs_mem), UniOpCond::kAssignAdd, CondCode::kNotSign);
+  expect_uni_cond(add_ns(lhs_reg, rhs_imm), UniOpCond::kAssignAdd, CondCode::kNotSign);
+
+  expect_uni_cond(sub_z(lhs_reg, rhs_reg), UniOpCond::kAssignSub, CondCode::kZero);
+  expect_uni_cond(sub_z(lhs_reg, rhs_mem), UniOpCond::kAssignSub, CondCode::kZero);
+  expect_uni_cond(sub_z(lhs_reg, rhs_imm), UniOpCond::kAssignSub, CondCode::kZero);
+  expect_uni_cond(sub_nz(lhs_reg, rhs_reg), UniOpCond::kAssignSub, CondCode::kNotZero);
+  expect_uni_cond(sub_nz(lhs_reg, rhs_mem), UniOpCond::kAssignSub, CondCode::kNotZero);
+  expect_uni_cond(sub_nz(lhs_reg, rhs_imm), UniOpCond::kAssignSub, CondCode::kNotZero);
+
+  // X86 vs AArch64 - X86 uses regular carry, but AArch64 has it reversed - so UniCompiler uses UnsignedLT/GE.
+  expect_uni_cond(sub_c(lhs_reg, rhs_reg), UniOpCond::kAssignSub, CondCode::kUnsignedLT);
+  expect_uni_cond(sub_c(lhs_reg, rhs_mem), UniOpCond::kAssignSub, CondCode::kUnsignedLT);
+  expect_uni_cond(sub_c(lhs_reg, rhs_imm), UniOpCond::kAssignSub, CondCode::kUnsignedLT);
+  expect_uni_cond(sub_nc(lhs_reg, rhs_reg), UniOpCond::kAssignSub, CondCode::kUnsignedGE);
+  expect_uni_cond(sub_nc(lhs_reg, rhs_mem), UniOpCond::kAssignSub, CondCode::kUnsignedGE);
+  expect_uni_cond(sub_nc(lhs_reg, rhs_imm), UniOpCond::kAssignSub, CondCode::kUnsignedGE);
+
+  expect_uni_cond(sub_s(lhs_reg, rhs_reg), UniOpCond::kAssignSub, CondCode::kSign);
+  expect_uni_cond(sub_s(lhs_reg, rhs_mem), UniOpCond::kAssignSub, CondCode::kSign);
+  expect_uni_cond(sub_s(lhs_reg, rhs_imm), UniOpCond::kAssignSub, CondCode::kSign);
+  expect_uni_cond(sub_ns(lhs_reg, rhs_reg), UniOpCond::kAssignSub, CondCode::kNotSign);
+  expect_uni_cond(sub_ns(lhs_reg, rhs_mem), UniOpCond::kAssignSub, CondCode::kNotSign);
+  expect_uni_cond(sub_ns(lhs_reg, rhs_imm), UniOpCond::kAssignSub, CondCode::kNotSign);
+
+  expect_uni_cond(sub_ugt(lhs_reg, rhs_reg), UniOpCond::kAssignSub, CondCode::kUnsignedGT);
+  expect_uni_cond(sub_ugt(lhs_reg, rhs_mem), UniOpCond::kAssignSub, CondCode::kUnsignedGT);
+  expect_uni_cond(sub_ugt(lhs_reg, rhs_imm), UniOpCond::kAssignSub, CondCode::kUnsignedGT);
+
+  expect_uni_cond(shr_z(lhs_reg, rhs_reg), UniOpCond::kAssignShr, CondCode::kZero);
+  expect_uni_cond(shr_z(lhs_reg, rhs_mem), UniOpCond::kAssignShr, CondCode::kZero);
+  expect_uni_cond(shr_z(lhs_reg, rhs_imm), UniOpCond::kAssignShr, CondCode::kZero);
+  expect_uni_cond(shr_nz(lhs_reg, rhs_reg), UniOpCond::kAssignShr, CondCode::kNotZero);
+  expect_uni_cond(shr_nz(lhs_reg, rhs_mem), UniOpCond::kAssignShr, CondCode::kNotZero);
+  expect_uni_cond(shr_nz(lhs_reg, rhs_imm), UniOpCond::kAssignShr, CondCode::kNotZero);
+
+  expect_uni_cond(cmp_eq(lhs_reg, rhs_reg), UniOpCond::kCompare, CondCode::kEqual);
+  expect_uni_cond(cmp_eq(lhs_reg, rhs_mem), UniOpCond::kCompare, CondCode::kEqual);
+  expect_uni_cond(cmp_eq(lhs_reg, rhs_imm), UniOpCond::kCompare, CondCode::kEqual);
+  expect_uni_cond(cmp_ne(lhs_reg, rhs_reg), UniOpCond::kCompare, CondCode::kNotEqual);
+  expect_uni_cond(cmp_ne(lhs_reg, rhs_mem), UniOpCond::kCompare, CondCode::kNotEqual);
+  expect_uni_cond(cmp_ne(lhs_reg, rhs_imm), UniOpCond::kCompare, CondCode::kNotEqual);
+
+  expect_uni_cond(scmp_lt(lhs_reg, rhs_reg), UniOpCond::kCompare, CondCode::kSignedLT);
+  expect_uni_cond(scmp_lt(lhs_reg, rhs_mem), UniOpCond::kCompare, CondCode::kSignedLT);
+  expect_uni_cond(scmp_lt(lhs_reg, rhs_imm), UniOpCond::kCompare, CondCode::kSignedLT);
+  expect_uni_cond(scmp_le(lhs_reg, rhs_reg), UniOpCond::kCompare, CondCode::kSignedLE);
+  expect_uni_cond(scmp_le(lhs_reg, rhs_mem), UniOpCond::kCompare, CondCode::kSignedLE);
+  expect_uni_cond(scmp_le(lhs_reg, rhs_imm), UniOpCond::kCompare, CondCode::kSignedLE);
+  expect_uni_cond(scmp_gt(lhs_reg, rhs_reg), UniOpCond::kCompare, CondCode::kSignedGT);
+  expect_uni_cond(scmp_gt(lhs_reg, rhs_mem), UniOpCond::kCompare, CondCode::kSignedGT);
+  expect_uni_cond(scmp_gt(lhs_reg, rhs_imm), UniOpCond::kCompare, CondCode::kSignedGT);
+  expect_uni_cond(scmp_ge(lhs_reg, rhs_reg), UniOpCond::kCompare, CondCode::kSignedGE);
+  expect_uni_cond(scmp_ge(lhs_reg, rhs_mem), UniOpCond::kCompare, CondCode::kSignedGE);
+  expect_uni_cond(scmp_ge(lhs_reg, rhs_imm), UniOpCond::kCompare, CondCode::kSignedGE);
+
+  expect_uni_cond(ucmp_lt(lhs_reg, rhs_reg), UniOpCond::kCompare, CondCode::kUnsignedLT);
+  expect_uni_cond(ucmp_lt(lhs_reg, rhs_mem), UniOpCond::kCompare, CondCode::kUnsignedLT);
+  expect_uni_cond(ucmp_lt(lhs_reg, rhs_imm), UniOpCond::kCompare, CondCode::kUnsignedLT);
+  expect_uni_cond(ucmp_le(lhs_reg, rhs_reg), UniOpCond::kCompare, CondCode::kUnsignedLE);
+  expect_uni_cond(ucmp_le(lhs_reg, rhs_mem), UniOpCond::kCompare, CondCode::kUnsignedLE);
+  expect_uni_cond(ucmp_le(lhs_reg, rhs_imm), UniOpCond::kCompare, CondCode::kUnsignedLE);
+  expect_uni_cond(ucmp_gt(lhs_reg, rhs_reg), UniOpCond::kCompare, CondCode::kUnsignedGT);
+  expect_uni_cond(ucmp_gt(lhs_reg, rhs_mem), UniOpCond::kCompare, CondCode::kUnsignedGT);
+  expect_uni_cond(ucmp_gt(lhs_reg, rhs_imm), UniOpCond::kCompare, CondCode::kUnsignedGT);
+  expect_uni_cond(ucmp_ge(lhs_reg, rhs_reg), UniOpCond::kCompare, CondCode::kUnsignedGE);
+  expect_uni_cond(ucmp_ge(lhs_reg, rhs_mem), UniOpCond::kCompare, CondCode::kUnsignedGE);
+  expect_uni_cond(ucmp_ge(lhs_reg, rhs_imm), UniOpCond::kCompare, CondCode::kUnsignedGE);
+
+  expect_uni_cond(test_z(lhs_reg, rhs_reg), UniOpCond::kTest, CondCode::kZero);
+  expect_uni_cond(test_z(lhs_reg, rhs_mem), UniOpCond::kTest, CondCode::kZero);
+  expect_uni_cond(test_z(lhs_reg, rhs_imm), UniOpCond::kTest, CondCode::kZero);
+  expect_uni_cond(test_nz(lhs_reg, rhs_reg), UniOpCond::kTest, CondCode::kNotZero);
+  expect_uni_cond(test_nz(lhs_reg, rhs_mem), UniOpCond::kTest, CondCode::kNotZero);
+  expect_uni_cond(test_nz(lhs_reg, rhs_imm), UniOpCond::kTest, CondCode::kNotZero);
+
+  expect_uni_cond(bt_z(lhs_reg, rhs_reg), UniOpCond::kBitTest, CondCode::kBTZero);
+  expect_uni_cond(bt_z(lhs_reg, rhs_mem), UniOpCond::kBitTest, CondCode::kBTZero);
+  expect_uni_cond(bt_z(lhs_reg, rhs_imm), UniOpCond::kBitTest, CondCode::kBTZero);
+  expect_uni_cond(bt_nz(lhs_reg, rhs_reg), UniOpCond::kBitTest, CondCode::kBTNotZero);
+  expect_uni_cond(bt_nz(lhs_reg, rhs_mem), UniOpCond::kBitTest, CondCode::kBTNotZero);
+  expect_uni_cond(bt_nz(lhs_reg, rhs_imm), UniOpCond::kBitTest, CondCode::kBTNotZero);
+}
+
+
 // ujit::UniCompiler - Tests - Integer Operations - VV
 // ===================================================
 
@@ -5035,25 +5298,6 @@ static ASMJIT_NOINLINE void test_simd_ops(JitContext& ctx) {
     fmadd_op_behavior = uc.fmadd_op_behavior();
     float_to_int_behavior = uc.float_to_int_outside_range_behavior();
   }
-
-  bool valgrind_fma_bug = false;
-
-#if defined(ASMJIT_UJIT_X86)
-  // When running under valgrind there is a bug in its instrumentation of FMA SS/SD instructions.
-  // Instead of keeping the unaffected elements in the destination register they are cleared instead,
-  // which would cause test failures. So, detect whether we are running under Valgind that has this
-  // bug and avoid scalar FMA tests in that case.
-  if (fmadd_op_behavior != FMAddOpBehavior::kNoFMA) {
-    float a[4] = { 1, 2, 3, 4 };
-    float b[4] = { 2, 4, 8, 1 };
-    float c[4] = { 4, 7, 3, 9 };
-
-    float d[4] {};
-    madd_fma_check_valgrind_bug(a, b, c, d);
-
-    valgrind_fma_bug = d[1] == 0.0f;
-  }
-#endif // ASMJIT_UJIT_X86
 
   TEST_LOG("  Testing mov");
   {
@@ -5565,42 +5809,37 @@ static ASMJIT_NOINLINE void test_simd_ops(JitContext& ctx) {
   else {
     TEST_LOG("  Testing madd (fma) (float)");
     {
-      if (valgrind_fma_bug) {
-        TEST_LOG("    (scalar FMA tests ignored due to a Valgrind bug!)");
+      if (scalar_op_behavior == ScalarOpBehavior::kZeroing) {
+        test_vecop_vvvv<kVecWidth, UniOpVVVV::kMAddF32S, scalar_op_fmadd_fma<ScalarOpBehavior::kZeroing, float>>(ctx, Variation{0});
+        test_vecop_vvvv<kVecWidth, UniOpVVVV::kMAddF64S, scalar_op_fmadd_fma<ScalarOpBehavior::kZeroing, double>>(ctx, Variation{0});
+        test_vecop_vvvv<kVecWidth, UniOpVVVV::kMSubF32S, scalar_op_fmsub_fma<ScalarOpBehavior::kZeroing, float>>(ctx, Variation{0});
+        test_vecop_vvvv<kVecWidth, UniOpVVVV::kMSubF64S, scalar_op_fmsub_fma<ScalarOpBehavior::kZeroing, double>>(ctx, Variation{0});
+        test_vecop_vvvv<kVecWidth, UniOpVVVV::kNMAddF32S, scalar_op_fnmadd_fma<ScalarOpBehavior::kZeroing, float>>(ctx, Variation{0});
+        test_vecop_vvvv<kVecWidth, UniOpVVVV::kNMAddF64S, scalar_op_fnmadd_fma<ScalarOpBehavior::kZeroing, double>>(ctx, Variation{0});
+        test_vecop_vvvv<kVecWidth, UniOpVVVV::kNMSubF32S, scalar_op_fnmsub_fma<ScalarOpBehavior::kZeroing, float>>(ctx, Variation{0});
+        test_vecop_vvvv<kVecWidth, UniOpVVVV::kNMSubF64S, scalar_op_fnmsub_fma<ScalarOpBehavior::kZeroing, double>>(ctx, Variation{0});
       }
       else {
-        if (scalar_op_behavior == ScalarOpBehavior::kZeroing) {
-          test_vecop_vvvv<kVecWidth, UniOpVVVV::kMAddF32S, scalar_op_fmadd_fma<ScalarOpBehavior::kZeroing, float>>(ctx, Variation{0});
-          test_vecop_vvvv<kVecWidth, UniOpVVVV::kMAddF64S, scalar_op_fmadd_fma<ScalarOpBehavior::kZeroing, double>>(ctx, Variation{0});
-          test_vecop_vvvv<kVecWidth, UniOpVVVV::kMSubF32S, scalar_op_fmsub_fma<ScalarOpBehavior::kZeroing, float>>(ctx, Variation{0});
-          test_vecop_vvvv<kVecWidth, UniOpVVVV::kMSubF64S, scalar_op_fmsub_fma<ScalarOpBehavior::kZeroing, double>>(ctx, Variation{0});
-          test_vecop_vvvv<kVecWidth, UniOpVVVV::kNMAddF32S, scalar_op_fnmadd_fma<ScalarOpBehavior::kZeroing, float>>(ctx, Variation{0});
-          test_vecop_vvvv<kVecWidth, UniOpVVVV::kNMAddF64S, scalar_op_fnmadd_fma<ScalarOpBehavior::kZeroing, double>>(ctx, Variation{0});
-          test_vecop_vvvv<kVecWidth, UniOpVVVV::kNMSubF32S, scalar_op_fnmsub_fma<ScalarOpBehavior::kZeroing, float>>(ctx, Variation{0});
-          test_vecop_vvvv<kVecWidth, UniOpVVVV::kNMSubF64S, scalar_op_fnmsub_fma<ScalarOpBehavior::kZeroing, double>>(ctx, Variation{0});
-        }
-        else {
-          test_vecop_vvvv<kVecWidth, UniOpVVVV::kMAddF32S, scalar_op_fmadd_fma<ScalarOpBehavior::kPreservingVec128, float>>(ctx, Variation{0});
-          test_vecop_vvvv<kVecWidth, UniOpVVVV::kMAddF64S, scalar_op_fmadd_fma<ScalarOpBehavior::kPreservingVec128, double>>(ctx, Variation{0});
-          test_vecop_vvvv<kVecWidth, UniOpVVVV::kMSubF32S, scalar_op_fmsub_fma<ScalarOpBehavior::kPreservingVec128, float>>(ctx, Variation{0});
-          test_vecop_vvvv<kVecWidth, UniOpVVVV::kMSubF64S, scalar_op_fmsub_fma<ScalarOpBehavior::kPreservingVec128, double>>(ctx, Variation{0});
-          test_vecop_vvvv<kVecWidth, UniOpVVVV::kNMAddF32S, scalar_op_fnmadd_fma<ScalarOpBehavior::kPreservingVec128, float>>(ctx, Variation{0});
-          test_vecop_vvvv<kVecWidth, UniOpVVVV::kNMAddF64S, scalar_op_fnmadd_fma<ScalarOpBehavior::kPreservingVec128, double>>(ctx, Variation{0});
-          test_vecop_vvvv<kVecWidth, UniOpVVVV::kNMSubF32S, scalar_op_fnmsub_fma<ScalarOpBehavior::kPreservingVec128, float>>(ctx, Variation{0});
-          test_vecop_vvvv<kVecWidth, UniOpVVVV::kNMSubF64S, scalar_op_fnmsub_fma<ScalarOpBehavior::kPreservingVec128, double>>(ctx, Variation{0});
-        }
+        test_vecop_vvvv<kVecWidth, UniOpVVVV::kMAddF32S, scalar_op_fmadd_fma<ScalarOpBehavior::kPreservingVec128, float>>(ctx, Variation{0});
+        test_vecop_vvvv<kVecWidth, UniOpVVVV::kMAddF64S, scalar_op_fmadd_fma<ScalarOpBehavior::kPreservingVec128, double>>(ctx, Variation{0});
+        test_vecop_vvvv<kVecWidth, UniOpVVVV::kMSubF32S, scalar_op_fmsub_fma<ScalarOpBehavior::kPreservingVec128, float>>(ctx, Variation{0});
+        test_vecop_vvvv<kVecWidth, UniOpVVVV::kMSubF64S, scalar_op_fmsub_fma<ScalarOpBehavior::kPreservingVec128, double>>(ctx, Variation{0});
+        test_vecop_vvvv<kVecWidth, UniOpVVVV::kNMAddF32S, scalar_op_fnmadd_fma<ScalarOpBehavior::kPreservingVec128, float>>(ctx, Variation{0});
+        test_vecop_vvvv<kVecWidth, UniOpVVVV::kNMAddF64S, scalar_op_fnmadd_fma<ScalarOpBehavior::kPreservingVec128, double>>(ctx, Variation{0});
+        test_vecop_vvvv<kVecWidth, UniOpVVVV::kNMSubF32S, scalar_op_fnmsub_fma<ScalarOpBehavior::kPreservingVec128, float>>(ctx, Variation{0});
+        test_vecop_vvvv<kVecWidth, UniOpVVVV::kNMSubF64S, scalar_op_fnmsub_fma<ScalarOpBehavior::kPreservingVec128, double>>(ctx, Variation{0});
       }
+    }
 
-      for (uint32_t v = 0; v < kNumVariationsVVVV; v++) {
-        test_vecop_vvvv<kVecWidth, UniOpVVVV::kMAddF32, vec_op_fmadd_fma<float>>(ctx, Variation{v});
-        test_vecop_vvvv<kVecWidth, UniOpVVVV::kMAddF64, vec_op_fmadd_fma<double>>(ctx, Variation{v});
-        test_vecop_vvvv<kVecWidth, UniOpVVVV::kMSubF32, vec_op_fmsub_fma<float>>(ctx, Variation{v});
-        test_vecop_vvvv<kVecWidth, UniOpVVVV::kMSubF64, vec_op_fmsub_fma<double>>(ctx, Variation{v});
-        test_vecop_vvvv<kVecWidth, UniOpVVVV::kNMAddF32, vec_op_fnmadd_fma<float>>(ctx, Variation{v});
-        test_vecop_vvvv<kVecWidth, UniOpVVVV::kNMAddF64, vec_op_fnmadd_fma<double>>(ctx, Variation{v});
-        test_vecop_vvvv<kVecWidth, UniOpVVVV::kNMSubF32, vec_op_fnmsub_fma<float>>(ctx, Variation{v});
-        test_vecop_vvvv<kVecWidth, UniOpVVVV::kNMSubF64, vec_op_fnmsub_fma<double>>(ctx, Variation{v});
-      }
+    for (uint32_t v = 0; v < kNumVariationsVVVV; v++) {
+      test_vecop_vvvv<kVecWidth, UniOpVVVV::kMAddF32, vec_op_fmadd_fma<float>>(ctx, Variation{v});
+      test_vecop_vvvv<kVecWidth, UniOpVVVV::kMAddF64, vec_op_fmadd_fma<double>>(ctx, Variation{v});
+      test_vecop_vvvv<kVecWidth, UniOpVVVV::kMSubF32, vec_op_fmsub_fma<float>>(ctx, Variation{v});
+      test_vecop_vvvv<kVecWidth, UniOpVVVV::kMSubF64, vec_op_fmsub_fma<double>>(ctx, Variation{v});
+      test_vecop_vvvv<kVecWidth, UniOpVVVV::kNMAddF32, vec_op_fnmadd_fma<float>>(ctx, Variation{v});
+      test_vecop_vvvv<kVecWidth, UniOpVVVV::kNMAddF64, vec_op_fnmadd_fma<double>>(ctx, Variation{v});
+      test_vecop_vvvv<kVecWidth, UniOpVVVV::kNMSubF32, vec_op_fnmsub_fma<float>>(ctx, Variation{v});
+      test_vecop_vvvv<kVecWidth, UniOpVVVV::kNMSubF64, vec_op_fnmsub_fma<double>>(ctx, Variation{v});
     }
   }
 
@@ -5775,6 +6014,8 @@ static CpuFeatures baseline_features() noexcept {
 }
 
 TEST_CASE(uni_compiler_x86_gp) {
+  init_fpu_ops();
+
   using Ext = CpuFeatures::X86;
 
   UniCompilerTests::JitContext ctx;
@@ -5818,6 +6059,8 @@ TEST_CASE(uni_compiler_x86_gp) {
 }
 
 TEST_CASE(uni_compiler_x86_simd) {
+  init_fpu_ops();
+
   using Ext = CpuFeatures::X86;
 
   UniCompilerTests::JitContext ctx;
@@ -5915,41 +6158,22 @@ TEST_CASE(uni_compiler_x86_simd) {
 
 #if defined(ASMJIT_UJIT_AARCH64)
 TEST_CASE(uni_compiler_a64_gp) {
+  init_fpu_ops();
+
   UniCompilerTests::JitContext ctx;
   ctx.features = asmjit::CpuInfo::host().features();
   test_gp_ops(ctx);
 }
 
 TEST_CASE(uni_compiler_a64_simd) {
+  init_fpu_ops();
+
   UniCompilerTests::JitContext ctx;
   ctx.features = asmjit::CpuInfo::host().features();
   test_simd_ops<VecWidth::k128>(ctx);
 }
 #endif // ASMJIT_UJIT_AARCH64
 
-} // {UniCompilerTests}
-
-int main(int argc, const char* argv[]) {
-  ZeroTest::TestRunner test_runner(argc, argv);
-
-  auto message = [&](ZeroTest::MessageType msg_type, const char* msg, size_t msg_size) {
-    (void)msg_type;
-    fwrite(msg, 1, msg_size, stdout);
-    fflush(stdout);
-  };
-
-  test_runner.on_message(message);
-
-  print_app_info();
-  return test_runner.run_tests();
-}
-
-#else
-
-int main() {
-  print_app_info();
-  printf("!! This test is disabled: <ASMJIT_NO_[U]JIT> or unsuitable arvhitecture !!\n");
-  return 0;
-}
+ASMJIT_END_SUB_NAMESPACE
 
 #endif // !ASMJIT_NO_UJIT && !ASMJIT_NO_JIT

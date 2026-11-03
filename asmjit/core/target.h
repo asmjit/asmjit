@@ -18,7 +18,7 @@ ASMJIT_BEGIN_NAMESPACE
 //! Target is an abstract class that describes a machine code target.
 class ASMJIT_VIRTAPI Target {
 public:
-  ASMJIT_BASE_CLASS(Target)
+  ASMJIT_OVERRIDE_NEW_DELETE(Target)
   ASMJIT_NONCOPYABLE(Target)
 
   //! Target environment information.

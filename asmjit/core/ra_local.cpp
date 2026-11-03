@@ -16,7 +16,7 @@ ASMJIT_BEGIN_NAMESPACE
 // RALocalAllocator - Utilities
 // ============================
 
-static ASMJIT_INLINE RATiedReg* RALocal_findTiedReg(RATiedReg* tied_regs, size_t count, RAWorkReg* work_reg) noexcept {
+static ASMJIT_INLINE RATiedReg* RALocal_find_tied_reg(RATiedReg* tied_regs, size_t count, RAWorkReg* work_reg) noexcept {
   for (size_t i = 0; i < count; i++) {
     if (tied_regs[i].work_reg() == work_reg) {
       return &tied_regs[i];
@@ -782,7 +782,7 @@ Error RALocalAllocator::alloc_instruction(InstNode* node) {
               use_pending_count--;
 
               // Double-hit.
-              RATiedReg* target_tied_reg = RALocal_findTiedReg(tied_regs, count, target_work_reg);
+              RATiedReg* target_tied_reg = RALocal_find_tied_reg(tied_regs, count, target_work_reg);
               if (target_tied_reg && target_tied_reg->use_id() == this_phys_id) {
                 target_tied_reg->mark_use_done();
                 if (target_tied_reg->is_write()) {

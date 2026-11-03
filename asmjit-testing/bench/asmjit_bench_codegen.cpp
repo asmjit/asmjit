@@ -6,7 +6,7 @@
 #include <asmjit/core.h>
 
 #include <asmjit-testing/commons/asmjit_utils.h>
-#include <asmjit-testing/commons/cmdline.h>
+#include <asmjit-testing/commons/zero_lib.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,7 +33,7 @@ void benchmark_aarch64_emitters(uint32_t num_iterations);
 #endif
 
 int main(int argc, char* argv[]) {
-  CmdLine cmd_line(argc, argv);
+  ZeroLib::CmdLine cmd_line(argc, argv);
   uint32_t num_iterations = 100000;
 
   print_app_info();
@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
   if (cmd_line.has_arg("--quick"))
     num_iterations = 1000;
 
-  const char* arch = cmd_line.value_of("--arch", "all");
+  const char* arch = cmd_line.get_arg("--arch", "all");
 
 #if !defined(ASMJIT_NO_X86)
   bool test_x86 = strcmp(arch, "all") == 0 || strcmp(arch, "x86") == 0;

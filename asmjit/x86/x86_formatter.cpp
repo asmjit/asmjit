@@ -501,7 +501,12 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::format_operand(
       ASMJIT_PROPAGATE(sb.append_int(off, base));
     }
 
-    return sb.append(']');
+    if (m.has_broadcast()) {
+      return sb.append_format("] {1to%u}", axl::bit_mask<uint32_t>(uint32_t(op.as<Mem>().get_broadcast())));
+    }
+    else {
+      return sb.append(']');
+    }
   }
 
   if (op.is_imm()) {
@@ -527,9 +532,9 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::format_operand(
 // x86::FormatterInternal - Format Immediate (Extension)
 // =====================================================
 
-static constexpr char kImmCharStart = '{';
-static constexpr char kImmCharEnd = '}';
-static constexpr char kImmCharOr = '|';
+static constexpr char imm_explain_start[] = {' ', '/', '*'};
+static constexpr char imm_explain_end[] = {'*', '/'};
+static constexpr char imm_explain_separator = '|';
 
 struct ImmBits {
   enum Mode : uint32_t {
@@ -547,15 +552,16 @@ ASMJIT_FAVOR_SIZE static Error FormatterInternal_format_imm_shuf(String& sb, uin
   uint32_t mask = (1 << bits) - 1;
   uint32_t last_predicate_shift = bits * (count - 1u);
 
+  ASMJIT_PROPAGATE(sb.append(imm_explain_start, sizeof(imm_explain_start)));
+
   for (uint32_t i = 0; i < count; i++, imm8 <<= bits) {
-    uint32_t index = (imm8 >> last_predicate_shift) & mask;
-    ASMJIT_PROPAGATE(sb.append(i == 0 ? kImmCharStart : kImmCharOr));
-    ASMJIT_PROPAGATE(sb.append_int(index));
+    if (i != 0u) {
+      ASMJIT_PROPAGATE(sb.append(imm_explain_separator));
+    }
+    ASMJIT_PROPAGATE(sb.append_int((imm8 >> last_predicate_shift) & mask));
   }
 
-  ASMJIT_PROPAGATE(sb.append(kImmCharEnd));
-
-  return Error::kOk;
+  return sb.append(imm_explain_end, sizeof(imm_explain_end));
 }
 
 ASMJIT_FAVOR_SIZE static Error FormatterInternal_format_imm_bits(String& sb, uint32_t imm8, const ImmBits* bits, uint32_t count) noexcept {
@@ -586,28 +592,39 @@ ASMJIT_FAVOR_SIZE static Error FormatterInternal_format_imm_bits(String& sb, uin
       continue;
     }
 
-    ASMJIT_PROPAGATE(sb.append(++n == 1 ? kImmCharStart : kImmCharOr));
+    if (n++ == 0u) {
+      ASMJIT_PROPAGATE(sb.append(imm_explain_start, sizeof(imm_explain_start)));
+    }
+    else {
+      ASMJIT_PROPAGATE(sb.append(imm_explain_separator));
+    }
+
     ASMJIT_PROPAGATE(sb.append(str));
   }
 
   if (n) {
-    ASMJIT_PROPAGATE(sb.append(kImmCharEnd));
+    return sb.append(imm_explain_end, sizeof(imm_explain_end));
   }
-
-  return Error::kOk;
+  else {
+    return Error::kOk;
+  }
 }
 
 ASMJIT_FAVOR_SIZE static Error FormatterInternal_format_imm_text(String& sb, uint32_t imm8, uint32_t bits, uint32_t advance, const char* text, uint32_t count = 1) noexcept {
   uint32_t mask = (1u << bits) - 1;
   uint32_t pos = 0;
 
+  ASMJIT_PROPAGATE(sb.append(imm_explain_start, sizeof(imm_explain_start)));
+
   for (uint32_t i = 0; i < count; i++, imm8 >>= bits, pos += advance) {
+    if (i != 0u) {
+      ASMJIT_PROPAGATE(sb.append(imm_explain_separator));
+    }
     uint32_t value = (imm8 & mask) + pos;
-    ASMJIT_PROPAGATE(sb.append(i == 0 ? kImmCharStart : kImmCharOr));
     ASMJIT_PROPAGATE(sb.append(axl::find_packed_string(text, value)));
   }
 
-  return sb.append(kImmCharEnd);
+  return sb.append(imm_explain_end, sizeof(imm_explain_end));
 }
 
 ASMJIT_FAVOR_SIZE static Error FormatterInternal_explain_const(
@@ -960,11 +977,6 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::format_instruction(
       else if (axl::test(options, InstOptions::kX86_ZMask)) {
         ASMJIT_PROPAGATE(sb.append(" {z}"));
       }
-    }
-
-    // Support AVX-512 broadcast - {1tox}.
-    if (op.is_mem() && op.as<Mem>().has_broadcast()) {
-      ASMJIT_PROPAGATE(sb.append_format(" {1to%u}", axl::bit_mask<uint32_t>(uint32_t(op.as<Mem>().get_broadcast()))));
     }
   }
 

@@ -6,6 +6,7 @@
 #include <asmjit/core/api_build_p.h>
 
 #include <asmjit/axl/commons.h>
+#include <asmjit/axl/mem_alloc.h>
 #include <asmjit/core/string.h>
 
 ASMJIT_BEGIN_NAMESPACE
@@ -203,7 +204,7 @@ inline Error String_vformat(String& self, const char* fmt, va_list ap) noexcept 
     err = make_error(Error::kInvalidArgument);
   }
   else {
-    char* dynamic_buf = static_cast<char*>(malloc(result_size + 1u));
+    char* dynamic_buf = axl::mem_alloc<char>(result_size + 1u);
     if (!dynamic_buf) {
       err = make_error(Error::kOutOfMemory);
     }
@@ -215,7 +216,7 @@ inline Error String_vformat(String& self, const char* fmt, va_list ap) noexcept 
       else {
         err = !IsAppend ? self.assign(dynamic_buf, result_size) : self.append(dynamic_buf, result_size);
       }
-      free(dynamic_buf);
+      axl::mem_free(dynamic_buf);
     }
   }
 
@@ -228,7 +229,7 @@ inline Error String_vformat(String& self, const char* fmt, va_list ap) noexcept 
 
 Error String::reset() noexcept {
   if (_type == kTypeLarge) {
-    ::free(_large.data);
+    axl::mem_free(_large.data);
   }
 
   _reset_internal();
@@ -283,14 +284,14 @@ char* String::assign_uninitialized(size_t assign_size) noexcept {
     }
 
     size_t new_capacity = axl::align_up<size_t>(assign_size + 1, kStringMinAllocSize);
-    char* new_data = static_cast<char*>(::malloc(new_capacity));
+    char* new_data = axl::mem_alloc<char>(new_capacity);
 
     if (ASMJIT_UNLIKELY(!new_data)) {
       return nullptr;
     }
 
     if (type == kTypeLarge) {
-      ::free(data);
+      axl::mem_free(data);
     }
 
     _large.type = kTypeLarge;
@@ -332,7 +333,7 @@ char* String::append_uninitialized(size_t append_size) noexcept {
   size_t new_capacity_plus_one = String_expand_capacity(new_size + 1u);
   ASMJIT_ASSERT(new_capacity_plus_one >= new_size + 1u);
 
-  char* new_data = static_cast<char*>(::malloc(new_capacity_plus_one));
+  char* new_data = axl::mem_alloc<char>(new_capacity_plus_one);
   if (ASMJIT_UNLIKELY(!new_data)) {
     return nullptr;
   }
@@ -340,7 +341,7 @@ char* String::append_uninitialized(size_t append_size) noexcept {
   memcpy(new_data, data, size);
 
   if (type == kTypeLarge) {
-    ::free(data);
+    axl::mem_free(data);
   }
 
   _large.type = kTypeLarge;
@@ -376,7 +377,7 @@ Error String::assign(const char* data, size_t data_size) noexcept {
       }
 
       size_t capacity_plus_one = axl::align_up(data_size + 1, 32);
-      dst = static_cast<char*>(::malloc(capacity_plus_one));
+      dst = axl::mem_alloc<char>(capacity_plus_one);
 
       if (ASMJIT_UNLIKELY(!dst)) {
         return make_error(Error::kOutOfMemory);
@@ -386,7 +387,7 @@ Error String::assign(const char* data, size_t data_size) noexcept {
       ::memcpy(dst, data, data_size);
 
       if (type == kTypeLarge) {
-        ::free(_large.data);
+        axl::mem_free(_large.data);
       }
 
       _large.type = kTypeLarge;
@@ -412,7 +413,7 @@ Error String::assign(const char* data, size_t data_size) noexcept {
       }
 
       size_t capacity_plus_one = axl::align_up(data_size + 1, 32);
-      dst = static_cast<char*>(::malloc(capacity_plus_one));
+      dst = axl::mem_alloc<char>(capacity_plus_one);
 
       if (ASMJIT_UNLIKELY(!dst)) {
         return make_error(Error::kOutOfMemory);
@@ -543,7 +544,7 @@ Error String::append(const char* data, size_t data_size) noexcept {
   size_t new_capacity_plus_one = String_expand_capacity(new_size + 1u);
   ASMJIT_ASSERT(new_capacity_plus_one >= new_size + 1u);
 
-  char* new_data = static_cast<char*>(::malloc(new_capacity_plus_one));
+  char* new_data = axl::mem_alloc<char>(new_capacity_plus_one);
   if (ASMJIT_UNLIKELY(!new_data)) {
     return make_error(Error::kOutOfMemory);
   }
@@ -552,7 +553,7 @@ Error String::append(const char* data, size_t data_size) noexcept {
   memcpy(new_data + self_size, data, data_size);
 
   if (type == kTypeLarge) {
-    ::free(self_data);
+    axl::mem_free(self_data);
   }
 
   _large.type = kTypeLarge;

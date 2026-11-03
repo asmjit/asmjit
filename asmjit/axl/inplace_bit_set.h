@@ -71,7 +71,7 @@ public:
 
   //! \}
 
-  //! \name Equality
+  //! \name Equality & Comparison
   //! \{
 
   //! Tests whether this bit array has the same bits set as `other`.

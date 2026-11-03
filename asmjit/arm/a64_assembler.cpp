@@ -1206,12 +1206,22 @@ Error Assembler::_emit(InstId inst_id, const Operand_& o0, const Operand_& o1, c
     case InstDB::kEncodingBaseAdr: {
       const InstDB::EncodingData::BaseAdr& op_data = InstDB::EncodingData::baseAdr[encoding_index];
 
-      if (isign4 == ENC_OPS2(Reg, Label) || isign4 == ENC_OPS2(Reg, Imm)) {
+      if (isign4 == ENC_OPS2(Reg, Label) ||
+          isign4 == ENC_OPS2(Reg, Imm) ||
+          isign4 == ENC_OPS2(Reg, Mem)) {
         if (!o0.as<Reg>().is_gp64())
           goto InvalidInstruction;
 
         if (!check_gp_id(o0, kZR))
           goto InvalidPhysId;
+
+        if (o1.is_mem()) {
+          const Mem& mem = o1.as<Mem>();
+          if (inst_id == Inst::kIdAdrp)
+            goto InvalidInstruction;
+          if (!mem.has_base_label() || mem.has_index() || !mem.is_fixed_offset())
+            goto InvalidAddress;
+        }
 
         opcode.reset(op_data.opcode());
         opcode.add_reg(o0, 0);

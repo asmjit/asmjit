@@ -90,20 +90,15 @@ public:
   //! \{
 
   //! Tests whether the string is empty.
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool is_empty() const noexcept { return _base._size == 0; }
-
-  //! Returns the string data.
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG const char* data() const noexcept { return _base._size <= kMaxEmbeddedSize ? _base._embedded : _base._external; }
-
+  [[nodiscard]] ASMJIT_INLINE_NODEBUG bool is_empty() const noexcept { return _base._size == 0; }
   //! Returns the string size.
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t size() const noexcept { return _base._size; }
+  [[nodiscard]] ASMJIT_INLINE_NODEBUG uint32_t size() const noexcept { return _base._size; }
 
   //! Tests whether the string is embedded (e.g. no dynamically allocated).
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool is_embedded() const noexcept { return _base._size <= kMaxEmbeddedSize; }
+  [[nodiscard]] ASMJIT_INLINE_NODEBUG bool is_embedded() const noexcept { return _base._size <= kMaxEmbeddedSize; }
+
+  //! Returns the string data.
+  [[nodiscard]] ASMJIT_INLINE_NODEBUG const char* data() const noexcept { return _base._size <= kMaxEmbeddedSize ? _base._embedded : _base._external; }
 
   //! Copies a new `data` of the given `size` to the string.
   //!

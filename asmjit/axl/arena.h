@@ -80,8 +80,8 @@ struct ArenaUsage {
 };
 
 //! Arena allocator is an incremental memory allocator that allocates memory by simply incrementing a pointer. It
-//! allocates blocks of memory by using C's `malloc()`, but divides these blocks into smaller segments requested by
-//! calling `Arena::alloc()` and friends.
+//! allocates blocks of memory by using axl::mem_alloc() (usually mapped directly to `malloc()`), but divides these
+//! blocks into smaller segments requested by calling `Arena::alloc()` and friends.
 class Arena {
 public:
   ASMJIT_NONCOPYABLE(Arena)
@@ -135,7 +135,7 @@ public:
   //! Returns the slot index to be used for the given `size`. Returns `true` if a valid slot has been written to `slot`.
   [[nodiscard]]
   static ASMJIT_INLINE bool _get_reusable_slot_index(size_t size, Out<size_t> slot) noexcept {
-    slot = axl::bit_size_of<size_t> - 4u - axl::clz((size - 1u) | 0xF);
+    slot = bit_size_of<size_t> - 4u - clz((size - 1u) | 0xF);
     return *slot < kReusableSlotCount;
   }
 
@@ -144,7 +144,7 @@ public:
   //! `size`).
   [[nodiscard]]
   static ASMJIT_INLINE bool _get_reusable_slot_index(size_t size, Out<size_t> slot, Out<size_t> allocated_size) noexcept {
-    slot = axl::bit_size_of<size_t> - 4u - axl::clz((size - 1u) | 0xF);
+    slot = bit_size_of<size_t> - 4u - clz((size - 1u) | 0xF);
     allocated_size = kMinReusableSlotSize << *slot;
     return *slot < kReusableSlotCount;
   }
@@ -152,9 +152,9 @@ public:
   //! \endcond
 
   template<typename T>
-  static ASMJIT_INLINE_CONSTEXPR size_t aligned_size_of() noexcept { return axl::align_up(sizeof(T), kAlignment); }
+  static ASMJIT_INLINE_CONSTEXPR size_t aligned_size_of() noexcept { return align_up(sizeof(T), kAlignment); }
 
-  static ASMJIT_INLINE_CONSTEXPR size_t aligned_size(size_t size) noexcept { return axl::align_up(size, kAlignment); }
+  static ASMJIT_INLINE_CONSTEXPR size_t aligned_size(size_t size) noexcept { return align_up(size, kAlignment); }
 
   //! \name Members
   //! \{
@@ -197,7 +197,7 @@ public:
   //! the default `min_block_size`.
   //!
   //! It's not required, but it's good practice to set `min_block_size` to a reasonable value that depends on the
-  //! usage of `Arena`. Greater block sizes are generally safer and perform better than unreasonably low block sizes.
+  //! usage of `Arena`. Greater block sizes are generally safer and perform better than unreasonably small block sizes.
   ASMJIT_INLINE_NODEBUG explicit Arena(size_t min_block_size) noexcept {
     _init(min_block_size, Span<uint8_t>{});
   }
@@ -329,7 +329,7 @@ public:
   template<typename T = void>
   [[nodiscard]]
   ASMJIT_INLINE T* alloc_oneshot(size_t size) noexcept {
-    ASMJIT_ASSERT(axl::is_aligned(size, kAlignment));
+    ASMJIT_ASSERT(is_aligned(size, kAlignment));
 
 #if defined(__GNUC__)
     // We can optimize this function a little bit if we know that `size` is relatively small - which would mean
@@ -382,7 +382,7 @@ public:
     if (ASMJIT_UNLIKELY(!p)) {
       return nullptr;
     }
-    return new(axl::PlacementNew{p}) T();
+    return new(PlacementNew{p}) T();
   }
 
   //! Like `new(std::nothrow) T(...)`, but allocated by `Arena`.
@@ -393,7 +393,7 @@ public:
     if (ASMJIT_UNLIKELY(!p)) {
       return nullptr;
     }
-    return new(axl::PlacementNew{p}) T(axl::forward<Args>(args)...);
+    return new(PlacementNew{p}) T(forward<Args>(args)...);
   }
 
   //! Helper to duplicate data.

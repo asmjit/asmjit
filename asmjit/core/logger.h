@@ -27,7 +27,7 @@ ASMJIT_BEGIN_NAMESPACE
 //!   - \ref StringLogger - concatenates all logs into a \ref String.
 class ASMJIT_VIRTAPI Logger {
 public:
-  ASMJIT_BASE_CLASS(Logger)
+  ASMJIT_OVERRIDE_NEW_DELETE(Logger)
   ASMJIT_NONCOPYABLE(Logger)
 
   //! Format options.

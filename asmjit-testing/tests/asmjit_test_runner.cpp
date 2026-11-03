@@ -14,7 +14,7 @@
 #endif
 
 #include <asmjit-testing/commons/asmjit_utils.h>
-#include <asmjit-testing/tests/zero_test.h>
+#include <asmjit-testing/commons/zero_test.h>
 
 #if !defined(ASMJIT_NO_COMPILER)
 #include <asmjit/core/ra_cfg_block_p.h>
@@ -34,12 +34,15 @@ int main(int argc, const char* argv[]) {
   );
 
   ZeroTest::TestPrecedence precedence_table[] = {
-    {"axl*"},
-    {"core_string*"},
-    {"core*"},
-    {"a64*"},
-    {"x86*"},
-    {"uni_compiler*"}
+    // A placeholder for temporary tests that would always run first.
+    {"^xxx"},
+
+    {"^axl"},
+    {"^core_string"},
+    {"^core"},
+    {"^a64"},
+    {"^x86"},
+    {"^uni_compiler"}
   };
 
   ZeroTest::TestRunner test_runner(argc, argv);
@@ -54,12 +57,13 @@ int main(int argc, const char* argv[]) {
   auto options_list = [&]() {
     auto MT = ZeroTest::MessageType::kRunnerMessage;
     test_runner.message(MT, "  --build-info  - print build information\n");
+    test_runner.message(MT, "  --quick       - make it quicker by reducing some iterations\n");
   };
 
   test_runner.on_message(message);
   test_runner.on_options_list(options_list);
 
-  if (test_runner.has_arg("--build-info")) {
+  if (test_runner.cmd_line().has_arg("--build-info")) {
     print_build_info();
     return 0;
   }

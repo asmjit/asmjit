@@ -7,6 +7,7 @@
 
 #include <asmjit/axl/algorithm.h>
 #include <asmjit/axl/commons.h>
+#include <asmjit/axl/mem_alloc.h>
 #include <asmjit/axl/mem_ops.h>
 #include <asmjit/axl/string_utils.h>
 #include <asmjit/core/assembler.h>
@@ -83,7 +84,7 @@ static ASMJIT_INLINE Section CodeHolder_make_text_section() noexcept {
 
 static ASMJIT_INLINE void CodeHolder_release_section_buffer(Section* section) noexcept {
   if (axl::bool_and(section->_buffer.data() != nullptr, !section->_buffer.is_external())) {
-    ::free(section->_buffer._data);
+    axl::mem_free(section->_buffer._data);
   }
 }
 
@@ -386,10 +387,10 @@ static Error CodeHolder_reserve_internal(CodeHolder* self, CodeBuffer* cb, size_
   uint8_t* new_data;
 
   if (old_data && !cb->is_external()) {
-    new_data = static_cast<uint8_t*>(::realloc(old_data, n));
+    new_data = axl::mem_realloc<uint8_t>(old_data, n);
   }
   else {
-    new_data = static_cast<uint8_t*>(::malloc(n));
+    new_data = axl::mem_alloc<uint8_t>(n);
   }
 
   if (ASMJIT_UNLIKELY(!new_data)) {
@@ -793,7 +794,7 @@ Error CodeHolder::new_named_label_id(Out<uint32_t> label_id_out, const char* nam
 uint32_t CodeHolder::label_id_by_name(const char* name, size_t name_size, uint32_t parent_id) noexcept {
   uint32_t hash_code = CodeHolder_hash_name_and_get_size(name, name_size);
   if (ASMJIT_UNLIKELY(!name_size)) {
-    return 0;
+    return Globals::kInvalidId;
   }
 
   if (parent_id != Globals::kInvalidId) {
@@ -803,7 +804,6 @@ uint32_t CodeHolder::label_id_by_name(const char* name, size_t name_size, uint32
   NamedLabelExtraData* named_node = _named_labels.get(LabelByName(name, name_size, hash_code, parent_id));
   return named_node ? named_node->label_id() : uint32_t(Globals::kInvalidId);
 }
-
 
 ASMJIT_API Error CodeHolder::resolve_cross_section_fixups() noexcept {
   if (!has_unresolved_fixups()) {

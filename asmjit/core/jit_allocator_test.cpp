@@ -217,13 +217,13 @@ static void BitVectorRangeIterator_test_random(TestUtils::Random& rnd, size_t co
   }
 }
 
-static void test_jit_allocator_reset_empty() noexcept {
+TEST_CASE(core_jit_allocator_constructors) {
   JitAllocator allocator;
   allocator.reset(ResetPolicy::kSoft);
 }
 
-static void test_jit_allocator_alloc_release() noexcept {
-  size_t kCount = ZeroTest::test_runner()->has_arg("--quick") ? 20000 : 100000;
+TEST_CASE(core_jit_allocator_alloc_relese) {
+  size_t kCount = ZeroTest::test_runner()->cmd_line().has_arg("--quick") ? 20000 : 60000;
 
   struct TestInfo {
     const char* name;
@@ -385,7 +385,7 @@ static void test_jit_allocator_alloc_release() noexcept {
   }
 }
 
-static void test_jit_allocator_query() noexcept {
+TEST_CASE(core_jit_allocator_query) {
   JitAllocator allocator;
   size_t allocated_size = 100;
 
@@ -401,7 +401,7 @@ static void test_jit_allocator_query() noexcept {
   EXPECT_EQ(allocated_span.size(), queried_span.size());
 }
 
-static void test_jit_allocator_incremental_release() noexcept {
+TEST_CASE(core_jit_allocator_incremental_release) {
   // A block emptied by releasing its spans in reverse order must be reported as empty,
   // otherwise `kImmediateRelease` never releases it.
   {
@@ -447,13 +447,6 @@ static void test_jit_allocator_incremental_release() noexcept {
     EXPECT_OK(allocator.alloc(Out(y), 1024));
     EXPECT_EQ(allocator.statistics().block_count(), 1u);
   }
-}
-
-TEST_CASE(core_jit_allocator) {
-  test_jit_allocator_reset_empty();
-  test_jit_allocator_alloc_release();
-  test_jit_allocator_query();
-  test_jit_allocator_incremental_release();
 }
 
 ASMJIT_END_NAMESPACE

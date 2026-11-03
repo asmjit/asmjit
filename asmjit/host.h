@@ -14,7 +14,7 @@
 #include <asmjit/x86.h>
 
 ASMJIT_BEGIN_NAMESPACE
-namespace host { using namespace x86; }
+namespace host = x86;
 ASMJIT_END_NAMESPACE
 
 #endif
@@ -25,7 +25,7 @@ ASMJIT_END_NAMESPACE
 #include <asmjit/a64.h>
 
 ASMJIT_BEGIN_NAMESPACE
-namespace host { using namespace a64; }
+namespace host = a64;
 ASMJIT_END_NAMESPACE
 
 #endif

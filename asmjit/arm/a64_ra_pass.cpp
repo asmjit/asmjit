@@ -826,46 +826,48 @@ ASMJIT_FAVOR_SPEED Error ARMRAPass::rewrite() {
           }
         }
 
-        // Rewrite `load_address_of()` construct.
+        // Rewrite `load_address_of()` construct. Label-based addresses are handled directly by the assembler.
         if (inst->real_id() == Inst::kIdAdr && operands.size() == 2 && operands[1].is_mem()) {
-          BaseMem mem = operands[1].as<BaseMem>();
-          int64_t offset = mem.offset();
+          if (!operands[1].as<BaseMem>().has_base_label()) {
+            BaseMem mem = operands[1].as<BaseMem>();
+            int64_t offset = mem.offset();
 
-          if (!mem.has_base_or_index()) {
-            inst->set_inst_id(Inst::kIdMov);
-            inst->set_op(1, Imm(offset));
-          }
-          else {
-            if (mem.has_index()) {
-              return make_error(Error::kInvalidAddressIndex);
+            if (!mem.has_base_or_index()) {
+              inst->set_inst_id(Inst::kIdMov);
+              inst->set_op(1, Imm(offset));
             }
-
-            Gp dst = Gp::make_r64(operands[0].as<Gp>().id());
-            Gp base = Gp::make_r64(mem.base_id());
-
-            InstId arith_inst = offset < 0 ? Inst::kIdSub : Inst::kIdAdd;
-            uint64_t abs_offset = offset < 0 ? axl::neg(uint64_t(offset)) : uint64_t(offset);
-
-            inst->set_inst_id(arith_inst);
-            inst->set_op_count(3);
-            inst->set_op(1, base);
-            inst->set_op(2, Imm(abs_offset));
-
-            // Use two operations if the offset cannot be encoded with ADD/SUB.
-            if (abs_offset > 0xFFFu && (abs_offset & ~uint64_t(0xFFF000u)) != 0) {
-              if (abs_offset <= 0xFFFFFFu) {
-                cc().set_cursor(inst->prev());
-                ASMJIT_PROPAGATE(cc().emit(arith_inst, dst, base, Imm(abs_offset & 0xFFFu)));
-
-                inst->set_op(1, dst);
-                inst->set_op(2, Imm(abs_offset & 0xFFF000u));
+            else {
+              if (mem.has_index()) {
+                return make_error(Error::kInvalidAddressIndex);
               }
-              else {
-                cc().set_cursor(inst->prev());
-                ASMJIT_PROPAGATE(cc().emit(Inst::kIdMov, operands[0], Imm(abs_offset)));
 
-                inst->set_op(1, base);
-                inst->set_op(2, dst);
+              Gp dst = Gp::make_r64(operands[0].as<Gp>().id());
+              Gp base = Gp::make_r64(mem.base_id());
+
+              InstId arith_inst = offset < 0 ? Inst::kIdSub : Inst::kIdAdd;
+              uint64_t abs_offset = offset < 0 ? axl::neg(uint64_t(offset)) : uint64_t(offset);
+
+              inst->set_inst_id(arith_inst);
+              inst->set_op_count(3);
+              inst->set_op(1, base);
+              inst->set_op(2, Imm(abs_offset));
+
+              // Use two operations if the offset cannot be encoded with ADD/SUB.
+              if (abs_offset > 0xFFFu && (abs_offset & ~uint64_t(0xFFF000u)) != 0) {
+                if (abs_offset <= 0xFFFFFFu) {
+                  cc().set_cursor(inst->prev());
+                  ASMJIT_PROPAGATE(cc().emit(arith_inst, dst, base, Imm(abs_offset & 0xFFFu)));
+
+                  inst->set_op(1, dst);
+                  inst->set_op(2, Imm(abs_offset & 0xFFF000u));
+                }
+                else {
+                  cc().set_cursor(inst->prev());
+                  ASMJIT_PROPAGATE(cc().emit(Inst::kIdMov, operands[0], Imm(abs_offset)));
+
+                  inst->set_op(1, base);
+                  inst->set_op(2, dst);
+                }
               }
             }
           }

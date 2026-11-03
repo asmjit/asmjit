@@ -32,6 +32,7 @@ ASMJIT_FAVOR_SIZE const char* stringify_error(Error err) noexcept {
     "TooManyHandles\0"
     "TooLarge\0"
     "NoCodeGenerated\0"
+    "UnresolvedFixups\0"
     "InvalidDirective\0"
     "InvalidLabel\0"
     "TooManyLabels\0"
@@ -90,7 +91,7 @@ ASMJIT_FAVOR_SIZE const char* stringify_error(Error err) noexcept {
     "ExpressionLabelNotBound\0"
     "ExpressionOverflow\0"
     "FailedToOpenAnonymousMemory\0"
-    "FailedToOpenFile\0"
+    "PassRerunAttempted\0"
     "ProtectionFailure\0"
     "<Unknown>\0";
   // @EnumStringEnd@
