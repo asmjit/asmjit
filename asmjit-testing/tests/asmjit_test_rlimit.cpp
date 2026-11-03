@@ -81,10 +81,11 @@ static void invoke_void_function(void* ptr) noexcept {
   func();
 }
 
-static Error test_jit_runtime_function(size_t block_size, size_t extra_size) noexcept {
+static Error test_jit_runtime_function(size_t block_size, size_t extra_size, uintptr_t near_address = 0) noexcept {
   JitAllocator::CreateParams allocator_params{
     .options = JitAllocatorOptions::kUseDualMapping,
-    .block_size = static_cast<uint32_t>(block_size)
+    .block_size = static_cast<uint32_t>(block_size),
+    .near_address = near_address
   };
 
   JitRuntime rt(&allocator_params);
@@ -185,6 +186,20 @@ int main() {
   printf("Testing JitRuntime with 2 MiB executable blocks and 1 MiB function core/data\n");
 
   Error result = test_jit_runtime_function(2 * MiB, 1 * MiB);
+
+  // Placing blocks in an address range must respect the limit as well.
+  printf("Testing the same within an address range\n");
+  if (test_jit_runtime_function(2 * MiB, 1 * MiB, uintptr_t(invoke_void_function)) != result) {
+    printf("** FAILURE: The address range changed the result **\n");
+    return 1;
+  }
+
+  printf("Testing JitRuntime with 256 KiB executable blocks within an address range\n");
+  if (test_jit_runtime_function(256 * 1024, 0, uintptr_t(invoke_void_function)) != Error::kOk) {
+    printf("** FAILURE: Allocation within the limit failed **\n");
+    return 1;
+  }
+
   if (max_dual_mapping_size <= 1 * MiB) {
     if (result == Error::kOutOfMemory) {
       printf("** SUCCESS: 'OutOfMemory' error was expected, because of applied resource limits **\n");

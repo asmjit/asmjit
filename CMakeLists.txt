@@ -276,6 +276,7 @@ asmjit_define_sources(ASMJIT_SRC
   asmjit/core/type.h
   asmjit/core/virt_mem.cpp
   asmjit/core/virt_mem.h
+  asmjit/core/virt_mem_p.h
   asmjit/core/virt_mem_test.cpp
 
   asmjit/a64.h
@@ -761,7 +762,7 @@ if (TRUE)
         CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
         CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
 
-      foreach(app asmjit_bench_overhead asmjit_bench_regalloc)
+      foreach(app asmjit_bench_calls asmjit_bench_overhead asmjit_bench_regalloc)
         asmjit_add_target(${app} TEST
           SOURCES    asmjit-testing/commons/zero_lib.cpp
                      asmjit-testing/commons/zero_lib.h
