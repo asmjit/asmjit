@@ -477,7 +477,7 @@ uint32_t Runner::add_metric(const String& name, const MetricOptions& options) no
 void Runner::add_time_metrics() noexcept {
   add_metric("T. Min", {
     .color = ZeroBench::kMinDurationColor,
-    .value_kind = ZeroBench::ValueKind::kDuration,
+    .value_kind = ZeroBench::ValueKind::kDurationNano,
     .value_index = ZeroBench::kDurationValueIndex,
     .aggregate = ZeroBench::Aggregate::kMin,
     .scale = ZeroBench::Scale::kDefault
@@ -485,7 +485,7 @@ void Runner::add_time_metrics() noexcept {
 
   add_metric("T. Med", {
     .color = ZeroBench::kOtherDurationColor,
-    .value_kind = ZeroBench::ValueKind::kDuration,
+    .value_kind = ZeroBench::ValueKind::kDurationNano,
     .value_index = ZeroBench::kDurationValueIndex,
     .aggregate = ZeroBench::Aggregate::kP50,
     .scale = ZeroBench::Scale::kDefault
@@ -493,7 +493,7 @@ void Runner::add_time_metrics() noexcept {
 
   add_metric("T. Max", {
     .color = ZeroBench::kMaxDurationColor,
-    .value_kind = ZeroBench::ValueKind::kDuration,
+    .value_kind = ZeroBench::ValueKind::kDurationNano,
     .value_index = ZeroBench::kDurationValueIndex,
     .aggregate = ZeroBench::Aggregate::kMax,
     .scale = ZeroBench::Scale::kDefault
@@ -501,7 +501,7 @@ void Runner::add_time_metrics() noexcept {
 
   add_metric("Std Dev", {
     .color = ZeroBench::kOtherStatisticColor,
-    .value_kind = ZeroBench::ValueKind::kDuration,
+    .value_kind = ZeroBench::ValueKind::kDurationNano,
     .value_index = ZeroBench::kDurationValueIndex,
     .aggregate = ZeroBench::Aggregate::kStdDev,
     .scale = ZeroBench::Scale::kDefault
@@ -586,7 +586,10 @@ static Padding calculate_padding(size_t text_size, size_t cell_width, bool right
 static void format_time(String& sb, double t, Scale scale, bool squared = false) noexcept {
   if (scale == Scale::kDefault) {
     double magnitude = squared ? std::sqrt(t) : t;
-    if (magnitude < 0.00001) {
+    if (magnitude < 0.00000001) {
+      scale = Scale::kNano;
+    }
+    else if (magnitude < 0.00001) {
       scale = Scale::kMicro;
     }
     else if (magnitude < 1.0) {
@@ -625,8 +628,12 @@ static void format_metric(String& sb, double val, ValueKind kind, Scale scale, b
   const UnitString* unit_text = nullptr;
 
   switch (kind) {
-    case ValueKind::kDuration:
+    case ValueKind::kDurationNano:
       format_time(sb, double(val) / (squared ? 1e18 : 1e9), scale, squared);
+      return;
+
+    case ValueKind::kDurationPico:
+      format_time(sb, double(val) / (squared ? 1e24 : 1e12), scale, squared);
       return;
 
     case ValueKind::kBytes:
@@ -768,7 +775,7 @@ int Runner::run(const BenchmarkRef* benchmarks, size_t benchmark_count) {
     if (is_metric_enabled(metric_id)) {
       const Metric& metric = _metrics[metric_id];
       table.add_column(metric.name, {
-        .width = std::max<size_t>(metric.name.size() + 2, 11),
+        .width = std::max<size_t>(metric.name.size() + 2, 12),
         .color = metric.options.color,
         .value_kind = metric.options.value_kind,
         .value_index = metric.options.value_index,

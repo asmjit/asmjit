@@ -50,10 +50,13 @@ enum class ValueKind : uint8_t {
   kFailure,
 
   kUnknown,
-  kDuration,
+  kDurationNano,  // Duration in nano-seconds (the standard duration measured by the engine).
+  kDurationPico,  // Duration in pico-seconds so the output can have a sub-nano second precision.
   kCount,
   kBytes,
-  kPixels
+  kPixels,
+
+  kDuration = kDurationNano
 };
 
 enum class Aggregate : uint8_t {

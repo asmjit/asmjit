@@ -25,6 +25,9 @@ class CodeHolder;
 //! JIT runtime is the easiest way of using AsmJit as it abstracts allocation and deallocation of virtual memory
 //! where executable code can be placed and from which it can be executed as well.
 //!
+//! \note Set \ref JitAllocator::CreateParams::near_address to the address of a function the generated code calls
+//! to make calls to functions of its module direct (`call rel32` instead of `call [rip + addrtab]` on X86_64).
+//!
 //! \note JIT runtime understands PAUTH and would automatically authenticate pointers when compiled for `arm64e`
 //! targets. This means that if you want to read RAW bytes of acquired pointers, you would have to strip the
 //! signature from them via \ref PAuthUtils::strip_c_func_ptr().

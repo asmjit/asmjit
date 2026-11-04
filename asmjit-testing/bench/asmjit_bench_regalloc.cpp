@@ -540,28 +540,28 @@ int main(int argc, char* argv[]) {
   });
   runner.add_metric("Emit T.Med", {
     .color = ZeroBench::kOtherDurationColor,
-    .value_kind = ZeroBench::ValueKind::kDuration,
+    .value_kind = ZeroBench::ValueKind::kDurationNano,
     .value_index = kEmitTime,
     .aggregate = ZeroBench::Aggregate::kP50,
     .scale = ZeroBench::Scale::kDefault
   });
   runner.add_metric("Emit T.Max", {
     .color = ZeroBench::kMaxDurationColor,
-    .value_kind = ZeroBench::ValueKind::kDuration,
+    .value_kind = ZeroBench::ValueKind::kDurationNano,
     .value_index = kEmitTime,
     .aggregate = ZeroBench::Aggregate::kMax,
     .scale = ZeroBench::Scale::kDefault
   });
   runner.add_metric("RA T. Med", {
     .color = ZeroBench::kOtherDurationColor,
-    .value_kind = ZeroBench::ValueKind::kDuration,
+    .value_kind = ZeroBench::ValueKind::kDurationNano,
     .value_index = kRATime,
     .aggregate = ZeroBench::Aggregate::kP50,
     .scale = ZeroBench::Scale::kDefault
   });
   runner.add_metric("RA T. Max", {
     .color = ZeroBench::kMaxDurationColor,
-    .value_kind = ZeroBench::ValueKind::kDuration,
+    .value_kind = ZeroBench::ValueKind::kDurationNano,
     .value_index = kRATime,
     .aggregate = ZeroBench::Aggregate::kMax,
     .scale = ZeroBench::Scale::kDefault

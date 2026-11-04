@@ -211,12 +211,30 @@ enum class MemoryFlags : uint32_t {
 };
 ASMJIT_DEFINE_ENUM_FLAGS(MemoryFlags)
 
+//! Address range `[start, end)`.
+struct AddressRange {
+  //! Start of the range (inclusive).
+  uintptr_t start;
+  //! End of the range (exclusive).
+  uintptr_t end;
+};
+
 //! Allocates virtual memory by either using `mmap()` (POSIX) or `VirtualAlloc()` (Windows).
 //!
 //! \note `size` should be aligned to page size, use \ref VirtMem::info() to obtain it. Invalid size will not be
 //! corrected by the implementation and the allocation would not succeed in such case.
 [[nodiscard]]
 ASMJIT_API Error alloc(void** p, size_t size, MemoryFlags flags) noexcept;
+
+//! Allocates virtual memory like \ref VirtMem::alloc(), but places it fully within `range`.
+//!
+//! Operating systems don't offer an API to map memory anywhere within a range, so the implementation tries random
+//! addresses within the range, aligned to the page size (allocation granularity on Windows), and fails with
+//! \ref Error::kOutOfMemory if none of them is free. The range can contain other mappings, but the more of it is
+//! taken, the less likely this succeeds. An empty range (`range.start >= range.end`) fails with
+//! \ref Error::kInvalidArgument.
+[[nodiscard]]
+ASMJIT_API Error alloc(void** p, size_t size, MemoryFlags flags, AddressRange range) noexcept;
 
 //! Releases virtual memory previously allocated by \ref VirtMem::alloc().
 //!
@@ -260,6 +278,15 @@ struct DualMapping {
 //! is not too large.
 [[nodiscard]]
 ASMJIT_API Error alloc_dual_mapping(Out<DualMapping> dm, size_t size, MemoryFlags flags) noexcept;
+
+//! Allocates dual mapping like \ref VirtMem::alloc_dual_mapping(), but places the read+execute view (`dm.rx`) fully
+//! within `range`. The read+write view (`dm.rw`) can be placed anywhere.
+//!
+//! See \ref VirtMem::alloc(void**, size_t, MemoryFlags, AddressRange) for how the range is used.
+//!
+//! \note Returns \ref Error::kFeatureNotEnabled in UWP apps, which cannot map a view at a given address.
+[[nodiscard]]
+ASMJIT_API Error alloc_dual_mapping(Out<DualMapping> dm, size_t size, MemoryFlags flags, AddressRange range) noexcept;
 
 //! Releases virtual memory mapping previously allocated by \ref VirtMem::alloc_dual_mapping().
 //!
