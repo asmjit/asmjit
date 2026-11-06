@@ -1604,6 +1604,61 @@ Info info() noexcept {
   };
 }
 
+Error alloc_aligned(void** p, size_t size, size_t alignment, MemoryFlags memory_flags) noexcept {
+  *p = nullptr;
+#if !defined(_WIN32)
+  const size_t page_size = info().page_size;
+  if (!axl::is_power_of_2(alignment) || alignment < page_size ||
+      size == 0 || !axl::is_aligned(size, alignment) ||
+      axl::test(memory_flags, MemoryFlags::kMMapLargePages | MemoryFlags::kMapShared)) {
+    return make_error(Error::kInvalidArgument);
+  }
+
+  size_t extra_size = alignment - page_size;
+  if (size > std::numeric_limits<size_t>::max() - extra_size) {
+    return make_error(Error::kTooLarge);
+  }
+
+#if !defined(MADV_HUGEPAGE)
+  if (axl::test(memory_flags, MemoryFlags::kMAdviseLargePages)) {
+    return make_error(Error::kFeatureNotEnabled);
+  }
+#endif
+
+  void* base;
+  size_t mapping_size = size + extra_size;
+  ASMJIT_PROPAGATE(map_memory(&base, mapping_size, memory_flags & ~MemoryFlags::kMAdviseLargePages));
+
+  uint8_t* aligned = reinterpret_cast<uint8_t*>(axl::align_up(uintptr_t(base), alignment));
+  size_t leading_size = size_t(aligned - static_cast<uint8_t*>(base));
+  size_t trailing_size = extra_size - leading_size;
+
+  if (leading_size && munmap(base, leading_size) != 0) {
+    Error err = asmjit_error_from_errno(errno);
+    munmap(base, mapping_size);
+    return make_error(err);
+  }
+  if (trailing_size && munmap(aligned + size, trailing_size) != 0) {
+    Error err = asmjit_error_from_errno(errno);
+    munmap(aligned, size + trailing_size);
+    return make_error(err);
+  }
+#if defined(MADV_HUGEPAGE)
+  if (axl::test(memory_flags, MemoryFlags::kMAdviseLargePages) && madvise(aligned, size, MADV_HUGEPAGE) != 0) {
+    Error err = asmjit_error_from_errno(errno);
+    munmap(aligned, size);
+    return make_error(err);
+  }
+#endif
+
+  *p = aligned;
+  return Error::kOk;
+#else
+  axl::maybe_unused(size, alignment, memory_flags);
+  return make_error(Error::kFeatureNotEnabled);
+#endif
+}
+
 size_t large_page_size() noexcept {
   static std::atomic<size_t> large_page_size;
   static constexpr size_t not_available = 1;
