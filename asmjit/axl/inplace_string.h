@@ -25,7 +25,7 @@ struct InplaceString {
 
   static inline constexpr uint32_t kBufferCapacity = (N + 1u + 3u) / 4u * 4u;
   static inline constexpr uint32_t kStringCapacity = kBufferCapacity - 1u;
-  static inline constexpr size_t kSizeIndex = kStringCapacity - 1;
+  static inline constexpr size_t kSizeIndex = kStringCapacity;
 
   //! \}
 
