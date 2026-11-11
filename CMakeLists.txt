@@ -171,6 +171,7 @@ asmjit_define_sources(ASMJIT_AXL_SRC
   asmjit/axl/inplace_stack.h
   asmjit/axl/inplace_storage.h
   asmjit/axl/inplace_string.h
+  asmjit/axl/inplace_string_test.cpp
   asmjit/axl/mem_alloc.h
   asmjit/axl/mem_ops.h
   asmjit/axl/mem_ops_test.cpp
