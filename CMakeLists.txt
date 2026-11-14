@@ -171,8 +171,9 @@ asmjit_define_sources(ASMJIT_AXL_SRC
   asmjit/axl/inplace_stack.h
   asmjit/axl/inplace_storage.h
   asmjit/axl/inplace_string.h
-  asmjit/axl/algorithm.h
-  asmjit/axl/algorithm_test.cpp
+  asmjit/axl/mem_alloc.h
+  asmjit/axl/mem_ops.h
+  asmjit/axl/mem_ops_test.cpp
   asmjit/axl/span.h
   asmjit/axl/string_index.h
   asmjit/axl/string_index_test.cpp
@@ -190,6 +191,7 @@ asmjit_define_sources(ASMJIT_SRC
   asmjit/core/arch_commons.h
   asmjit/core/assembler.cpp
   asmjit/core/assembler.h
+  asmjit/core/assembler_test_p.h
   asmjit/core/build_defs.h
   asmjit/core/builder.cpp
   asmjit/core/builder.h
@@ -202,6 +204,7 @@ asmjit_define_sources(ASMJIT_SRC
   asmjit/core/compiler.cpp
   asmjit/core/compiler.h
   asmjit/core/compiler_defs.h
+  asmjit/core/compiler_test_p.h
   asmjit/core/const_pool.cpp
   asmjit/core/const_pool.h
   asmjit/core/const_pool_test.cpp
@@ -217,6 +220,7 @@ asmjit_define_sources(ASMJIT_SRC
   asmjit/core/emitter_utils_p.h
   asmjit/core/environment.cpp
   asmjit/core/environment.h
+  asmjit/core/environment_test.cpp
   asmjit/core/error.cpp
   asmjit/core/error.h
   asmjit/core/error_handler.cpp
@@ -239,6 +243,7 @@ asmjit_define_sources(ASMJIT_SRC
   asmjit/core/jit_allocator_test.cpp
   asmjit/core/jit_runtime.cpp
   asmjit/core/jit_runtime.h
+  asmjit/core/jit_runtime_test.cpp
   asmjit/core/logger.cpp
   asmjit/core/logger.h
   asmjit/core/misc_p.h
@@ -271,6 +276,7 @@ asmjit_define_sources(ASMJIT_SRC
   asmjit/core/type.h
   asmjit/core/virt_mem.cpp
   asmjit/core/virt_mem.h
+  asmjit/core/virt_mem_p.h
   asmjit/core/virt_mem_test.cpp
 
   asmjit/a64.h
@@ -280,17 +286,22 @@ asmjit_define_sources(ASMJIT_SRC
   asmjit/arm/arm_globals.h
   asmjit/arm/arm_utils.h
   asmjit/arm/a64_arch_traits_p.h
+  asmjit/arm/a64_arch_traits_test.cpp
   asmjit/arm/a64_assembler.cpp
+  asmjit/arm/a64_assembler_test.cpp
   asmjit/arm/a64_assembler.h
   asmjit/arm/a64_builder.cpp
   asmjit/arm/a64_builder.h
+  asmjit/arm/a64_builder_test.cpp
   asmjit/arm/a64_compiler.cpp
   asmjit/arm/a64_compiler.h
+  asmjit/arm/a64_compiler_test.cpp
   asmjit/arm/a64_emit_helper.cpp
   asmjit/arm/a64_emit_helper_p.h
   asmjit/arm/a64_emitter.h
   asmjit/arm/a64_formatter.cpp
   asmjit/arm/a64_formatter_p.h
+  asmjit/arm/a64_formatter_test.cpp
   asmjit/arm/a64_func.cpp
   asmjit/arm/a64_func_p.h
   asmjit/arm/a64_globals.h
@@ -306,17 +317,23 @@ asmjit_define_sources(ASMJIT_SRC
 
   asmjit/x86.h
   asmjit/x86/x86_arch_traits_p.h
+  asmjit/x86/x86_arch_traits_test.cpp
   asmjit/x86/x86_assembler.cpp
+  asmjit/x86/x86_assembler_enc32_test.cpp
+  asmjit/x86/x86_assembler_enc64_test.cpp
   asmjit/x86/x86_assembler.h
   asmjit/x86/x86_builder.cpp
   asmjit/x86/x86_builder.h
+  asmjit/x86/x86_builder_test.cpp
   asmjit/x86/x86_compiler.cpp
   asmjit/x86/x86_compiler.h
+  asmjit/x86/x86_compiler_test.cpp
   asmjit/x86/x86_emit_helper.cpp
   asmjit/x86/x86_emit_helper_p.h
   asmjit/x86/x86_emitter.h
   asmjit/x86/x86_formatter.cpp
   asmjit/x86/x86_formatter_p.h
+  asmjit/x86/x86_formatter_test.cpp
   asmjit/x86/x86_func.cpp
   asmjit/x86/x86_func_p.h
   asmjit/x86/x86_globals.h
@@ -338,6 +355,7 @@ asmjit_define_sources(ASMJIT_SRC
   asmjit/ujit/uni_compiler_a64.cpp
   asmjit/ujit/uni_compiler_x86.cpp
   asmjit/ujit/uni_compiler_utils_p.h
+  asmjit/ujit/uni_compiler_test.cpp
   asmjit/ujit/uni_condition.h
   asmjit/ujit/uni_op.h
   asmjit/ujit/vec_const_table.cpp
@@ -669,39 +687,47 @@ if (TRUE)
       enable_testing()
       message(STATUS "[asmjit] Enabling AsmJit tests ('ASMJIT_TEST=${ASMJIT_TEST}')")
 
+      # Vectorcall tests and XMM tests require at least SSE2 in 32-bit mode (in 64-bit mode it's implicit).
+      # Some compilers don't like passing -msse2 for 64-bit targets, and some compilers targeting non-x86
+      # would pass "-msse2" compile flag check, but with a warning not detected by CMake. Thus, verify that
+      # our target is really 32-bit X86 and only use -msse2 or -arch:SSE2 flags when necessary.
+      asmjit_detect_target_arch(ASMJIT_TARGET_ARCH)
+
+      set(ASMJIT_SSE2_CFLAGS "")
+      if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" OR "x${CMAKE_CXX_COMPILER_FRONTEND_VARIANT}" STREQUAL "xMSVC")
+        if (ASMJIT_TARGET_ARCH STREQUAL "X86")
+          asmjit_detect_cflags(ASMJIT_SSE2_CFLAGS -arch:SSE2)
+        endif()
+      else()
+        if (ASMJIT_TARGET_ARCH STREQUAL "X86")
+          asmjit_detect_cflags(ASMJIT_SSE2_CFLAGS -msse2)
+        endif()
+      endif()
+
       # asmjit_test_runner - optimize static builds (no need to build AsmJit twice).
       set(ASMJIT_TEST_RUNNER_SRC
+        asmjit-testing/commons/zero_lib.cpp
+        asmjit-testing/commons/zero_lib.h
+        asmjit-testing/commons/zero_test.cpp
+        asmjit-testing/commons/zero_test.h
         asmjit-testing/tests/asmjit_test_runner.cpp
-        asmjit-testing/tests/zero_test.cpp
-        asmjit-testing/tests/zero_test.h
       )
       if (ASMJIT_STATIC)
         asmjit_add_target(asmjit_test_runner TEST
           SOURCES    ${ASMJIT_TEST_SRC} ${ASMJIT_TEST_RUNNER_SRC}
           LIBRARIES  ${ASMJIT_LIBS} asmjit::asmjit
-          CFLAGS     ${ASMJIT_CFLAGS} ${ASMJIT_PRIVATE_CFLAGS} -DASMJIT_TEST
+          CFLAGS     ${ASMJIT_CFLAGS} ${ASMJIT_PRIVATE_CFLAGS} ${ASMJIT_SSE2_CFLAGS} -DASMJIT_TEST
           CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
           CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
       else()
         asmjit_add_target(asmjit_test_runner TEST
           SOURCES    ${ASMJIT_SRC} ${ASMJIT_TEST_SRC} ${ASMJIT_TEST_RUNNER_SRC}
           LIBRARIES  ${ASMJIT_LIBS}
-          CFLAGS     ${ASMJIT_CFLAGS} ${ASMJIT_PRIVATE_CFLAGS} -DASMJIT_TEST -DASMJIT_STATIC
+          CFLAGS     ${ASMJIT_CFLAGS} ${ASMJIT_PRIVATE_CFLAGS} ${ASMJIT_SSE2_CFLAGS} -DASMJIT_TEST -DASMJIT_STATIC
           CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
           CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
       endif()
       target_include_directories(asmjit_test_runner BEFORE PRIVATE ${ASMJIT_INCLUDE_DIRS})
-
-      asmjit_add_target(asmjit_test_assembler TEST
-        SOURCES    asmjit-testing/tests/asmjit_test_assembler.cpp
-                   asmjit-testing/tests/asmjit_test_assembler.h
-                   asmjit-testing/tests/asmjit_test_assembler_a64.cpp
-                   asmjit-testing/tests/asmjit_test_assembler_x64.cpp
-                   asmjit-testing/tests/asmjit_test_assembler_x86.cpp
-        LIBRARIES  asmjit::asmjit
-        CFLAGS     ${ASMJIT_PRIVATE_CFLAGS}
-        CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
-        CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
 
       foreach(app asmjit_test_cpu_info
                   asmjit_test_environment
@@ -726,55 +752,6 @@ if (TRUE)
           CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
       endif()
 
-      if (NOT (ASMJIT_NO_BUILDER OR ASMJIT_NO_COMPILER))
-        # Vectorcall tests and XMM tests require at least SSE2 in 32-bit mode (in 64-bit mode it's implicit).
-        # Some compilers don't like passing -msse2 for 64-bit targets, and some compilers targeting non-x86
-        # would pass "-msse2" compile flag check, but with a warning not detected by CMake. Thus, verify that
-        # our target is really 32-bit X86 and only use -msse2 or -arch:SSE2 flags when necessary.
-        asmjit_detect_target_arch(ASMJIT_TARGET_ARCH)
-
-        set(ASMJIT_SSE2_CFLAGS "")
-        if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" OR "x${CMAKE_CXX_COMPILER_FRONTEND_VARIANT}" STREQUAL "xMSVC")
-          if (ASMJIT_TARGET_ARCH STREQUAL "X86")
-            asmjit_detect_cflags(ASMJIT_SSE2_CFLAGS -arch:SSE2)
-          endif()
-          if (ASMJIT_TARGET_ARCH MATCHES "^(X86|X86_64)$")
-            asmjit_detect_cflags(ASMJIT_AVX2FMA_CFLAGS -arch:AVX2)
-          endif()
-        else()
-          if (ASMJIT_TARGET_ARCH STREQUAL "X86")
-            asmjit_detect_cflags(ASMJIT_SSE2_CFLAGS -msse2)
-          endif()
-          if (ASMJIT_TARGET_ARCH MATCHES "^(X86|X86_64)$")
-            asmjit_detect_cflags(ASMJIT_AVX2FMA_CFLAGS -mavx2 -mfma)
-          endif()
-        endif()
-
-        asmjit_add_target(asmjit_test_compiler TEST
-          SOURCES    asmjit-testing/tests/asmjit_test_compiler.cpp
-                     asmjit-testing/tests/asmjit_test_compiler.h
-                     asmjit-testing/tests/asmjit_test_compiler_a64.cpp
-                     asmjit-testing/tests/asmjit_test_compiler_x86.cpp
-          LIBRARIES  asmjit::asmjit
-          CFLAGS     ${ASMJIT_PRIVATE_CFLAGS} ${ASMJIT_SSE2_CFLAGS}
-          CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
-          CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
-      endif()
-
-      if (NOT ASMJIT_NO_UJIT)
-        asmjit_add_target(asmjit_test_ujit TEST
-          SOURCES    asmjit-testing/tests/asmjit_test_ujit.cpp
-                     asmjit-testing/tests/asmjit_test_ujit_sse2.cpp
-                     asmjit-testing/tests/asmjit_test_ujit_avx2fma.cpp
-                     asmjit-testing/tests/zero_test.cpp
-                     asmjit-testing/tests/zero_test.h
-          LIBRARIES  asmjit::asmjit
-          CFLAGS     ${ASMJIT_PRIVATE_CFLAGS} ${ASMJIT_SSE2_CFLAGS}
-          CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
-          CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
-        set_property(SOURCE asmjit-testing/tests/asmjit_test_ujit_avx2fma.cpp APPEND PROPERTY COMPILE_OPTIONS ${ASMJIT_AVX2FMA_CFLAGS})
-      endif()
-
       asmjit_add_target(asmjit_bench_codegen EXECUTABLE
         SOURCES    asmjit-testing/bench/asmjit_bench_codegen.cpp
                    asmjit-testing/bench/asmjit_bench_codegen_a64.cpp
@@ -785,9 +762,13 @@ if (TRUE)
         CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
         CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
 
-      foreach(app asmjit_bench_overhead asmjit_bench_regalloc)
+      foreach(app asmjit_bench_calls asmjit_bench_overhead asmjit_bench_regalloc)
         asmjit_add_target(${app} TEST
-          SOURCES    asmjit-testing/bench/${app}.cpp
+          SOURCES    asmjit-testing/commons/zero_lib.cpp
+                     asmjit-testing/commons/zero_lib.h
+                     asmjit-testing/commons/zero_bench.cpp
+                     asmjit-testing/commons/zero_bench.h
+                     asmjit-testing/bench/${app}.cpp
           LIBRARIES  asmjit::asmjit
           CFLAGS     ${ASMJIT_PRIVATE_CFLAGS}
           CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}

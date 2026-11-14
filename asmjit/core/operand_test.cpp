@@ -13,39 +13,34 @@ ASMJIT_BEGIN_NAMESPACE
 // Operand - Tests
 // ===============
 
-#if defined(ASMJIT_TEST)
-enum class StrongEnumForImmTests : uint32_t {
-  kValue0,
-  kValue0xFFFFFFFF = 0xFFFFFFFFu
-};
-
-TEST_CASE(core_operand) {
-  TEST_LOG("Checking operand sizes");
+TEST_CASE(core_operand_sizeof) {
+  EXPECT_EQ(sizeof(Operand_), 16u);
   EXPECT_EQ(sizeof(Operand), 16u);
   EXPECT_EQ(sizeof(Reg), 16u);
   EXPECT_EQ(sizeof(BaseMem), 16u);
   EXPECT_EQ(sizeof(Imm), 16u);
   EXPECT_EQ(sizeof(Label), 16u);
+}
 
-  TEST_LOG("Checking basic functionality of Operand");
-  Operand a, b;
+TEST_CASE(core_operand_none) {
+  Operand none;
+  Operand other_none;
+
+  EXPECT_TRUE(none.is_none());
+  EXPECT_FALSE(none.is_reg());
+  EXPECT_FALSE(none.is_mem());
+  EXPECT_FALSE(none.is_imm());
+  EXPECT_FALSE(none.is_label());
+  EXPECT_FALSE(none.is_reg_list());
+  EXPECT_FALSE(none.is_reg_or_mem());
+  EXPECT_EQ(none, other_none);
+  EXPECT_EQ(none._data[0], 0u);
+  EXPECT_EQ(none._data[1], 0u);
+}
+
+TEST_CASE(core_operand_reg) {
   Operand dummy;
 
-  EXPECT_TRUE(a.is_none());
-  EXPECT_FALSE(a.is_reg());
-  EXPECT_FALSE(a.is_mem());
-  EXPECT_FALSE(a.is_imm());
-  EXPECT_FALSE(a.is_label());
-  EXPECT_EQ(a, b);
-  EXPECT_EQ(a._data[0], 0u);
-  EXPECT_EQ(a._data[1], 0u);
-
-  TEST_LOG("Checking basic functionality of Label");
-  Label label;
-  EXPECT_FALSE(label.is_valid());
-  EXPECT_EQ(label.id(), Globals::kInvalidId);
-
-  TEST_LOG("Checking basic functionality of Reg");
   EXPECT_TRUE(Reg().is_reg());
   EXPECT_FALSE(Reg().is_valid());
   EXPECT_EQ(Reg()._data[0], 0u);
@@ -62,7 +57,9 @@ TEST_CASE(core_operand) {
   EXPECT_TRUE(r1.is_valid());
   EXPECT_TRUE(r1.is_reg());
   EXPECT_TRUE(r1.is_reg(RegType::kVec128));
+  EXPECT_TRUE(r1.is_reg_or_mem());
   EXPECT_TRUE(r1.is_phys_reg());
+  EXPECT_FALSE(r1.is_none());
   EXPECT_FALSE(r1.is_virt_reg());
   EXPECT_EQ(r1.signature(), reg_sig);
   EXPECT_EQ(r1.reg_type(), RegType::kVec128);
@@ -78,7 +75,9 @@ TEST_CASE(core_operand) {
   EXPECT_TRUE(r2.is_valid());
   EXPECT_TRUE(r2.is_reg());
   EXPECT_TRUE(r2.is_reg(RegType::kVec128));
+  EXPECT_TRUE(r2.is_reg_or_mem());
   EXPECT_TRUE(r2.is_phys_reg());
+  EXPECT_FALSE(r2.is_none());
   EXPECT_FALSE(r2.is_virt_reg());
   EXPECT_EQ(r2.signature(), reg_sig);
   EXPECT_EQ(r2.reg_type(), r1.reg_type());
@@ -90,8 +89,9 @@ TEST_CASE(core_operand) {
   r1.reset();
   EXPECT_FALSE(r1.is_reg());
   EXPECT_FALSE(r1.is_valid());
+}
 
-  TEST_LOG("Checking basic functionality of BaseMem");
+TEST_CASE(core_operand_mem) {
   BaseMem m;
   EXPECT_TRUE(m.is_mem());
   EXPECT_EQ(m, BaseMem());
@@ -112,8 +112,14 @@ TEST_CASE(core_operand) {
   EXPECT_EQ(m.offset(), x);
   EXPECT_EQ(m.offset_lo32(), 1);
   EXPECT_EQ(m.offset_hi32(), x_hi);
+}
 
-  TEST_LOG("Checking basic functionality of Imm");
+TEST_CASE(core_operand_imm) {
+  enum class StrongEnumForImmTests : uint32_t {
+    kValue0,
+    kValue0xFFFFFFFF = 0xFFFFFFFFu
+  };
+
   Imm imm_value(-42);
   EXPECT_EQ(imm_value.type(), ImmType::kInt);
   EXPECT_EQ(Imm(-1).value(), -1);
@@ -128,8 +134,41 @@ TEST_CASE(core_operand) {
 
   EXPECT_EQ(Imm(StrongEnumForImmTests::kValue0).value(), 0);
   EXPECT_EQ(Imm(StrongEnumForImmTests::kValue0xFFFFFFFF).value(), 0xFFFFFFFFu);
+
+  Imm v(0x99876593F1u);
+  v.sign_extend_int32();
+  EXPECT_EQ(v.value_as<uint64_t>(), 0xFFFFFFFF876593F1u);
+  v.zero_extend_uint32();
+  EXPECT_EQ(v.value(), 0x876593F1u);
+
+  v.sign_extend_int16();
+  EXPECT_EQ(v.value_as<uint64_t>(), 0xFFFFFFFFFFFF93F1u);
+  v.zero_extend_uint16();
+  EXPECT_EQ(v.value(), 0x93F1u);
+
+  v.sign_extend_int8();
+  EXPECT_EQ(v.value_as<uint64_t>(), 0xFFFFFFFFFFFFFFF1u);
+  v.zero_extend_uint8();
+  EXPECT_EQ(v.value(), 0xF1u);
 }
-#endif
+
+TEST_CASE(core_operand_label) {
+  Label label;
+
+  EXPECT_FALSE(label.is_none());
+  EXPECT_FALSE(label.is_valid());
+  EXPECT_TRUE(label.is_label());
+  EXPECT_EQ(label.id(), Globals::kInvalidId);
+
+  label.set_id(123u);
+  EXPECT_EQ(label.id(), 123u);
+  EXPECT_TRUE(label.is_valid());
+
+  label.reset();
+  EXPECT_TRUE(label.is_label());
+  EXPECT_FALSE(label.is_valid());
+  EXPECT_EQ(label.id(), Globals::kInvalidId);
+}
 
 ASMJIT_END_NAMESPACE
 

@@ -12,6 +12,7 @@
 #include <asmjit/axl/arena_tree.h>
 #include <asmjit/axl/bit_set_ops.h>
 #include <asmjit/axl/commons.h>
+#include <asmjit/axl/mem_alloc.h>
 #include <asmjit/axl/support_p.h>
 #include <asmjit/core/arch_traits.h>
 #include <asmjit/core/globals.h>
@@ -19,6 +20,7 @@
 #include <asmjit/core/os_utils_p.h>
 #include <asmjit/core/pauth_utils_p.h>
 #include <asmjit/core/virt_mem.h>
+#include <asmjit/core/virt_mem_p.h>
 
 #if defined(ASMJIT_TEST)
 #include <asmjit-testing/commons/random.h>
@@ -307,10 +309,17 @@ public:
       // Incremental mode: If the area released is at the end of the fully used area, we would like to
       // keep the incremental mode of the block. In order to do that, we are going to use a different
       // approach - decrement `_search_start` and increment `_largest_unused_area`, which are essential
-      // for incremental mode blocks.
+      // for incremental mode blocks. Everything after `_search_start` is unused, so the search region
+      // must end at `_area_size` (a full block sets `_search_end` to zero).
       ASMJIT_ASSERT(_search_start >= released_area_size);
       _search_start -= released_area_size;
+      _search_end = _area_size;
       _largest_unused_area += released_area_size;
+
+      if (area_used() == initial_area_start()) {
+        clear_flags(kFlagDirty);
+        add_flags(kFlagEmpty);
+      }
     }
     else {
       _search_start = axl::min(_search_start, released_area_start);
@@ -343,6 +352,7 @@ public:
 
     if (axl::bool_and(is_incremental(), _search_start == shrunk_area_end)) {
       _search_start -= shrunk_area_size;
+      _search_end = _area_size;
       _largest_unused_area += shrunk_area_size;
     }
     else {
@@ -378,6 +388,12 @@ public:
   uint32_t page_size;
   //! Number of active allocations.
   size_t allocation_count;
+  //! Address ranges for executable memory, in the order they are tried.
+  VirtMem::AddressRange address_ranges[2];
+  //! Number of address ranges.
+  uint32_t address_range_count;
+  //! True if an address range was requested, even if none could be computed.
+  bool address_range_requested;
 
   //! Blocks from all pools in RBTree.
   axl::ArenaTree<JitAllocatorBlock> tree;
@@ -392,6 +408,9 @@ public:
     : JitAllocator::Impl {},
       page_size(0),
       allocation_count(0),
+      address_ranges{},
+      address_range_count(0),
+      address_range_requested(false),
       pools(pools),
       pool_count(pool_count) {}
   ASMJIT_INLINE ~JitAllocatorPrivateImpl() noexcept {}
@@ -402,6 +421,46 @@ static const JitAllocator::CreateParams JitAllocatorParams_none {};
 
 // JitAllocator - Utilities
 // ========================
+
+// Computes the ranges below and above the module that contains `addr` (or `addr` itself if it's not in a module), from
+// where a 32-bit displacement reaches the whole module. Returns the number of ranges, ordered as they should be tried.
+static uint32_t JitAllocator_near_address_ranges(uintptr_t addr, VirtMem::AddressRange* ranges) noexcept {
+#if ASMJIT_TARGET_ARCH_X86 == 64
+  // 2GiB minus 64kB.
+  constexpr uintptr_t kReach = 0x7FFF0000u;
+  // A lower bound that keeps the range above `vm.mmap_min_addr`.
+  constexpr uintptr_t kMinAddress = 0x100000u;
+
+  VirtMem::AddressRange module {};
+  if (VirtMem::module_address_range(addr, Out(module)) != Error::kOk) {
+    module = VirtMem::AddressRange{addr, addr + 1u};
+  }
+
+  if (module.end - module.start > kReach) {
+    return 0;
+  }
+
+  VirtMem::AddressRange below { module.end > kMinAddress + kReach ? module.end - kReach : kMinAddress, module.start };
+  VirtMem::AddressRange above { module.end, module.start + kReach };
+
+#if defined(__APPLE__)
+  VirtMem::AddressRange candidates[2] = { above, below };
+#else
+  VirtMem::AddressRange candidates[2] = { below, above };
+#endif
+
+  uint32_t count = 0;
+  for (const VirtMem::AddressRange& range : candidates) {
+    if (range.start < range.end) {
+      ranges[count++] = range;
+    }
+  }
+  return count;
+#else
+  axl::maybe_unused(addr, ranges);
+  return 0;
+#endif
+}
 
 static inline JitAllocatorPrivateImpl* JitAllocator_new_impl(const JitAllocator::CreateParams* params) noexcept {
   VirtMem::Info vm_info = VirtMem::info();
@@ -437,7 +496,7 @@ static inline JitAllocatorPrivateImpl* JitAllocator_new_impl(const JitAllocator:
   }
 
   size_t size = sizeof(JitAllocatorPrivateImpl) + sizeof(JitAllocatorPool) * pool_count;
-  void* p = ::malloc(size);
+  void* p = axl::mem_alloc(size);
 
   if (ASMJIT_UNLIKELY(!p)) {
     return nullptr;
@@ -462,6 +521,16 @@ static inline JitAllocatorPrivateImpl* JitAllocator_new_impl(const JitAllocator:
   impl->fill_pattern = fill_pattern;
   impl->page_size = vm_info.page_size;
 
+  if (params->address_range.end) {
+    impl->address_ranges[0] = params->address_range;
+    impl->address_range_count = 1;
+    impl->address_range_requested = true;
+  }
+  else if (params->near_address) {
+    impl->address_range_count = JitAllocator_near_address_ranges(params->near_address, impl->address_ranges);
+    impl->address_range_requested = true;
+  }
+
   for (size_t pool_id = 0; pool_id < pool_count; pool_id++) {
     new(axl::PlacementNew{&pools[pool_id]}) JitAllocatorPool(granularity << pool_id);
   }
@@ -471,7 +540,7 @@ static inline JitAllocatorPrivateImpl* JitAllocator_new_impl(const JitAllocator:
 
 static ASMJIT_INLINE void JitAllocator_destroy_impl(JitAllocatorPrivateImpl* impl) noexcept {
   impl->~JitAllocatorPrivateImpl();
-  ::free(impl);
+  axl::mem_free(impl);
 }
 
 static ASMJIT_INLINE size_t JitAllocator_size_to_pool_id(const JitAllocatorPrivateImpl* impl, size_t size) noexcept {
@@ -560,6 +629,32 @@ ASMJIT_FAVOR_SPEED static void JitAllocator_fill_pattern(void* mem, uint32_t pat
   }
 }
 
+// Allocates virtual memory of a block, within the address range first if the allocator has one.
+static Error JitAllocator_alloc_virt_mem(const JitAllocatorPrivateImpl* impl, VirtMem::DualMapping& vm, size_t size, VirtMem::MemoryFlags mem_flags) noexcept {
+  bool dual_mapping = axl::test(impl->options, JitAllocatorOptions::kUseDualMapping);
+  bool strict = axl::test(impl->options, JitAllocatorOptions::kStrictAddressRange);
+
+  // No range can be computed from `near_address` on architectures other than X86_64.
+  Error err = Error::kFeatureNotEnabled;
+
+  for (uint32_t i = 0; i < impl->address_range_count; i++) {
+    const VirtMem::AddressRange& range = impl->address_ranges[i];
+
+    err = dual_mapping ? VirtMem::alloc_dual_mapping(Out(vm), size, mem_flags, range)
+                       : VirtMem::alloc(&vm.rx, size, mem_flags, range);
+    if (err == Error::kOk) {
+      return err;
+    }
+  }
+
+  if (strict && impl->address_range_requested) {
+    return make_error(err);
+  }
+
+  return dual_mapping ? VirtMem::alloc_dual_mapping(Out(vm), size, mem_flags)
+                      : VirtMem::alloc(&vm.rx, size, mem_flags);
+}
+
 // Allocate a new `JitAllocatorBlock` for the given `block_size`.
 //
 // NOTE: The block doesn't have `kFlagEmpty` flag set, because the new block
@@ -577,7 +672,7 @@ static Error JitAllocator_new_block(JitAllocatorPrivateImpl* impl, JitAllocatorB
   VirtMem::MemoryFlags mem_flags = VirtMem::MemoryFlags::kAccessRWX;
 
   if (axl::test(impl->options, JitAllocatorOptions::kUseDualMapping)) {
-    ASMJIT_PROPAGATE(VirtMem::alloc_dual_mapping(Out(virt_mem), block_size, mem_flags));
+    ASMJIT_PROPAGATE(JitAllocator_alloc_virt_mem(impl, virt_mem, block_size, mem_flags));
     block_flags |= JitAllocatorBlock::kFlagDualMapped;
   }
   else {
@@ -589,7 +684,7 @@ static Error JitAllocator_new_block(JitAllocatorPrivateImpl* impl, JitAllocatorB
       // Only proceed if we can actually allocate large pages.
       if (large_page_size && try_large_page) {
         size_t large_block_size = axl::align_up(block_size, large_page_size);
-        Error err = VirtMem::alloc(&virt_mem.rx, large_block_size, mem_flags | VirtMem::MemoryFlags::kMMapLargePages);
+        Error err = JitAllocator_alloc_virt_mem(impl, virt_mem, large_block_size, mem_flags | VirtMem::MemoryFlags::kMMapLargePages);
 
         if (err == Error::kOk) {
           // Large page(s) allocated.
@@ -606,7 +701,7 @@ static Error JitAllocator_new_block(JitAllocatorPrivateImpl* impl, JitAllocatorB
 
     // Called either if large pages were not requested or large page(s) allocation failed.
     if (allocate_regular_pages) {
-      ASMJIT_PROPAGATE(VirtMem::alloc(&virt_mem.rx, block_size, mem_flags));
+      ASMJIT_PROPAGATE(JitAllocator_alloc_virt_mem(impl, virt_mem, block_size, mem_flags));
     }
 
     virt_mem.rw = virt_mem.rx;
@@ -614,7 +709,7 @@ static Error JitAllocator_new_block(JitAllocatorPrivateImpl* impl, JitAllocatorB
 
   uint32_t area_size = uint32_t(block_size >> pool->granularity_log2);
   uint32_t bit_word_count = (area_size + kBitWordSizeInBits - 1u) / kBitWordSizeInBits;
-  uint8_t* block_ptr = static_cast<uint8_t*>(::malloc(sizeof(JitAllocatorBlock) + size_t(bit_word_count) * 2u * sizeof(BitWord)));
+  uint8_t* block_ptr = axl::mem_alloc<uint8_t>(sizeof(JitAllocatorBlock) + size_t(bit_word_count) * 2u * sizeof(BitWord));
 
   // Out of memory...
   if (ASMJIT_UNLIKELY(block_ptr == nullptr)) {
@@ -648,7 +743,7 @@ static void JitAllocatorImpl_delete_block(JitAllocatorPrivateImpl* impl, JitAllo
     (void)VirtMem::release(block->rx_ptr(), block->block_size());
   }
 
-  ::free(block);
+  axl::mem_free(block);
 }
 
 static void JitAllocatorImpl_insert_block(JitAllocatorPrivateImpl* impl, JitAllocatorBlock* block) noexcept {

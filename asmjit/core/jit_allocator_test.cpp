@@ -217,13 +217,13 @@ static void BitVectorRangeIterator_test_random(TestUtils::Random& rnd, size_t co
   }
 }
 
-static void test_jit_allocator_reset_empty() noexcept {
+TEST_CASE(core_jit_allocator_constructors) {
   JitAllocator allocator;
   allocator.reset(ResetPolicy::kSoft);
 }
 
-static void test_jit_allocator_alloc_release() noexcept {
-  size_t kCount = ZeroTest::test_runner()->has_arg("--quick") ? 20000 : 100000;
+TEST_CASE(core_jit_allocator_alloc_relese) {
+  size_t kCount = ZeroTest::test_runner()->cmd_line().has_arg("--quick") ? 20000 : 60000;
 
   struct TestInfo {
     const char* name;
@@ -385,7 +385,7 @@ static void test_jit_allocator_alloc_release() noexcept {
   }
 }
 
-static void test_jit_allocator_query() noexcept {
+TEST_CASE(core_jit_allocator_query) {
   JitAllocator allocator;
   size_t allocated_size = 100;
 
@@ -401,10 +401,188 @@ static void test_jit_allocator_query() noexcept {
   EXPECT_EQ(allocated_span.size(), queried_span.size());
 }
 
-TEST_CASE(core_jit_allocator) {
-  test_jit_allocator_reset_empty();
-  test_jit_allocator_alloc_release();
-  test_jit_allocator_query();
+TEST_CASE(core_jit_allocator_incremental_release) {
+  // A block emptied by releasing its spans in reverse order must be reported as empty,
+  // otherwise `kImmediateRelease` never releases it.
+  {
+    JitAllocator::CreateParams params {};
+    params.options = JitAllocatorOptions::kImmediateRelease;
+
+    JitAllocator allocator(&params);
+    JitAllocator::Span a;
+    JitAllocator::Span b;
+
+    EXPECT_OK(allocator.alloc(Out(a), 1024));
+    EXPECT_OK(allocator.alloc(Out(b), 1024));
+    EXPECT_OK(allocator.release(b.rx()));
+    EXPECT_OK(allocator.release(a.rx()));
+    EXPECT_EQ(allocator.statistics().block_count(), 0u);
+  }
+
+  // Releasing the last span of a full block must keep the free tail searchable after a release
+  // in the middle ends the incremental mode, otherwise the tail is lost until the block is empty.
+  {
+    JitAllocator::CreateParams params {};
+    params.options = JitAllocatorOptions::kDisableInitialPadding;
+
+    JitAllocator allocator(&params);
+    JitAllocator::Span head;
+    JitAllocator::Span body;
+    JitAllocator::Span tail;
+
+    EXPECT_OK(allocator.alloc(Out(head), 1024));
+    size_t block_size = allocator.statistics().reserved_size();
+
+    EXPECT_OK(allocator.alloc(Out(body), block_size - 2048));
+    EXPECT_OK(allocator.alloc(Out(tail), 1024));
+    EXPECT_EQ(allocator.statistics().used_size(), block_size);
+
+    EXPECT_OK(allocator.release(tail.rx()));
+    EXPECT_OK(allocator.release(head.rx()));
+
+    JitAllocator::Span x;
+    JitAllocator::Span y;
+
+    EXPECT_OK(allocator.alloc(Out(x), 1024));
+    EXPECT_OK(allocator.alloc(Out(y), 1024));
+    EXPECT_EQ(allocator.statistics().block_count(), 1u);
+  }
+}
+
+static bool JitAllocatorTest_in_range(const JitAllocator::Span& span, VirtMem::AddressRange range) noexcept {
+  uintptr_t rx = uintptr_t(span.rx());
+  return rx >= range.start && rx < range.end && range.end - rx >= span.size();
+}
+
+[[maybe_unused]]
+static bool JitAllocatorTest_within_reach(const JitAllocator::Span& span, uintptr_t addr) noexcept {
+  uintptr_t rx = uintptr_t(span.rx());
+  return axl::is_int_n<32>(int64_t(addr - rx)) && axl::is_int_n<32>(int64_t(addr - (rx + span.size())));
+}
+
+TEST_CASE(core_jit_allocator_address_range) {
+  using Opt = JitAllocatorOptions;
+
+  constexpr size_t kRangeSize = 256u * 1024u * 1024u;
+  constexpr size_t kSpanSize = 64u * 1024u;
+  constexpr size_t kSpanCount = 64u;
+
+  // Each allocator places its first block at a random address within the ranges computed from `near_address`.
+  constexpr size_t kNearPlacementCount = 16u;
+
+  // Find free address space by mapping and unmapping it (the test runner is single-threaded).
+  void* hole;
+  EXPECT_OK(VirtMem::alloc(&hole, kRangeSize, VirtMem::MemoryFlags::kAccessRW));
+  EXPECT_OK(VirtMem::release(hole, kRangeSize));
+
+  VirtMem::AddressRange range { uintptr_t(hole), uintptr_t(hole) + kRangeSize };
+
+  VirtMem::HardenedRuntimeInfo hri = VirtMem::hardened_runtime_info();
+  size_t page_size = VirtMem::info().page_size;
+
+  static constexpr Opt range_options[] = { Opt::kNone, Opt::kUseDualMapping };
+  for (Opt options : range_options) {
+    if (axl::test(options, Opt::kUseDualMapping) && !hri.has_flag(VirtMem::HardenedRuntimeFlags::kDualMapping)) {
+      continue;
+    }
+
+    TEST_LOG("JitAllocator(address range, %s)", options == Opt::kNone ? "kNone" : "kUseDualMapping");
+
+    JitAllocator::CreateParams params {};
+    params.options = options | Opt::kStrictAddressRange;
+    params.address_range = range;
+
+    JitAllocator allocator(&params);
+    JitAllocator::Span spans[kSpanCount];
+
+    for (size_t i = 0; i < kSpanCount; i++) {
+      EXPECT_OK(allocator.alloc(Out(spans[i]), kSpanSize));
+      EXPECT_TRUE(JitAllocatorTest_in_range(spans[i], range))
+        .message("Span %p [%zu] is outside of [%p, %p)", spans[i].rx(), i, (void*)range.start, (void*)range.end);
+    }
+
+    EXPECT_GT(allocator.statistics().block_count(), 1u);
+
+    // The first span must not be at the start of its block (UBSAN reads 8 bytes before a function).
+    EXPECT_EQ(uintptr_t(spans[0].rx()) & (page_size - 1u), size_t(allocator.granularity()));
+
+    for (size_t i = 0; i < kSpanCount; i++) {
+      EXPECT_OK(allocator.release(spans[i].rx()));
+    }
+  }
+
+  TEST_LOG("JitAllocator(address range that is taken)");
+  {
+    void* taken;
+    EXPECT_OK(VirtMem::alloc(&taken, kSpanSize * 16u, VirtMem::MemoryFlags::kAccessRW));
+
+    JitAllocator::CreateParams params {};
+    params.address_range = VirtMem::AddressRange{uintptr_t(taken), uintptr_t(taken) + kSpanSize * 16u};
+
+    // Non-strict allocator places the block anywhere.
+    {
+      JitAllocator allocator(&params);
+      JitAllocator::Span span;
+      EXPECT_OK(allocator.alloc(Out(span), 64));
+      EXPECT_FALSE(JitAllocatorTest_in_range(span, params.address_range));
+      EXPECT_OK(allocator.release(span.rx()));
+    }
+
+    // Strict allocator fails.
+    params.options = Opt::kStrictAddressRange;
+    {
+      JitAllocator allocator(&params);
+      JitAllocator::Span span;
+      EXPECT_EQ(allocator.alloc(Out(span), 64), Error::kOutOfMemory);
+      EXPECT_NULL(span.rx());
+      EXPECT_EQ(allocator.statistics().block_count(), 0u);
+    }
+
+    EXPECT_OK(VirtMem::release(taken, kSpanSize * 16u));
+  }
+
+  TEST_LOG("JitAllocator(near_address, kStrictAddressRange)");
+  for (size_t i = 0; i < kNearPlacementCount; i++) {
+    // This function is in a module, all of which must be within reach of a 32-bit displacement.
+    uintptr_t fn = uintptr_t(&JitAllocatorTest_in_range);
+
+    JitAllocator::CreateParams params {};
+    params.options = Opt::kStrictAddressRange;
+    params.near_address = fn;
+
+    JitAllocator allocator(&params);
+    JitAllocator::Span span;
+    Error err = allocator.alloc(Out(span), kSpanSize);
+
+#if ASMJIT_TARGET_ARCH_X86 == 64
+    EXPECT_OK(err);
+    EXPECT_TRUE(JitAllocatorTest_within_reach(span, fn))
+      .message("Span %p is out of reach of %p", span.rx(), (void*)fn);
+    EXPECT_OK(allocator.release(span.rx()));
+#else
+    EXPECT_EQ(err, Error::kFeatureNotEnabled);
+#endif
+  }
+
+#if ASMJIT_TARGET_ARCH_X86 == 64 && !defined(__APPLE__)
+  TEST_LOG("JitAllocator(near_address without space below, kStrictAddressRange)");
+  for (size_t i = 0; i < kNearPlacementCount; i++) {
+    // There is no space below this address (it's the lowest address considered), so the block must be placed above.
+    uintptr_t addr = 0x100000u;
+
+    JitAllocator::CreateParams params {};
+    params.options = Opt::kStrictAddressRange;
+    params.near_address = addr;
+
+    JitAllocator allocator(&params);
+    JitAllocator::Span span;
+    EXPECT_OK(allocator.alloc(Out(span), kSpanSize));
+    EXPECT_GT(uintptr_t(span.rx()), addr);
+    EXPECT_TRUE(JitAllocatorTest_within_reach(span, addr))
+      .message("Span %p is out of reach of %p", span.rx(), (void*)addr);
+    EXPECT_OK(allocator.release(span.rx()));
+  }
+#endif
 }
 
 ASMJIT_END_NAMESPACE

@@ -30,6 +30,11 @@ Error JitRuntime::_add(void** dst, CodeHolder* code) noexcept {
   ASMJIT_PROPAGATE(code->flatten());
   ASMJIT_PROPAGATE(code->resolve_cross_section_fixups());
 
+  // Refuse code with unresolved fixups, such as references to a label that was never bound.
+  if (ASMJIT_UNLIKELY(code->has_unresolved_fixups())) {
+    return make_error(Error::kUnresolvedFixups);
+  }
+
   size_t estimated_code_size = code->code_size();
   if (ASMJIT_UNLIKELY(estimated_code_size == 0)) {
     return make_error(Error::kNoCodeGenerated);

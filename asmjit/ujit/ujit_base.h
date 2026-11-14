@@ -37,14 +37,14 @@ using Vec = host::Vec;
 
 #if defined(ASMJIT_UJIT_X86)
 static ASMJIT_INLINE_NODEBUG Mem mem_ptr(const Label& label, int32_t disp = 0) noexcept { return x86::ptr(label, disp); }
-static ASMJIT_INLINE_NODEBUG Mem mem_ptr(const Gp& base, int32_t disp = 0) noexcept { return x86::ptr(base, disp); }
-static ASMJIT_INLINE_NODEBUG Mem mem_ptr(const Gp& base, const Gp& index, uint32_t shift = 0, int32_t disp = 0) noexcept { return x86::ptr(base, index, shift, disp); }
+static ASMJIT_INLINE_NODEBUG Mem mem_ptr(const UniGp& base, int32_t disp = 0) noexcept { return x86::ptr(base.as<Gp>(), disp); }
+static ASMJIT_INLINE_NODEBUG Mem mem_ptr(const UniGp& base, const UniGp& index, uint32_t shift = 0, int32_t disp = 0) noexcept { return x86::ptr(base.as<Gp>(), index.as<Gp>(), shift, disp); }
 #endif
 
 #if defined(ASMJIT_UJIT_AARCH64)
 static ASMJIT_INLINE_NODEBUG Mem mem_ptr(const Label& label, int32_t disp = 0) noexcept { return a64::ptr(label, disp); }
-static ASMJIT_INLINE_NODEBUG Mem mem_ptr(const Gp& base, int32_t disp = 0) noexcept { return a64::ptr(base, disp); }
-static ASMJIT_INLINE_NODEBUG Mem mem_ptr(const Gp& base, const Gp& index, uint32_t shift = 0) noexcept { return a64::ptr(base, index, a64::lsl(shift)); }
+static ASMJIT_INLINE_NODEBUG Mem mem_ptr(const UniGp& base, int32_t disp = 0) noexcept { return a64::ptr(base.as<Gp>(), disp); }
+static ASMJIT_INLINE_NODEBUG Mem mem_ptr(const UniGp& base, const UniGp& index, uint32_t shift = 0) noexcept { return a64::ptr(base.as<Gp>(), index.as<Gp>(), a64::lsl(shift)); }
 #endif
 
 // Types & Enums

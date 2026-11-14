@@ -548,56 +548,51 @@ public:
   //! \{
   //! \name Accessors
 
+  //! Returns function node flags, see \ref FuncNodeFlags.
+  //!
+  //! These flags are currently only used by Builder/Compiler to mark that the emitter is running passes, so AsmJit
+  //! knows whether the passes already executed or whether something failed and passes should not be attempted to
+  //! run again.
+  [[nodiscard]] ASMJIT_INLINE_NODEBUG FuncNodeFlags func_flags() const noexcept { return _func_data._func_node_flags; }
+
   //! Returns function exit `LabelNode`.
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG LabelNode* exit_node() const noexcept { return _exit_node; }
+  [[nodiscard]] ASMJIT_INLINE_NODEBUG LabelNode* exit_node() const noexcept { return _exit_node; }
 
   //! Returns function exit label.
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG Label exit_label() const noexcept { return _exit_node->label(); }
+  [[nodiscard]] ASMJIT_INLINE_NODEBUG Label exit_label() const noexcept { return _exit_node->label(); }
 
   //! Returns "End of Func" sentinel node.
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG SentinelNode* end_node() const noexcept { return _end; }
+  [[nodiscard]] ASMJIT_INLINE_NODEBUG SentinelNode* end_node() const noexcept { return _end; }
 
   //! Returns function detail.
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG FuncDetail& detail() noexcept { return _func_detail; }
+  [[nodiscard]] ASMJIT_INLINE_NODEBUG FuncDetail& detail() noexcept { return _func_detail; }
 
   //! Returns function detail.
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG const FuncDetail& detail() const noexcept { return _func_detail; }
+  [[nodiscard]] ASMJIT_INLINE_NODEBUG const FuncDetail& detail() const noexcept { return _func_detail; }
 
   //! Returns function frame.
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG FuncFrame& frame() noexcept { return _frame; }
+  [[nodiscard]] ASMJIT_INLINE_NODEBUG FuncFrame& frame() noexcept { return _frame; }
 
   //! Returns function frame.
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG const FuncFrame& frame() const noexcept { return _frame; }
+  [[nodiscard]] ASMJIT_INLINE_NODEBUG const FuncFrame& frame() const noexcept { return _frame; }
 
   //! Returns function attributes.
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG FuncAttributes attributes() const noexcept { return _frame.attributes(); }
+  [[nodiscard]] ASMJIT_INLINE_NODEBUG FuncAttributes attributes() const noexcept { return _frame.attributes(); }
 
   //! Adds `attrs` to the function attributes.
   ASMJIT_INLINE_NODEBUG void add_attributes(FuncAttributes attrs) noexcept { _frame.add_attributes(attrs); }
 
   //! Returns arguments count.
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t arg_count() const noexcept { return _func_detail.arg_count(); }
+  [[nodiscard]] ASMJIT_INLINE_NODEBUG uint32_t arg_count() const noexcept { return _func_detail.arg_count(); }
 
   //! Returns argument packs.
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG ArgPack* arg_packs() const noexcept { return _args; }
+  [[nodiscard]] ASMJIT_INLINE_NODEBUG ArgPack* arg_packs() const noexcept { return _args; }
 
   //! Tests whether the function has a return value.
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool has_ret() const noexcept { return _func_detail.has_ret(); }
+  [[nodiscard]] ASMJIT_INLINE_NODEBUG bool has_ret() const noexcept { return _func_detail.has_ret(); }
 
   //! Returns argument pack at `arg_index`.
-  [[nodiscard]]
-  inline ArgPack& arg_pack(size_t arg_index) const noexcept {
+  [[nodiscard]] inline ArgPack& arg_pack(size_t arg_index) const noexcept {
     ASMJIT_ASSERT(arg_index < arg_count());
     return _args[arg_index];
   }

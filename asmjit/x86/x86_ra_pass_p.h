@@ -52,12 +52,6 @@ public:
   //! Returns the compiler casted to `x86::Compiler`.
   [[nodiscard]] ASMJIT_INLINE_NODEBUG Compiler& cc() const noexcept { return static_cast<Compiler&>(_cb); }
 
-  //! Returns emit helper.
-  [[nodiscard]] ASMJIT_INLINE_NODEBUG EmitHelper* emit_helper() noexcept { return &_emit_helper; }
-
-  [[nodiscard]] ASMJIT_INLINE_NODEBUG bool is_avx_enabled() const noexcept { return _emit_helper.is_avx_enabled(); }
-  [[nodiscard]] ASMJIT_INLINE_NODEBUG bool is_avx512_enabled() const noexcept { return _emit_helper.is_avx512_enabled(); }
-
   //! \}
 
   //! \name Interface

@@ -146,8 +146,8 @@ Error BaseCompiler::add_func_ret_node(Out<FuncRetNode*> out, const Operand_& o0,
 FuncNode* BaseCompiler::add_func(FuncNode* func) {
   _func = func;
 
-  add_node(func);             // Function node.
-  BaseNode* prev = cursor(); // {CURSOR}.
+  add_node(func);              // Function node.
+  BaseNode* prev = cursor();   // {CURSOR}.
   add_node(func->exit_node()); // Function exit label.
   add_node(func->end_node());  // Function end sentinel.
 
@@ -470,9 +470,15 @@ Error BaseCompiler::_new_const(Out<BaseMem> out, ConstPoolScope scope, const voi
     return report_error(err);
   }
 
+  // Sized operands are only a domain of X86/X64 backends - other backens cannot use these bits.
+  OperandSignature size_signature = OperandSignature::from_size(uint32_t(size));
+  if (arch() > Arch::kX64) {
+    size_signature = OperandSignature{};
+  }
+
   out = BaseMem(OperandSignature::from_op_type(OperandType::kMem) |
                 OperandSignature::from_mem_base_type(RegType::kLabelTag) |
-                OperandSignature::from_size(uint32_t(size)),
+                size_signature,
                 pool->label_id(), 0, int32_t(off));
   return Error::kOk;
 }

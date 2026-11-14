@@ -7,6 +7,7 @@
 
 #include <asmjit/axl/arena.h>
 #include <asmjit/axl/commons.h>
+#include <asmjit/axl/mem_alloc.h>
 #include <asmjit/axl/mem_ops.h>
 
 ASMJIT_BEGIN_SUB_NAMESPACE(axl)
@@ -25,9 +26,6 @@ static const Arena::ManagedBlock _arena_zero_block {};
 static ASMJIT_INLINE Arena::ManagedBlock* Arena_get_zero_block() noexcept {
   return const_cast<Arena::ManagedBlock*>(&_arena_zero_block);
 }
-
-static ASMJIT_INLINE void* Arena_malloc(size_t size) noexcept { return ::malloc(size); }
-static ASMJIT_INLINE void Arena_free(void* ptr) noexcept { ::free(ptr); }
 
 static ASMJIT_INLINE void Arena_assign_block(Arena& arena, Arena::ManagedBlock* block) noexcept {
   arena._ptr = axl::align_up(block->data(), Arena::kAlignment);
@@ -100,7 +98,7 @@ void Arena::_reset(bool release_memory) noexcept {
     if (current) {
       do {
         ManagedBlock* next = current->next;
-        Arena_free(current);
+        axl::mem_free(current);
         current = next;
       } while (current);
     }
@@ -113,7 +111,7 @@ void Arena::_reset(bool release_memory) noexcept {
     DynamicBlock* current = _dynamic_blocks;
     while (current) {
       DynamicBlock* next = current->next;
-      Arena_free(current);
+      axl::mem_free(current);
       current = next;
     }
 
@@ -160,8 +158,8 @@ void* Arena::_alloc_oneshot(size_t size) noexcept {
   // Must hold otherwise we would end up with an unaligned pointer in the Arena.
   ASMJIT_ASSERT(axl::is_aligned(size, Arena::kAlignment));
 
-  // Total overhead per a block allocated with malloc - we want to decrease the size of each block by this value to
-  // make sure that malloc is not mmapping() additional page just to hold metadata.
+  // Total overhead per a block allocated with `axl::mem_alloc()` - we want to decrease the size of each block
+  // by this value to make sure that `axl::mem_alloc()` is not mmapping() additional page just to hold metadata.
   constexpr size_t kBlockSizeOverhead = sizeof(ManagedBlock) + axl::kAllocOverhead + kArenaAlignmentOverhead;
 
   ManagedBlock* cur_block = _current_block;
@@ -189,7 +187,7 @@ void* Arena::_alloc_oneshot(size_t size) noexcept {
     cur_block->next = next;
 
     next = next->next;
-    Arena_free(block_to_free);
+    axl::mem_free(block_to_free);
   }
 
   // Calculates the initial size of a next block - in most cases this would be enough for the allocation. In
@@ -218,7 +216,7 @@ void* Arena::_alloc_oneshot(size_t size) noexcept {
   }
 
   // Allocate new block.
-  ManagedBlock* new_block = static_cast<ManagedBlock*>(Arena_malloc(block_size));
+  ManagedBlock* new_block = static_cast<ManagedBlock*>(mem_alloc(block_size));
   if (ASMJIT_UNLIKELY(!new_block)) {
     return nullptr;
   }
@@ -346,7 +344,7 @@ void* Arena::_alloc_reusable(size_t size, Out<size_t> allocated_size) noexcept {
       return nullptr;
     }
 
-    void* p = Arena_malloc(size + dynamic_block_overhead);
+    void* p = axl::mem_alloc(size + dynamic_block_overhead);
     if (ASMJIT_UNLIKELY(!p)) {
       allocated_size = 0;
       return nullptr;
@@ -407,7 +405,7 @@ void Arena::_release_dynamic(void* p, size_t size) noexcept {
     next->prev = prev;
   }
 
-  Arena_free(dynamic_block);
+  axl::mem_free(dynamic_block);
 }
 
 // Arena - Usage

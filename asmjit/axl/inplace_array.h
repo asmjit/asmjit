@@ -28,7 +28,7 @@ struct InplaceArray {
 
   //! \}
 
-  //! \name Equality
+  //! \name Equality & Comparison
   //! \{
 
   ASMJIT_INLINE_CONSTEXPR bool equals(const InplaceArray& other) const noexcept {

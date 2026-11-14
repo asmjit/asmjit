@@ -187,9 +187,21 @@ Error BaseRAPass::run(axl::Arena& arena, Logger* logger) {
       node = node->next();
     }
 
-    err = run_on_function(arena, func, next_func != nullptr);
-    if (err != Error::kOk) {
-      break;
+    // Make sure we are going to run passes on a function without a dirty state - compilation cannot resume
+    // if something already failed. In general the following flags can be set:
+    //   - None         => Function wasn't compiled yet, no attempts to compile either -> Proceed.
+    //   - WorkingState => Function failed previous attempt                            -> Failure.
+    //   - Finalized    => Function was already successfully compiled                  -> Skip.
+    if (!axl::test(func->func_flags(), FuncNodeFlags::kWorkingState | FuncNodeFlags::kFinalized)) {
+      func->_func_data._func_node_flags |= FuncNodeFlags::kWorkingState;
+      err = run_on_function(arena, func, next_func != nullptr);
+      if (err != Error::kOk) {
+        func->_func_data._func_node_flags = (func->_func_data._func_node_flags & ~FuncNodeFlags::kWorkingState) | FuncNodeFlags::kFinalized;
+        break;
+      }
+    }
+    else if (axl::test(func->func_flags(), FuncNodeFlags::kWorkingState)) {
+      return make_error(Error::kPassRerunAttempted);
     }
 
     func = next_func;

@@ -420,7 +420,7 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::format_register(
     }
 
     ASMJIT_PROPAGATE(sb.append('.'));
-    if (element_count) {
+    if (element_count && element_index == 0xFFFFFFFFu) {
       ASMJIT_PROPAGATE(sb.append_int(element_count));
     }
     ASMJIT_PROPAGATE(sb.append(element_data.letter));
@@ -578,6 +578,7 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::format_operand(
       ASMJIT_PROPAGATE(sb.append(' '));
     }
 
+    ASMJIT_PROPAGATE(sb.append('#'));
     if (axl::test(flags, FormatFlags::kHexImms) && uint64_t(val) > 9) {
       ASMJIT_PROPAGATE(sb.append("0x"));
       return sb.append_int(uint64_t(val), 16);

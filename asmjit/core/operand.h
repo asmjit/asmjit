@@ -625,7 +625,7 @@ struct Operand_ {
 
   //! \}
 
-  //! \name Equality
+  //! \name Equality & Comparison
   //! \{
 
   //! Tests whether the operand is 100% equal to `other` operand.

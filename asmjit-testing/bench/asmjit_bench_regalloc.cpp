@@ -16,9 +16,8 @@
 #include <asmjit-testing/commons/asmjit_utils.h>
 
 #if !defined(ASMJIT_NO_COMPILER)
-  #include <asmjit-testing/commons/cmdline.h>
-  #include <asmjit-testing/commons/performance_timer.h>
   #include <asmjit-testing/commons/random.h>
+  #include <asmjit-testing/commons/zero_bench.h>
 #endif
 
 #include <stdio.h>
@@ -42,24 +41,46 @@ static void print_app_info() {
 
 #if !defined(ASMJIT_NO_COMPILER)
 
-class BenchRegAllocApp {
+enum ValueId : uint8_t {
+  kLabelCount,
+  kVirtRegCount,
+  kCodeSize,
+  kCodeHolderMemory,
+  kCompilerMemory,
+  kPassMemory,
+  kEmitTime,
+  kRATime
+};
+
+class RegAllocBenchmark : public ZeroBench::Benchmark {
 public:
-  const char* _arch = nullptr;
-  bool _help_only = false;
-  bool _verbose = false;
-  uint32_t _maximum_complexity = 65536;
+  CodeHolder code;
+  std::unique_ptr<BaseCompiler> compiler;
+  Arch arch;
+  uint32_t complexity_param;
+  bool verbose;
 
-  BenchRegAllocApp() noexcept
-    : _arch("all") {}
-  ~BenchRegAllocApp() noexcept {}
+#if !defined(ASMJIT_NO_LOGGING)
+  StringLogger logger;
+#endif // !ASMJIT_NO_LOGGING
 
-  template<class T>
-  inline void add_t() { T::add(*this); }
+  static constexpr size_t kLocalRegCount = 3;
+  static constexpr size_t kLocalOpCount = 15;
 
-  int handle_args(int argc, const char* const* argv);
-  void show_info();
+  RegAllocBenchmark(Arch arch, uint32_t complexity_param, bool verbose) noexcept
+    : arch(arch),
+      complexity_param(complexity_param),
+      verbose(verbose) {
+    set_label(0, asmjit_arch_as_string(arch));
+    set_label(1, ZeroBench::String::format("%u", complexity_param));
+  }
 
-  bool should_run_arch(Arch arch) const noexcept;
+  ~RegAllocBenchmark() noexcept override {}
+
+  void prepare(ZeroBench::Context& ctx) override;
+  void run(ZeroBench::Context& ctx) override;
+  void teardown() override;
+
   void emit_code(BaseCompiler* cc, uint32_t complexity, uint32_t reg_count);
 
 #if !defined(ASMJIT_NO_X86)
@@ -69,68 +90,145 @@ public:
 #if !defined(ASMJIT_NO_AARCH64)
   void emit_code_aarch64(a64::Compiler* cc, uint32_t complexity, uint32_t reg_count);
 #endif // !ASMJIT_NO_AARCH64
-
-  int run();
-  bool run_arch(Arch arch);
 };
 
-int BenchRegAllocApp::handle_args(int argc, const char* const* argv) {
-  CmdLine cmd(argc, argv);
-  _arch = cmd.value_of("--arch", "all");
-  _maximum_complexity = cmd.value_as_uint("--complexity", _maximum_complexity);
+void RegAllocBenchmark::prepare(ZeroBench::Context& ctx) {
+  Environment custom_env;
+  CpuFeatures features;
 
-  if (cmd.has_arg("--help")) _help_only = true;
-  if (cmd.has_arg("--verbose")) _verbose = true;
+  switch (arch) {
+    case Arch::kX86:
+    case Arch::kX64:
+      features.add(CpuFeatures::X86::kADX,
+                   CpuFeatures::X86::kAVX,
+                   CpuFeatures::X86::kAVX2,
+                   CpuFeatures::X86::kBMI,
+                   CpuFeatures::X86::kBMI2,
+                   CpuFeatures::X86::kCMOV,
+                   CpuFeatures::X86::kF16C,
+                   CpuFeatures::X86::kFMA,
+                   CpuFeatures::X86::kFPU,
+                   CpuFeatures::X86::kI486,
+                   CpuFeatures::X86::kLZCNT,
+                   CpuFeatures::X86::kMMX,
+                   CpuFeatures::X86::kMMX2,
+                   CpuFeatures::X86::kPOPCNT,
+                   CpuFeatures::X86::kSSE,
+                   CpuFeatures::X86::kSSE2,
+                   CpuFeatures::X86::kSSE3,
+                   CpuFeatures::X86::kSSSE3,
+                   CpuFeatures::X86::kSSE4_1,
+                   CpuFeatures::X86::kSSE4_2,
+                   CpuFeatures::X86::kAVX,
+                   CpuFeatures::X86::kAVX2);
+      break;
 
-  return 0;
+    case Arch::kAArch64:
+      features.add(CpuFeatures::ARM::kAES,
+                   CpuFeatures::ARM::kASIMD,
+                   CpuFeatures::ARM::kIDIVA,
+                   CpuFeatures::ARM::kIDIVT,
+                   CpuFeatures::ARM::kPMULL);
+      break;
+
+    default:
+      ctx.make_failed("Unsupported architecture");
+      return;
+  }
+
+  custom_env.init(arch);
+  Error err = code.init(custom_env, features);
+  if (err != Error::kOk) {
+    ctx.make_failed(stringify_error(err));
+    return;
+  }
+
+#ifndef ASMJIT_NO_X86
+  if (code.arch() == Arch::kX86 || code.arch() == Arch::kX64) {
+    compiler = std::make_unique<x86::Compiler>();
+  }
+#endif // !ASMJIT_NO_X86
+
+#ifndef ASMJIT_NO_AARCH64
+  if (code.arch() == Arch::kAArch64) {
+    compiler = std::make_unique<a64::Compiler>();
+  }
+#endif // !ASMJIT_NO_AARCH64
+
+  if (!compiler) {
+    ctx.make_failed("Architecture backend is disabled");
+    return;
+  }
+
+  err = code.attach(compiler.get());
+  if (err != Error::kOk) {
+    ctx.make_failed(stringify_error(err));
+    return;
+  }
+
+#if !defined(ASMJIT_NO_LOGGING)
+  if (verbose) {
+    code.set_logger(&logger);
+    compiler->add_diagnostic_options(DiagnosticOptions::kRAAnnotate | DiagnosticOptions::kRADebugAll);
+  }
+#endif // !ASMJIT_NO_LOGGING
 }
 
-void BenchRegAllocApp::show_info() {
-  print_app_info();
+void RegAllocBenchmark::run(ZeroBench::Context& ctx) {
+  Error err = code.reinit();
+  if (err != Error::kOk) {
+    ctx.make_failed(stringify_error(err));
+    return;
+  }
 
-  printf("Usage:\n");
-  printf("  asmjit_bench_regalloc [arguments]\n");
-  printf("\n");
+#if !defined(ASMJIT_NO_LOGGING)
+  logger.clear();
+#endif // !ASMJIT_NO_LOGGING
 
-  printf("Arguments:\n");
-  printf("  --help           Show usage only\n");
-  printf("  --arch=<NAME>    Select architecture to run ('all' by default)\n");
-  printf("  --verbose        Verbose output\n");
-  printf("  --complexity=<n> Maximum complexity to test (%u)\n", _maximum_complexity);
-  printf("\n");
+  ZeroBench::Timer timer;
+  ctx.start_now();
 
-  printf("Architectures:\n");
-#if !defined(ASMJIT_NO_X86)
-  printf("  --arch=x86       32-bit X86 architecture (X86)\n");
-  printf("  --arch=x64       64-bit X86 architecture (X86_64)\n");
-#endif
-#if !defined(ASMJIT_NO_AARCH64)
-  printf("  --arch=aarch64   64-bit ARM architecture (AArch64)\n");
-#endif
-  printf("\n");
+  timer.start();
+  emit_code(compiler.get(), complexity_param + 1u, 35u);
+  uint64_t emit_time = timer.elapsed();
+
+  timer.start();
+  err = compiler->finalize();
+  uint64_t finalize_time = timer.elapsed();
+
+  ctx.end_now();
+
+  if (err == Error::kOk) {
+    err = code.flatten();
+  }
+  if (err != Error::kOk) {
+    ctx.make_failed(stringify_error(err));
+    return;
+  }
+
+  ctx.set_value(kLabelCount, code.label_count());
+  ctx.set_value(kVirtRegCount, compiler->virt_regs().size());
+  ctx.set_value(kCodeSize, code.code_size());
+  ctx.set_value(kCodeHolderMemory, code._arena.usage().reserved_size());
+  ctx.set_value(kCompilerMemory, compiler->_builder_arena.usage().reserved_size());
+  ctx.set_value(kPassMemory, compiler->_pass_arena.usage().reserved_size());
+  ctx.set_value(kEmitTime, emit_time);
+  ctx.set_value(kRATime, finalize_time);
 }
 
-bool BenchRegAllocApp::should_run_arch(Arch arch) const noexcept {
-  if (strcmp(_arch, "all") == 0) {
-    return true;
+void RegAllocBenchmark::teardown() {
+#if !defined(ASMJIT_NO_LOGGING)
+  if (verbose) {
+    printf("%s\n", logger.data());
+    logger.clear();
   }
+#endif // !ASMJIT_NO_LOGGING
 
-  if (strcmp(_arch, "x86") == 0 && arch == Arch::kX86) {
-    return true;
-  }
-
-  if (strcmp(_arch, "x64") == 0 && arch == Arch::kX64) {
-    return true;
-  }
-
-  if (strcmp(_arch, "aarch64") == 0 && arch == Arch::kAArch64) {
-    return true;
-  }
-
-  return false;
+  code.reset();
+  compiler.reset();
 }
 
-void BenchRegAllocApp::emit_code(BaseCompiler* cc, uint32_t complexity, uint32_t reg_count) {
+void RegAllocBenchmark::emit_code(BaseCompiler* cc, uint32_t complexity, uint32_t reg_count) {
 #if !defined(ASMJIT_NO_X86)
   if (cc->arch() == Arch::kX86 || cc->arch() == Arch::kX64) {
     emit_code_x86(cc->as<x86::Compiler>(), complexity, reg_count);
@@ -144,11 +242,8 @@ void BenchRegAllocApp::emit_code(BaseCompiler* cc, uint32_t complexity, uint32_t
 #endif
 }
 
-constexpr size_t kLocalRegCount = 3;
-constexpr size_t kLocalOpCount = 15;
-
 #if !defined(ASMJIT_NO_X86)
-void BenchRegAllocApp::emit_code_x86(x86::Compiler* cc, uint32_t complexity, uint32_t reg_count) {
+void RegAllocBenchmark::emit_code_x86(x86::Compiler* cc, uint32_t complexity, uint32_t reg_count) {
   TestUtils::Random rnd(0x1234);
 
   std::vector<Label> labels;
@@ -241,7 +336,7 @@ void BenchRegAllocApp::emit_code_x86(x86::Compiler* cc, uint32_t complexity, uin
 #endif // !ASMJIT_NO_X86
 
 #if !defined(ASMJIT_NO_AARCH64)
-void BenchRegAllocApp::emit_code_aarch64(a64::Compiler* cc, uint32_t complexity, uint32_t reg_count) {
+void RegAllocBenchmark::emit_code_aarch64(a64::Compiler* cc, uint32_t complexity, uint32_t reg_count) {
   TestUtils::Random rnd(0x1234);
 
   std::vector<Label> labels;
@@ -333,184 +428,181 @@ void BenchRegAllocApp::emit_code_aarch64(a64::Compiler* cc, uint32_t complexity,
 }
 #endif // !ASMJIT_NO_AARCH64
 
-int BenchRegAllocApp::run() {
-  if (should_run_arch(Arch::kX64) && !run_arch(Arch::kX64)) {
-    return 1;
-  }
-
-  if (should_run_arch(Arch::kAArch64) && !run_arch(Arch::kAArch64)) {
-    return 1;
-  }
-
-  return 0;
-}
-
-bool BenchRegAllocApp::run_arch(Arch arch) {
-  Environment custom_env;
-  CpuFeatures features;
-
-  switch (arch) {
-    case Arch::kX86:
-    case Arch::kX64:
-      features.add(CpuFeatures::X86::kADX,
-                   CpuFeatures::X86::kAVX,
-                   CpuFeatures::X86::kAVX2,
-                   CpuFeatures::X86::kBMI,
-                   CpuFeatures::X86::kBMI2,
-                   CpuFeatures::X86::kCMOV,
-                   CpuFeatures::X86::kF16C,
-                   CpuFeatures::X86::kFMA,
-                   CpuFeatures::X86::kFPU,
-                   CpuFeatures::X86::kI486,
-                   CpuFeatures::X86::kLZCNT,
-                   CpuFeatures::X86::kMMX,
-                   CpuFeatures::X86::kMMX2,
-                   CpuFeatures::X86::kPOPCNT,
-                   CpuFeatures::X86::kSSE,
-                   CpuFeatures::X86::kSSE2,
-                   CpuFeatures::X86::kSSE3,
-                   CpuFeatures::X86::kSSSE3,
-                   CpuFeatures::X86::kSSE4_1,
-                   CpuFeatures::X86::kSSE4_2,
-                   CpuFeatures::X86::kAVX,
-                   CpuFeatures::X86::kAVX2);
-      break;
-
-    case Arch::kAArch64:
-      features.add(CpuFeatures::ARM::kAES,
-                   CpuFeatures::ARM::kASIMD,
-                   CpuFeatures::ARM::kIDIVA,
-                   CpuFeatures::ARM::kIDIVT,
-                   CpuFeatures::ARM::kPMULL);
-      break;
-
-    default:
-      return false;
-  }
-
-  CodeHolder code;
-
-  custom_env.init(arch);
-  code.init(custom_env, features);
-
-  std::unique_ptr<BaseCompiler> cc;
-
-#ifndef ASMJIT_NO_X86
-  if (code.arch() == Arch::kX86 || code.arch() == Arch::kX64) {
-    cc = std::make_unique<x86::Compiler>();
-  }
-#endif // !ASMJIT_NO_X86
-
-#ifndef ASMJIT_NO_AARCH64
-  if (code.arch() == Arch::kAArch64) {
-    cc = std::make_unique<a64::Compiler>();
-  }
-#endif // !ASMJIT_NO_AARCH64
-
-  if (!cc)
-    return false;
-
-  PerformanceTimer emit_timer;
-  PerformanceTimer finalize_timer;
-
-  uint32_t reg_count = 35;
-
-  code.reinit();
-  code.attach(cc.get());
-
-  // Dry run to not benchmark allocs on the first run.
-  emit_code(cc.get(), 0, reg_count);
-  cc->finalize();
-  code.reinit();
-
-#if !defined(ASMJIT_NO_LOGGING)
-  StringLogger logger;
-  if (_verbose) {
-    code.set_logger(&logger);
-    cc->add_diagnostic_options(DiagnosticOptions::kRAAnnotate | DiagnosticOptions::kRADebugAll);
-  }
-#endif // !ASMJIT_NO_LOGGING
-
-  printf("+-----------------------------------------+-----------+-----------------------------------+--------------+--------------+\n");
-  printf("|           Input Configuration           |   Output  |        Reserved Memory [KiB]      |      Time Elapsed [ms]      |\n");
-  printf("+--------+------------+--------+----------+-----------+-----------+-----------+-----------+--------------+--------------+\n");
-  printf("| Arch   | Complexity | Labels | RegCount |  CodeSize | Code Hold.| Compiler  | Pass Temp.|   Emit Time  |  Reg. Alloc  |\n");
-  printf("+--------+------------+--------+----------+-----------+-----------+-----------+-----------+--------------+--------------+\n");
-
-  for (uint32_t complexity = 1u; complexity <= _maximum_complexity; complexity *= 2u) {
-    emit_timer.start();
-    emit_code(cc.get(), complexity + 1, reg_count);
-    emit_timer.stop();
-
-    finalize_timer.start();
-    Error err = cc->finalize();
-    finalize_timer.stop();
-
-#if !defined(ASMJIT_NO_LOGGING)
-    if (_verbose) {
-      printf("%s\n", logger.data());
-      logger.clear();
-    }
-#endif
-
-    code.flatten();
-
-    double emit_time = emit_timer.duration();
-    double finalize_time = finalize_timer.duration();
-    size_t code_size = code.code_size();
-    size_t label_count = code.label_count();
-    size_t virt_reg_count = cc->virt_regs().size();
-
-    axl::ArenaUsage code_holder_usage = code._arena.usage();
-    axl::ArenaUsage compiler_usage = cc->_builder_arena.usage();
-    axl::ArenaUsage passes_usage = cc->_pass_arena.usage();
-
-    printf(
-      "| %-7s| %10u | %6zu | %8zu | %9zu | %9zu | %9zu | %9zu | %12.3f | %12.3f |",
-      asmjit_arch_as_string(arch),
-      complexity,
-      label_count,
-      virt_reg_count,
-      code_size,
-      (code_holder_usage.reserved_size() + 1023) / 1024,
-      (compiler_usage.reserved_size() + 1023) / 1024,
-      (passes_usage.reserved_size() + 1023) / 1024,
-      emit_time,
-      finalize_time
-    );
-
-    if (err != Error::kOk) {
-      printf(" (err: %s)", stringify_error(err));
-    }
-
-    printf("\n");
-
-    code.reinit();
-  }
-
-  printf("+--------+------------+--------+----------+-----------+-----------+-----------+-----------+--------------+--------------+\n");
+static void print_usage(uint32_t maximum_complexity) {
+  printf("Usage:\n");
+  printf("  asmjit_bench_regalloc [arguments]\n");
   printf("\n");
 
-  return true;
+  printf("Arguments:\n");
+  printf("  --help           Show usage only\n");
+  printf("  --arch=<NAME>    Select architecture to run ('all' by default)\n");
+  printf("  --verbose        Log the last iteration of each benchmark\n");
+  printf("  --complexity=<n> Maximum complexity to test (%u)\n", maximum_complexity);
+  printf("  --iter-count=<n> Number of measured iterations (automatic by default)\n");
+  printf("  --max-iter-count=<n> Limit the automatic iteration count\n");
+  printf("  --warm-up-iters=<n> Number of warm-up iterations\n");
+  printf("  --warm-up-nanos=<n> Warm-up duration in nanoseconds (1000000 by default)\n");
+  printf("  --run=<pattern>  Filter benchmarks by architecture name\n");
+  printf("  --no-color       Disable color output\n");
+  printf("\n");
+
+  printf("Architectures:\n");
+#if !defined(ASMJIT_NO_X86)
+  printf("  --arch=x86       32-bit X86 architecture (X86)\n");
+  printf("  --arch=x64       64-bit X86 architecture (X86_64)\n");
+#endif
+#if !defined(ASMJIT_NO_AARCH64)
+  printf("  --arch=aarch64   64-bit ARM architecture (AArch64)\n");
+#endif
+  printf("\n");
+  printf("Memory columns show reserved memory rounded up to KiB.\n");
+  printf("Emit Time and Reg. Alloc show median emission and finalization times.\n\n");
+}
+
+static bool should_run_arch(const char* selected_arch, Arch arch) noexcept {
+  if (strcmp(selected_arch, "all") == 0) {
+    return true;
+  }
+
+  if (strcmp(selected_arch, "x86") == 0 && arch == Arch::kX86) {
+    return true;
+  }
+
+  if (strcmp(selected_arch, "x64") == 0 && arch == Arch::kX64) {
+    return true;
+  }
+
+  if (strcmp(selected_arch, "aarch64") == 0 && arch == Arch::kAArch64) {
+    return true;
+  }
+
+  return false;
 }
 
 int main(int argc, char* argv[]) {
-  BenchRegAllocApp app;
+  ZeroBench::Runner runner(argc, argv);
 
-  app.handle_args(argc, argv);
-  app.show_info();
+  bool verbose = runner.cmd_line().has_arg("--verbose");
+  const char* selected_arch = runner.cmd_line().get_arg("--arch", "all");
+  uint32_t maximum_complexity = runner.cmd_line().value_as_uint("--complexity", 65536u);
 
-  if (app._help_only)
+  print_app_info();
+
+  if (runner.cmd_line().has_arg("--help")) {
+    print_usage(maximum_complexity);
     return 0;
+  }
 
-  return app.run();
+  runner.set_label(0, "Architecture");
+  runner.set_label(1, "Complexity");
+
+  runner.add_metric("N. Labels", {
+    .color = ZeroBench::kDefaultMetricColor,
+    .value_kind = ZeroBench::ValueKind::kCount,
+    .value_index = kLabelCount,
+    .aggregate = ZeroBench::Aggregate::kStatic,
+    .scale = ZeroBench::Scale::kNone
+  });
+  runner.add_metric("N. VRegs", {
+    .color = ZeroBench::kDefaultMetricColor,
+    .value_kind = ZeroBench::ValueKind::kCount,
+    .value_index = kVirtRegCount,
+    .aggregate = ZeroBench::Aggregate::kStatic,
+    .scale = ZeroBench::Scale::kNone
+  });
+  runner.add_metric("Code Size", {
+    .color = ZeroBench::Color::kBrightMagenta,
+    .value_kind = ZeroBench::ValueKind::kBytes,
+    .value_index = kCodeSize,
+    .aggregate = ZeroBench::Aggregate::kStatic,
+    .scale = ZeroBench::Scale::kDefault
+  });
+  runner.add_metric("Code H. Mem", {
+    .color = ZeroBench::Color::kBrightCyan,
+    .value_kind = ZeroBench::ValueKind::kBytes,
+    .value_index = kCodeHolderMemory,
+    .aggregate = ZeroBench::Aggregate::kStatic,
+    .scale = ZeroBench::Scale::kDefaultBytes
+  });
+  runner.add_metric("Compiler Mem", {
+    .color = ZeroBench::Color::kBrightCyan,
+    .value_kind = ZeroBench::ValueKind::kBytes,
+    .value_index = kCompilerMemory,
+    .aggregate = ZeroBench::Aggregate::kStatic,
+    .scale = ZeroBench::Scale::kDefaultBytes
+  });
+  runner.add_metric("Pass Tmp Mem", {
+    .color = ZeroBench::Color::kBrightCyan,
+    .value_kind = ZeroBench::ValueKind::kBytes,
+    .value_index = kPassMemory,
+    .aggregate = ZeroBench::Aggregate::kStatic,
+    .scale = ZeroBench::Scale::kDefaultBytes
+  });
+  runner.add_metric("Emit T.Med", {
+    .color = ZeroBench::kOtherDurationColor,
+    .value_kind = ZeroBench::ValueKind::kDurationNano,
+    .value_index = kEmitTime,
+    .aggregate = ZeroBench::Aggregate::kP50,
+    .scale = ZeroBench::Scale::kDefault
+  });
+  runner.add_metric("Emit T.Max", {
+    .color = ZeroBench::kMaxDurationColor,
+    .value_kind = ZeroBench::ValueKind::kDurationNano,
+    .value_index = kEmitTime,
+    .aggregate = ZeroBench::Aggregate::kMax,
+    .scale = ZeroBench::Scale::kDefault
+  });
+  runner.add_metric("RA T. Med", {
+    .color = ZeroBench::kOtherDurationColor,
+    .value_kind = ZeroBench::ValueKind::kDurationNano,
+    .value_index = kRATime,
+    .aggregate = ZeroBench::Aggregate::kP50,
+    .scale = ZeroBench::Scale::kDefault
+  });
+  runner.add_metric("RA T. Max", {
+    .color = ZeroBench::kMaxDurationColor,
+    .value_kind = ZeroBench::ValueKind::kDurationNano,
+    .value_index = kRATime,
+    .aggregate = ZeroBench::Aggregate::kMax,
+    .scale = ZeroBench::Scale::kDefault
+  });
+
+  auto run_arch = [&](Arch arch) {
+    if (!should_run_arch(selected_arch, arch)) {
+      return;
+    }
+
+    std::vector<ZeroBench::BenchmarkRef> benchmarks;
+    for (uint32_t complexity = 1u; complexity <= maximum_complexity; complexity *= 2u) {
+      benchmarks.push_back(ZeroBench::BenchmarkRef::make<RegAllocBenchmark>(arch, complexity, verbose));
+      if (complexity > maximum_complexity / 2u) {
+        break;
+      }
+    }
+
+    if (runner.run(benchmarks.data(), benchmarks.size()) != 0) {
+      exit(1);
+    }
+    printf("\n");
+  };
+
+#if !defined(ASMJIT_NO_X86)
+  run_arch(Arch::kX86);
+  run_arch(Arch::kX64);
+#endif // !ASMJIT_NO_X86
+
+#if !defined(ASMJIT_NO_AARCH64)
+  run_arch(Arch::kAArch64);
+#endif // !ASMJIT_NO_AARCH64
+
+  return 0;
 }
 
 #else
 
 int main() {
   print_app_info();
-  printf("!! This Benchmark is disabled: <ASMJIT_NO_JIT> or unsuitable target architecture !!\n");
+  printf("!! This Benchmark is disabled: <ASMJIT_NO_COMPILER> !!\n");
   return 0;
 }
 

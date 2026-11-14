@@ -118,16 +118,11 @@ public:
   //! \{
 
   //! Tests whether the vector is empty.
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool is_empty() const noexcept { return _size == 0; }
-
+  [[nodiscard]] ASMJIT_INLINE_NODEBUG bool is_empty() const noexcept { return _size == 0; }
   //! Returns the vector size.
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG size_t size() const noexcept { return _size; }
-
+  [[nodiscard]] ASMJIT_INLINE_NODEBUG size_t size() const noexcept { return _size; }
   //! Returns the vector capacity.
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG size_t capacity() const noexcept { return _capacity; }
+  [[nodiscard]] ASMJIT_INLINE_NODEBUG size_t capacity() const noexcept { return _capacity; }
 
   //! \}
 

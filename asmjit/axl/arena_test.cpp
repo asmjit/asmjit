@@ -23,7 +23,7 @@ TEST_CASE(axl_arena_oneshot) {
   constexpr size_t kN = 100000u;
 
   {
-    axl::Arena arena(1024u * 4u);
+    axl::Arena arena(4096u);
 
     for (size_t r = 0; r < 3u; r++) {
       for (size_t i = 0; i < kN; i++) {
@@ -47,7 +47,7 @@ TEST_CASE(axl_arena_oneshot) {
   }
 
   {
-    axl::Arena arena(1024u * 4u);
+    axl::Arena arena(4096u);
 
     for (size_t r = 0; r < 3u; r++) {
       for (size_t i = 0; i < kN; i++) {

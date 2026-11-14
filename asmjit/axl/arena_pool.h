@@ -15,6 +15,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(axl)
 
 //! Helper class for implementing pooling of arena-allocated objects.
 template<typename T, size_t Size = sizeof(T)>
+  requires(Size >= sizeof(void*))
 class ArenaPool {
 public:
   ASMJIT_NONCOPYABLE(ArenaPool)

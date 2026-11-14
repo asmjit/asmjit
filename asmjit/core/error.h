@@ -66,6 +66,13 @@ enum class Error : uint32_t {
   //! Returned by runtime if the \ref CodeHolder contains no code.
   kNoCodeGenerated,
 
+  //! Code cannot be consumed, because it has fixups, which weren't resolved.
+  //!
+  //! \remarks This error code describes a situation, in which the content of \ref CodeHolder is being consumed, but it
+  //! contains unresolved fixups. This could be caused by a missing call to \ref CodeHolder::resolve_cross_section_fixups()
+  //! or by having unbound labels in code.
+  kUnresolvedFixups,
+
   //! Invalid directive.
   kInvalidDirective,
   //! Attempt to use uninitialized label.
@@ -197,10 +204,13 @@ enum class Error : uint32_t {
   //! Failed to open anonymous memory handle or file descriptor.
   kFailedToOpenAnonymousMemory,
 
-  //! Failed to open a file.
+  //! Repetitive calls to \ref BaseBuilder::run_passes() or \ref BaseBuilder::finalize() after a previous failure.
   //!
-  //! \note This is a generic error that is used by internal filesystem API.
-  kFailedToOpenFile,
+  //! \note This is always a user error that AsmJit detects, because calling `run_passes()` or `finalize()` again
+  //! after an unsuccessful attempt lead to an unrecoverable failure. So, AsmJit marks FuncNodes where passes are
+  //! running and only unmarks that after the run was successful. On failure, the marker is not cleared and AsmJit
+  //! knows to never attempt to run it again.
+  kPassRerunAttempted,
 
   //! Protection failure can be returned from a virtual memory allocator or when trying to change memory access
   //! permissions.

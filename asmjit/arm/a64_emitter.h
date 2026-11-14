@@ -112,6 +112,7 @@ struct EmitterExplicitT {
 
   ASMJIT_INST_2x(adr, Adr, Gp, Imm)
   ASMJIT_INST_2x(adr, Adr, Gp, Label)
+  ASMJIT_INST_2x(adr, Adr, Gp, Mem)
   ASMJIT_INST_2x(adrp, Adrp, Gp, Imm)
   ASMJIT_INST_2x(adrp, Adrp, Gp, Label)
 

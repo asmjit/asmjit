@@ -74,28 +74,17 @@ public:
   //! \{
 
   //! Creates a new 8-bit low general purpose register (GPB) having the given register id `reg_id`.
-  static ASMJIT_INLINE_CONSTEXPR Gp make_r8(uint32_t reg_id) noexcept { return Gp(signature_of_t<RegType::kGp8Lo>(), reg_id); }
-  [[nodiscard]]
-
+  [[nodiscard]] static ASMJIT_INLINE_CONSTEXPR Gp make_r8(uint32_t reg_id) noexcept { return Gp(signature_of_t<RegType::kGp8Lo>(), reg_id); }
   //! Creates a new 8-bit low general purpose register (GPB) having the given register id `reg_id`.
-  [[nodiscard]]
-  static ASMJIT_INLINE_CONSTEXPR Gp make_r8_lo(uint32_t reg_id) noexcept { return Gp(signature_of_t<RegType::kGp8Lo>(), reg_id); }
-
+  [[nodiscard]] static ASMJIT_INLINE_CONSTEXPR Gp make_r8_lo(uint32_t reg_id) noexcept { return Gp(signature_of_t<RegType::kGp8Lo>(), reg_id); }
   //! Creates a new 8-bit high general purpose register (GPB) having the given register id `reg_id`.
-  [[nodiscard]]
-  static ASMJIT_INLINE_CONSTEXPR Gp make_r8_hi(uint32_t reg_id) noexcept { return Gp(signature_of_t<RegType::kGp8Hi>(), reg_id); }
-
+  [[nodiscard]] static ASMJIT_INLINE_CONSTEXPR Gp make_r8_hi(uint32_t reg_id) noexcept { return Gp(signature_of_t<RegType::kGp8Hi>(), reg_id); }
   //! Creates a new 16-bit low general purpose register (GPB) having the given register id `reg_id`.
-  [[nodiscard]]
-  static ASMJIT_INLINE_CONSTEXPR Gp make_r16(uint32_t reg_id) noexcept { return Gp(signature_of_t<RegType::kGp16>(), reg_id); }
-
+  [[nodiscard]] static ASMJIT_INLINE_CONSTEXPR Gp make_r16(uint32_t reg_id) noexcept { return Gp(signature_of_t<RegType::kGp16>(), reg_id); }
   //! Creates a new 32-bit low general purpose register (GPB) having the given register id `reg_id`.
-  [[nodiscard]]
-  static ASMJIT_INLINE_CONSTEXPR Gp make_r32(uint32_t reg_id) noexcept { return Gp(signature_of_t<RegType::kGp32>(), reg_id); }
-
+  [[nodiscard]] static ASMJIT_INLINE_CONSTEXPR Gp make_r32(uint32_t reg_id) noexcept { return Gp(signature_of_t<RegType::kGp32>(), reg_id); }
   //! Creates a new 64-bit low general purpose register (GPB) having the given register id `reg_id` (X86_64).
-  [[nodiscard]]
-  static ASMJIT_INLINE_CONSTEXPR Gp make_r64(uint32_t reg_id) noexcept { return Gp(signature_of_t<RegType::kGp64>(), reg_id); }
+  [[nodiscard]] static ASMJIT_INLINE_CONSTEXPR Gp make_r64(uint32_t reg_id) noexcept { return Gp(signature_of_t<RegType::kGp64>(), reg_id); }
 
   //! \}
 
@@ -103,28 +92,17 @@ public:
   //! \{
 
   //! Clones and casts this register to 8-bit (LO) part.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR Gp r8() const noexcept { return make_r8(id()); }
-
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR Gp r8() const noexcept { return make_r8(id()); }
   //! Clones and casts this register to 8-bit (LO) part.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR Gp r8_lo() const noexcept { return make_r8_lo(id()); }
-
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR Gp r8_lo() const noexcept { return make_r8_lo(id()); }
   //! Clones and casts this register to 8-bit (HI) part.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR Gp r8_hi() const noexcept { return make_r8_hi(id()); }
-
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR Gp r8_hi() const noexcept { return make_r8_hi(id()); }
   //! Clones and casts this register to 16-bit.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR Gp r16() const noexcept { return make_r16(id()); }
-
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR Gp r16() const noexcept { return make_r16(id()); }
   //! Clones and casts this register to 32-bit.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR Gp r32() const noexcept { return make_r32(id()); }
-
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR Gp r32() const noexcept { return make_r32(id()); }
   //! Clones and casts this register to 64-bit.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR Gp r64() const noexcept { return make_r64(id()); }
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR Gp r64() const noexcept { return make_r64(id()); }
 
   //! \}
 };
@@ -146,34 +124,26 @@ class Vec : public UniVec {
   //! \{
 
   //! Creates a new 128-bit vector register (XMM) having the given register id `reg_id`.
-  [[nodiscard]]
-  static ASMJIT_INLINE_CONSTEXPR Vec make_v128(uint32_t reg_id) noexcept { return Vec(signature_of_t<RegType::kVec128>(), reg_id); }
-
+  [[nodiscard]] static ASMJIT_INLINE_CONSTEXPR Vec make_v128(uint32_t reg_id) noexcept { return Vec(signature_of_t<RegType::kVec128>(), reg_id); }
   //! Creates a new 256-bit vector register (YMM) having the given register id `reg_id`.
-  [[nodiscard]]
-  static ASMJIT_INLINE_CONSTEXPR Vec make_v256(uint32_t reg_id) noexcept { return Vec(signature_of_t<RegType::kVec256>(), reg_id); }
-
+  [[nodiscard]] static ASMJIT_INLINE_CONSTEXPR Vec make_v256(uint32_t reg_id) noexcept { return Vec(signature_of_t<RegType::kVec256>(), reg_id); }
   //! Creates a new 512-bit vector register (ZMM) having the given register id `reg_id`.
-  [[nodiscard]]
-  static ASMJIT_INLINE_CONSTEXPR Vec make_v512(uint32_t reg_id) noexcept { return Vec(signature_of_t<RegType::kVec512>(), reg_id); }
+  [[nodiscard]] static ASMJIT_INLINE_CONSTEXPR Vec make_v512(uint32_t reg_id) noexcept { return Vec(signature_of_t<RegType::kVec512>(), reg_id); }
 
   //! Creates a new 128-bit vector register (XMM) having the given register id `reg_id`.
   //!
   //! \note This is an architecture-specific naming that does the same as \ref make_v128().
-  [[nodiscard]]
-  static ASMJIT_INLINE_CONSTEXPR Vec make_xmm(uint32_t reg_id) noexcept { return Vec(signature_of_t<RegType::kVec128>(), reg_id); }
+  [[nodiscard]] static ASMJIT_INLINE_CONSTEXPR Vec make_xmm(uint32_t reg_id) noexcept { return Vec(signature_of_t<RegType::kVec128>(), reg_id); }
 
   //! Creates a new 256-bit vector register (YMM) having the given register id `reg_id`.
   //!
   //! \note This is an architecture-specific naming that does the same as \ref make_v256().
-  [[nodiscard]]
-  static ASMJIT_INLINE_CONSTEXPR Vec make_ymm(uint32_t reg_id) noexcept { return Vec(signature_of_t<RegType::kVec256>(), reg_id); }
+  [[nodiscard]] static ASMJIT_INLINE_CONSTEXPR Vec make_ymm(uint32_t reg_id) noexcept { return Vec(signature_of_t<RegType::kVec256>(), reg_id); }
 
   //! Creates a new 512-bit vector register (ZMM) having the given register id `reg_id`.
   //!
   //! \note This is an architecture-specific naming that does the same as \ref make_v512().
-  [[nodiscard]]
-  static ASMJIT_INLINE_CONSTEXPR Vec make_zmm(uint32_t reg_id) noexcept { return Vec(signature_of_t<RegType::kVec512>(), reg_id); }
+  [[nodiscard]] static ASMJIT_INLINE_CONSTEXPR Vec make_zmm(uint32_t reg_id) noexcept { return Vec(signature_of_t<RegType::kVec512>(), reg_id); }
 
   //! \}
 
@@ -183,50 +153,41 @@ class Vec : public UniVec {
   //! Tests whether the register is a 128-bit vector (XMM).
   //!
   //! \note This is an architecture-specific naming that does the same as \ref Reg::is_vec128().
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool is_xmm() const noexcept { return is_vec128(); }
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR bool is_xmm() const noexcept { return is_vec128(); }
 
   //! Tests whether the register is a 256-bit vector (YMM).
   //!
   //! \note This is an architecture-specific naming that does the same as \ref Reg::is_vec256().
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool is_ymm() const noexcept { return is_vec256(); }
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR bool is_ymm() const noexcept { return is_vec256(); }
 
   //! Tests whether the register is a 512-bit vector (ZMM).
   //!
   //! \note This is an architecture-specific naming that does the same as \ref Reg::is_vec512().
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool is_zmm() const noexcept { return is_vec512(); }
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR bool is_zmm() const noexcept { return is_vec512(); }
 
   //! Clones and casts this register to XMM (Vec128).
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR Vec v128() const noexcept { return make_v128(id()); }
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR Vec v128() const noexcept { return make_v128(id()); }
 
   //! Clones and casts this register to YMM (Vec256).
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR Vec v256() const noexcept { return make_v256(id()); }
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR Vec v256() const noexcept { return make_v256(id()); }
 
   //! Clones and casts this register to ZMM (Vec512).
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR Vec v512() const noexcept { return make_v512(id()); }
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR Vec v512() const noexcept { return make_v512(id()); }
 
   //! Clones and casts this register to XMM (Vec128).
   //!
   //! \note This is an architecture-specific naming that does the same as \ref v128().
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR Vec xmm() const noexcept { return make_v128(id()); }
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR Vec xmm() const noexcept { return make_v128(id()); }
 
   //! Clones and casts this register to YMM (Vec256).
   //!
   //! \note This is an architecture-specific naming that does the same as \ref v256().
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR Vec ymm() const noexcept { return make_v256(id()); }
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR Vec ymm() const noexcept { return make_v256(id()); }
 
   //! Clones and casts this register to ZMM (Vec512).
   //!
   //! \note This is an architecture-specific naming that does the same as \ref v512().
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR Vec zmm() const noexcept { return make_v512(id()); }
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR Vec zmm() const noexcept { return make_v512(id()); }
 
   //! Clones and casts this register to a register that has half the size (or XMM if it's already XMM).
   //!
@@ -234,8 +195,7 @@ class Vec : public UniVec {
   //! function never returns a vector register that would have less than 128 bits as X86|X86_64 architecture
   //! doesn't provide such registers. So, effectively this function returns either YMM register if the input
   //! was ZMM, or XMM for whatever else input.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR Vec half() const noexcept {
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR Vec half() const noexcept {
     return Vec(is_vec512() ? signature_of_t<RegType::kVec256>() : signature_of_t<RegType::kVec128>(), id());
   }
 
@@ -297,88 +257,53 @@ namespace regs {
 #endif
 
 //! Creates an 8-bit low GPB register operand.
-[[nodiscard]]
-static ASMJIT_INLINE_CONSTEXPR Gp gpb(uint32_t reg_id) noexcept { return Gp::make_r8(reg_id); }
-
+[[nodiscard]] static ASMJIT_INLINE_CONSTEXPR Gp gpb(uint32_t reg_id) noexcept { return Gp::make_r8(reg_id); }
 //! Creates an 8-bit low GPB register operand.
-[[nodiscard]]
-static ASMJIT_INLINE_CONSTEXPR Gp gp8(uint32_t reg_id) noexcept { return Gp::make_r8(reg_id); }
-
+[[nodiscard]] static ASMJIT_INLINE_CONSTEXPR Gp gp8(uint32_t reg_id) noexcept { return Gp::make_r8(reg_id); }
 //! Creates an 8-bit low GPB register operand.
-[[nodiscard]]
-static ASMJIT_INLINE_CONSTEXPR Gp gpb_lo(uint32_t reg_id) noexcept { return Gp::make_r8_lo(reg_id); }
-
+[[nodiscard]] static ASMJIT_INLINE_CONSTEXPR Gp gpb_lo(uint32_t reg_id) noexcept { return Gp::make_r8_lo(reg_id); }
 //! Creates an 8-bit low GPB register operand.
-[[nodiscard]]
-static ASMJIT_INLINE_CONSTEXPR Gp gp8_lo(uint32_t reg_id) noexcept { return Gp::make_r8_lo(reg_id); }
-
+[[nodiscard]] static ASMJIT_INLINE_CONSTEXPR Gp gp8_lo(uint32_t reg_id) noexcept { return Gp::make_r8_lo(reg_id); }
 //! Creates an 8-bit high GPB register operand.
-[[nodiscard]]
-static ASMJIT_INLINE_CONSTEXPR Gp gpb_hi(uint32_t reg_id) noexcept { return Gp::make_r8_hi(reg_id); }
-
+[[nodiscard]] static ASMJIT_INLINE_CONSTEXPR Gp gpb_hi(uint32_t reg_id) noexcept { return Gp::make_r8_hi(reg_id); }
 //! Creates an 8-bit high GPB register operand.
-[[nodiscard]]
-static ASMJIT_INLINE_CONSTEXPR Gp gp8_hi(uint32_t reg_id) noexcept { return Gp::make_r8_hi(reg_id); }
-
+[[nodiscard]] static ASMJIT_INLINE_CONSTEXPR Gp gp8_hi(uint32_t reg_id) noexcept { return Gp::make_r8_hi(reg_id); }
 //! Creates a 16-bit GPW register operand.
-[[nodiscard]]
-static ASMJIT_INLINE_CONSTEXPR Gp gpw(uint32_t reg_id) noexcept { return Gp::make_r16(reg_id); }
-
+[[nodiscard]] static ASMJIT_INLINE_CONSTEXPR Gp gpw(uint32_t reg_id) noexcept { return Gp::make_r16(reg_id); }
 //! Creates a 16-bit GPW register operand.
-[[nodiscard]]
-static ASMJIT_INLINE_CONSTEXPR Gp gp16(uint32_t reg_id) noexcept { return Gp::make_r16(reg_id); }
-
+[[nodiscard]] static ASMJIT_INLINE_CONSTEXPR Gp gp16(uint32_t reg_id) noexcept { return Gp::make_r16(reg_id); }
 //! Creates a 32-bit GPD register operand.
-[[nodiscard]]
-static ASMJIT_INLINE_CONSTEXPR Gp gpd(uint32_t reg_id) noexcept { return Gp::make_r32(reg_id); }
-
+[[nodiscard]] static ASMJIT_INLINE_CONSTEXPR Gp gpd(uint32_t reg_id) noexcept { return Gp::make_r32(reg_id); }
 //! Creates a 32-bit GPD register operand.
-[[nodiscard]]
-static ASMJIT_INLINE_CONSTEXPR Gp gp32(uint32_t reg_id) noexcept { return Gp::make_r32(reg_id); }
-
+[[nodiscard]] static ASMJIT_INLINE_CONSTEXPR Gp gp32(uint32_t reg_id) noexcept { return Gp::make_r32(reg_id); }
 //! Creates a 64-bit GPQ register operand (64-bit).
-[[nodiscard]]
-static ASMJIT_INLINE_CONSTEXPR Gp gpq(uint32_t reg_id) noexcept { return Gp::make_r64(reg_id); }
-
+[[nodiscard]] static ASMJIT_INLINE_CONSTEXPR Gp gpq(uint32_t reg_id) noexcept { return Gp::make_r64(reg_id); }
 //! Creates a 64-bit GPQ register operand (64-bit).
-[[nodiscard]]
-static ASMJIT_INLINE_CONSTEXPR Gp gp64(uint32_t reg_id) noexcept { return Gp::make_r64(reg_id); }
+[[nodiscard]] static ASMJIT_INLINE_CONSTEXPR Gp gp64(uint32_t reg_id) noexcept { return Gp::make_r64(reg_id); }
 
 //! Creates a 128-bit XMM register operand.
-[[nodiscard]]
-static ASMJIT_INLINE_CONSTEXPR Vec xmm(uint32_t reg_id) noexcept { return Vec::make_v128(reg_id); }
-
+[[nodiscard]] static ASMJIT_INLINE_CONSTEXPR Vec xmm(uint32_t reg_id) noexcept { return Vec::make_v128(reg_id); }
 //! Creates a 256-bit YMM register operand.
-[[nodiscard]]
-static ASMJIT_INLINE_CONSTEXPR Vec ymm(uint32_t reg_id) noexcept { return Vec::make_v256(reg_id); }
-
+[[nodiscard]] static ASMJIT_INLINE_CONSTEXPR Vec ymm(uint32_t reg_id) noexcept { return Vec::make_v256(reg_id); }
 //! Creates a 512-bit ZMM register operand.
-[[nodiscard]]
-static ASMJIT_INLINE_CONSTEXPR Vec zmm(uint32_t reg_id) noexcept { return Vec::make_v512(reg_id); }
+[[nodiscard]] static ASMJIT_INLINE_CONSTEXPR Vec zmm(uint32_t reg_id) noexcept { return Vec::make_v512(reg_id); }
 
 //! Creates a 64-bit K register operand.
-[[nodiscard]]
-static ASMJIT_INLINE_CONSTEXPR KReg k(uint32_t reg_id) noexcept { return KReg(reg_id); }
-
-//! Creates a 64-bit MM register operand.
-[[nodiscard]]
-static ASMJIT_INLINE_CONSTEXPR Mm mm(uint32_t reg_id) noexcept { return Mm(reg_id); }
-
-//! Creates a 32-bit or 64-bit control register operand.
-[[nodiscard]]
-static ASMJIT_INLINE_CONSTEXPR CReg cr(uint32_t reg_id) noexcept { return CReg(reg_id); }
-
-//! Creates a 32-bit or 64-bit debug register operand.
-[[nodiscard]]
-static ASMJIT_INLINE_CONSTEXPR DReg dr(uint32_t reg_id) noexcept { return DReg(reg_id); }
+[[nodiscard]] static ASMJIT_INLINE_CONSTEXPR KReg k(uint32_t reg_id) noexcept { return KReg(reg_id); }
 
 //! Creates an 80-bit st register operand.
-[[nodiscard]]
-static ASMJIT_INLINE_CONSTEXPR St st(uint32_t reg_id) noexcept { return St(reg_id); }
+[[nodiscard]] static ASMJIT_INLINE_CONSTEXPR St st(uint32_t reg_id) noexcept { return St(reg_id); }
+//! Creates a 64-bit MM register operand.
+[[nodiscard]] static ASMJIT_INLINE_CONSTEXPR Mm mm(uint32_t reg_id) noexcept { return Mm(reg_id); }
+
+//! Creates a 32-bit or 64-bit control register operand.
+[[nodiscard]] static ASMJIT_INLINE_CONSTEXPR CReg cr(uint32_t reg_id) noexcept { return CReg(reg_id); }
+//! Creates a 32-bit or 64-bit debug register operand.
+[[nodiscard]] static ASMJIT_INLINE_CONSTEXPR DReg dr(uint32_t reg_id) noexcept { return DReg(reg_id); }
+
 
 //! Creates a TMM register operand.
-[[nodiscard]]
-static ASMJIT_INLINE_CONSTEXPR Tmm tmm(uint32_t reg_id) noexcept { return Tmm(reg_id); }
+[[nodiscard]] static ASMJIT_INLINE_CONSTEXPR Tmm tmm(uint32_t reg_id) noexcept { return Tmm(reg_id); }
 
 static constexpr Gp al = Gp::make_r8(Gp::kIdAx);
 static constexpr Gp bl = Gp::make_r8(Gp::kIdBx);
@@ -770,28 +695,24 @@ public:
   //! \{
 
   //! Clones the memory operand.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR Mem clone() const noexcept { return Mem(*this); }
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR Mem clone() const noexcept { return Mem(*this); }
 
   //! Creates a copy of this memory operand adjusted by `off`.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR Mem clone_adjusted(int64_t off) const noexcept {
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR Mem clone_adjusted(int64_t off) const noexcept {
     Mem result(*this);
     result.add_offset(off);
     return result;
   }
 
   //! Creates a copy of this memory operand resized to `size`.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR Mem clone_resized(uint32_t size) const noexcept {
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR Mem clone_resized(uint32_t size) const noexcept {
     Mem result(*this);
     result.set_size(size);
     return result;
   }
 
   //! Creates a copy of this memory operand with a broadcast `bcst`.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR Mem clone_broadcasted(Broadcast bcst) const noexcept {
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR Mem clone_broadcasted(Broadcast bcst) const noexcept {
     return Mem((_signature & ~Signature{kSignatureMemBroadcastMask}) | Signature::from_value<kSignatureMemBroadcastMask>(bcst), _base_id, _data[0], int32_t(_data[1]));
   }
 
@@ -803,14 +724,12 @@ public:
   //! Converts memory `base_type` and `base_id` to `Reg` instance.
   //!
   //! The memory must have a valid base register otherwise the result will be wrong.
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG Reg base_reg() const noexcept { return Reg::from_type_and_id(base_type(), base_id()); }
+  [[nodiscard]] ASMJIT_INLINE_NODEBUG Reg base_reg() const noexcept { return Reg::from_type_and_id(base_type(), base_id()); }
 
   //! Converts memory `index_type` and `index_id` to `Reg` instance.
   //!
   //! The memory must have a valid index register otherwise the result will be wrong.
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG Reg index_reg() const noexcept { return Reg::from_type_and_id(index_type(), index_id()); }
+  [[nodiscard]] ASMJIT_INLINE_NODEBUG Reg index_reg() const noexcept { return Reg::from_type_and_id(index_type(), index_id()); }
 
   using BaseMem::set_index;
 
@@ -825,12 +744,10 @@ public:
   //! \{
 
   //! Tests whether the memory operand specifies a size (i.e. the size is not zero).
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool has_size() const noexcept { return _signature.has_field<Signature::kSizeMask>(); }
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR bool has_size() const noexcept { return _signature.has_field<Signature::kSizeMask>(); }
 
   //! Tests whether the memory operand size matches size `s`.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool has_size(uint32_t s) const noexcept { return size() == s; }
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR bool has_size(uint32_t s) const noexcept { return size() == s; }
 
   //! Returns the size of the memory operand in bytes.
   //!
@@ -838,8 +755,7 @@ public:
   //! returned value would be zero. However, some instruction require the size to select between multiple variations,
   //! so in some cases size is required would be non-zero (for example `inc [mem], immediate` requires size to
   //! distinguish between 8-bit, 16-bit, 32-bit, and 64-bit increments.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR uint32_t size() const noexcept { return _signature.get_field<Signature::kSizeMask>(); }
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR uint32_t size() const noexcept { return _signature.get_field<Signature::kSizeMask>(); }
 
   //! Sets the memory operand size (in bytes).
   ASMJIT_INLINE_CONSTEXPR void set_size(uint32_t size) noexcept { _signature.set_field<Signature::kSizeMask>(size); }
@@ -852,8 +768,7 @@ public:
   //! Returns the address type of the memory operand.
   //!
   //! By default, address type of newly created memory operands is always \ref AddrType::kDefault.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR AddrType addr_type() const noexcept { return (AddrType)_signature.get_field<kSignatureMemAddrTypeMask>(); }
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR AddrType addr_type() const noexcept { return (AddrType)_signature.get_field<kSignatureMemAddrTypeMask>(); }
 
   //! Sets the address type to `addr_type`.
   ASMJIT_INLINE_CONSTEXPR void set_addr_type(AddrType addr_type) noexcept { _signature.set_field<kSignatureMemAddrTypeMask>(uint32_t(addr_type)); }
@@ -862,15 +777,13 @@ public:
   ASMJIT_INLINE_CONSTEXPR void reset_addr_type() noexcept { _signature.set_field<kSignatureMemAddrTypeMask>(uint32_t(AddrType::kDefault)); }
 
   //! Tests whether the address type is \ref AddrType::kAbs.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool is_addr_abs() const noexcept { return addr_type() == AddrType::kAbs; }
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR bool is_addr_abs() const noexcept { return addr_type() == AddrType::kAbs; }
 
   //! Sets the address type to \ref AddrType::kAbs.
   ASMJIT_INLINE_CONSTEXPR void set_addr_abs() noexcept { set_addr_type(AddrType::kAbs); }
 
   //! Tests whether the address type is \ref AddrType::kRel.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool is_addr_rel() const noexcept { return addr_type() == AddrType::kRel; }
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR bool is_addr_rel() const noexcept { return addr_type() == AddrType::kRel; }
 
   //! Sets the address type to \ref AddrType::kRel.
   ASMJIT_INLINE_CONSTEXPR void set_addr_rel() noexcept { set_addr_type(AddrType::kRel); }
@@ -881,16 +794,13 @@ public:
   //! \{
 
   //! Tests whether the memory operand has a segment override.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool has_segment() const noexcept { return _signature.has_field<kSignatureMemSegmentMask>(); }
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR bool has_segment() const noexcept { return _signature.has_field<kSignatureMemSegmentMask>(); }
 
   //! Returns the associated segment override as `SReg` operand.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR SReg segment() const noexcept { return SReg(segment_id()); }
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR SReg segment() const noexcept { return SReg(segment_id()); }
 
   //! Returns segment override register id, see `SReg::Id`.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR uint32_t segment_id() const noexcept { return _signature.get_field<kSignatureMemSegmentMask>(); }
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR uint32_t segment_id() const noexcept { return _signature.get_field<kSignatureMemSegmentMask>(); }
 
   //! Sets the segment override to `seg`.
   ASMJIT_INLINE_CONSTEXPR void set_segment(const SReg& seg) noexcept { set_segment(seg.id()); }
@@ -907,12 +817,10 @@ public:
   //! \{
 
   //! Tests whether the memory operand has shift (aka scale) value.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool has_shift() const noexcept { return _signature.has_field<kSignatureMemShiftValueMask>(); }
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR bool has_shift() const noexcept { return _signature.has_field<kSignatureMemShiftValueMask>(); }
 
   //! Returns the memory operand's shift (aka scale) value.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR uint32_t shift() const noexcept { return _signature.get_field<kSignatureMemShiftValueMask>(); }
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR uint32_t shift() const noexcept { return _signature.get_field<kSignatureMemShiftValueMask>(); }
 
   //! Sets the memory operand's shift (aka scale) value.
   ASMJIT_INLINE_CONSTEXPR void set_shift(uint32_t shift) noexcept { _signature.set_field<kSignatureMemShiftValueMask>(shift); }
@@ -926,12 +834,10 @@ public:
   //! \{
 
   //! Tests whether the memory operand has broadcast {1tox}.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR bool has_broadcast() const noexcept { return _signature.has_field<kSignatureMemBroadcastMask>(); }
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR bool has_broadcast() const noexcept { return _signature.has_field<kSignatureMemBroadcastMask>(); }
 
   //! Returns the memory operand's broadcast.
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR Broadcast get_broadcast() const noexcept { return (Broadcast)_signature.get_field<kSignatureMemBroadcastMask>(); }
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR Broadcast get_broadcast() const noexcept { return (Broadcast)_signature.get_field<kSignatureMemBroadcastMask>(); }
 
   //! Sets the memory operand's broadcast.
   ASMJIT_INLINE_CONSTEXPR void set_broadcast(Broadcast b) noexcept { _signature.set_field<kSignatureMemBroadcastMask>(uint32_t(b)); }
@@ -940,32 +846,25 @@ public:
   ASMJIT_INLINE_CONSTEXPR void reset_broadcast() noexcept { _signature.set_field<kSignatureMemBroadcastMask>(0); }
 
   //! Returns a new `Mem` without a broadcast (the possible broadcast is cleared).
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR Mem _1to1() const noexcept { return clone_broadcasted(Broadcast::kNone); }
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR Mem _1to1() const noexcept { return clone_broadcasted(Broadcast::kNone); }
 
   //! Returns a new `Mem` with {1to2} broadcast (AVX-512).
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR Mem _1to2() const noexcept { return clone_broadcasted(Broadcast::k1To2); }
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR Mem _1to2() const noexcept { return clone_broadcasted(Broadcast::k1To2); }
 
   //! Returns a new `Mem` with {1to4} broadcast (AVX-512).
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR Mem _1to4() const noexcept { return clone_broadcasted(Broadcast::k1To4); }
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR Mem _1to4() const noexcept { return clone_broadcasted(Broadcast::k1To4); }
 
   //! Returns a new `Mem` with {1to8} broadcast (AVX-512).
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR Mem _1to8() const noexcept { return clone_broadcasted(Broadcast::k1To8); }
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR Mem _1to8() const noexcept { return clone_broadcasted(Broadcast::k1To8); }
 
   //! Returns a new `Mem` with {1to16} broadcast (AVX-512).
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR Mem _1to16() const noexcept { return clone_broadcasted(Broadcast::k1To16); }
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR Mem _1to16() const noexcept { return clone_broadcasted(Broadcast::k1To16); }
 
   //! Returns a new `Mem` with {1to32} broadcast (AVX-512).
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR Mem _1to32() const noexcept { return clone_broadcasted(Broadcast::k1To32); }
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR Mem _1to32() const noexcept { return clone_broadcasted(Broadcast::k1To32); }
 
   //! Returns a new `Mem` with {1to64} broadcast (AVX-512).
-  [[nodiscard]]
-  ASMJIT_INLINE_CONSTEXPR Mem _1to64() const noexcept { return clone_broadcasted(Broadcast::k1To64); }
+  [[nodiscard]] ASMJIT_INLINE_CONSTEXPR Mem _1to64() const noexcept { return clone_broadcasted(Broadcast::k1To64); }
 
   //! \}
 };

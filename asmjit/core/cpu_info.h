@@ -61,7 +61,7 @@ public:
     ASMJIT_INLINE_CONSTEXPR Data() noexcept = default;
     ASMJIT_INLINE_CONSTEXPR Data(const Data& other) noexcept = default;
 
-    //! \name Equality
+    //! \name Equality & Comparison
     //! \{
 
     //! Tests whether this CPU features data matches `other`.
