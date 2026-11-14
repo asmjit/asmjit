@@ -3669,6 +3669,101 @@ TEST_CASE(x86_compiler_func_call_avx_clobber) {
   }
 }
 
+static int x86_compiler_func_tail_call_fn(int a, int b) { return a - b; }
+
+TEST_CASE(x86_compiler_func_tail_call) {
+  CompilerTester<x86::Compiler> tester(Arch::kHost == Arch::kX86 ? Arch::kX86 : Arch::kX64, test_runner);
+
+  tester.compile([&](x86::Compiler& cc) {
+    x86::Gp v0 = cc.new_gp32("v0");
+    x86::Gp v1 = cc.new_gp32("v1");
+
+    FuncNode* func_node = cc.add_func(FuncSignature::build<int, int, int>());
+    func_node->set_arg(0, v0);
+    func_node->set_arg(1, v1);
+
+    // Just do something.
+    cc.shl(v0, 1);
+    cc.shl(v1, 1);
+
+    // Call a function.
+    InvokeNode* invoke_node;
+    cc.invoke_tail(Out(invoke_node), imm((void*)x86_compiler_func_tail_call_fn), FuncSignature::build<int, int, int>());
+    // Swap arguments around.
+    invoke_node->set_arg(0, v1);
+    invoke_node->set_arg(1, v0);
+    invoke_node->set_ret(0, v0);
+
+    // Tail call must not get here.
+    cc.ud2();
+
+    cc.ret(v0);
+    cc.end_func();
+  });
+
+  tester.execute([&](void* func_ptr, String& result, String& expect) {
+    using Func = int (*)(int, int);
+    Func func = ptr_as_func<Func>(func_ptr);
+
+    int result_ret = func(5, 10);
+    int expect_ret = x86_compiler_func_tail_call_fn(20, 10);
+
+    result.assign_format("ret=%d", result_ret);
+    expect.assign_format("ret=%d", expect_ret);
+
+    return result == expect;
+  });
+}
+
+static int x86_compiler_func_tail_call_permute_fn(int a0, int a1, int a2, int a3, int a4, int a5, int a6, int a7) {
+  return a0 * 10000000 + a1 * 1000000 + a2 * 100000 + a3 * 10000 + a4 * 1000 + a5 * 100 + a6 * 10 + a7;
+}
+
+// Tail call that reverses 8 arguments - the outgoing stack arguments overlap the incoming ones (parallel move).
+TEST_CASE(x86_compiler_func_tail_call_permute) {
+  for (bool preserve_fp : {false, true}) {
+    CompilerTester<x86::Compiler> tester(Arch::kHost == Arch::kX86 ? Arch::kX86 : Arch::kX64, test_runner);
+
+    tester.compile([&](x86::Compiler& cc) {
+      FuncSignature signature = FuncSignature::build<int, int, int, int, int, int, int, int, int>();
+      FuncNode* func_node = cc.add_func(signature);
+
+      if (preserve_fp) {
+        func_node->frame().set_preserved_fp();
+      }
+
+      x86::Gp args[8];
+      for (uint32_t i = 0; i < 8; i++) {
+        args[i] = cc.new_gp32("a%u", i);
+        func_node->set_arg(i, args[i]);
+      }
+
+      InvokeNode* invoke_node;
+      cc.invoke_tail(Out(invoke_node), imm((void*)x86_compiler_func_tail_call_permute_fn), signature);
+
+      for (uint32_t i = 0; i < 8; i++) {
+        invoke_node->set_arg(i, args[7 - i]);
+      }
+
+      cc.ud2();
+      cc.end_func();
+    });
+
+    tester.execute([&](void* func_ptr, String& result, String& expect) {
+      using Func = int (*)(int, int, int, int, int, int, int, int);
+      Func func = ptr_as_func<Func>(func_ptr);
+
+      int result_ret = func(1, 2, 3, 4, 5, 6, 7, 8);
+      int expect_ret = x86_compiler_func_tail_call_permute_fn(8, 7, 6, 5, 4, 3, 2, 1);
+
+      result.assign_format("ret=%d", result_ret);
+      expect.assign_format("ret=%d", expect_ret);
+
+      return result == expect;
+    });
+  }
+}
+
 TEST_CASE(x86_compiler_vec_to_scalar) {
   constexpr uint32_t kVecCount = 64;
 

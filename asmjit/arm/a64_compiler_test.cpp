@@ -955,6 +955,122 @@ TEST_CASE(a64_compiler_jump_table) {
   }
 }
 
+static int a64_compiler_func_tail_call_fn(int a, int b) { return a - b; }
+
+TEST_CASE(a64_compiler_func_tail_call) {
+  CompilerTester<a64::Compiler> tester(Arch::kAArch64, test_runner);
+
+  tester.compile([&](a64::Compiler& cc) {
+    a64::Gp v0 = cc.new_gp32("v0");
+    a64::Gp v1 = cc.new_gp32("v1");
+    a64::Gp fn = cc.gpz(16);
+
+    FuncNode* func_node = cc.add_func(FuncSignature::build<int, int, int>());
+    func_node->set_arg(0, v0);
+    func_node->set_arg(1, v1);
+
+    // Just do something.
+    cc.lsl(v0, v0, 1);
+    cc.lsl(v1, v1, 1);
+
+    cc.mov(fn, (uint64_t)a64_compiler_func_tail_call_fn);
+
+    // Call a function.
+    InvokeNode* invoke_node;
+    cc.invoke_tail(Out(invoke_node), fn, FuncSignature::build<int, int, int>(), pauth_c_func());
+    // Swap arguments around.
+    invoke_node->set_arg(0, v1);
+    invoke_node->set_arg(1, v0);
+    invoke_node->set_ret(0, v0);
+
+    // Tail call must not get here.
+    cc.udf(Imm(0));
+
+    cc.ret(v0);
+    cc.end_func();
+  });
+
+  tester.execute([&](void* func_ptr, String& result, String& expect) {
+    using Func = int (*)(int, int);
+    Func func = ptr_as_func<Func>(func_ptr);
+
+    int result_ret = func(5, 10);
+    int expect_ret = a64_compiler_func_tail_call_fn(20, 10);
+
+    result.assign_format("ret=%d", result_ret);
+    expect.assign_format("ret=%d", expect_ret);
+
+    return result == expect;
+  });
+}
+
+// Position-weighted sum - any misplaced argument changes the result.
+static int a64_compiler_func_tail_call_permute_fn(int a0, int a1, int a2, int a3, int a4, int a5, int a6, int a7,
+                                                  int a8, int a9, int a10, int a11, int a12, int a13, int a14, int a15) {
+  int args[16] = { a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15 };
+  int sum = 0;
+  for (uint32_t i = 0; i < 16; i++) {
+    sum += args[i] * int(i + 1) * int(i + 1);
+  }
+  return sum;
+}
+
+// Tail call that reverses 16 arguments - 8 are passed in registers and 8 on the stack, so the outgoing stack arguments
+// overlap the incoming ones and register and stack arguments are exchanged (parallel move).
+TEST_CASE(a64_compiler_func_tail_call_permute) {
+  constexpr uint32_t kArgCount = 16;
+
+  for (bool preserve_fp : {false, true}) {
+    CompilerTester<a64::Compiler> tester(Arch::kAArch64, test_runner);
+
+    tester.compile([&](a64::Compiler& cc) {
+      FuncSignature signature(CallConvId::kCDecl);
+      signature.set_ret_t<int>();
+      for (uint32_t i = 0; i < kArgCount; i++) {
+        signature.add_arg_t<int>();
+      }
+
+      FuncNode* func_node = cc.add_func(signature);
+
+      if (preserve_fp) {
+        func_node->frame().set_preserved_fp();
+      }
+
+      a64::Gp args[kArgCount];
+      for (uint32_t i = 0; i < kArgCount; i++) {
+        args[i] = cc.new_gp32("a%u", i);
+        func_node->set_arg(i, args[i]);
+      }
+
+      a64::Gp fn = cc.gpz(16);
+      cc.mov(fn, (uint64_t)a64_compiler_func_tail_call_permute_fn);
+
+      InvokeNode* invoke_node;
+      cc.invoke_tail(Out(invoke_node), fn, signature, pauth_c_func());
+
+      for (uint32_t i = 0; i < kArgCount; i++) {
+        invoke_node->set_arg(i, args[kArgCount - 1 - i]);
+      }
+
+      cc.udf(Imm(0));
+      cc.end_func();
+    });
+
+    tester.execute([&](void* func_ptr, String& result, String& expect) {
+      using Func = int (*)(int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int);
+      Func func = ptr_as_func<Func>(func_ptr);
+
+      int result_ret = func(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+      int expect_ret = a64_compiler_func_tail_call_permute_fn(16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1);
+
+      result.assign_format("ret=%d", result_ret);
+      expect.assign_format("ret=%d", expect_ret);
+
+      return result == expect;
+    });
+  }
+}
+
 TEST_CASE(a64_compiler_consecutive_out_allocation) {
   CompilerTester<a64::Compiler> tester(Arch::kAArch64, test_runner);
 
