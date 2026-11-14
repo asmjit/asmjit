@@ -430,7 +430,7 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emit_prolog(const FuncFrame& frame) {
 }
 
 // TODO: [ARM] Emit epilog.
-ASMJIT_FAVOR_SIZE Error EmitHelper::emit_epilog(const FuncFrame& frame) {
+ASMJIT_FAVOR_SIZE Error EmitHelper::emit_epilog(const FuncFrame& frame, bool emit_ret) {
   Emitter* emitter = _emitter->as<Emitter>();
 
   PrologEpilogInfo pei;
@@ -491,20 +491,18 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emit_epilog(const FuncFrame& frame) {
     }
   }
 
-  return Error::kOk;
-}
-
-Error EmitHelper::emit_ret(const FuncFrame& frame) {
-  PrologEpilogInfo pei;
-  ASMJIT_PROPAGATE(pei.init(frame));
-
-  Emitter* emitter = _emitter->as<Emitter>();
-
-  if (pei.pauth_ret != Inst::kIdNone) {
-    ASMJIT_PROPAGATE(emitter->emit(pei.pauth_ret));
+  if (emit_ret) {
+    if (pei.pauth_ret != Inst::kIdNone) {
+      ASMJIT_PROPAGATE(emitter->emit(pei.pauth_ret));
+    }
+    else {
+      ASMJIT_PROPAGATE(emitter->ret(x30));
+    }
   }
-  else {
-    ASMJIT_PROPAGATE(emitter->ret(x30));
+  else if (pei.pauth_entry == Inst::kIdPacibsp) {
+    // There is no 'retab' to authenticate LR signed by the prolog ('pacibsp'), so authenticate it explicitly as
+    // the tail-called function would otherwise return to a signed (non-canonical) address.
+    ASMJIT_PROPAGATE(emitter->emit(Inst::kIdAutibsp));
   }
 
   return Error::kOk;
@@ -517,24 +515,12 @@ static Error ASMJIT_CDECL Emitter_emit_prolog(BaseEmitter* emitter, const FuncFr
 
 static Error ASMJIT_CDECL Emitter_emit_epilog(BaseEmitter* emitter, const FuncFrame& frame) {
   EmitHelper emit_helper(emitter);
-  ASMJIT_PROPAGATE(emit_helper.emit_epilog(frame));
-  return emit_helper.emit_ret(frame);
+  return emit_helper.emit_epilog(frame, true);
 }
 
 static Error ASMJIT_CDECL Emitter_emit_epilog_no_ret(BaseEmitter* emitter, const FuncFrame& frame) {
   EmitHelper emit_helper(emitter);
-  ASMJIT_PROPAGATE(emit_helper.emit_epilog(frame));
-
-  // There is no 'retab' to authenticate LR signed by the prolog ('pacibsp'), so authenticate it explicitly as
-  // the tail-called function would otherwise return to a signed (non-canonical) address.
-  PrologEpilogInfo pei;
-  ASMJIT_PROPAGATE(pei.init(frame));
-
-  if (pei.pauth_entry == Inst::kIdPacibsp) {
-    ASMJIT_PROPAGATE(emitter->as<Emitter>()->emit(Inst::kIdAutibsp));
-  }
-
-  return Error::kOk;
+  return emit_helper.emit_epilog(frame, false);
 }
 
 static Error ASMJIT_CDECL Emitter_emit_args_assignment(BaseEmitter* emitter, const FuncFrame& frame, const FuncArgsAssignment& args) {
