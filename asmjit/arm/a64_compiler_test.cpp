@@ -1125,6 +1125,50 @@ TEST_CASE(a64_compiler_func_tail_call_reg) {
   }
 }
 
+// A tail call to a label of another function in the same compiler. A tail call leaves the function, so it has no
+// successor in it; the CFG builder took the label as a block of this function, and finalize failed.
+TEST_CASE(a64_compiler_func_tail_call_label) {
+  CompilerTester<a64::Compiler> tester(Arch::kAArch64, test_runner);
+
+  tester.compile([&](a64::Compiler& cc) {
+    FuncNode* callee = cc.new_func(FuncSignature::build<int, int, int>());
+    FuncNode* func_node = cc.add_func(FuncSignature::build<int, int, int>());
+
+    a64::Gp a = cc.new_gp32("a");
+    a64::Gp b = cc.new_gp32("b");
+    func_node->set_arg(0, a);
+    func_node->set_arg(1, b);
+
+    InvokeNode* invoke_node;
+    cc.invoke_tail(Out(invoke_node), callee->label(), FuncSignature::build<int, int, int>(), pauth_c_func());
+    // Swap arguments around.
+    invoke_node->set_arg(0, b);
+    invoke_node->set_arg(1, a);
+
+    cc.udf(Imm(0));
+    cc.end_func();
+
+    cc.add_func(callee);
+    a64::Gp x = cc.new_gp32("x");
+    a64::Gp y = cc.new_gp32("y");
+    callee->set_arg(0, x);
+    callee->set_arg(1, y);
+    cc.sub(x, x, y);
+    cc.ret(x);
+    cc.end_func();
+  });
+
+  tester.execute([&](void* func_ptr, String& result, String& expect) {
+    int result_ret = ptr_as_func<int (*)(int, int)>(func_ptr)(5, 10);
+    int expect_ret = a64_compiler_func_tail_call_fn(10, 5);
+
+    result.assign_format("ret=%d", result_ret);
+    expect.assign_format("ret=%d", expect_ret);
+
+    return result == expect;
+  });
+}
+
 TEST_CASE(a64_compiler_consecutive_out_allocation) {
   CompilerTester<a64::Compiler> tester(Arch::kAArch64, test_runner);
 

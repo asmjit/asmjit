@@ -223,7 +223,8 @@ public:
             _cur_block->add_flags(RABlockFlags::kHasTerminator);
             _cur_block->make_constructed(_block_reg_stats);
 
-            if (!inst->has_option(InstOptions::kUnfollow)) {
+            // A tail call leaves the function, so it has no successor in it, no matter what its target operand is.
+            if (!inst->has_option(InstOptions::kUnfollow) && !node->is_invoke()) {
               // Jmp/Jcc/Call/Loop/etc... require at least 1 operand that describes the jump target.
               Span<const Operand> operands = inst->operands();
               if (ASMJIT_UNLIKELY(operands.is_empty())) {
