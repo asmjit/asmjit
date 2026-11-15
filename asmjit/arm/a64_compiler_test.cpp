@@ -1071,6 +1071,60 @@ TEST_CASE(a64_compiler_func_tail_call_permute) {
   }
 }
 
+static void a64_compiler_func_tail_call_reg_nop() {}
+
+// Tail call through a virtual register: the target must not take an argument's register, nor a preserved register,
+// which the epilogue before the jump restores. The target arrives first (in x0, which the call's first argument needs)
+// or last; across a call it is kept in a preserved register or spilled.
+TEST_CASE(a64_compiler_func_tail_call_reg) {
+  for (bool target_first : {false, true}) {
+    for (bool across_call : {false, true}) {
+      CompilerTester<a64::Compiler> tester(Arch::kAArch64, test_runner);
+
+      tester.compile([&](a64::Compiler& cc) {
+        FuncNode* func_node = target_first ? cc.add_func(FuncSignature::build<int, void*, int, int>())
+                                           : cc.add_func(FuncSignature::build<int, int, int, void*>());
+
+        a64::Gp a = cc.new_gp32("a");
+        a64::Gp b = cc.new_gp32("b");
+        a64::Gp target = cc.new_gp_ptr("target");
+        func_node->set_arg(target_first ? 1 : 0, a);
+        func_node->set_arg(target_first ? 2 : 1, b);
+        func_node->set_arg(target_first ? 0 : 2, target);
+
+        if (across_call) {
+          a64::Gp fn = cc.new_gp_ptr("fn");
+          cc.mov(fn, (uint64_t)a64_compiler_func_tail_call_reg_nop);
+
+          InvokeNode* call_node;
+          cc.invoke(Out(call_node), fn, FuncSignature::build<void>(), pauth_c_func());
+        }
+
+        InvokeNode* invoke_node;
+        cc.invoke_tail(Out(invoke_node), target, FuncSignature::build<int, int, int>(), pauth_c_func());
+        // Swap arguments around.
+        invoke_node->set_arg(0, b);
+        invoke_node->set_arg(1, a);
+
+        cc.udf(Imm(0));
+        cc.end_func();
+      });
+
+      tester.execute([&](void* func_ptr, String& result, String& expect) {
+        void* target = (void*)a64_compiler_func_tail_call_fn;
+        int result_ret = target_first ? ptr_as_func<int (*)(void*, int, int)>(func_ptr)(target, 5, 10)
+                                      : ptr_as_func<int (*)(int, int, void*)>(func_ptr)(5, 10, target);
+        int expect_ret = a64_compiler_func_tail_call_fn(10, 5);
+
+        result.assign_format("ret=%d", result_ret);
+        expect.assign_format("ret=%d", expect_ret);
+
+        return result == expect;
+      });
+    }
+  }
+}
+
 TEST_CASE(a64_compiler_consecutive_out_allocation) {
   CompilerTester<a64::Compiler> tester(Arch::kAArch64, test_runner);
 

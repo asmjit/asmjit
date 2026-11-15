@@ -3764,6 +3764,55 @@ TEST_CASE(x86_compiler_func_tail_call_permute) {
   }
 }
 
+static void x86_compiler_func_tail_call_reg_nop() {}
+
+// Tail call through a register: the target must not take an argument's register, nor a preserved register or a stack
+// slot, which the epilogue before the jump restores or releases (the target live across a call is spilled or kept in a
+// preserved register).
+TEST_CASE(x86_compiler_func_tail_call_reg) {
+  for (bool across_call : {false, true}) {
+    CompilerTester<x86::Compiler> tester(Arch::kHost == Arch::kX86 ? Arch::kX86 : Arch::kX64, test_runner);
+
+    tester.compile([&](x86::Compiler& cc) {
+      FuncNode* func_node = cc.add_func(FuncSignature::build<int, int, int, void*>());
+
+      x86::Gp a = cc.new_gp32("a");
+      x86::Gp b = cc.new_gp32("b");
+      x86::Gp target = cc.new_gp_ptr("target");
+      func_node->set_arg(0, a);
+      func_node->set_arg(1, b);
+      func_node->set_arg(2, target);
+
+      if (across_call) {
+        InvokeNode* call_node;
+        cc.invoke(Out(call_node), imm((void*)x86_compiler_func_tail_call_reg_nop), FuncSignature::build<void>());
+      }
+
+      InvokeNode* invoke_node;
+      cc.invoke_tail(Out(invoke_node), target, FuncSignature::build<int, int, int>());
+      // Swap arguments around.
+      invoke_node->set_arg(0, b);
+      invoke_node->set_arg(1, a);
+
+      cc.ud2();
+      cc.end_func();
+    });
+
+    tester.execute([&](void* func_ptr, String& result, String& expect) {
+      using Func = int (*)(int, int, void*);
+      Func func = ptr_as_func<Func>(func_ptr);
+
+      int result_ret = func(5, 10, (void*)x86_compiler_func_tail_call_fn);
+      int expect_ret = x86_compiler_func_tail_call_fn(10, 5);
+
+      result.assign_format("ret=%d", result_ret);
+      expect.assign_format("ret=%d", expect_ret);
+
+      return result == expect;
+    });
+  }
+}
+
 TEST_CASE(x86_compiler_vec_to_scalar) {
   constexpr uint32_t kVecCount = 64;
 
