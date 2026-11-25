@@ -723,7 +723,7 @@ public:
 
   //! \overload
   [[nodiscard]]
-  ASMJIT_API Label label_by_name(Span<const char> name, uint32_t parent_id = Globals::kInvalidId) noexcept {
+  ASMJIT_INLINE Label label_by_name(Span<const char> name, uint32_t parent_id = Globals::kInvalidId) noexcept {
     return label_by_name(name.data(), name.size(), parent_id);
   }
 
