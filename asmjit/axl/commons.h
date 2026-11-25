@@ -951,12 +951,12 @@ ASMJIT_INLINE T mul_high(const T& a, const T& b) noexcept
 #if defined(_MSC_VER) && defined(_M_X64)
     if constexpr (std::is_signed_v<T>) {
       int64_t hi;
-      int64_t lo = _mul128(a, b, &hi);
+      [[maybe_unused]] int64_t lo = _mul128(a, b, &hi);
       return T(hi);
     }
     else {
       uint64_t hi;
-      uint64_t lo = _umul128(a, b, &hi);
+      [[maybe_unused]] uint64_t lo = _umul128(a, b, &hi);
       return T(hi);
     }
 #elif defined(__GNUC__) && ASMJIT_TARGET_ARCH_BITS >= 64

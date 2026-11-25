@@ -243,6 +243,13 @@ int main(int argc, char* argv[]) {
     .aggregate = ZeroBench::Aggregate::kP50,
     .scale = ZeroBench::Scale::kNano
   });
+  runner.add_metric("Call T. Max", {
+    .color = ZeroBench::kMaxDurationColor,
+    .value_kind = ZeroBench::ValueKind::kDurationPico,
+    .value_index = kCallTime,
+    .aggregate = ZeroBench::Aggregate::kMax,
+    .scale = ZeroBench::Scale::kNano
+  });
 
   for (Placement placement : {Placement::kDefault, Placement::kNear}) {
     std::vector<ZeroBench::BenchmarkRef> benchmarks;

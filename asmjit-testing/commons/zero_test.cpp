@@ -27,9 +27,48 @@
 
 #include "zero_test.h"
 
+#if defined(_WIN32)
+  #ifndef WIN32_LEAN_AND_MEAN
+    #define WIN32_LEAN_AND_MEAN
+  #endif
+  #ifndef NOMINMAX
+    #define NOMINMAX
+  #endif
+  #include <windows.h>
+#elif !defined(__EMSCRIPTEN__)
+  #include <pthread.h>
+#endif
+
 namespace ZeroTest {
 
 using MT = MessageType;
+
+// Test Threading Utilities
+// ========================
+
+class Lock {
+public:
+#if defined(_WIN32)
+  SRWLOCK _handle;
+
+  inline void init() noexcept { _handle = SRWLOCK{}; }
+  inline void destroy() noexcept {}
+  inline void lock() noexcept { AcquireSRWLockExclusive(&_handle); }
+  inline void unlock() noexcept { ReleaseSRWLockExclusive(&_handle); }
+#elif !defined(__EMSCRIPTEN__)
+  pthread_mutex_t _handle;
+
+  inline void init() noexcept { pthread_mutex_init(&_handle, nullptr); }
+  inline void destroy() noexcept { pthread_mutex_destroy(&_handle); }
+  inline void lock() noexcept { pthread_mutex_lock(&_handle); }
+  inline void unlock() noexcept { pthread_mutex_unlock(&_handle); }
+#else
+  inline void init() noexcept {}
+  inline void destroy() noexcept {}
+  inline void lock() noexcept {}
+  inline void unlock() noexcept {}
+#endif
+};
 
 // Test Runner Colors
 // ==================
@@ -68,6 +107,9 @@ static const char str_close_variation[] = ">";
 
 // Zero initialized globals.
 struct Globals {
+  size_t ref_count;
+  Lock lock;
+
   TestRunner* test_runner;
   TestCase* test_list;
   TestCase* last_added_test;
@@ -267,6 +309,10 @@ void test_failure(CheckResult* result, const char* fmt, ...) noexcept {
 TestRunner::TestRunner(int argc, const char* const* argv) noexcept : _cmd_line(argc, argv) {
   globals.test_runner = this;
 
+  if (++globals.ref_count == 1) {
+    globals.lock.init();
+  }
+
   _verbose = _cmd_line.has_arg("--verbose");
   _run_filter = _cmd_line.get_arg("--run", nullptr);
 
@@ -278,6 +324,10 @@ TestRunner::TestRunner(int argc, const char* const* argv) noexcept : _cmd_line(a
 TestRunner::~TestRunner() noexcept {
   if (globals.test_runner == this) {
     globals.test_runner = nullptr;
+  }
+
+  if (--globals.ref_count == 0) {
+    globals.lock.destroy();
   }
 }
 
@@ -519,16 +569,18 @@ void log_info(const char* fmt, ...) noexcept {
     va_list ap;
     va_start(ap, fmt);
 
+    StringTmp<1024> buf;
+    buf.append_format_v(fmt, ap);
+
     if (test_runner->_verbose) {
-      StringTmp<1024> buf;
-      buf.append_format_v(fmt, ap);
       TestRunner_message_indented(*test_runner, MessageType::kTestLog, buf.data(), buf.size());
     }
     else {
-      auto& lp = test_runner->_log_pending;
-      lp.append_format_v(fmt, ap);
-      lp.eat_nl();
-      lp.append('\n');
+      globals.lock.lock();
+      test_runner->_log_pending.append(buf);
+      test_runner->_log_pending.eat_nl();
+      test_runner->_log_pending.append('\n');
+      globals.lock.unlock();
     }
 
     va_end(ap);

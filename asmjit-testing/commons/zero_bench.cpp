@@ -583,16 +583,15 @@ static Padding calculate_padding(size_t text_size, size_t cell_width, bool right
   return Padding{left, right};
 };
 
-static void format_time(String& sb, double t, Scale scale, bool squared = false) noexcept {
+static void format_time(String& value_str, String& unit_str, double t, Scale scale) noexcept {
   if (scale == Scale::kDefault) {
-    double magnitude = squared ? std::sqrt(t) : t;
-    if (magnitude < 0.00000001) {
+    if (t < 0.00000001) {
       scale = Scale::kNano;
     }
-    else if (magnitude < 0.00001) {
+    else if (t < 0.00001) {
       scale = Scale::kMicro;
     }
-    else if (magnitude < 1.0) {
+    else if (t < 1.0) {
       scale = Scale::kMilli;
     }
     else {
@@ -602,21 +601,25 @@ static void format_time(String& sb, double t, Scale scale, bool squared = false)
 
   switch (scale) {
     case Scale::kNano:
-      sb.append_format("%.3f%s", t * (squared ? 1e18 : 1e9), squared ? "ns^2" : "ns");
+      value_str.append_format("%.3f", t * 1e9);
+      unit_str.append("ns");
       break;
     case Scale::kMicro:
-      sb.append_format("%.3f%s", t * (squared ? 1e12 : 1e6), squared ? "us^2" : "us");
+      value_str.append_format("%.3f", t * 1e6);
+      unit_str.append("us");
       break;
     case Scale::kMilli:
-      sb.append_format("%.3f%s", t * (squared ? 1e6 : 1e3), squared ? "ms^2" : "ms");
+      value_str.append_format("%.3f", t * 1e3);
+      unit_str.append("ms");
       break;
     default:
-      sb.append_format("%.3f%s", t, squared ? "s^2 " : "s ");
+      value_str.append_format("%.3f", t);
+      unit_str.append("s ");
       break;
   }
 }
 
-static void format_metric(String& sb, double val, ValueKind kind, Scale scale, bool squared = false) noexcept {
+static void format_metric(String& value_str, String& unit_str, double val, ValueKind kind, Scale scale, bool squared = false) noexcept {
   struct UnitString {
     char unit[8];
   };
@@ -629,11 +632,11 @@ static void format_metric(String& sb, double val, ValueKind kind, Scale scale, b
 
   switch (kind) {
     case ValueKind::kDurationNano:
-      format_time(sb, double(val) / (squared ? 1e18 : 1e9), scale, squared);
+      format_time(value_str, unit_str, double(val) / 1e9, scale);
       return;
 
     case ValueKind::kDurationPico:
-      format_time(sb, double(val) / (squared ? 1e24 : 1e12), scale, squared);
+      format_time(value_str, unit_str, double(val) / 1e12, scale);
       return;
 
     case ValueKind::kBytes:
@@ -654,13 +657,16 @@ static void format_metric(String& sb, double val, ValueKind kind, Scale scale, b
       if (scale == Scale::kKiB || scale == Scale::kMiB || scale == Scale::kGiB) {
         unit_text = byte_units_2;
         if (scale == Scale::kKiB) {
-          sb.append_format("%.3f%s", val / double(1024), unit_text[1].unit);
+          value_str.append_format("%.3f", val / double(1024));
+          unit_str.append(unit_text[1].unit);
         }
         else if (scale == Scale::kMiB) {
-          sb.append_format("%.3f%s", val / double(1024 * 1024), unit_text[2].unit);
+          value_str.append_format("%.3f", val / double(1024 * 1024));
+          unit_str.append(unit_text[2].unit);
         }
         else {
-          sb.append_format("%.3f%s", val / double(1024 * 1024 * 1024), unit_text[3].unit);
+          value_str.append_format("%.3f", val / double(1024 * 1024 * 1024));
+          unit_str.append(unit_text[3].unit);
         }
         return;
       }
@@ -675,7 +681,7 @@ static void format_metric(String& sb, double val, ValueKind kind, Scale scale, b
       [[fallthrough]];
 
     default:
-      sb.append_value(val);
+      value_str.append_value(val);
       return;
   }
 
@@ -683,17 +689,20 @@ static void format_metric(String& sb, double val, ValueKind kind, Scale scale, b
   const char* exponent = squared ? "^2" : "";
 
   if (magnitude >= 1000000000.0) {
-    sb.append_format("%.3f%s%s", val / (squared ? 1e18 : 1e9), unit_text[3].unit, exponent);
+    value_str.append_format("%.3f", val / (squared ? 1e18 : 1e9));
+    unit_str.append_format("%s%s", unit_text[3].unit, exponent);
   }
   else if (magnitude >= 1000000.0) {
-    sb.append_format("%.3f%s%s", val / (squared ? 1e12 : 1e6), unit_text[2].unit, exponent);
+    value_str.append_format("%.3f", val / (squared ? 1e12 : 1e6));
+    unit_str.append_format("%s%s", unit_text[2].unit, exponent);
   }
   else {
-    sb.append_format("%.3f%s%s", val / (squared ? 1e6 : 1e3), unit_text[1].unit, exponent);
+    value_str.append_format("%.3f", val / (squared ? 1e6 : 1e3));
+    unit_str.append_format("%s%s", unit_text[1].unit, exponent);
   }
 }
 
-static void format_aggregated_value(String& sb, const AggregatedValue& av, const ColumnProperties& props, bool is_total) noexcept {
+static void format_aggregated_value(String& value_str, String& unit_str, const AggregatedValue& av, const ColumnProperties& props, bool is_total) noexcept {
   uint64_t value = 0u;
   double value_fp = 0.0;
   bool can_aggregate = true;
@@ -718,18 +727,33 @@ static void format_aggregated_value(String& sb, const AggregatedValue& av, const
                                      props.aggregate == Aggregate::kP95 ||
                                      props.aggregate == Aggregate::kP99)) {
     // Separate benchmark distributions cannot be combined by adding their statistics.
-    sb.append("N/A");
+    value_str.append("N/A");
   }
   else if (!can_aggregate) {
     if (props.aggregate == Aggregate::kCV) {
-      sb.append_format("%.3f%%", value_fp * 100.0);
+      value_str.append_format("%.3f%%", value_fp * 100.0);
     }
     else {
-      format_metric(sb, value_fp, props.value_kind, props.scale, props.aggregate == Aggregate::kVariance);
+      format_metric(value_str, unit_str, value_fp, props.value_kind, props.scale, props.aggregate == Aggregate::kVariance);
     }
   }
   else {
-    format_metric(sb, double(value), props.value_kind, props.scale);
+    format_metric(value_str, unit_str, double(value), props.value_kind, props.scale);
+  }
+}
+
+static Color derive_unit_color(Color value_color) noexcept {
+  switch (value_color) {
+    case Color::kBrightRed    : return Color::kRed;
+    case Color::kBrightGreen  : return Color::kGreen;
+    case Color::kBrightYellow : return Color::kYellow;
+    case Color::kBrightBlue   : return Color::kBlue;
+    case Color::kBrightMagenta: return Color::kMagenta;
+    case Color::kBrightCyan   : return Color::kCyan;
+    case Color::kBrightWhite  : return Color::kGray;
+
+    default:
+      return value_color;
   }
 }
 
@@ -775,7 +799,7 @@ int Runner::run(const BenchmarkRef* benchmarks, size_t benchmark_count) {
     if (is_metric_enabled(metric_id)) {
       const Metric& metric = _metrics[metric_id];
       table.add_column(metric.name, {
-        .width = std::max<size_t>(metric.name.size() + 2, 12),
+        .width = std::max<size_t>(metric.name.size() + 2, 11),
         .color = metric.options.color,
         .value_kind = metric.options.value_kind,
         .value_index = metric.options.value_index,
@@ -816,32 +840,39 @@ int Runner::run(const BenchmarkRef* benchmarks, size_t benchmark_count) {
   Results results_total {};
 
   auto format_table_row = [&](String& sb, ColumnProperties* column_props, size_t column_count, const String* labels, const Results& results, bool is_total) {
-    StringTmp<256> col;
+    StringTmp<256> value;
+    StringTmp<32> unit;
     sb.c_append(Color::kGray, "|");
 
     for (size_t column_index = 0; column_index < column_count; column_index++) {
+      value.clear();
+      unit.clear();
+
       const ColumnProperties& props = column_props[column_index];
-      col.clear();
       switch (props.value_kind) {
         case ValueKind::kLabel: {
-          col.append(labels[props.value_index]);
+          value.append(labels[props.value_index]);
           break;
         }
 
         case ValueKind::kFailure: {
-          col.append(results.failure_message);
+          value.append(results.failure_message);
           break;
         }
 
         default: {
           const AggregatedValue& av = results.values[props.value_index];
-          format_aggregated_value(col, av, props, is_total);
+          format_aggregated_value(value, unit, av, props, is_total);
           break;
         }
       }
 
-      Padding padding = calculate_padding(col.size(), props.width, props.right_aligned);
-      sb.c_append_padded(props.color, col, padding.left, padding.right);
+      Padding padding = calculate_padding(value.size() + unit.size(), props.width, props.right_aligned);
+
+      sb.append_chars(' ', padding.left);
+      sb.c_append(props.color, value);
+      sb.c_append(derive_unit_color(props.color), unit);
+      sb.append_chars(' ', padding.right);
       sb.c_append(Color::kGray, "|");
     }
     sb.append("\n");

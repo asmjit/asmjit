@@ -392,7 +392,10 @@ template<typename T>
 static CheckResult check(const char* file, int line, const char* exp, T&& result) noexcept {
   bool ok = !!result;
   CheckResult out(file, line, exp, ok);
-  if (!ok) { out._buf.append_value((!!result)); }
+  if (!ok) {
+    out._buf.append_value((!!result));
+    out._ok = false;
+  }
   return out;
 }
 
@@ -401,7 +404,10 @@ template<typename T>
 static CheckResult expect_true(const char* file, int line, const char* exp, T&& result) noexcept {
   bool ok = result == true;
   CheckResult out(file, line, exp, ok);
-  if (!ok) { out._buf.append_value(static_cast<bool>(result)); }
+  if (!ok) {
+    out._buf.append_value(static_cast<bool>(result));
+    out._ok = false;
+  }
   return out;
 }
 
@@ -410,7 +416,10 @@ template<typename T>
 static CheckResult expect_false(const char* file, int line, const char* exp, T&& result) noexcept {
   bool ok = result == false;
   CheckResult out(file, line, exp, ok);
-  if (!ok) { out._buf.append_value(static_cast<bool>(result)); }
+  if (!ok) {
+    out._buf.append_value(static_cast<bool>(result));
+    out._ok = false;
+  }
   return out;
 }
 
@@ -419,7 +428,10 @@ template<typename T>
 static CheckResult expect_null(const char* file, int line, const char* exp, T* result) noexcept requires (std::is_pointer_v<T*>) {
   bool ok = result == nullptr;
   CheckResult out(file, line, exp, ok);
-  if (!ok) { ZeroFormatter<T*>::stringify(out._buf, result); }
+  if (!ok) {
+    ZeroFormatter<T*>::stringify(out._buf, result);
+    out._ok = false;
+  }
   return out;
 }
 
@@ -428,7 +440,10 @@ template<typename T>
 static CheckResult expect_not_null(const char* file, int line, const char* exp, T* result) noexcept requires (std::is_pointer_v<T*>) {
   bool ok = result != nullptr;
   CheckResult out(file, line, exp, ok);
-  if (!ok) { ZeroFormatter<T*>::stringify(out._buf, result); }
+  if (!ok) {
+    ZeroFormatter<T*>::stringify(out._buf, result);
+    out._ok = false;
+  }
   return out;
 }
 
@@ -437,7 +452,10 @@ template<typename LHS, typename RHS>
 static CheckResult expect_eq(const char* file, int line, const char* exp, LHS&& lhs, RHS&& rhs) noexcept {
   bool ok = lhs == rhs;
   CheckResult out(file, line, exp, ok);
-  if (!ok) { format_binary_expression<std::decay_t<LHS>, std::decay_t<RHS>>(out._buf, " == ", lhs, rhs); }
+  if (!ok) {
+    format_binary_expression<std::decay_t<LHS>, std::decay_t<RHS>>(out._buf, " == ", lhs, rhs);
+    out._ok = false;
+  }
   return out;
 }
 
@@ -446,7 +464,10 @@ template<typename LHS, typename RHS>
 static CheckResult expect_ne(const char* file, int line, const char* exp, LHS&& lhs, RHS&& rhs) noexcept {
   bool ok = lhs != rhs;
   CheckResult out(file, line, exp, ok);
-  if (!ok) { format_binary_expression<std::decay_t<LHS>, std::decay_t<RHS>>(out._buf, " != ", lhs, rhs); }
+  if (!ok) {
+    format_binary_expression<std::decay_t<LHS>, std::decay_t<RHS>>(out._buf, " != ", lhs, rhs);
+    out._ok = false;
+  }
   return out;
 }
 
@@ -455,7 +476,10 @@ template<typename LHS, typename RHS>
 static CheckResult expect_gt(const char* file, int line, const char* exp, LHS&& lhs, RHS&& rhs) noexcept {
   bool ok = lhs > rhs;
   CheckResult out(file, line, exp, ok);
-  if (!ok) { format_binary_expression<std::decay_t<LHS>, std::decay_t<RHS>>(out._buf, " > ", lhs, rhs); }
+  if (!ok) {
+    format_binary_expression<std::decay_t<LHS>, std::decay_t<RHS>>(out._buf, " > ", lhs, rhs);
+    out._ok = false;
+  }
   return out;
 }
 
@@ -464,7 +488,10 @@ template<typename LHS, typename RHS>
 static CheckResult expect_ge(const char* file, int line, const char* exp, LHS&& lhs, RHS&& rhs) noexcept {
   bool ok = lhs >= rhs;
   CheckResult out(file, line, exp, ok);
-  if (!ok) { format_binary_expression<std::decay_t<LHS>, std::decay_t<RHS>>(out._buf, " >= ", lhs, rhs); }
+  if (!ok) {
+    format_binary_expression<std::decay_t<LHS>, std::decay_t<RHS>>(out._buf, " >= ", lhs, rhs);
+    out._ok = false;
+  }
   return out;
 }
 
@@ -473,7 +500,10 @@ template<typename LHS, typename RHS>
 static CheckResult expect_lt(const char* file, int line, const char* exp, LHS&& lhs, RHS&& rhs) noexcept {
   bool ok = lhs < rhs;
   CheckResult out(file, line, exp, ok);
-  if (!ok) { format_binary_expression<std::decay_t<LHS>, std::decay_t<RHS>>(out._buf, " < ", lhs, rhs); }
+  if (!ok) {
+    format_binary_expression<std::decay_t<LHS>, std::decay_t<RHS>>(out._buf, " < ", lhs, rhs);
+    out._ok = false;
+  }
   return out;
 }
 
@@ -482,7 +512,10 @@ template<typename LHS, typename RHS>
 static CheckResult expect_le(const char* file, int line, const char* exp, LHS&& lhs, RHS&& rhs) noexcept {
   bool ok = lhs <= rhs;
   CheckResult out(file, line, exp, ok);
-  if (!ok) { format_binary_expression<std::decay_t<LHS>, std::decay_t<RHS>>(out._buf, " <= ", lhs, rhs); }
+  if (!ok) {
+    format_binary_expression<std::decay_t<LHS>, std::decay_t<RHS>>(out._buf, " <= ", lhs, rhs);
+    out._ok = false;
+  }
   return out;
 }
 
@@ -498,6 +531,7 @@ static CheckResult expect_near_ulp(const char* file, int line, const char* exp, 
     out._buf.append_format(" (ulp_diff=%llu, max_ulp_diff=%llu)",
       (unsigned long long)actual_ulp_diff,
       (unsigned long long)max_ulp_diff);
+    out._ok = false;
   }
 
   return out;
