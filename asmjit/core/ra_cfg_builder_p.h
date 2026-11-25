@@ -176,13 +176,36 @@ public:
         }
 
         if (cf == InstControlFlow::kJump) {
+          // A tail call's target must survive the argument moves and the epilogue emitted before the jump.
+          // It cannot be an argument, a preserved registed (as it is restored by the epilogue) and cannot be read
+          // from memory as a stack slot.
+          bool is_tail_call = node->is_invoke();
+          RegMask tail_target_regs = 0;
+          if (is_tail_call) {
+            ib.add_forbidden_flags(RATiedFlags::kUseRM | RATiedFlags::kOutRM);
+            tail_target_regs = _pass._available_regs[RegGroup::kGp] & ~ib._used[RegGroup::kGp] &
+                               ~_pass.func()->detail().preserved_regs(RegGroup::kGp);
+          }
+
           uint32_t fixed_reg_count = 0;
           for (RATiedReg& tied_reg : ib) {
             RAWorkReg* work_reg = tied_reg.work_reg();
             if (work_reg->group() == RegGroup::kGp) {
               uint32_t use_id = tied_reg.use_id();
               if (use_id == Reg::kIdBad) {
-                use_id = _pass._scratch_reg_indexes[fixed_reg_count++];
+                if (is_tail_call) {
+                  if (ASMJIT_UNLIKELY(!tail_target_regs)) {
+                    return make_error(Error::kInvalidAssignment);
+                  }
+                  // Take the highest free register (r11 on x64, x17 on AArch64), not the lowest:
+                  // - x64: the lowest is often rax, which a call to a variadic function overwrites (SysV sets al);
+                  // - AArch64: with BTI, a jump through a register may enter a function only through x16 or x17.
+                  use_id = axl::bit_size_of<RegMask> - 1u - axl::clz(tail_target_regs);
+                  tail_target_regs &= ~axl::bit_mask<RegMask>(use_id);
+                }
+                else {
+                  use_id = _pass._scratch_reg_indexes[fixed_reg_count++];
+                }
                 tied_reg.set_use_id(use_id);
               }
               _cur_block->add_exit_scratch_gp_regs(axl::bit_mask<RegMask>(use_id));
@@ -200,7 +223,8 @@ public:
             _cur_block->add_flags(RABlockFlags::kHasTerminator);
             _cur_block->make_constructed(_block_reg_stats);
 
-            if (!inst->has_option(InstOptions::kUnfollow)) {
+            // A tail call leaves the function, so it has no successor in it, no matter what its target operand is.
+            if (!inst->has_option(InstOptions::kUnfollow) && !node->is_invoke()) {
               // Jmp/Jcc/Call/Loop/etc... require at least 1 operand that describes the jump target.
               Span<const Operand> operands = inst->operands();
               if (ASMJIT_UNLIKELY(operands.is_empty())) {

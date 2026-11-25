@@ -76,6 +76,7 @@ public:
 
   Error emit_jump(const Label& label) override;
   Error emit_pre_call(InvokeNode* invoke_node) override;
+  Error emit_pre_tail(InvokeNode* invoke_node) override;
 
   //! \}
 };

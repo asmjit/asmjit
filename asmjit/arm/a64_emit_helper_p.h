@@ -41,7 +41,7 @@ public:
     const Operand_& src_, TypeId src_type_id, const char* comment = nullptr) override;
 
   Error emit_prolog(const FuncFrame& frame);
-  Error emit_epilog(const FuncFrame& frame);
+  Error emit_epilog(const FuncFrame& frame, bool emit_ret);
 };
 
 void init_emitter_funcs(BaseEmitter* emitter) noexcept;
