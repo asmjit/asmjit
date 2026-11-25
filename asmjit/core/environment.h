@@ -76,8 +76,11 @@ enum class Platform : uint8_t {
   //! Emscripten platform.
   kEmscripten,
 
+  //! OpenVMS OS.
+  kOpenVMS,
+
   //! Maximum value of `Platform`.
-  kMaxValue = kEmscripten,
+  kMaxValue = kOpenVMS,
 
   //! Platform detected at compile-time (platform of the host).
   kHost =
@@ -101,6 +104,8 @@ enum class Platform : uint8_t {
     kDragonFlyBSD
 #elif defined(__HAIKU__)
     kHaiku
+#elif defined(__VMS) || defined(__vms)
+    kOpenVMS
 #elif defined(__APPLE__) && TARGET_OS_OSX
     kOSX
 #elif defined(__APPLE__) && TARGET_OS_TV
@@ -412,6 +417,10 @@ public:
 
   //! Tests whether the environment platform is Haiku.
   [[nodiscard]] ASMJIT_INLINE_NODEBUG bool is_platform_haiku() const noexcept { return _platform == Platform::kHaiku; }
+
+  //! Tests whether the environment platform is OpenVMS.
+  [[nodiscard]]
+  ASMJIT_INLINE_NODEBUG bool is_platform_openvms() const noexcept { return _platform == Platform::kOpenVMS; }
 
   //! Tests whether the environment platform is any BSD.
   [[nodiscard]]ASMJIT_INLINE_NODEBUG bool is_platform_bsd() const noexcept {
