@@ -6,7 +6,12 @@
 #include <asmjit/core/api_build_test_p.h>
 #if defined(ASMJIT_TEST) && !defined(ASMJIT_NO_JIT)
 
+#include <asmjit/axl/support_p.h>
 #include <asmjit/core/virt_mem.h>
+
+#if !defined(_WIN32)
+  #include <sys/mman.h>
+#endif
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -84,6 +89,76 @@ TEST_CASE(core_virt_mem_address_range) {
   EXPECT_NULL(dm.rx);
   EXPECT_NULL(dm.rw);
 }
+
+#if !defined(_WIN32)
+TEST_CASE(core_virt_mem_aligned) {
+  const size_t page_size = VirtMem::info().page_size;
+#if defined(MADV_HUGEPAGE)
+  void* probe;
+  EXPECT_OK(VirtMem::alloc(&probe, page_size, VirtMem::MemoryFlags::kAccessRW));
+  // Kernels without THP can reject advice even when the build headers support it.
+  bool advice_supported = madvise(probe, page_size, MADV_HUGEPAGE) == 0;
+  EXPECT_OK(VirtMem::release(probe, page_size));
+#else
+  bool advice_supported = false;
+#endif
+
+  for (size_t alignment : {page_size, page_size * 4, size_t(2u * 1024u * 1024u)}) {
+    for (VirtMem::MemoryFlags advice : {VirtMem::MemoryFlags::kNone, VirtMem::MemoryFlags::kMAdviseLargePages}) {
+      for (size_t size : {alignment, alignment * 2}) {
+        void* p = nullptr;
+        Error err = VirtMem::alloc_aligned(&p, size, alignment, VirtMem::MemoryFlags::kAccessRW | advice);
+        if (advice != VirtMem::MemoryFlags::kNone && !advice_supported) {
+          EXPECT_NE(err, Error::kOk);
+          EXPECT_NULL(p);
+          continue;
+        }
+        EXPECT_OK(err);
+        EXPECT_TRUE(axl::is_aligned(uintptr_t(p), alignment));
+        memset(p, 0xA5, size);
+        EXPECT_EQ(static_cast<uint8_t*>(p)[size - 1], uint8_t(0xA5));
+        EXPECT_OK(VirtMem::release(p, size));
+      }
+    }
+  }
+
+  VirtMem::HardenedRuntimeInfo runtime_info = VirtMem::hardened_runtime_info();
+  if (!runtime_info.has_flag(VirtMem::HardenedRuntimeFlags::kEnabled) ||
+      runtime_info.has_flag(VirtMem::HardenedRuntimeFlags::kMapJit)) {
+    const size_t alignment = 2u * 1024u * 1024u;
+    void* executable;
+    EXPECT_OK(VirtMem::alloc_aligned(&executable, alignment, alignment, VirtMem::MemoryFlags::kAccessRWX));
+    {
+      VirtMem::ProtectJitReadWriteScope scope(executable, alignment);
+      memset(executable, 0xA5, alignment);
+    }
+    EXPECT_OK(VirtMem::release(executable, alignment));
+  }
+
+  const struct {
+    size_t size;
+    size_t alignment;
+  } invalid_allocations[] = {
+    {0, page_size},
+    {page_size - 1, page_size},
+    {page_size, page_size * 3},
+    {page_size, 1},
+    {page_size, page_size * 2}
+  };
+  for (const auto& allocation : invalid_allocations) {
+    void* p = nullptr;
+    EXPECT_EQ(VirtMem::alloc_aligned(&p, allocation.size, allocation.alignment, VirtMem::MemoryFlags::kAccessRW),
+              Error::kInvalidArgument);
+    EXPECT_NULL(p);
+  }
+  for (VirtMem::MemoryFlags flags : {VirtMem::MemoryFlags::kMMapLargePages, VirtMem::MemoryFlags::kMapShared}) {
+    void* p = nullptr;
+    EXPECT_EQ(VirtMem::alloc_aligned(&p, page_size, page_size, VirtMem::MemoryFlags::kAccessRW | flags),
+              Error::kInvalidArgument);
+    EXPECT_NULL(p);
+  }
+}
+#endif
 
 ASMJIT_END_NAMESPACE
 

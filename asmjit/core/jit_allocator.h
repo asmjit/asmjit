@@ -94,6 +94,14 @@ enum class JitAllocatorOptions : uint32_t {
   //! \ref JitAllocator::CreateParams::address_range.
   kStrictAddressRange = 0x00000080u,
 
+  //! Request transparent huge page advice for single mappings on Linux.
+  //!
+  //! Uses anonymous mappings aligned to \ref VirtMem::large_page_size(), without inspecting kernel policy.
+  //! Failed mappings or advice fall back to unadvised mappings.
+  //! Dual mapping and address-range placement use the existing paths without transparent huge page advice.
+  //! This option takes precedence over \ref kUseLargePages.
+  kUseTransparentHugePages = 0x00000100u,
+
   //! Use a custom fill pattern, must be combined with `kFlagFillUnusedMemory`.
   kCustomFillPattern = 0x10000000u
 };

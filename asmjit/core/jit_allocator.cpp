@@ -677,22 +677,28 @@ static Error JitAllocator_new_block(JitAllocatorPrivateImpl* impl, JitAllocatorB
   }
   else {
     bool allocate_regular_pages = true;
-    if (axl::test(impl->options, JitAllocatorOptions::kUseLargePages)) {
+    bool use_thp = axl::test(impl->options, JitAllocatorOptions::kUseTransparentHugePages);
+    if ((use_thp && !impl->address_range_requested) ||
+        (!use_thp && axl::test(impl->options, JitAllocatorOptions::kUseLargePages))) {
       size_t large_page_size = VirtMem::large_page_size();
       bool try_large_page = block_size >= large_page_size || axl::test(impl->options, JitAllocatorOptions::kAlignBlockSizeToLargePage);
 
-      // Only proceed if we can actually allocate large pages.
       if (large_page_size && try_large_page) {
         size_t large_block_size = axl::align_up(block_size, large_page_size);
-        Error err = JitAllocator_alloc_virt_mem(impl, virt_mem, large_block_size, mem_flags | VirtMem::MemoryFlags::kMMapLargePages);
+        Error err = use_thp
+          ? VirtMem::alloc_aligned(&virt_mem.rx, large_block_size, large_page_size,
+                                   mem_flags | VirtMem::MemoryFlags::kMAdviseLargePages)
+          : JitAllocator_alloc_virt_mem(impl, virt_mem, large_block_size, mem_flags | VirtMem::MemoryFlags::kMMapLargePages);
 
         if (err == Error::kOk) {
-          // Large page(s) allocated.
           allocate_regular_pages = false;
           block_size = large_block_size;
-          block_flags |= JitAllocatorBlock::kFlagLargePages;
+          // Transparent huge page advice does not guarantee large page backing.
+          if (!use_thp) {
+            block_flags |= JitAllocatorBlock::kFlagLargePages;
+          }
         }
-        else {
+        else if (!use_thp) {
           // Fallback to regular pages if failed to allocate large page(s).
           mem_flags |= VirtMem::MemoryFlags::kMAdviseLargePages;
         }
